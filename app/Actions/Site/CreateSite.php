@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\CreateSite as CreateSiteContract;
 use App\Enums\SiteStatus;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
@@ -19,7 +20,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-class CreateSite
+class CreateSite implements CreateSiteContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -28,7 +29,7 @@ class CreateSite
      */
     public function create(Server $server, array $input): Site
     {
-        Validator::make($input, self::rules($server, $input))->validate();
+        $this->validate($server, $input);
 
         DB::beginTransaction();
         try {
@@ -107,11 +108,7 @@ class CreateSite
         }
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
-    public static function rules(Server $server, array $input): array
+    private function validate(Server $server, array $input): void
     {
         $rules = [
             'type' => [
@@ -136,14 +133,14 @@ class CreateSite
             ],
         ];
 
-        return array_merge($rules, self::typeRules($server, $input));
+        Validator::make($input, array_merge($rules, $this->typeRules($server, $input)))->validate();
     }
 
     /**
      * @param  array<string, mixed>  $input
      * @return array<string, array<string>>
      */
-    private static function typeRules(Server $server, array $input): array
+    private function typeRules(Server $server, array $input): array
     {
         if (! isset($input['type']) || ! config('site.types.'.$input['type'])) {
             return [];

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\SshKey\CreateSshKey;
-use App\Actions\SshKey\DeleteKeyFromServer;
-use App\Actions\SshKey\DeployKeyToServer;
+use App\Contracts\Actions\SshKey\CreateSshKey;
+use App\Contracts\Actions\SshKey\DeleteKeyFromServer;
+use App\Contracts\Actions\SshKey\DeployKeyToServer;
 use App\Exceptions\SSHError;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SshKeyResource;

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Server;
 
+use App\Contracts\Actions\Server\CheckConnection as CheckConnectionContract;
 use App\Enums\ServerStatus;
 use App\Facades\Notifier;
 use App\Models\Server;
@@ -9,7 +10,7 @@ use App\Notifications\ServerConnected;
 use App\Notifications\ServerDisconnected;
 use Throwable;
 
-class CheckConnection
+class CheckConnection implements CheckConnectionContract
 {
     public function check(Server $server, int $retry = 2): Server
     {

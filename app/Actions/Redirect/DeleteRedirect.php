@@ -2,13 +2,14 @@
 
 namespace App\Actions\Redirect;
 
+use App\Contracts\Actions\Redirect\DeleteRedirect as DeleteRedirectContract;
 use App\Enums\RedirectStatus;
 use App\Models\Redirect;
 use App\Models\Service;
 use App\Models\Site;
 use App\Services\Webserver\Webserver;
 
-class DeleteRedirect
+class DeleteRedirect implements DeleteRedirectContract
 {
     public function delete(Site $site, Redirect $redirect): void
     {

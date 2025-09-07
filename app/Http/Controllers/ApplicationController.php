@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Site\Deploy;
-use App\Actions\Site\Rollback;
-use App\Actions\Site\UpdateDeploymentScript;
-use App\Actions\Site\UpdateEnv;
-use App\Actions\Site\UpdateLoadBalancer;
+use App\Contracts\Actions\Site\Deploy;
+use App\Contracts\Actions\Site\Rollback;
+use App\Contracts\Actions\Site\UpdateDeploymentScript;
+use App\Contracts\Actions\Site\UpdateEnv;
+use App\Contracts\Actions\Site\UpdateLoadBalancer;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Exceptions\FailedToDestroyGitHook;
 use App\Exceptions\SourceControlIsNotConnected;

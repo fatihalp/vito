@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\User\CreateUser;
-use App\Actions\User\UpdateUser;
+use App\Contracts\Actions\User\CreateUser;
+use App\Contracts\Actions\User\UpdateUser;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
 use App\Models\User;

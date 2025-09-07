@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\PHP\ChangeDefaultCli;
-use App\Actions\PHP\GetPHPIni;
-use App\Actions\PHP\InstallPHPExtension;
-use App\Actions\PHP\UpdatePHPIni;
+use App\Contracts\Actions\PHP\ChangeDefaultCli;
+use App\Contracts\Actions\PHP\GetPHPIni;
+use App\Contracts\Actions\PHP\InstallPHPExtension;
+use App\Contracts\Actions\PHP\UpdatePHPIni;
 use App\Exceptions\SSHError;
 use App\Http\Resources\ServiceResource;
 use App\Models\Server;

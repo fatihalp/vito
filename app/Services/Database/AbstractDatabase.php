@@ -2,7 +2,7 @@
 
 namespace App\Services\Database;
 
-use App\Actions\Database\SyncDatabases;
+use App\Contracts\Actions\Database\SyncDatabases;
 use App\Enums\BackupStatus;
 use App\Exceptions\ServiceInstallationFailed;
 use App\Exceptions\SSHError;

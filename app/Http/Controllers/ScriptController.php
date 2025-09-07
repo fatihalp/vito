@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Script\CreateScript;
-use App\Actions\Script\EditScript;
-use App\Actions\Script\ExecuteScript;
+use App\Contracts\Actions\Script\CreateScript;
+use App\Contracts\Actions\Script\EditScript;
+use App\Contracts\Actions\Script\ExecuteScript;
 use App\Http\Resources\ScriptExecutionResource;
 use App\Http\Resources\ScriptResource;
 use App\Models\Script;

@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Actions\Service\Manage;
+use App\Contracts\Actions\Service\Manage;
 use App\Enums\ServiceStatus;
 use App\Exceptions\ServiceInstallationFailed;
 use App\Services\Firewall\Firewall;

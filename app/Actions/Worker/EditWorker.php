@@ -2,6 +2,7 @@
 
 namespace App\Actions\Worker;
 
+use App\Contracts\Actions\Worker\EditWorker as EditWorkerContract;
 use App\Enums\WorkerStatus;
 use App\Models\Service;
 use App\Models\Site;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class EditWorker
+class EditWorker implements EditWorkerContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -20,7 +21,7 @@ class EditWorker
      */
     public function edit(Worker $worker, array $input): Worker
     {
-        Validator::make($input, self::rules($worker, $worker->site))->validate();
+        $this->validate($worker, $input, $worker->site);
 
         $worker->fill([
             'name' => $input['name'],
@@ -61,12 +62,9 @@ class EditWorker
         return $worker;
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Worker $worker, ?Site $site = null): array
+    private function validate(Worker $worker, array $input, ?Site $site = null): void
     {
-        return [
+        $rules = [
             'name' => [
                 'required',
                 'string',
@@ -102,5 +100,7 @@ class EditWorker
                 'min:1',
             ],
         ];
+
+        Validator::make($input, $rules)->validate();
     }
 }

@@ -2,11 +2,12 @@
 
 namespace App\Actions\Projects;
 
+use App\Contracts\Actions\Projects\UpdateProject as UpdateProjectContract;
 use App\Models\Project;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class UpdateProject
+class UpdateProject implements UpdateProjectContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -26,12 +27,9 @@ class UpdateProject
         return $project;
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Project $project): array
+    private function validate(Project $project, array $input): void
     {
-        return [
+        $rules = [
             'name' => [
                 'required',
                 'string',
@@ -40,13 +38,7 @@ class UpdateProject
                 'lowercase:projects,name',
             ],
         ];
-    }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
-    private function validate(Project $project, array $input): void
-    {
-        Validator::make($input, self::rules($project))->validate();
+        Validator::make($input, $rules)->validate();
     }
 }

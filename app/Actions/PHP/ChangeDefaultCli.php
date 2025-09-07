@@ -2,6 +2,7 @@
 
 namespace App\Actions\PHP;
 
+use App\Contracts\Actions\PHP\ChangeDefaultCli as ChangeDefaultCliContract;
 use App\Enums\ServiceStatus;
 use App\Exceptions\SSHError;
 use App\Models\Server;
@@ -9,7 +10,7 @@ use App\Models\Service;
 use App\Services\PHP\PHP;
 use Illuminate\Validation\ValidationException;
 
-class ChangeDefaultCli
+class ChangeDefaultCli implements ChangeDefaultCliContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -41,7 +42,7 @@ class ChangeDefaultCli
      *
      * @throws ValidationException
      */
-    public function validate(Server $server, array $input): void
+    private function validate(Server $server, array $input): void
     {
         if (! isset($input['version']) || ! in_array($input['version'], $server->installedPHPVersions())) {
             throw ValidationException::withMessages(

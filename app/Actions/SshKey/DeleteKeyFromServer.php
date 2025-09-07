@@ -2,12 +2,13 @@
 
 namespace App\Actions\SshKey;
 
+use App\Contracts\Actions\SshKey\DeleteKeyFromServer as DeleteKeyFromServerContract;
 use App\Enums\SshKeyStatus;
 use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\SshKey;
 
-class DeleteKeyFromServer
+class DeleteKeyFromServer implements DeleteKeyFromServerContract
 {
     /**
      * @throws SSHError

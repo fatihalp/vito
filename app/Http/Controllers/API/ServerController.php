@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Server\CreateServer;
-use App\Actions\Server\RebootServer;
-use App\Actions\Server\Update;
+use App\Contracts\Actions\Server\CreateServer;
+use App\Contracts\Actions\Server\RebootServer;
+use App\Contracts\Actions\Server\Update;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ServerResource;
 use App\Models\Project;
@@ -55,8 +55,6 @@ class ServerController extends Controller
     public function create(Request $request, Project $project): ServerResource
     {
         $this->authorize('create', [Server::class, $project]);
-
-        $this->validate($request, CreateServer::rules($project, $request->input()));
 
         /** @var User $user */
         $user = auth()->user();

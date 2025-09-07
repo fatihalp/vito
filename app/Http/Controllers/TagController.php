@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Tag\CreateTag;
-use App\Actions\Tag\DeleteTag;
-use App\Actions\Tag\EditTag;
+use App\Contracts\Actions\Tag\CreateTag;
+use App\Contracts\Actions\Tag\DeleteTag;
+use App\Contracts\Actions\Tag\EditTag;
 use App\Http\Resources\TagResource;
 use App\Models\Tag;
 use Illuminate\Http\RedirectResponse;

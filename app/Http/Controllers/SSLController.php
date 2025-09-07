@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SSL\ActivateSSL;
-use App\Actions\SSL\CreateSSL;
-use App\Actions\SSL\DeactivateSSL;
-use App\Actions\SSL\DeleteSSL;
+use App\Contracts\Actions\SSL\ActivateSSL;
+use App\Contracts\Actions\SSL\CreateSSL;
+use App\Contracts\Actions\SSL\DeactivateSSL;
+use App\Contracts\Actions\SSL\DeleteSSL;
 use App\Http\Resources\SslResource;
 use App\Models\Server;
 use App\Models\Site;

@@ -2,12 +2,13 @@
 
 namespace App\Actions\Worker;
 
+use App\Contracts\Actions\Worker\ManageWorker as ManageWorkerContract;
 use App\Enums\WorkerStatus;
 use App\Models\Service;
 use App\Models\Worker;
 use App\Services\ProcessManager\ProcessManager;
 
-class ManageWorker
+class ManageWorker implements ManageWorkerContract
 {
     public function start(Worker $worker): void
     {

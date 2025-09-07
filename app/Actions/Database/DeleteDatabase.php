@@ -2,12 +2,13 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\DeleteDatabase as DeleteDatabaseContract;
 use App\Models\Backup;
 use App\Models\Database;
 use App\Models\Server;
 use App\Models\Service;
 
-class DeleteDatabase
+class DeleteDatabase implements DeleteDatabaseContract
 {
     public function delete(Server $server, Database $database): void
     {

@@ -2,12 +2,13 @@
 
 namespace App\Actions\Server;
 
+use App\Contracts\Actions\Server\Update as UpdateContract;
 use App\Enums\ServerStatus;
 use App\Facades\Notifier;
 use App\Models\Server;
 use App\Notifications\ServerUpdateFailed;
 
-class Update
+class Update implements UpdateContract
 {
     public function update(Server $server): void
     {

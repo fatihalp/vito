@@ -2,6 +2,7 @@
 
 namespace App\Actions\Service;
 
+use App\Contracts\Actions\Service\Install as InstallContract;
 use App\Enums\ServiceStatus;
 use App\Exceptions\SSHError;
 use App\Models\Server;
@@ -9,7 +10,7 @@ use App\Models\Service;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class Install
+class Install implements InstallContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -18,7 +19,7 @@ class Install
      */
     public function install(Server $server, array $input): Service
     {
-        Validator::make($input, self::rules($input))->validate();
+        $this->validate($input);
 
         $name = $input['name'];
         $input['type'] = config("service.services.$name.type");
@@ -55,11 +56,7 @@ class Install
         return $service;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<int, mixed>>
-     */
-    public static function rules(array $input): array
+    private function validate(array $input): void
     {
         $rules = [
             'name' => [
@@ -74,6 +71,6 @@ class Install
             $rules['version'][] = Rule::in(config("service.services.{$input['name']}.versions", []));
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

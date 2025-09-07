@@ -2,9 +2,10 @@
 
 namespace App\Actions\SSL;
 
+use App\Contracts\Actions\SSL\DeactivateSSL as DeactivateSSLContract;
 use App\Models\Ssl;
 
-class DeactivateSSL
+class DeactivateSSL implements DeactivateSSLContract
 {
     public function deactivate(Ssl $ssl): void
     {

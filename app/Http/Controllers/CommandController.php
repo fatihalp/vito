@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Site\CreateCommand;
-use App\Actions\Site\EditCommand;
-use App\Actions\Site\ExecuteCommand;
+use App\Contracts\Actions\Site\CreateCommand;
+use App\Contracts\Actions\Site\EditCommand;
+use App\Contracts\Actions\Site\ExecuteCommand;
 use App\Http\Resources\CommandExecutionResource;
 use App\Http\Resources\CommandResource;
 use App\Models\Command;

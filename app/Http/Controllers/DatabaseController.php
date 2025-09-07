@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Database\CreateDatabase;
-use App\Actions\Database\DeleteDatabase;
-use App\Actions\Database\SyncDatabases;
+use App\Contracts\Actions\Database\CreateDatabase;
+use App\Contracts\Actions\Database\DeleteDatabase;
+use App\Contracts\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;
 use App\Models\Server;

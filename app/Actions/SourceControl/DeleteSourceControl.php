@@ -2,10 +2,11 @@
 
 namespace App\Actions\SourceControl;
 
+use App\Contracts\Actions\SourceControl\DeleteSourceControl as DeleteSourceControlContract;
 use App\Models\SourceControl;
 use Illuminate\Validation\ValidationException;
 
-class DeleteSourceControl
+class DeleteSourceControl implements DeleteSourceControlContract
 {
     public function delete(SourceControl $sourceControl): void
     {

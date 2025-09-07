@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\StorageProvider\CreateStorageProvider;
-use App\Actions\StorageProvider\DeleteStorageProvider;
-use App\Actions\StorageProvider\EditStorageProvider;
+use App\Contracts\Actions\StorageProvider\CreateStorageProvider;
+use App\Contracts\Actions\StorageProvider\DeleteStorageProvider;
+use App\Contracts\Actions\StorageProvider\EditStorageProvider;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\StorageProviderResource;
 use App\Models\Project;

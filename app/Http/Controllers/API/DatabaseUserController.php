@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Database\CreateDatabaseUser;
-use App\Actions\Database\DeleteDatabaseUser;
-use App\Actions\Database\LinkUser;
+use App\Contracts\Actions\Database\CreateDatabaseUser;
+use App\Contracts\Actions\Database\DeleteDatabaseUser;
+use App\Contracts\Actions\Database\LinkUser;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DatabaseUserResource;
 use App\Models\DatabaseUser;

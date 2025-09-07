@@ -2,11 +2,12 @@
 
 namespace App\Actions\ServerLog;
 
+use App\Contracts\Actions\ServerLog\CreateLog as CreateLogContract;
 use App\Models\Server;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class CreateLog
+class CreateLog implements CreateLogContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -15,7 +16,7 @@ class CreateLog
      */
     public function create(Server $server, array $input): void
     {
-        Validator::make($input, self::rules())->validate();
+        $this->validate($input);
 
         $server->logs()->create([
             'is_remote' => true,
@@ -25,13 +26,10 @@ class CreateLog
         ]);
     }
 
-    /**
-     * @return array<string, string>
-     */
-    public static function rules(): array
+    private function validate(array $input): void
     {
-        return [
+        Validator::make($input, [
             'path' => 'required',
-        ];
+        ])->validate();
     }
 }

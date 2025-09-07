@@ -2,12 +2,13 @@
 
 namespace App\Actions\User;
 
+use App\Contracts\Actions\User\UpdateUserPassword as UpdateUserPasswordContract;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Fortify\Contracts\UpdatesUserPasswords;
 
-class UpdateUserPassword implements UpdatesUserPasswords
+class UpdateUserPassword implements UpdatesUserPasswords, UpdateUserPasswordContract
 {
     use PasswordValidationRules;
 

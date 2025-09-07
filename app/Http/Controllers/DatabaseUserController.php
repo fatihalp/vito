@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Database\CreateDatabaseUser;
-use App\Actions\Database\DeleteDatabaseUser;
-use App\Actions\Database\LinkUser;
-use App\Actions\Database\SyncDatabaseUsers;
+use App\Contracts\Actions\Database\CreateDatabaseUser;
+use App\Contracts\Actions\Database\DeleteDatabaseUser;
+use App\Contracts\Actions\Database\LinkUser;
+use App\Contracts\Actions\Database\SyncDatabaseUsers;
 use App\Http\Resources\DatabaseResource;
 use App\Http\Resources\DatabaseUserResource;
 use App\Models\DatabaseUser;

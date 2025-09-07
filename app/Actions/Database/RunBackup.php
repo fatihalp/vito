@@ -2,6 +2,7 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\RunBackup as RunBackupContract;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupStatus;
 use App\Models\Backup;
@@ -10,7 +11,7 @@ use App\Models\Service;
 use App\Services\Database\Database;
 use Illuminate\Support\Str;
 
-class RunBackup
+class RunBackup implements RunBackupContract
 {
     public function run(Backup $backup): BackupFile
     {

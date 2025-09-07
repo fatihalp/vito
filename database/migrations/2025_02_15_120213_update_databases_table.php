@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\Database\SyncDatabases;
+use App\Contracts\Actions\Database\SyncDatabases;
 use App\Enums\ServerStatus;
 use App\Models\Server;
 use Illuminate\Database\Migrations\Migration;

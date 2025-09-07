@@ -2,10 +2,11 @@
 
 namespace App\Actions\StorageProvider;
 
+use App\Contracts\Actions\StorageProvider\DeleteStorageProvider as DeleteStorageProviderContract;
 use App\Models\StorageProvider;
 use Illuminate\Validation\ValidationException;
 
-class DeleteStorageProvider
+class DeleteStorageProvider implements DeleteStorageProviderContract
 {
     public function delete(StorageProvider $storageProvider): void
     {

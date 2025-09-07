@@ -2,12 +2,13 @@
 
 namespace App\Actions\CronJob;
 
+use App\Contracts\Actions\CronJob\EnableCronJob as EnableCronJobContract;
 use App\Enums\CronjobStatus;
 use App\Exceptions\SSHError;
 use App\Models\CronJob;
 use App\Models\Server;
 
-class EnableCronJob
+class EnableCronJob implements EnableCronJobContract
 {
     /**
      * @throws SSHError

@@ -2,12 +2,13 @@
 
 namespace App\Actions\SshKey;
 
+use App\Contracts\Actions\SshKey\DeployKeyToServer as DeployKeyToServerContract;
 use App\Enums\SshKeyStatus;
 use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\SshKey;
 
-class DeployKeyToServer
+class DeployKeyToServer implements DeployKeyToServerContract
 {
     /**
      * @throws SSHError

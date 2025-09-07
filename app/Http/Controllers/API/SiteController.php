@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Site\CreateSite;
-use App\Actions\Site\Deploy;
-use App\Actions\Site\UpdateAliases;
-use App\Actions\Site\UpdateDeploymentScript;
-use App\Actions\Site\UpdateEnv;
-use App\Actions\Site\UpdateLoadBalancer;
+use App\Contracts\Actions\Site\CreateSite;
+use App\Contracts\Actions\Site\Deploy;
+use App\Contracts\Actions\Site\UpdateAliases;
+use App\Contracts\Actions\Site\UpdateDeploymentScript;
+use App\Contracts\Actions\Site\UpdateEnv;
+use App\Contracts\Actions\Site\UpdateLoadBalancer;
 use App\Enums\LoadBalancerMethod;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Http\Controllers\Controller;
@@ -111,8 +111,6 @@ class SiteController extends Controller
 
         $this->validateRoute($project, $server, $site);
 
-        $this->validate($request, UpdateLoadBalancer::rules($site));
-
         app(UpdateLoadBalancer::class)->update($site, $request->all());
 
         return new SiteResource($site);
@@ -160,8 +158,6 @@ class SiteController extends Controller
         $this->authorize('update', [$site, $server]);
 
         $this->validateRoute($project, $server, $site);
-
-        $this->validate($request, UpdateDeploymentScript::rules());
 
         app(UpdateDeploymentScript::class)->update($site->deploymentScript, $request->all());
 

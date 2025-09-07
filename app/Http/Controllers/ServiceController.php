@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Service\Install;
-use App\Actions\Service\Manage;
-use App\Actions\Service\Uninstall;
+use App\Contracts\Actions\Service\Install;
+use App\Contracts\Actions\Service\Manage;
+use App\Contracts\Actions\Service\Uninstall;
 use App\Http\Resources\ServiceResource;
 use App\Models\Server;
 use App\Models\Service;

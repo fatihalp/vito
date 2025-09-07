@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Actions\Service;
 
-use App\Actions\Service\Install;
+use App\Contracts\Actions\Service\Install;
 use App\Enums\ServiceStatus;
 use App\Facades\SSH;
 use Illuminate\Foundation\Testing\RefreshDatabase;

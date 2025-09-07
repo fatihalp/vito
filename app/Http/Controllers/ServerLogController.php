@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\ServerLog\CreateLog;
-use App\Actions\ServerLog\UpdateLog;
+use App\Contracts\Actions\ServerLog\CreateLog;
+use App\Contracts\Actions\ServerLog\UpdateLog;
 use App\Helpers\QueryBuilder;
 use App\Http\Resources\ServerLogResource;
 use App\Models\Server;

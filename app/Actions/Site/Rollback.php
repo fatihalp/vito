@@ -2,13 +2,14 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\Rollback as RollbackContract;
 use App\Enums\DeploymentStatus;
 use App\Facades\Notifier;
 use App\Models\Deployment;
 use App\Notifications\DeploymentCompleted;
 use Illuminate\Validation\ValidationException;
 
-class Rollback
+class Rollback implements RollbackContract
 {
     public function run(Deployment $deployment): void
     {

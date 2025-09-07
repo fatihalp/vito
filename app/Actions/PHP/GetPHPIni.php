@@ -2,6 +2,7 @@
 
 namespace App\Actions\PHP;
 
+use App\Contracts\Actions\PHP\GetPHPIni as GetPHPIniContract;
 use App\Enums\PHPIniType;
 use App\Models\Server;
 use App\Models\Service;
@@ -11,7 +12,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-class GetPHPIni
+class GetPHPIni implements GetPHPIniContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -42,7 +43,7 @@ class GetPHPIni
      *
      * @throws ValidationException
      */
-    public function validate(Server $server, array $input): void
+    private function validate(Server $server, array $input): void
     {
         Validator::make($input, [
             'type' => [

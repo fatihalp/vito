@@ -2,12 +2,13 @@
 
 namespace App\Actions\SourceControl;
 
+use App\Contracts\Actions\SourceControl\EditSourceControl as EditSourceControlContract;
 use App\Models\Project;
 use App\Models\SourceControl;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class EditSourceControl
+class EditSourceControl implements EditSourceControlContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -16,7 +17,11 @@ class EditSourceControl
      */
     public function edit(SourceControl $sourceControl, Project $project, array $input): SourceControl
     {
-        Validator::make($input, self::rules())->validate();
+        Validator::make($input, [
+            'name' => [
+                'required',
+            ],
+        ])->validate();
 
         $sourceControl->profile = $input['name'];
         $sourceControl->project_id = isset($input['global']) && $input['global'] ? null : $project->id;
@@ -24,17 +29,5 @@ class EditSourceControl
         $sourceControl->save();
 
         return $sourceControl;
-    }
-
-    /**
-     * @return array<string, array<int, mixed>>
-     */
-    public static function rules(): array
-    {
-        return [
-            'name' => [
-                'required',
-            ],
-        ];
     }
 }

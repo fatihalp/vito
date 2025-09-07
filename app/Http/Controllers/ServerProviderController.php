@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\ServerProvider\CreateServerProvider;
-use App\Actions\ServerProvider\DeleteServerProvider;
-use App\Actions\ServerProvider\EditServerProvider;
+use App\Contracts\Actions\ServerProvider\CreateServerProvider;
+use App\Contracts\Actions\ServerProvider\DeleteServerProvider;
+use App\Contracts\Actions\ServerProvider\EditServerProvider;
 use App\Http\Resources\ServerProviderResource;
 use App\Models\ServerProvider;
 use Illuminate\Http\JsonResponse;

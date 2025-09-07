@@ -2,13 +2,14 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\UpdateAliases as UpdateAliasesContract;
 use App\Models\Service;
 use App\Models\Site;
 use App\Services\Webserver\Webserver;
 use App\ValidationRules\DomainRule;
 use Illuminate\Support\Facades\Validator;
 
-class UpdateAliases
+class UpdateAliases implements UpdateAliasesContract
 {
     /**
      * @param  array<string, mixed>  $input

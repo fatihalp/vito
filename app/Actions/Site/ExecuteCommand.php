@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\ExecuteCommand as ExecuteCommandContract;
 use App\Enums\CommandExecutionStatus;
 use App\Models\Command;
 use App\Models\CommandExecution;
@@ -9,14 +10,14 @@ use App\Models\ServerLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 
-class ExecuteCommand
+class ExecuteCommand implements ExecuteCommandContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function execute(Command $command, User $user, array $input): CommandExecution
     {
-        Validator::make($input, self::rules($command))->validate();
+        $this->validate($command, $input);
 
         $variables = [];
         foreach ($command->getVariables() as $variable) {
@@ -61,10 +62,7 @@ class ExecuteCommand
         return $execution;
     }
 
-    /**
-     * @return array<string, string|array<int, mixed>>
-     */
-    public static function rules(Command $command): array
+    private function validate(Command $command, array $input): void
     {
         $rules = [];
         foreach ($command->getVariables() as $variable) {
@@ -75,6 +73,6 @@ class ExecuteCommand
             ];
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

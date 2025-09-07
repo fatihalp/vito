@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SshKey\DeleteKeyFromServer;
-use App\Actions\SshKey\DeployKeyToServer;
+use App\Contracts\Actions\SshKey\DeleteKeyFromServer;
+use App\Contracts\Actions\SshKey\DeployKeyToServer;
 use App\Exceptions\SSHError;
 use App\Http\Resources\SshKeyResource;
 use App\Models\Server;

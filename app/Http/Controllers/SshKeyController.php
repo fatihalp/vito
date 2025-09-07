@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SshKey\CreateSshKey;
+use App\Contracts\Actions\SshKey\CreateSshKey;
 use App\Http\Resources\SshKeyResource;
 use App\Models\SshKey;
 use Illuminate\Http\RedirectResponse;

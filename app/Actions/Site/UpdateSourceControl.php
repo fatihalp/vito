@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\UpdateSourceControl as UpdateSourceControlContract;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
 use App\Exceptions\SourceControlIsNotConnected;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class UpdateSourceControl
+class UpdateSourceControl implements UpdateSourceControlContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -19,7 +20,12 @@ class UpdateSourceControl
      */
     public function update(Site $site, array $input): void
     {
-        Validator::make($input, self::rules())->validate();
+        Validator::make($input, [
+            'source_control' => [
+                'required',
+                Rule::exists('source_controls', 'id'),
+            ],
+        ])->validate();
 
         $site->source_control_id = $input['source_control'];
         try {
@@ -40,18 +46,5 @@ class UpdateSourceControl
             ]);
         }
         $site->save();
-    }
-
-    /**
-     * @return array<string, array<int, mixed>>
-     */
-    public static function rules(): array
-    {
-        return [
-            'source_control' => [
-                'required',
-                Rule::exists('source_controls', 'id'),
-            ],
-        ];
     }
 }

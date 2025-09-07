@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Site\Deploy;
+use App\Contracts\Actions\Site\Deploy;
 use App\Exceptions\FailedToDestroyGitHook;
 use App\Http\Controllers\Controller;
 use App\Models\GitHook;

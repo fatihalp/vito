@@ -2,6 +2,7 @@
 
 namespace App\Actions\CronJob;
 
+use App\Contracts\Actions\CronJob\CreateCronJob as CronJobCreateContract;
 use App\Enums\CronjobStatus;
 use App\Exceptions\SSHError;
 use App\Models\CronJob;
@@ -10,7 +11,7 @@ use App\ValidationRules\CronRule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class CreateCronJob
+class CreateCronJob implements CronJobCreateContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -19,7 +20,7 @@ class CreateCronJob
      */
     public function create(Server $server, array $input): CronJob
     {
-        Validator::make($input, self::rules($input, $server))->validate();
+        $this->validate($input, $server);
 
         $cronJob = new CronJob([
             'server_id' => $server->id,
@@ -37,11 +38,7 @@ class CreateCronJob
         return $cronJob;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<int, mixed>>
-     */
-    public static function rules(array $input, Server $server): array
+    private function validate(array $input, Server $server): void
     {
         $rules = [
             'command' => [
@@ -64,6 +61,6 @@ class CreateCronJob
             ];
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

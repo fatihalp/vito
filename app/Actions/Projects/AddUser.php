@@ -2,20 +2,21 @@
 
 namespace App\Actions\Projects;
 
+use App\Contracts\Actions\Projects\AddUser as AddUserContract;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class AddUser
+class AddUser implements AddUserContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function add(Project $project, array $input): void
     {
-        Validator::make($input, self::rules($project))->validate();
+        $this->validate($project, $input);
 
         /** @var User $user */
         $user = User::query()->findOrFail($input['user']);
@@ -24,12 +25,9 @@ class AddUser
         $project->users()->attach($user);
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Project $project): array
+    private function validate(Project $project, array $input): void
     {
-        return [
+        $rules = [
             'user' => [
                 'required',
                 Rule::exists('users', 'id'),
@@ -38,5 +36,7 @@ class AddUser
                 }),
             ],
         ];
+
+        Validator::make($input, $rules)->validate();
     }
 }

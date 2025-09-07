@@ -2,19 +2,20 @@
 
 namespace App\Actions\Monitoring;
 
+use App\Contracts\Actions\Monitoring\UpdateMetricSettings as UpdateMetricSettingsContract;
 use App\Models\Server;
 use App\Models\Service;
 use App\Services\ServiceInterface;
 use Illuminate\Support\Facades\Validator;
 
-class UpdateMetricSettings
+class UpdateMetricSettings implements UpdateMetricSettingsContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function update(Server $server, array $input): void
     {
-        Validator::make($input, self::rules())->validate();
+        $this->validate($input);
 
         /** @var Service $service */
         $service = $server->monitoring();
@@ -26,17 +27,14 @@ class UpdateMetricSettings
         $service->save();
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(): array
+    private function validate(array $input): void
     {
-        return [
+        Validator::make($input, [
             'data_retention' => [
                 'required',
                 'numeric',
                 'min:1',
             ],
-        ];
+        ])->validate();
     }
 }

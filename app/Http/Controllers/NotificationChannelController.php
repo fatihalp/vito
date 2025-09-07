@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\NotificationChannels\AddChannel;
-use App\Actions\NotificationChannels\EditChannel;
+use App\Contracts\Actions\NotificationChannels\AddChannel;
+use App\Contracts\Actions\NotificationChannels\EditChannel;
 use App\Http\Resources\NotificationChannelResource;
 use App\Models\NotificationChannel;
 use Illuminate\Http\RedirectResponse;

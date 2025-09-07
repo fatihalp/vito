@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Redirect\CreateRedirect;
-use App\Actions\Redirect\DeleteRedirect;
+use App\Contracts\Actions\Redirect\CreateRedirect;
+use App\Contracts\Actions\Redirect\DeleteRedirect;
 use App\Http\Resources\RedirectResource;
 use App\Models\Redirect;
 use App\Models\Server;

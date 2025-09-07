@@ -2,11 +2,12 @@
 
 namespace App\Actions\Service;
 
+use App\Contracts\Actions\Service\Uninstall as UninstallContract;
 use App\Enums\ServiceStatus;
 use App\Models\Service;
 use Illuminate\Support\Facades\Validator;
 
-class Uninstall
+class Uninstall implements UninstallContract
 {
     /*
      * @TODO: Implement the uninstaller for all service handlers

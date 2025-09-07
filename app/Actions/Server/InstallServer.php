@@ -2,6 +2,7 @@
 
 namespace App\Actions\Server;
 
+use App\Contracts\Actions\Server\InstallServer as InstallServerContract;
 use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
 use App\Exceptions\SSHConnectionError;
@@ -11,7 +12,7 @@ use App\Models\Server;
 use App\Notifications\ServerInstallationSucceed;
 use App\Services\PHP\PHP;
 
-class InstallServer
+class InstallServer implements InstallServerContract
 {
     protected Server $server;
 

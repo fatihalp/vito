@@ -2,9 +2,9 @@
 
 namespace App\Providers;
 
-use App\Actions\User\ResetUserPassword;
-use App\Actions\User\UpdateUserPassword;
-use App\Actions\User\UpdateUserProfileInformation;
+use App\Contracts\Actions\User\ResetUserPassword;
+use App\Contracts\Actions\User\UpdateUserPassword;
+use App\Contracts\Actions\User\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;

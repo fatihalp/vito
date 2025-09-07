@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Projects\CreateProject;
-use App\Actions\Projects\DeleteProject;
-use App\Actions\Projects\UpdateProject;
+use App\Contracts\Actions\Projects\CreateProject;
+use App\Contracts\Actions\Projects\DeleteProject;
+use App\Contracts\Actions\Projects\UpdateProject;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
@@ -44,8 +44,6 @@ class ProjectController extends Controller
     {
         $this->authorize('create', Project::class);
 
-        $this->validate($request, CreateProject::rules());
-
         /** @var User $user */
         $user = auth()->user();
         $project = app(CreateProject::class)->create($user, $request->all());
@@ -70,8 +68,6 @@ class ProjectController extends Controller
     public function update(Request $request, Project $project): ProjectResource
     {
         $this->authorize('update', $project);
-
-        $this->validate($request, UpdateProject::rules($project));
 
         $project = app(UpdateProject::class)->update($project, $request->all());
 

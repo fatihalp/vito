@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Monitoring\GetMetrics;
-use App\Actions\Monitoring\UpdateMetricSettings;
+use App\Contracts\Actions\Monitoring\GetMetrics;
+use App\Contracts\Actions\Monitoring\UpdateMetricSettings;
 use App\Enums\ServiceStatus;
 use App\Models\Metric;
 use App\Models\Server;

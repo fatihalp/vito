@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Worker\CreateWorker;
-use App\Actions\Worker\DeleteWorker;
-use App\Actions\Worker\EditWorker;
-use App\Actions\Worker\GetWorkerLogs;
-use App\Actions\Worker\ManageWorker;
+use App\Contracts\Actions\Worker\CreateWorker;
+use App\Contracts\Actions\Worker\DeleteWorker;
+use App\Contracts\Actions\Worker\EditWorker;
+use App\Contracts\Actions\Worker\GetWorkerLogs;
+use App\Contracts\Actions\Worker\ManageWorker;
 use App\Http\Resources\WorkerResource;
 use App\Models\Server;
 use App\Models\Site;

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Worker;
 
+use App\Contracts\Actions\Worker\CreateWorker as CreateWorkerContract;
 use App\Enums\WorkerStatus;
 use App\Models\Server;
 use App\Models\Service;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CreateWorker
+class CreateWorker implements CreateWorkerContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -21,7 +22,7 @@ class CreateWorker
      */
     public function create(Server $server, array $input, ?Site $site = null): Worker
     {
-        Validator::make($input, self::rules($server, $site))->validate();
+        $this->validate($server, $input, $site);
 
         $worker = new Worker([
             'server_id' => $server->id,
@@ -61,12 +62,9 @@ class CreateWorker
         return $worker;
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Server $server, ?Site $site = null): array
+    private function validate(Server $server, array $input, ?Site $site = null): void
     {
-        return [
+        Validator::make($input, [
             'name' => [
                 'required',
                 'string',
@@ -100,6 +98,6 @@ class CreateWorker
                 'numeric',
                 'min:1',
             ],
-        ];
+        ])->validate();
     }
 }

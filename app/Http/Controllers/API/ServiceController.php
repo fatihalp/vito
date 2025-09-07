@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Service\Manage;
-use App\Actions\Service\Uninstall;
+use App\Contracts\Actions\Service\Manage;
+use App\Contracts\Actions\Service\Uninstall;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ServiceResource;
 use App\Models\Project;

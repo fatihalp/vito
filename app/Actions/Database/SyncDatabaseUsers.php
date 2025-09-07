@@ -2,13 +2,14 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\SyncDatabaseUsers as SyncDatabaseUsersContract;
 use App\Enums\DatabaseUserStatus;
 use App\Models\DatabaseUser;
 use App\Models\Server;
 use App\Models\Service;
 use App\Services\Database\Database;
 
-class SyncDatabaseUsers
+class SyncDatabaseUsers implements SyncDatabaseUsersContract
 {
     public function sync(Server $server): void
     {

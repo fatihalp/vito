@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\CronJob\CreateCronJob;
-use App\Actions\CronJob\DeleteCronJob;
-use App\Actions\CronJob\DisableCronJob;
-use App\Actions\CronJob\EditCronJob;
-use App\Actions\CronJob\EnableCronJob;
+use App\Contracts\Actions\CronJob\CreateCronJob;
+use App\Contracts\Actions\CronJob\DeleteCronJob;
+use App\Contracts\Actions\CronJob\DisableCronJob;
+use App\Contracts\Actions\CronJob\EditCronJob;
+use App\Contracts\Actions\CronJob\EnableCronJob;
 use App\Exceptions\SSHError;
 use App\Http\Resources\CronJobResource;
 use App\Models\CronJob;

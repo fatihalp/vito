@@ -2,6 +2,7 @@
 
 namespace App\Actions\ServerProvider;
 
+use App\Contracts\Actions\ServerProvider\CreateServerProvider as CreateServerProviderContract;
 use App\Models\Project;
 use App\Models\Server;
 use App\Models\ServerProvider;
@@ -12,7 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CreateServerProvider
+class CreateServerProvider implements CreateServerProviderContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -21,7 +22,7 @@ class CreateServerProvider
      */
     public function create(User $user, Project $project, array $input): ServerProvider
     {
-        Validator::make($input, self::rules($input))->validate();
+        $this->validate($input);
 
         $provider = self::getProvider($input['provider']);
 
@@ -55,11 +56,7 @@ class CreateServerProvider
         return $provider;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
-    public static function rules(array $input): array
+    private function validate(array $input): void
     {
         $rules = [
             'name' => [
@@ -72,14 +69,14 @@ class CreateServerProvider
             ],
         ];
 
-        return array_merge($rules, self::providerRules($input));
+        Validator::make($input, array_merge($rules, $this->providerRules($input)))->validate();
     }
 
     /**
      * @param  array<string, mixed>  $input
      * @return array<string, array<string>>
      */
-    private static function providerRules(array $input): array
+    private function providerRules(array $input): array
     {
         if (! isset($input['provider'])) {
             return [];

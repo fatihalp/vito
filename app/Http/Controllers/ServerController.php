@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Server\CreateServer;
-use App\Actions\Server\RebootServer;
-use App\Actions\Server\TransferServer;
-use App\Actions\Server\Update;
+use App\Contracts\Actions\Server\CreateServer;
+use App\Contracts\Actions\Server\RebootServer;
+use App\Contracts\Actions\Server\TransferServer;
+use App\Contracts\Actions\Server\Update;
 use App\Exceptions\SSHError;
 use App\Helpers\QueryBuilder;
 use App\Http\Resources\ServerLogResource;

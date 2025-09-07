@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Site\DeleteSite;
-use App\Actions\Site\UpdateAliases;
-use App\Actions\Site\UpdateBranch;
-use App\Actions\Site\UpdatePHPVersion;
-use App\Actions\Site\UpdateSourceControl;
+use App\Contracts\Actions\Site\DeleteSite;
+use App\Contracts\Actions\Site\UpdateAliases;
+use App\Contracts\Actions\Site\UpdateBranch;
+use App\Contracts\Actions\Site\UpdatePHPVersion;
+use App\Contracts\Actions\Site\UpdateSourceControl;
 use App\Exceptions\SSHError;
 use App\Http\Resources\SourceControlResource;
 use App\Models\Server;

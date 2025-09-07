@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Actions\Server\CheckConnection;
+use App\Contracts\Actions\Server\CheckConnection;
 use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
 use App\Exceptions\SSHError;

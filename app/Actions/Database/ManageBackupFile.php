@@ -2,13 +2,14 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\ManageBackupFile as ManageBackupFileContract;
 use App\Enums\BackupFileStatus;
 use App\Models\BackupFile;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
-class ManageBackupFile
+class ManageBackupFile implements ManageBackupFileContract
 {
     /**
      * @throws Throwable

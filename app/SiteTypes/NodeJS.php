@@ -2,8 +2,8 @@
 
 namespace App\SiteTypes;
 
-use App\Actions\Worker\CreateWorker;
-use App\Actions\Worker\ManageWorker;
+use App\Contracts\Actions\Worker\CreateWorker;
+use App\Contracts\Actions\Worker\ManageWorker;
 use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\SSHError;
 use App\Models\Site;

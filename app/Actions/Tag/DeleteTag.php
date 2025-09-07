@@ -2,10 +2,11 @@
 
 namespace App\Actions\Tag;
 
+use App\Contracts\Actions\Tag\DeleteTag as DeleteTagContract;
 use App\Models\Tag;
 use Illuminate\Support\Facades\DB;
 
-class DeleteTag
+class DeleteTag implements DeleteTagContract
 {
     public function delete(Tag $tag): void
     {

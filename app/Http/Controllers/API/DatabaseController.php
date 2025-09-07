@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\Database\CreateDatabase;
-use App\Actions\Database\DeleteDatabase;
+use App\Contracts\Actions\Database\CreateDatabase;
+use App\Contracts\Actions\Database\DeleteDatabase;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;

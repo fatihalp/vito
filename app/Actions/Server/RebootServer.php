@@ -2,11 +2,12 @@
 
 namespace App\Actions\Server;
 
+use App\Contracts\Actions\Server\RebootServer as RebootServerContract;
 use App\Enums\ServerStatus;
 use App\Models\Server;
 use Throwable;
 
-class RebootServer
+class RebootServer implements RebootServerContract
 {
     public function reboot(Server $server): Server
     {

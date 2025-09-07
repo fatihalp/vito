@@ -2,12 +2,13 @@
 
 namespace App\Actions\User;
 
+use App\Contracts\Actions\User\UpdateProjects as UpdateProjectsContract;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class UpdateProjects
+class UpdateProjects implements UpdateProjectsContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -41,19 +42,11 @@ class UpdateProjects
      */
     private function validate(array $input): void
     {
-        validator($input, self::rules())->validate();
-    }
-
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(): array
-    {
-        return [
+        validator($input, [
             'projects.*' => [
                 'required',
                 Rule::exists('projects', 'id'),
             ],
-        ];
+        ])->validate();
     }
 }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\SourceControl\ConnectSourceControl;
-use App\Actions\SourceControl\DeleteSourceControl;
-use App\Actions\SourceControl\EditSourceControl;
+use App\Contracts\Actions\SourceControl\ConnectSourceControl;
+use App\Contracts\Actions\SourceControl\DeleteSourceControl;
+use App\Contracts\Actions\SourceControl\EditSourceControl;
 use App\Http\Resources\SourceControlResource;
 use App\Models\SourceControl;
 use Illuminate\Http\JsonResponse;

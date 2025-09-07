@@ -2,12 +2,13 @@
 
 namespace App\Actions\Projects;
 
+use App\Contracts\Actions\Projects\DeleteProject as DeleteProjectContract;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class DeleteProject
+class DeleteProject implements DeleteProjectContract
 {
     /**
      * @param  array<string, mixed>  $input

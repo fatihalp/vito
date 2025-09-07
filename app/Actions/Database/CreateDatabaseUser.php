@@ -2,6 +2,7 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\CreateDatabaseUser as CreateDatabaseUserContract;
 use App\Enums\DatabaseUserStatus;
 use App\Models\DatabaseUser;
 use App\Models\Server;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CreateDatabaseUser
+class CreateDatabaseUser implements CreateDatabaseUserContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -21,7 +22,7 @@ class CreateDatabaseUser
      */
     public function create(Server $server, array $input, array $links = []): DatabaseUser
     {
-        Validator::make($input, self::rules($server, $input))->validate();
+        $this->validate($server, $input);
 
         $databaseUser = new DatabaseUser([
             'server_id' => $server->id,
@@ -51,13 +52,7 @@ class CreateDatabaseUser
         return $databaseUser;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     *
-     * @throws ValidationException
-     */
-    public static function rules(Server $server, array $input): array
+    private function validate(Server $server, array $input): void
     {
         $rules = [
             'username' => [
@@ -74,6 +69,6 @@ class CreateDatabaseUser
             $rules['host'] = 'required';
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

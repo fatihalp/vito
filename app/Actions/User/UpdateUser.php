@@ -2,12 +2,13 @@
 
 namespace App\Actions\User;
 
+use App\Contracts\Actions\User\UpdateUser as UpdateUserContract;
 use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class UpdateUser
+class UpdateUser implements UpdateUserContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -34,15 +35,7 @@ class UpdateUser
      */
     private function validate(User $user, array $input): void
     {
-        Validator::make($input, self::rules($user))->validate();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public static function rules(User $user): array
-    {
-        return [
+        Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => [
                 'required',
@@ -53,6 +46,6 @@ class UpdateUser
                 'required',
                 Rule::in([UserRole::ADMIN, UserRole::USER]),
             ],
-        ];
+        ])->validate();
     }
 }

@@ -2,13 +2,14 @@
 
 namespace App\Actions\Tag;
 
+use App\Contracts\Actions\Tag\CreateTag as CreateTagContract;
 use App\Models\Tag;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CreateTag
+class CreateTag implements CreateTagContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -17,7 +18,15 @@ class CreateTag
      */
     public function create(User $user, array $input): Tag
     {
-        Validator::make($input, self::rules())->validate();
+        Validator::make($input, [
+            'name' => [
+                'required',
+            ],
+            'color' => [
+                'required',
+                Rule::in(config('core.colors')),
+            ],
+        ])->validate();
 
         $tag = Tag::query()
             ->where('project_id', $user->current_project_id)
@@ -38,21 +47,5 @@ class CreateTag
         $tag->save();
 
         return $tag;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public static function rules(): array
-    {
-        return [
-            'name' => [
-                'required',
-            ],
-            'color' => [
-                'required',
-                Rule::in(config('core.colors')),
-            ],
-        ];
     }
 }

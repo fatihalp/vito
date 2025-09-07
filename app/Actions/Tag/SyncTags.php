@@ -2,20 +2,21 @@
 
 namespace App\Actions\Tag;
 
+use App\Contracts\Actions\Tag\SyncTags as SyncTagsContract;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\Tag;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class SyncTags
+class SyncTags implements SyncTagsContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function sync(int $projectId, array $input): void
     {
-        Validator::make($input, self::rules($projectId))->validate();
+        $this->validate($projectId, $input);
 
         /** @var Server|Site $taggable */
         $taggable = $input['taggable_type']::findOrFail($input['taggable_id']);
@@ -25,12 +26,9 @@ class SyncTags
         $taggable->tags()->sync($tags->pluck('id'));
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(int $projectId): array
+    private function validate(int $projectId, array $input): void
     {
-        return [
+        $rules = [
             'tags.*' => [
                 'required',
                 Rule::exists('tags', 'id')->where('project_id', $projectId),
@@ -44,5 +42,7 @@ class SyncTags
                 Rule::in(config('core.taggable_types')),
             ],
         ];
+
+        Validator::make($input, $rules)->validate();
     }
 }

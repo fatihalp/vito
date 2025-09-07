@@ -2,6 +2,7 @@
 
 namespace App\Actions\NotificationChannels;
 
+use App\Contracts\Actions\NotificationChannels\AddChannel as AddChannelContract;
 use App\Models\NotificationChannel;
 use App\Models\User;
 use App\NotificationChannels\Email;
@@ -10,7 +11,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class AddChannel
+class AddChannel implements AddChannelContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -19,7 +20,7 @@ class AddChannel
      */
     public function add(User $user, array $input): void
     {
-        Validator::make($input, self::rules($input))->validate();
+        $this->validate($input);
 
         $channel = new NotificationChannel([
             'user_id' => $user->id,
@@ -56,11 +57,7 @@ class AddChannel
         $channel->save();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
-    public static function rules(array $input): array
+    private function validate(array $input): void
     {
         $rules = [
             'provider' => [
@@ -70,14 +67,10 @@ class AddChannel
             'name' => 'required',
         ];
 
-        return array_merge($rules, self::providerRules($input));
+        Validator::make($input, array_merge($rules, $this->providerRules($input)))->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     */
-    private static function providerRules(array $input): array
+    private function providerRules(array $input): array
     {
         if (! isset($input['provider'])) {
             return [];

@@ -2,7 +2,7 @@
 
 namespace App\Console\Commands;
 
-use App\Actions\Database\RunBackup;
+use App\Contracts\Actions\Database\RunBackup;
 use App\Enums\BackupStatus;
 use App\Models\Backup;
 use Illuminate\Console\Command;

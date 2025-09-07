@@ -2,13 +2,14 @@
 
 namespace App\Actions\User;
 
+use App\Contracts\Actions\User\UpdateUserProfileInformation as UpdateUserProfileInformationContract;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 use Laravel\Fortify\Features;
 
-class UpdateUserProfileInformation implements UpdatesUserProfileInformation
+class UpdateUserProfileInformation implements UpdatesUserProfileInformation, UpdateUserProfileInformationContract
 {
     public function update(User $user, array $input): void
     {

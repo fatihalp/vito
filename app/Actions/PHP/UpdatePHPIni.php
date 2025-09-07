@@ -2,6 +2,7 @@
 
 namespace App\Actions\PHP;
 
+use App\Contracts\Actions\PHP\UpdatePHPIni as UpdatePHPIniContract;
 use App\Enums\PHPIniType;
 use App\Models\Server;
 use App\Models\Service;
@@ -13,7 +14,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-class UpdatePHPIni
+class UpdatePHPIni implements UpdatePHPIniContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -22,7 +23,7 @@ class UpdatePHPIni
      */
     public function update(Server $server, array $input): void
     {
-        Validator::make($input, self::rules($server))->validate();
+        $this->validate($server, $input);
 
         /** @var Service $service */
         $service = $server->php($input['version']);
@@ -55,12 +56,9 @@ class UpdatePHPIni
         }
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Server $server): array
+    private function validate(Server $server, array $input): void
     {
-        return [
+        $rules = [
             'ini' => [
                 'required',
                 'string',
@@ -76,5 +74,7 @@ class UpdatePHPIni
                 Rule::in([PHPIniType::CLI, PHPIniType::FPM]),
             ],
         ];
+
+        Validator::make($input, $rules)->validate();
     }
 }

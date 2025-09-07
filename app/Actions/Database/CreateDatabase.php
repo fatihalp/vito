@@ -2,22 +2,22 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\CreateDatabase as CreateDatabaseContract;
 use App\Enums\DatabaseStatus;
 use App\Models\Database;
 use App\Models\Server;
 use App\Models\Service;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
-class CreateDatabase
+class CreateDatabase implements CreateDatabaseContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function create(Server $server, array $input): Database
     {
-        Validator::make($input, self::rules($server, $input))->validate();
+        $this->validate($server, $input);
 
         $database = new Database([
             'server_id' => $server->id,
@@ -44,13 +44,7 @@ class CreateDatabase
         return $database;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     *
-     * @throws ValidationException
-     */
-    public static function rules(Server $server, array $input): array
+    private function validate(Server $server, array $input): void
     {
         $rules = [
             'name' => [
@@ -82,6 +76,6 @@ class CreateDatabase
             $rules['host'] = 'required';
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

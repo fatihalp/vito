@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Actions\Database\ManageBackupFile;
+use App\Contracts\Actions\Database\ManageBackupFile;
 use App\Enums\BackupFileStatus;
 use App\Facades\Notifier;
 use App\Notifications\FailedToDeleteBackupFileFromProvider;

@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\CronJob\CreateCronJob;
-use App\Actions\CronJob\DeleteCronJob;
+use App\Contracts\Actions\CronJob\CreateCronJob;
+use App\Contracts\Actions\CronJob\DeleteCronJob;
 use App\Exceptions\SSHError;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\CronJobResource;

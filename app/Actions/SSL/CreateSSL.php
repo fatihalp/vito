@@ -2,6 +2,7 @@
 
 namespace App\Actions\SSL;
 
+use App\Contracts\Actions\SSL\CreateSSL as CreateSSLContract;
 use App\Enums\SslStatus;
 use App\Enums\SslType;
 use App\Models\ServerLog;
@@ -13,7 +14,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
-class CreateSSL
+class CreateSSL implements CreateSSLContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -22,7 +23,7 @@ class CreateSSL
      */
     public function create(Site $site, array $input): Ssl
     {
-        Validator::make($input, self::rules($input))->validate();
+        $this->validate($input);
 
         $site->ssls()
             ->where('type', $input['type'])
@@ -65,11 +66,7 @@ class CreateSSL
         return $ssl;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
-    public static function rules(array $input): array
+    private function validate(array $input): void
     {
         $rules = [
             'type' => [
@@ -93,6 +90,6 @@ class CreateSSL
             ];
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

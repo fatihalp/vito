@@ -2,6 +2,7 @@
 
 namespace App\Actions\Database;
 
+use App\Contracts\Actions\Database\RestoreBackup as RestoreBackupContract;
 use App\Enums\BackupFileStatus;
 use App\Models\BackupFile;
 use App\Models\Database;
@@ -10,14 +11,14 @@ use App\Models\Service;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class RestoreBackup
+class RestoreBackup implements RestoreBackupContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function restore(BackupFile $backupFile, array $input): void
     {
-        Validator::make($input, self::rules($backupFile->backup->server))->validate();
+        $this->validate($backupFile->backup->server, $input);
 
         /** @var Database $database */
         $database = Database::query()->findOrFail($input['database']);
@@ -40,16 +41,13 @@ class RestoreBackup
         })->onQueue('ssh');
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(Server $server): array
+    private function validate(Server $server, array $input): void
     {
-        return [
+        Validator::make($input, [
             'database' => [
                 'required',
                 Rule::exists('databases', 'id')->where('server_id', $server->id),
             ],
-        ];
+        ])->validate();
     }
 }

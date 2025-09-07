@@ -2,7 +2,7 @@
 
 namespace Tests\Unit\Actions\Service;
 
-use App\Actions\Service\Uninstall;
+use App\Contracts\Actions\Service\Uninstall;
 use App\Enums\ServiceStatus;
 use App\Facades\SSH;
 use App\Models\Database;

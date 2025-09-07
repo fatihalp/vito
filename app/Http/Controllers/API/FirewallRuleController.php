@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers\API;
 
-use App\Actions\FirewallRule\ManageRule;
+use App\Contracts\Actions\FirewallRule\ManageRule;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\FirewallRuleResource;
 use App\Models\FirewallRule;

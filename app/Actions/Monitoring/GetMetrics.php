@@ -2,6 +2,7 @@
 
 namespace App\Actions\Monitoring;
 
+use App\Contracts\Actions\Monitoring\GetMetrics as GetMetricsContract;
 use App\Models\Server;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Expression;
@@ -11,7 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use stdClass;
 
-class GetMetrics
+class GetMetrics implements GetMetricsContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -19,7 +20,7 @@ class GetMetrics
      */
     public function filter(Server $server, array $input): Collection
     {
-        Validator::make($input, self::rules($input))->validate();
+        $this->validate($input);
 
         if (isset($input['from'])) {
             $input['from'] = Carbon::parse($input['from'])->format('Y-m-d').' 00:00:00';
@@ -130,11 +131,7 @@ class GetMetrics
         return DB::raw("strftime('%Y-%m-%d 00:00:00', created_at) as date_interval");
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     */
-    public static function rules(array $input): array
+    private function validate(array $input): void
     {
         $rules = [
             'period' => [
@@ -156,6 +153,6 @@ class GetMetrics
             $rules['to'] = ['required', 'date', 'after_or_equal:from'];
         }
 
-        return $rules;
+        Validator::make($input, $rules)->validate();
     }
 }

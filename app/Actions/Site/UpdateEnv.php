@@ -2,11 +2,12 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\UpdateEnv as UpdateEnvContract;
 use App\Exceptions\SSHError;
 use App\Models\Site;
 use Illuminate\Support\Facades\Validator;
 
-class UpdateEnv
+class UpdateEnv implements UpdateEnvContract
 {
     /**
      * @param  array<string, mixed>  $input

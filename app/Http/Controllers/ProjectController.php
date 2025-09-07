@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Projects\AddUser;
-use App\Actions\Projects\CreateProject;
-use App\Actions\Projects\DeleteProject;
-use App\Actions\Projects\UpdateProject;
+use App\Contracts\Actions\Projects\AddUser;
+use App\Contracts\Actions\Projects\CreateProject;
+use App\Contracts\Actions\Projects\DeleteProject;
+use App\Contracts\Actions\Projects\UpdateProject;
 use App\Http\Resources\ProjectResource;
 use App\Models\Project;
 use App\Models\User;

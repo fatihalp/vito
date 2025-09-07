@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\Deploy as DeployContract;
 use App\Enums\DeploymentStatus;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Facades\Notifier;
@@ -12,7 +13,7 @@ use App\Notifications\DeploymentCompleted;
 use App\Services\ProcessManager\ProcessManager;
 use App\SSH\OS\Git;
 
-class Deploy
+class Deploy implements DeployContract
 {
     /**
      * @throws DeploymentScriptIsEmptyException

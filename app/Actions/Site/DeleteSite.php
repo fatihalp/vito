@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\DeleteSite as DeleteSiteContract;
 use App\Exceptions\SSHError;
 use App\Models\Service;
 use App\Models\Site;
@@ -10,7 +11,7 @@ use App\Services\Webserver\Webserver;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class DeleteSite
+class DeleteSite implements DeleteSiteContract
 {
     /**
      * @param  array<string, mixed>  $input

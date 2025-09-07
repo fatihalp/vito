@@ -2,10 +2,11 @@
 
 namespace App\Actions\ServerProvider;
 
+use App\Contracts\Actions\ServerProvider\DeleteServerProvider as DeleteServerProviderContract;
 use App\Models\ServerProvider;
 use Illuminate\Validation\ValidationException;
 
-class DeleteServerProvider
+class DeleteServerProvider implements DeleteServerProviderContract
 {
     public function delete(ServerProvider $serverProvider): void
     {

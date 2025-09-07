@@ -2,20 +2,21 @@
 
 namespace App\Actions\Site;
 
+use App\Contracts\Actions\Site\UpdateLoadBalancer as UpdateLoadBalancerContract;
 use App\Enums\LoadBalancerMethod;
 use App\Models\LoadBalancerServer;
 use App\Models\Site;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
-class UpdateLoadBalancer
+class UpdateLoadBalancer implements UpdateLoadBalancerContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function update(Site $site, array $input): void
     {
-        Validator::make($input, self::rules($site))->validate();
+        $this->validate($site, $input);
 
         $site->loadBalancerServers()->delete();
 
@@ -36,12 +37,9 @@ class UpdateLoadBalancer
         ]);
     }
 
-    /**
-     * @return array<string, array<int, mixed>>
-     */
-    public static function rules(Site $site): array
+    private function validate(Site $site, array $input): void
     {
-        return [
+        $rules = [
             'servers' => [
                 'required',
                 'array',
@@ -71,5 +69,7 @@ class UpdateLoadBalancer
                 Rule::in(LoadBalancerMethod::all()),
             ],
         ];
+
+        Validator::make($input, $rules)->validate();
     }
 }

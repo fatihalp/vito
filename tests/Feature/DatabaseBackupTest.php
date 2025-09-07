@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Actions\Database\RunBackup;
+use App\Contracts\Actions\Database\RunBackup;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupStatus;
 use App\Facades\SSH;

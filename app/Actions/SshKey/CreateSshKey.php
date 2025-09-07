@@ -2,13 +2,14 @@
 
 namespace App\Actions\SshKey;
 
+use App\Contracts\Actions\SshKey\CreateSshKey as CreateSshKeyContract;
 use App\Models\SshKey;
 use App\Models\User;
 use App\ValidationRules\SshKeyRule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
-class CreateSshKey
+class CreateSshKey implements CreateSshKeyContract
 {
     /**
      * @param  array<string, mixed>  $input
@@ -17,7 +18,13 @@ class CreateSshKey
      */
     public function create(User $user, array $input): SshKey
     {
-        Validator::make($input, self::rules())->validate();
+        Validator::make($input, [
+            'name' => 'required',
+            'public_key' => [
+                'required',
+                new SshKeyRule,
+            ],
+        ])->validate();
 
         $key = new SshKey([
             'user_id' => $user->id,
@@ -27,19 +34,5 @@ class CreateSshKey
         $key->save();
 
         return $key;
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    public static function rules(): array
-    {
-        return [
-            'name' => 'required',
-            'public_key' => [
-                'required',
-                new SshKeyRule,
-            ],
-        ];
     }
 }

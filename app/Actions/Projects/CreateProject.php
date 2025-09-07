@@ -2,18 +2,19 @@
 
 namespace App\Actions\Projects;
 
+use App\Contracts\Actions\Projects\CreateProject as CreateProjectContract;
 use App\Models\Project;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 
-class CreateProject
+class CreateProject implements CreateProjectContract
 {
     /**
      * @param  array<string, mixed>  $input
      */
     public function create(User $user, array $input): Project
     {
-        Validator::make($input, self::rules())->validate();
+        $this->validate($input);
 
         if (isset($input['name'])) {
             $input['name'] = strtolower((string) $input['name']);
@@ -32,12 +33,9 @@ class CreateProject
         return $project;
     }
 
-    /**
-     * @return array<string, array<string>>
-     */
-    public static function rules(): array
+    private function validate(array $input): void
     {
-        return [
+        $rules = [
             'name' => [
                 'required',
                 'string',
@@ -46,13 +44,7 @@ class CreateProject
                 'lowercase:projects,name',
             ],
         ];
-    }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
-    private function validate(array $input): void
-    {
-        Validator::make($input, self::rules())->validate();
+        Validator::make($input, $rules)->validate();
     }
 }
