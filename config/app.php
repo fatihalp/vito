@@ -220,7 +220,7 @@ return [
         // 'ExampleClass' => App\Example\ExampleClass::class,
     ])->toArray(),
 
-    'version' => '3.20.1',
+    'version' => '3.20.2',
 
     'demo' => env('APP_DEMO', false),
 
