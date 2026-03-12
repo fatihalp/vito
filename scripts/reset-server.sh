@@ -3,10 +3,12 @@
 echo "⚠️  Resetting Vito installation — this will remove everything!"
 echo "=================================================="
 
-read -p "Are you sure? (yes/no): " CONFIRM
-if [[ "$CONFIRM" != "yes" ]]; then
-  echo "Aborted."
-  exit 0
+if [[ "${CONFIRM_RESET}" != "yes" ]]; then
+  read -p "Are you sure? (yes/no): " CONFIRM < /dev/tty
+  if [[ "$CONFIRM" != "yes" ]]; then
+    echo "Aborted."
+    exit 0
+  fi
 fi
 
 # stop and remove supervisor processes
