@@ -112,6 +112,7 @@ service nginx start
 echo "Downloading FrankenPHP..."
 mkdir -p /home/vito/bin
 ARCH=$(dpkg --print-architecture)
+if [ "$ARCH" = "amd64" ]; then ARCH="x86_64"; elif [ "$ARCH" = "arm64" ]; then ARCH="aarch64"; fi
 curl -L -o /home/vito/bin/frankenphp \
   "https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-${ARCH}"
 chmod +x /home/vito/bin/frankenphp

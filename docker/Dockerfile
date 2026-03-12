@@ -14,6 +14,7 @@ RUN apt-get install -y software-properties-common curl zip unzip gcc redis-serve
 
 # frankenphp
 RUN ARCH=$(dpkg --print-architecture) \
+  && if [ "$ARCH" = "amd64" ]; then ARCH="x86_64"; elif [ "$ARCH" = "arm64" ]; then ARCH="aarch64"; fi \
   && curl -L -o /usr/local/bin/frankenphp \
     "https://github.com/dunglas/frankenphp/releases/latest/download/frankenphp-linux-${ARCH}" \
   && chmod +x /usr/local/bin/frankenphp \
