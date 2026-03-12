@@ -10,8 +10,9 @@
     tls {{ $email }}
 
     reverse_proxy /ws/* 127.0.0.1:{{ $wsPort }} {
-        header_up Upgrade {>Upgrade}
-        header_up Connection {>Connection}
+        transport http {
+            versions 1.1
+        }
     }
 
     php_server
@@ -28,8 +29,9 @@
     encode zstd gzip
 
     reverse_proxy /ws/* 127.0.0.1:{{ $wsPort }} {
-        header_up Upgrade {>Upgrade}
-        header_up Connection {>Connection}
+        transport http {
+            versions 1.1
+        }
     }
 
     php_server

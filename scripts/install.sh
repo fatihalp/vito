@@ -18,6 +18,11 @@ export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 export HOME="${HOME:-/root}"
 
+if [[ -n "${VITO_PR_BRANCH}" ]]; then
+  echo "  ⚠️  Installing from branch: ${VITO_PR_BRANCH} (testing only)"
+  echo ""
+fi
+
 if [[ -z "${V_PASSWORD}" ]]; then
   export V_PASSWORD=$(openssl rand -base64 12)
 fi
@@ -104,6 +109,16 @@ rm -f /etc/nginx/sites-available/default
 rm -f /etc/nginx/sites-enabled/default
 service nginx start
 
+# php-fpm (for user-managed sites, Vito itself uses FrankenPHP's bundled PHP)
+add-apt-repository ppa:ondrej/php -y
+apt-get update
+if ! DEBIAN_FRONTEND=noninteractive apt-get install -y php8.4 php8.4-fpm php8.4-mbstring php8.4-mysql php8.4-gd php8.4-xml php8.4-curl php8.4-gettext php8.4-zip php8.4-bcmath php8.4-soap php8.4-redis php8.4-sqlite3 php8.4-tokenizer php8.4-pgsql php8.4-pdo php8.4-intl; then
+  echo "PHP 8.4 FPM installation failed!" && exit 1
+fi
+sed -i 's/www-data/vito/g' /etc/php/8.4/fpm/pool.d/www.conf
+systemctl enable php8.4-fpm
+systemctl start php8.4-fpm
+
 # frankenphp
 echo "Downloading FrankenPHP..."
 mkdir -p /home/vito/bin
@@ -141,21 +156,25 @@ apt install redis-server -y
 service redis enable
 service redis start
 
-# setup website
+# clone repository
 export COMPOSER_ALLOW_SUPERUSER=1
 export V_REPO="https://github.com/vitodeploy/vito.git"
 rm -rf /home/vito/vito
-mkdir /home/vito/vito
-chown -R vito:vito /home/vito/vito
-chmod -R 755 /home/vito/vito
-rm -rf /home/vito/vito
 git config --global core.fileMode false
-git clone -b ${VITO_VERSION} ${V_REPO} /home/vito/vito
+
+if [[ -n "${VITO_PR_BRANCH}" ]]; then
+  git clone -b ${VITO_PR_BRANCH} ${V_REPO} /home/vito/vito
+else
+  git clone -b ${VITO_VERSION} ${V_REPO} /home/vito/vito
+fi
+
 find /home/vito/vito -type d -exec chmod 755 {} \;
 find /home/vito/vito -type f -exec chmod 644 {} \;
 cd /home/vito/vito && git config core.fileMode false
 cd /home/vito/vito
-if [[ "${VITO_CHANNEL}" == "release" ]]; then
+
+# checkout latest release tag (skip for PR branch installs)
+if [[ -z "${VITO_PR_BRANCH}" && "${VITO_CHANNEL}" == "release" ]]; then
   VITO_TAG=$(git tag -l --merged ${VITO_VERSION} --sort=-v:refname | head -n 1)
 
   if [[ -n "${VITO_TAG}" ]]; then
@@ -164,6 +183,7 @@ if [[ "${VITO_CHANNEL}" == "release" ]]; then
     echo "No release tag found for ${VITO_VERSION}, using branch instead."
   fi
 fi
+
 if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev --no-scripts; then
   echo "Composer install failed!" && exit 1
 fi
@@ -278,6 +298,9 @@ echo "* * * * * cd /home/vito/vito && /home/vito/bin/frankenphp php-cli artisan 
 # print info
 echo "🎉 Congratulations!"
 echo "✅ You can access Vito at: ${VITO_APP_URL}"
+if [[ -n "${VITO_PR_BRANCH}" ]]; then
+  echo "✅ Branch: ${VITO_PR_BRANCH}"
+fi
 echo "✅ SSH User: vito"
 echo "✅ SSH Password: ${V_PASSWORD}"
 echo "✅ Admin Email: ${V_ADMIN_EMAIL}"
