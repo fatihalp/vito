@@ -43,7 +43,8 @@ else
 fi
 
 echo "Installing composer dependencies..."
-$PHP_CMD /usr/local/bin/composer install --no-dev
+$PHP_CMD /usr/local/bin/composer install --no-dev --no-scripts
+$PHP_CMD artisan package:discover --ansi
 
 echo "Running migrations..."
 $PHP_CMD artisan migrate --force

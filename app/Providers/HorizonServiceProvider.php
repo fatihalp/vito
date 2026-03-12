@@ -6,6 +6,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Laravel\Horizon\Horizon;
 use Laravel\Horizon\HorizonApplicationServiceProvider;
+use Laravel\Horizon\SupervisorCommandString;
+use Laravel\Horizon\WorkerCommandString;
+use Symfony\Component\Process\PhpExecutableFinder;
 
 class HorizonServiceProvider extends HorizonApplicationServiceProvider
 {
@@ -16,9 +19,16 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
     {
         parent::boot();
 
-        // Horizon::routeSmsNotificationsTo('15556667777');
-        // Horizon::routeMailNotificationsTo('example@example.com');
-        // Horizon::routeSlackNotificationsTo('slack-webhook-url', '#channel');
+        // FrankenPHP's embedded PHP sets PHP_BINARY to an empty string, so
+        // Horizon can't find php to spawn supervisor/worker processes.
+        // Fall back to the php wrapper found on PATH.
+        if (PHP_BINARY === '') {
+            $php = (new PhpExecutableFinder)->find(false);
+            if ($php) {
+                SupervisorCommandString::$command = "exec {$php} artisan horizon:supervisor";
+                WorkerCommandString::$command = "exec {$php} artisan horizon:work";
+            }
+        }
     }
 
     /**

@@ -156,9 +156,10 @@ find /home/vito/vito -type d -exec chmod 755 {} \;
 find /home/vito/vito -type f -exec chmod 644 {} \;
 cd /home/vito/vito && git config core.fileMode false
 cd /home/vito/vito
-if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev; then
+if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev --no-scripts; then
   echo "Composer install failed!" && exit 1
 fi
+/home/vito/bin/frankenphp php-cli artisan package:discover --ansi
 cp .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
 touch /home/vito/vito/storage/database.sqlite

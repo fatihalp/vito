@@ -164,9 +164,10 @@ if [[ "${VITO_CHANNEL}" == "release" ]]; then
     echo "No release tag found for ${VITO_VERSION}, using branch instead."
   fi
 fi
-if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev; then
+if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev --no-scripts; then
   echo "Composer install failed!" && exit 1
 fi
+/home/vito/bin/frankenphp php-cli artisan package:discover --ansi
 cp .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
 touch /home/vito/vito/storage/database.sqlite
