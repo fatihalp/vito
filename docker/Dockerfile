@@ -20,6 +20,10 @@ RUN ARCH=$(dpkg --print-architecture) \
   && chmod +x /usr/local/bin/frankenphp \
   && setcap cap_net_bind_service=+ep /usr/local/bin/frankenphp
 
+# create php wrapper so @php and /usr/bin/env php work with FrankenPHP
+RUN printf '#!/bin/sh\nexec /usr/local/bin/frankenphp php-cli "$@"\n' > /usr/local/bin/php \
+  && chmod +x /usr/local/bin/php
+
 # composer (uses FrankenPHP's bundled PHP)
 RUN curl -sS https://getcomposer.org/installer | /usr/local/bin/frankenphp php-cli -- --install-dir=/usr/local/bin --filename=composer
 

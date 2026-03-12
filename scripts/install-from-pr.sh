@@ -120,6 +120,14 @@ chmod +x /home/vito/bin/frankenphp
 chown vito:vito /home/vito/bin/frankenphp
 setcap cap_net_bind_service=+ep /home/vito/bin/frankenphp
 
+# create php wrapper so @php and composer scripts work via FrankenPHP
+printf '#!/bin/sh\nexec /home/vito/bin/frankenphp php-cli "$@"\n' > /home/vito/bin/php
+chmod +x /home/vito/bin/php
+chown vito:vito /home/vito/bin/php
+echo 'export PATH="/home/vito/bin:$PATH"' | tee -a /home/vito/.bashrc /home/vito/.profile > /dev/null
+chown vito:vito /home/vito/.bashrc /home/vito/.profile
+export PATH="/home/vito/bin:$PATH"
+
 # nodejs
 export V_NODE_VERSION="20.x"
 curl -fsSL https://deb.nodesource.com/setup_${V_NODE_VERSION} | sudo -E bash -
@@ -208,7 +216,7 @@ directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
-environment=HOME=\"/home/vito\"
+environment=HOME=\"/home/vito\",PATH=\"/home/vito/bin:%(ENV_PATH)s\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/octane.log
 stopwaitsecs=10
@@ -225,7 +233,7 @@ directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
-environment=HOME=\"/home/vito\"
+environment=HOME=\"/home/vito\",PATH=\"/home/vito/bin:%(ENV_PATH)s\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/worker.log
 stopwaitsecs=3600
@@ -242,7 +250,7 @@ directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
-environment=HOME=\"/home/vito\"
+environment=HOME=\"/home/vito\",PATH=\"/home/vito/bin:%(ENV_PATH)s\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/websocket.log
 "
