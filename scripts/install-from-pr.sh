@@ -126,7 +126,12 @@ curl -fsSL https://deb.nodesource.com/setup_${V_NODE_VERSION} | sudo -E bash -
 apt install -y nodejs
 
 # composer (uses FrankenPHP's bundled PHP)
-curl -sS https://getcomposer.org/installer | /home/vito/bin/frankenphp php-cli -- --install-dir=/usr/local/bin --filename=composer
+curl -sS https://getcomposer.org/installer -o /tmp/composer-setup.php
+/home/vito/bin/frankenphp php-cli /tmp/composer-setup.php -- --install-dir=/usr/local/bin --filename=composer
+rm -f /tmp/composer-setup.php
+if [[ ! -f /usr/local/bin/composer ]]; then
+  echo "Composer installation failed!" && exit 1
+fi
 
 # redis
 apt install redis-server -y
