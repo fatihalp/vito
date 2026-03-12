@@ -5,6 +5,7 @@ echo "=========================="
 
 VITO_DIR="/home/vito/vito"
 VITO_PORT="${VITO_PORT:-54331}"
+export HOME="${HOME:-/root}"
 
 if [[ ! -d "${VITO_DIR}" ]]; then
   echo "Error: Vito installation not found at ${VITO_DIR}"
@@ -64,6 +65,7 @@ directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME="/home/vito"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/octane.log
 stopwaitsecs=10
@@ -76,9 +78,11 @@ cat > /etc/supervisor/conf.d/worker.conf << 'SUPERVISOREOF'
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=/home/vito/bin/frankenphp php-cli /home/vito/vito/artisan horizon
+directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME="/home/vito"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/worker.log
 stopwaitsecs=3600
@@ -89,9 +93,11 @@ cat > /etc/supervisor/conf.d/websocket.conf << 'SUPERVISOREOF'
 [program:websocket]
 process_name=%(program_name)s
 command=/home/vito/bin/frankenphp php-cli /home/vito/vito/artisan ws:serve
+directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME="/home/vito"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/websocket.log
 SUPERVISOREOF

@@ -2,6 +2,7 @@
 
 echo "Updating Vito..."
 
+export HOME="${HOME:-/home/vito}"
 cd /home/vito/vito
 
 echo "Discarding any possible local changes..."

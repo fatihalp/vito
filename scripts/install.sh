@@ -16,6 +16,7 @@ export VITO_CHANNEL="${VITO_CHANNEL:-release}"
 export VITO_PORT="${VITO_PORT:-54331}"
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
+export HOME="${HOME:-/root}"
 
 if [[ -z "${V_PASSWORD}" ]]; then
   export V_PASSWORD=$(openssl rand -base64 12)
@@ -150,7 +151,9 @@ if [[ "${VITO_CHANNEL}" == "release" ]]; then
     echo "No release tag found for ${VITO_VERSION}, using branch instead."
   fi
 fi
-/home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev
+if ! /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev; then
+  echo "Composer install failed!" && exit 1
+fi
 cp .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
 touch /home/vito/vito/storage/database.sqlite
@@ -175,7 +178,9 @@ echo "VITO_MODE=local" >> .env
 echo "VITO_SSL=false" >> .env
 
 # generate Caddyfile
-/home/vito/bin/frankenphp php-cli artisan vito:generate-caddyfile
+if ! /home/vito/bin/frankenphp php-cli artisan vito:generate-caddyfile; then
+  echo "Failed to generate Caddyfile!" && exit 1
+fi
 
 # setup local server
 /home/vito/bin/frankenphp php-cli artisan server:setup-local
@@ -205,6 +210,7 @@ directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME=\"/home/vito\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/octane.log
 stopwaitsecs=10
@@ -217,9 +223,11 @@ export V_WORKER_CONFIG="
 [program:worker]
 process_name=%(program_name)s_%(process_num)02d
 command=/home/vito/bin/frankenphp php-cli /home/vito/vito/artisan horizon
+directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME=\"/home/vito\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/worker.log
 stopwaitsecs=3600
@@ -232,9 +240,11 @@ export V_WEBSOCKET_CONFIG="
 [program:websocket]
 process_name=%(program_name)s
 command=/home/vito/bin/frankenphp php-cli /home/vito/vito/artisan ws:serve
+directory=/home/vito/vito
 autostart=1
 autorestart=1
 user=vito
+environment=HOME=\"/home/vito\"
 redirect_stderr=true
 stdout_logfile=/home/vito/.logs/workers/websocket.log
 "
