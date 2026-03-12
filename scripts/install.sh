@@ -18,8 +18,8 @@ export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
 export HOME="${HOME:-/root}"
 
-if [[ -n "${VITO_PR_BRANCH}" ]]; then
-  echo "  ⚠️  Installing from branch: ${VITO_PR_BRANCH} (testing only)"
+if [[ -n "${VITO_BRANCH}" ]]; then
+  echo "  ⚠️  Installing from branch: ${VITO_BRANCH} (testing only)"
   echo ""
 fi
 
@@ -162,8 +162,8 @@ export V_REPO="https://github.com/vitodeploy/vito.git"
 rm -rf /home/vito/vito
 git config --global core.fileMode false
 
-if [[ -n "${VITO_PR_BRANCH}" ]]; then
-  git clone -b ${VITO_PR_BRANCH} ${V_REPO} /home/vito/vito
+if [[ -n "${VITO_BRANCH}" ]]; then
+  git clone -b ${VITO_BRANCH} ${V_REPO} /home/vito/vito
 else
   git clone -b ${VITO_VERSION} ${V_REPO} /home/vito/vito
 fi
@@ -174,7 +174,7 @@ cd /home/vito/vito && git config core.fileMode false
 cd /home/vito/vito
 
 # checkout latest release tag (skip for PR branch installs)
-if [[ -z "${VITO_PR_BRANCH}" && "${VITO_CHANNEL}" == "release" ]]; then
+if [[ -z "${VITO_BRANCH}" && "${VITO_CHANNEL}" == "release" ]]; then
   VITO_TAG=$(git tag -l --merged ${VITO_VERSION} --sort=-v:refname | head -n 1)
 
   if [[ -n "${VITO_TAG}" ]]; then
@@ -220,7 +220,7 @@ fi
 /home/vito/bin/frankenphp php-cli artisan server:setup-local
 
 # allow Vito port in firewall
-ufw allow ${VITO_PORT}/tcp 2>/dev/null || true
+ufw allow ${VITO_PORT}/tcp 2> /dev/null || true
 
 # optimize
 /home/vito/bin/frankenphp php-cli artisan optimize
@@ -298,8 +298,8 @@ echo "* * * * * cd /home/vito/vito && /home/vito/bin/frankenphp php-cli artisan 
 # print info
 echo "🎉 Congratulations!"
 echo "✅ You can access Vito at: ${VITO_APP_URL}"
-if [[ -n "${VITO_PR_BRANCH}" ]]; then
-  echo "✅ Branch: ${VITO_PR_BRANCH}"
+if [[ -n "${VITO_BRANCH}" ]]; then
+  echo "✅ Branch: ${VITO_BRANCH}"
 fi
 echo "✅ SSH User: vito"
 echo "✅ SSH Password: ${V_PASSWORD}"
