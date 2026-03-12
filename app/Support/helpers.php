@@ -305,3 +305,8 @@ function is_self_hosted(): bool
 {
     return config('app.self_hosted', true);
 }
+
+function vito_mode(): string
+{
+    return config('core.vito_mode', 'dev');
+}

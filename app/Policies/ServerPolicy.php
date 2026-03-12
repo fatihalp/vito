@@ -33,6 +33,10 @@ class ServerPolicy
 
     public function delete(User $user, Server $server): bool
     {
+        if ($server->isLocal()) {
+            return false;
+        }
+
         return $this->hasOwnerAccess($user, $server->project);
     }
 

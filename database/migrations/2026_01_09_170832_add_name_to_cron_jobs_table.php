@@ -22,6 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('cron_jobs', function (Blueprint $table) {
+            $table->dropIndex('cron_jobs_name_index');
             $table->dropColumn('name');
         });
     }

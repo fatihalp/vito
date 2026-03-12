@@ -17,6 +17,7 @@
     "laravel/fortify": "^1.17",
     "laravel/framework": "^12.0",
     "laravel/horizon": "^5.33",
+    "laravel/octane": "^2.0",
     "laravel/sanctum": "^4.0",
     "laravel/tinker": "^2.8",
     "mobiledetect/mobiledetectlib": "^4.8",
@@ -81,7 +82,7 @@
     ],
     "dev": [
       "Composer\\Config::disableProcessTimeout",
-      "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#fabb74,#86efac\" \"php artisan serve\" \"php artisan horizon\" \"php artisan schedule:work\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan ws:serve\" --names=server,horizon,schedule,logs,vite,websocket"
+      "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#fabb74,#86efac\" \"php artisan octane:start --server=frankenphp --host=127.0.0.1 --port=8000 --watch\" \"php artisan horizon\" \"php artisan schedule:work\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan ws:serve\" --names=server,horizon,schedule,logs,vite,websocket"
     ]
   },
   "repositories": [

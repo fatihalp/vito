@@ -56,16 +56,19 @@ fi
 
 chown -R www-data:www-data /var/www/html &&
   chmod -R 755 /var/www/html/storage /var/www/html/bootstrap/cache
-service php8.4-fpm start
 
 service redis-server start
-service nginx start
 
-php /var/www/html/artisan migrate --force
-php /var/www/html/artisan optimize:clear
-php /var/www/html/artisan optimize
+# set docker mode
+export VITO_MODE=docker
+export VITO_PORT=80
 
-php /var/www/html/artisan user:create "$NAME" "$EMAIL" "$PASSWORD"
+/usr/local/bin/frankenphp php-cli /var/www/html/artisan migrate --force
+/usr/local/bin/frankenphp php-cli /var/www/html/artisan optimize:clear
+/usr/local/bin/frankenphp php-cli /var/www/html/artisan optimize
+/usr/local/bin/frankenphp php-cli /var/www/html/artisan vito:generate-caddyfile
+
+/usr/local/bin/frankenphp php-cli /var/www/html/artisan user:create "$NAME" "$EMAIL" "$PASSWORD"
 
 cron
 

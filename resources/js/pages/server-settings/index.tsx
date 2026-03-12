@@ -211,37 +211,41 @@ export default function Databases() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Transfer server</CardTitle>
-            <CardDescription>Here you can transfer server to another project</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 p-4">
-              <p>This action will transfer the server to another project. All associated data will remain intact.</p>
+        {!page.props.server.is_local && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Transfer server</CardTitle>
+              <CardDescription>Here you can transfer server to another project</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 p-4">
+                <p>This action will transfer the server to another project. All associated data will remain intact.</p>
 
-              <TransferServer server={page.props.server}>
-                <Button variant="outline">Transfer server</Button>
-              </TransferServer>
-            </div>
-          </CardContent>
-        </Card>
+                <TransferServer server={page.props.server}>
+                  <Button variant="outline">Transfer server</Button>
+                </TransferServer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        <Card className="border-destructive/50">
-          <CardHeader>
-            <CardTitle>Delete server</CardTitle>
-            <CardDescription>Here you can delete the server.</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 p-4">
-              <p>please note that this action is irreversible and will delete all data associated with the server.</p>
+        {!page.props.server.is_local && (
+          <Card className="border-destructive/50">
+            <CardHeader>
+              <CardTitle>Delete server</CardTitle>
+              <CardDescription>Here you can delete the server.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 p-4">
+                <p>please note that this action is irreversible and will delete all data associated with the server.</p>
 
-              <DeleteServer server={page.props.server}>
-                <Button variant="destructive">Delete server</Button>
-              </DeleteServer>
-            </div>
-          </CardContent>
-        </Card>
+                <DeleteServer server={page.props.server}>
+                  <Button variant="destructive">Delete server</Button>
+                </DeleteServer>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Container>
     </ServerLayout>
   );

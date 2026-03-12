@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\Admin\UpdateVitoSSL;
 use App\Http\Controllers\Controller;
 use Exception;
 use Illuminate\Http\RedirectResponse;
@@ -38,7 +39,22 @@ class VitoSettingController extends Controller
     #[Get('/', name: 'vito-settings')]
     public function index(): Response
     {
-        return Inertia::render('vito-settings/index');
+        return Inertia::render('vito-settings/index', [
+            'vito_ssl' => (bool) config('core.vito_ssl'),
+            'vito_domain' => config('core.vito_domain', ''),
+            'vito_mode' => config('core.vito_mode'),
+        ]);
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    #[Post('/ssl', name: 'vito-settings.ssl')]
+    public function updateSSL(Request $request): RedirectResponse
+    {
+        app(UpdateVitoSSL::class)->update($request->all());
+
+        return back()->with('success', 'SSL settings updated successfully.');
     }
 
     /**

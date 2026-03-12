@@ -17,6 +17,12 @@ class TransferServer
      */
     public function transfer(User $user, Server $server, array $input): Server
     {
+        if ($server->isLocal()) {
+            throw ValidationException::withMessages([
+                'server' => 'Cannot transfer the local server.',
+            ]);
+        }
+
         $this->validate($user, $input);
 
         $server->project_id = $input['project_id'];

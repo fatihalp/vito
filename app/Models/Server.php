@@ -153,6 +153,11 @@ class Server extends AbstractModel
         });
     }
 
+    public function isLocal(): bool
+    {
+        return $this->provider === 'local';
+    }
+
     public function isReady(): bool
     {
         return in_array($this->status, [ServerStatus::READY, ServerStatus::UPDATING]);

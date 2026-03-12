@@ -14,7 +14,7 @@ class WebSocketServeCommand extends Command
 {
     protected $signature = 'ws:serve
         {--host=127.0.0.1 : The host to listen on}
-        {--port=8085 : The port to listen on}
+        {--port=54332 : The port to listen on}
         {--max-connections=50 : Maximum concurrent WebSocket connections}';
 
     protected $description = 'Start the WebSocket server';
@@ -22,7 +22,7 @@ class WebSocketServeCommand extends Command
     public function handle(): void
     {
         $host = $this->option('host') ?? config('core.ws_host', '127.0.0.1');
-        $port = $this->option('port') ?? config('core.ws_port', '8085');
+        $port = $this->option('port') ?? config('core.ws_port', '54332');
         $maxConnections = (int) $this->option('max-connections');
 
         $loop = Loop::get();

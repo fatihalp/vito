@@ -364,11 +364,13 @@ export default function CreateServer({
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {Object.entries(page.props.configs.server_provider.providers).map(([key, provider]) => (
-                      <SelectItem key={key} value={key}>
-                        {provider.label}
-                      </SelectItem>
-                    ))}
+                    {Object.entries(page.props.configs.server_provider.providers)
+                      .filter(([, provider]) => !provider.hidden)
+                      .map(([key, provider]) => (
+                        <SelectItem key={key} value={key}>
+                          {provider.label}
+                        </SelectItem>
+                      ))}
                   </SelectGroup>
                 </SelectContent>
               </Select>

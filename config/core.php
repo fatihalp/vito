@@ -8,6 +8,14 @@ use App\Models\Site;
 
 return [
     /*
+     * Vito
+     */
+    'vito_mode' => env('VITO_MODE', 'dev'),
+    'vito_port' => env('VITO_PORT', 54331),
+    'vito_domain' => env('VITO_DOMAIN', ''),
+    'vito_ssl' => env('VITO_SSL', false),
+
+    /*
      * SSH
      */
     'ssh_user' => env('SSH_USER', 'vito'),
@@ -20,7 +28,7 @@ return [
      * WebSocket
      */
     'ws_host' => env('WS_HOST', '127.0.0.1'),
-    'ws_port' => env('WS_PORT', '8085'),
+    'ws_port' => env('WS_PORT', '54332'),
 
     /*
      * General

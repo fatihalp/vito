@@ -9,10 +9,15 @@ echo "
      \/   |_|\__\___/|_____/ \___| .__/|_|\___/ \__, |
                                  | |             __/ |
                                  |_|            |___/
+
+  ⚠️  Installing from PR branch (testing only)
 "
 
-export VITO_VERSION="${VITO_VERSION:-4.x}"
-export VITO_CHANNEL="${VITO_CHANNEL:-release}"
+if [[ -z "${VITO_PR_BRANCH}" ]]; then
+  echo "Error: VITO_PR_BRANCH is required (e.g. VITO_PR_BRANCH=feat/frankenphp)"
+  exit 1
+fi
+
 export VITO_PORT="${VITO_PORT:-54331}"
 export DEBIAN_FRONTEND=noninteractive
 export NEEDRESTART_MODE=a
@@ -126,29 +131,16 @@ apt install redis-server -y
 service redis enable
 service redis start
 
-# setup website
+# clone from PR branch
 export COMPOSER_ALLOW_SUPERUSER=1
 export V_REPO="https://github.com/vitodeploy/vito.git"
 rm -rf /home/vito/vito
-mkdir /home/vito/vito
-chown -R vito:vito /home/vito/vito
-chmod -R 755 /home/vito/vito
-rm -rf /home/vito/vito
 git config --global core.fileMode false
-git clone -b ${VITO_VERSION} ${V_REPO} /home/vito/vito
+git clone -b ${VITO_PR_BRANCH} ${V_REPO} /home/vito/vito
 find /home/vito/vito -type d -exec chmod 755 {} \;
 find /home/vito/vito -type f -exec chmod 644 {} \;
 cd /home/vito/vito && git config core.fileMode false
 cd /home/vito/vito
-if [[ "${VITO_CHANNEL}" == "release" ]]; then
-  VITO_TAG=$(git tag -l --merged ${VITO_VERSION} --sort=-v:refname | head -n 1)
-
-  if [[ -n "${VITO_TAG}" ]]; then
-    git checkout ${VITO_TAG}
-  else
-    echo "No release tag found for ${VITO_VERSION}, using branch instead."
-  fi
-fi
 /home/vito/bin/frankenphp php-cli /usr/local/bin/composer install --no-dev
 cp .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
@@ -172,6 +164,7 @@ chmod 600 /home/vito/.ssh/authorized_keys
 echo "VITO_PORT=${VITO_PORT}" >> .env
 echo "VITO_MODE=local" >> .env
 echo "VITO_SSL=false" >> .env
+echo "WS_PORT=54332" >> .env
 
 # generate Caddyfile
 /home/vito/bin/frankenphp php-cli artisan vito:generate-caddyfile
@@ -253,6 +246,7 @@ echo "* * * * * cd /home/vito/vito && /home/vito/bin/frankenphp php-cli artisan 
 # print info
 echo "🎉 Congratulations!"
 echo "✅ You can access Vito at: ${VITO_APP_URL}"
+echo "✅ Branch: ${VITO_PR_BRANCH}"
 echo "✅ SSH User: vito"
 echo "✅ SSH Password: ${V_PASSWORD}"
 echo "✅ Admin Email: ${V_ADMIN_EMAIL}"

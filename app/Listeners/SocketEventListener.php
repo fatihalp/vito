@@ -12,7 +12,7 @@ class SocketEventListener
     {
         try {
             $host = config('core.ws_host', '127.0.0.1');
-            $port = config('core.ws_port', '8085');
+            $port = config('core.ws_port', '54332');
 
             Http::withToken(config('app.key'))
                 ->connectTimeout(1)

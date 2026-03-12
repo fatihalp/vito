@@ -90,6 +90,7 @@ class CreateServer
             'provider' => [
                 'required',
                 Rule::in(array_keys(config('server-provider.providers'))),
+                Rule::notIn(['local']),
             ],
             'name' => [
                 'required',

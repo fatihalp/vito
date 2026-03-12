@@ -34,3 +34,8 @@ AGENTS.md
 boost.json
 opencode.json
 .claude/
+
+**/caddy
+Caddyfile
+frankenphp
+frankenphp-worker.php

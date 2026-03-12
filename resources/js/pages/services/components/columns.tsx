@@ -10,6 +10,64 @@ import { Action } from '@/pages/services/components/action';
 import Version from './version';
 import ConfigFile from './config-file';
 import InstallationLog from './installation-log';
+import { usePage } from '@inertiajs/react';
+import type { SharedData } from '@/types';
+
+const LOCAL_PROTECTED_SERVICES = ['nginx', 'redis', 'supervisor'];
+
+function isProtectedOnLocal(service: Service, isLocal: boolean): boolean {
+  if (!isLocal) return false;
+  if (LOCAL_PROTECTED_SERVICES.includes(service.name)) return true;
+  if (service.type === 'php' && service.version === '8.4') return true;
+  return false;
+}
+
+function ServiceActions({ service }: { service: Service }) {
+  const page = usePage<SharedData>();
+  const isLocal = page.props.server?.is_local ?? false;
+  const isProtected = isProtectedOnLocal(service, isLocal);
+
+  return (
+    <div className="flex items-center justify-end">
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <Action type="start" service={service} />
+          <Action type="stop" service={service} />
+          <Action type="restart" service={service} />
+          <Action type="reload" service={service} />
+          <Action type="enable" service={service} />
+          <Action type="disable" service={service} />
+          {service.config_paths && service.config_paths.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              {service.config_paths.map((configPath) => (
+                <ConfigFile key={configPath.name} service={service} configPath={configPath} />
+              ))}
+            </>
+          )}
+          {service.log && (
+            <>
+              <DropdownMenuSeparator />
+              <InstallationLog service={service} />
+            </>
+          )}
+          {!isProtected && (
+            <>
+              <DropdownMenuSeparator />
+              <Uninstall service={service} />
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
 
 export const columns: ColumnDef<Service>[] = [
   {
@@ -54,42 +112,7 @@ export const columns: ColumnDef<Service>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
-      return (
-        <div className="flex items-center justify-end">
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <Action type="start" service={row.original} />
-              <Action type="stop" service={row.original} />
-              <Action type="restart" service={row.original} />
-              <Action type="reload" service={row.original} />
-              <Action type="enable" service={row.original} />
-              <Action type="disable" service={row.original} />
-              {row.original.config_paths && row.original.config_paths.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  {row.original.config_paths.map((configPath) => (
-                    <ConfigFile key={configPath.name} service={row.original} configPath={configPath} />
-                  ))}
-                </>
-              )}
-              {row.original.log && (
-                <>
-                  <DropdownMenuSeparator />
-                  <InstallationLog service={row.original} />
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <Uninstall service={row.original} />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+      return <ServiceActions service={row.original} />;
     },
   },
 ];

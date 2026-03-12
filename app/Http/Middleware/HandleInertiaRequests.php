@@ -89,6 +89,7 @@ class HandleInertiaRequests extends Middleware
             'version' => config('app.version'),
             'env' => config('app.env'),
             'demo' => config('app.demo'),
+            'vito_mode' => config('core.vito_mode'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => $user ? [
                 'user' => UserResource::make($user->load('projects')),

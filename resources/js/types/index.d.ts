@@ -48,6 +48,7 @@ export interface Configs {
         label: string;
         handler: string;
         form?: DynamicFieldConfig[];
+        hidden?: boolean;
       };
     };
   };
@@ -115,6 +116,7 @@ export interface SharedData {
   version: string;
   env: string;
   demo: boolean;
+  vito_mode: string;
   quote: { message: string; author: string };
   auth: Auth;
   ziggy: Config & { location: string };

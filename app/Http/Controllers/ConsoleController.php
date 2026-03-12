@@ -54,7 +54,7 @@ class ConsoleController extends Controller
         $port = $appUrl['port'] ?? ($isSecure ? 443 : 80);
 
         if (app()->environment('local')) {
-            $wsPort = config('core.ws_port', 8085);
+            $wsPort = config('core.ws_port', 54332);
             $result['url'] = "{$wsProtocol}://{$host}:{$wsPort}/ws/terminal";
         } else {
             $portSuffix = (($isSecure && $port == 443) || (! $isSecure && $port == 80)) ? '' : ":{$port}";

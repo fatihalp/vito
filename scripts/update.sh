@@ -34,17 +34,28 @@ echo "Switching to tag: $NEW_RELEASE"
 git checkout "$NEW_RELEASE"
 git pull origin "$NEW_RELEASE"
 
+# Determine which PHP binary to use
+if [[ -x /home/vito/bin/frankenphp ]]; then
+  PHP_CMD="/home/vito/bin/frankenphp php-cli"
+else
+  PHP_CMD="php"
+fi
+
 echo "Installing composer dependencies..."
-composer install --no-dev
+$PHP_CMD /usr/local/bin/composer install --no-dev
 
 echo "Running migrations..."
-php artisan migrate --force
+$PHP_CMD artisan migrate --force
+
+echo "Regenerating Caddyfile..."
+$PHP_CMD artisan vito:generate-caddyfile 2>/dev/null || true
 
 echo "Optimizing..."
-php artisan optimize:clear
-php artisan optimize
+$PHP_CMD artisan optimize:clear
+$PHP_CMD artisan optimize
 
 echo "Restarting workers..."
+sudo supervisorctl restart octane 2>/dev/null || true
 sudo supervisorctl restart worker:*
 sudo supervisorctl restart websocket 2>/dev/null || true
 

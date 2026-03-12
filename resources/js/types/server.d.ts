@@ -18,6 +18,7 @@ export interface Server {
   type_data: string;
   provider: string;
   provider_id: number;
+  is_local: boolean;
   provider_data: string;
   authentication: string;
   public_key: string;
