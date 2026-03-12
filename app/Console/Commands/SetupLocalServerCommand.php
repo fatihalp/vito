@@ -33,6 +33,7 @@ class SetupLocalServerCommand extends Command
             return self::FAILURE;
         }
 
+        /** @var ?\App\Models\Project $project */
         $project = $user->currentProject ?? $user->allProjects()->first();
 
         if (! $project) {
