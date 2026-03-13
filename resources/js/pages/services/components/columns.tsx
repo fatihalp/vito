@@ -11,12 +11,63 @@ import Version from './version';
 import ConfigFile from './config-file';
 import InstallationLog from './installation-log';
 
+function ServiceActions({ service }: { service: Service }) {
+  return (
+    <div className="flex items-center justify-end">
+      <DropdownMenu modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreVerticalIcon />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <Action type="start" service={service} />
+          <Action type="stop" service={service} />
+          <Action type="restart" service={service} />
+          <Action type="reload" service={service} />
+          <Action type="enable" service={service} />
+          <Action type="disable" service={service} />
+          {service.config_paths && service.config_paths.length > 0 && (
+            <>
+              <DropdownMenuSeparator />
+              {service.config_paths.map((configPath) => (
+                <ConfigFile key={configPath.name} service={service} configPath={configPath} />
+              ))}
+            </>
+          )}
+          {service.log && (
+            <>
+              <DropdownMenuSeparator />
+              <InstallationLog service={service} />
+            </>
+          )}
+          {!service.is_vito_service && (
+            <>
+              <DropdownMenuSeparator />
+              <Uninstall service={service} />
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+}
+
 export const columns: ColumnDef<Service>[] = [
   {
     accessorKey: 'name',
     header: 'Name',
     enableColumnFilter: true,
     enableSorting: true,
+    cell: ({ row }) => {
+      return (
+        <div className="flex items-center gap-2">
+          <span>{row.original.name}</span>
+          {row.original.is_vito_service && <Badge variant="info">vito</Badge>}
+        </div>
+      );
+    },
   },
   {
     accessorKey: 'version',
@@ -54,42 +105,7 @@ export const columns: ColumnDef<Service>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
-      return (
-        <div className="flex items-center justify-end">
-          <DropdownMenu modal={false}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <Action type="start" service={row.original} />
-              <Action type="stop" service={row.original} />
-              <Action type="restart" service={row.original} />
-              <Action type="reload" service={row.original} />
-              <Action type="enable" service={row.original} />
-              <Action type="disable" service={row.original} />
-              {row.original.config_paths && row.original.config_paths.length > 0 && (
-                <>
-                  <DropdownMenuSeparator />
-                  {row.original.config_paths.map((configPath) => (
-                    <ConfigFile key={configPath.name} service={row.original} configPath={configPath} />
-                  ))}
-                </>
-              )}
-              {row.original.log && (
-                <>
-                  <DropdownMenuSeparator />
-                  <InstallationLog service={row.original} />
-                </>
-              )}
-              <DropdownMenuSeparator />
-              <Uninstall service={row.original} />
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      );
+      return <ServiceActions service={row.original} />;
     },
   },
 ];

@@ -12,6 +12,7 @@ class RegisterServerProvider
         private string $handler = '',
         private ?DynamicForm $form = null,
         private string $defaultUser = '',
+        private bool $hidden = false,
     ) {}
 
     public static function make(string $name): self
@@ -54,6 +55,13 @@ class RegisterServerProvider
         return $this;
     }
 
+    public function hidden(): self
+    {
+        $this->hidden = true;
+
+        return $this;
+    }
+
     public function register(): void
     {
         $providers = config('server-provider.providers');
@@ -63,6 +71,7 @@ class RegisterServerProvider
             'handler' => $this->handler,
             'form' => $this->form ? $this->form->toArray() : [],
             'default_user' => $this->defaultUser,
+            'hidden' => $this->hidden,
         ];
 
         config(['server-provider.providers' => $providers]);

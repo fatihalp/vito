@@ -13,9 +13,10 @@ import {
 } from '@/components/ui/dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { LoaderCircleIcon } from 'lucide-react';
+import { LoaderCircleIcon, TriangleAlertIcon } from 'lucide-react';
 import FormSuccessful from '@/components/form-successful';
 import InputError from '@/components/ui/input-error';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export function Action({ type, service }: { type: 'start' | 'stop' | 'restart' | 'reload' | 'enable' | 'disable'; service: Service }) {
   const [open, setOpen] = useState(false);
@@ -44,6 +45,13 @@ export function Action({ type, service }: { type: 'start' | 'stop' | 'restart' |
         </DialogHeader>
         <div className="space-y-2 p-4">
           <p>Are you sure you want to {type} the service?</p>
+          {service.is_vito_service && (
+            <Alert variant="destructive">
+              <TriangleAlertIcon />
+              <AlertTitle>Warning</AlertTitle>
+              <AlertDescription>This service is used by Vito. Modifying it might affect Vito itself.</AlertDescription>
+            </Alert>
+          )}
           {Object.entries(form.errors).map(([key, value]) => (
             <InputError key={key} message={value} />
           ))}

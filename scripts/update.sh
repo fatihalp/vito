@@ -40,6 +40,9 @@ composer install --no-dev
 echo "Running migrations..."
 php artisan migrate --force
 
+echo "Setting up local server..."
+php artisan server:setup-local
+
 echo "Optimizing..."
 php artisan optimize:clear
 php artisan optimize

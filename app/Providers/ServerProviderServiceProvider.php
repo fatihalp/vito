@@ -10,6 +10,7 @@ use App\ServerProviders\Custom;
 use App\ServerProviders\DigitalOcean;
 use App\ServerProviders\Hetzner;
 use App\ServerProviders\Linode;
+use App\ServerProviders\Local;
 use App\ServerProviders\Vultr;
 use Illuminate\Support\ServiceProvider;
 
@@ -19,12 +20,23 @@ class ServerProviderServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->local();
         $this->custom();
         $this->aws();
         $this->hetzner();
         $this->digitalOcean();
         $this->linode();
         $this->vultr();
+    }
+
+    private function local(): void
+    {
+        RegisterServerProvider::make(Local::id())
+            ->label('Local')
+            ->handler(Local::class)
+            ->defaultUser('vito')
+            ->hidden()
+            ->register();
     }
 
     private function custom(): void

@@ -199,7 +199,11 @@ find /home/vito/vito -type d -exec chmod 755 {} \;
 find /home/vito/vito -type f -exec chmod 644 {} \;
 cd /home/vito/vito && git config core.fileMode false
 cd /home/vito/vito
-if [[ "${VITO_CHANNEL}" == "release" ]]; then
+if [[ "${VITO_CHANNEL}" == "branch" ]]; then
+  echo "Installing from branch: ${VITO_VERSION}"
+  npm install
+  npm run build
+else
   VITO_TAG=$(git tag -l --merged ${VITO_VERSION} --sort=-v:refname | head -n 1)
 
   if [[ -n "${VITO_TAG}" ]]; then
@@ -221,6 +225,9 @@ chmod 600 /home/vito/vito/storage/ssh-private.pem
 ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem > /home/vito/vito/storage/ssh-public.key
 chown -R vito:vito /home/vito/vito/storage/ssh-private.pem
 chown -R vito:vito /home/vito/vito/storage/ssh-public.key
+
+# setup local server
+php artisan server:setup-local
 
 # optimize
 php artisan optimize

@@ -30,6 +30,7 @@ export interface Server {
   features: ServerFeature[];
   created_at: string;
   updated_at: string;
+  is_local: boolean;
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
   [key: string]: unknown;
 }
