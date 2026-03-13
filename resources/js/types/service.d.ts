@@ -20,6 +20,7 @@ export interface Service {
   installed_version?: string;
   unit: number;
   is_default: boolean;
+  is_readonly: boolean;
   status: string;
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
   icon: string;

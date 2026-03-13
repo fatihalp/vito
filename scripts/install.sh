@@ -109,16 +109,6 @@ rm -f /etc/nginx/sites-available/default
 rm -f /etc/nginx/sites-enabled/default
 service nginx start
 
-# php-fpm (for user-managed sites, Vito itself uses FrankenPHP's bundled PHP)
-add-apt-repository ppa:ondrej/php -y
-apt-get update
-if ! DEBIAN_FRONTEND=noninteractive apt-get install -y php8.4 php8.4-fpm php8.4-mbstring php8.4-mysql php8.4-gd php8.4-xml php8.4-curl php8.4-gettext php8.4-zip php8.4-bcmath php8.4-soap php8.4-redis php8.4-sqlite3 php8.4-tokenizer php8.4-pgsql php8.4-pdo php8.4-intl; then
-  echo "PHP 8.4 FPM installation failed!" && exit 1
-fi
-sed -i 's/www-data/vito/g' /etc/php/8.4/fpm/pool.d/www.conf
-systemctl enable php8.4-fpm
-systemctl start php8.4-fpm
-
 # frankenphp
 echo "Downloading FrankenPHP..."
 mkdir -p /home/vito/bin

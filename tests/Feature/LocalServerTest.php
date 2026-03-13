@@ -44,18 +44,12 @@ class LocalServerTest extends TestCase
             'is_default' => true,
         ]);
         $server->services()->create([
-            'type' => 'php',
-            'name' => 'php',
-            'version' => '8.4',
-            'status' => ServiceStatus::READY,
-            'is_default' => true,
-        ]);
-        $server->services()->create([
             'type' => 'memory_database',
             'name' => 'redis',
             'version' => 'latest',
             'status' => ServiceStatus::READY,
             'is_default' => true,
+            'is_readonly' => true,
         ]);
         $server->services()->create([
             'type' => 'process_manager',
@@ -63,6 +57,7 @@ class LocalServerTest extends TestCase
             'version' => 'latest',
             'status' => ServiceStatus::READY,
             'is_default' => true,
+            'is_readonly' => true,
         ]);
 
         return $server;
@@ -130,7 +125,45 @@ class LocalServerTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_cannot_uninstall_protected_services_on_local_server(): void
+    public function test_cannot_uninstall_readonly_services(): void
+    {
+        $this->actingAs($this->user);
+
+        SSH::fake();
+
+        $server = $this->createLocalServer();
+
+        $redis = $server->services()->where('name', 'redis')->first();
+
+        $this->delete(route('services.destroy', [
+            'server' => $server->id,
+            'service' => $redis->id,
+        ]))
+            ->assertSessionHasErrors();
+    }
+
+    public function test_cannot_manage_readonly_services(): void
+    {
+        $this->actingAs($this->user);
+
+        SSH::fake();
+
+        $server = $this->createLocalServer();
+
+        $supervisor = $server->services()->where('name', 'supervisor')->first();
+
+        $actions = ['start', 'stop', 'restart', 'reload', 'enable', 'disable'];
+
+        foreach ($actions as $action) {
+            $this->post(route("services.{$action}", [
+                'server' => $server->id,
+                'service' => $supervisor->id,
+            ]))
+                ->assertSessionHasErrors();
+        }
+    }
+
+    public function test_can_manage_non_readonly_services_on_local_server(): void
     {
         $this->actingAs($this->user);
 
@@ -144,7 +177,7 @@ class LocalServerTest extends TestCase
             'server' => $server->id,
             'service' => $nginx->id,
         ]))
-            ->assertSessionHasErrors();
+            ->assertSessionDoesntHaveErrors();
     }
 
     public function test_setup_local_command_creates_server(): void

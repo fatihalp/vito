@@ -59,6 +59,12 @@ class Manage
 
     private function validate(Service $service): void
     {
+        if ($service->is_readonly) {
+            throw ValidationException::withMessages([
+                'service' => __('Cannot modify :service as it is required by Vito.', ['service' => $service->name]),
+            ]);
+        }
+
         if (! $service->handler()->unit()) {
             throw ValidationException::withMessages([
                 'service' => __('This service does not have a systemd unit configured.'),

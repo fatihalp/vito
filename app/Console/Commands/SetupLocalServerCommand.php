@@ -109,18 +109,12 @@ class SetupLocalServerCommand extends Command
                 'is_default' => true,
             ],
             [
-                'type' => 'php',
-                'name' => 'php',
-                'version' => '8.4',
-                'status' => ServiceStatus::READY,
-                'is_default' => true,
-            ],
-            [
                 'type' => 'memory_database',
                 'name' => 'redis',
                 'version' => 'latest',
                 'status' => ServiceStatus::READY,
                 'is_default' => true,
+                'is_readonly' => true,
             ],
             [
                 'type' => 'process_manager',
@@ -128,6 +122,7 @@ class SetupLocalServerCommand extends Command
                 'version' => 'latest',
                 'status' => ServiceStatus::READY,
                 'is_default' => true,
+                'is_readonly' => true,
             ],
         ];
 

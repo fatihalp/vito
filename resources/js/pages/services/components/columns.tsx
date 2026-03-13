@@ -10,22 +10,10 @@ import { Action } from '@/pages/services/components/action';
 import Version from './version';
 import ConfigFile from './config-file';
 import InstallationLog from './installation-log';
-import { usePage } from '@inertiajs/react';
-import type { SharedData } from '@/types';
-
-const LOCAL_PROTECTED_SERVICES = ['nginx', 'redis', 'supervisor'];
-
-function isProtectedOnLocal(service: Service, isLocal: boolean): boolean {
-  if (!isLocal) return false;
-  if (LOCAL_PROTECTED_SERVICES.includes(service.name)) return true;
-  if (service.type === 'php' && service.version === '8.4') return true;
-  return false;
-}
-
 function ServiceActions({ service }: { service: Service }) {
-  const page = usePage<SharedData>();
-  const isLocal = page.props.server?.is_local ?? false;
-  const isProtected = isProtectedOnLocal(service, isLocal);
+  if (service.is_readonly) {
+    return null;
+  }
 
   return (
     <div className="flex items-center justify-end">
@@ -57,12 +45,8 @@ function ServiceActions({ service }: { service: Service }) {
               <InstallationLog service={service} />
             </>
           )}
-          {!isProtected && (
-            <>
-              <DropdownMenuSeparator />
-              <Uninstall service={service} />
-            </>
-          )}
+          <DropdownMenuSeparator />
+          <Uninstall service={service} />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

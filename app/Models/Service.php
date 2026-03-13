@@ -28,6 +28,7 @@ use InvalidArgumentException;
  * @property string $logs
  * @property ServiceStatus $status
  * @property bool $is_default
+ * @property bool $is_readonly
  * @property Server $server
  * @property ?ServerLog $log
  */
@@ -48,6 +49,7 @@ class Service extends AbstractModel
         'logs',
         'status',
         'is_default',
+        'is_readonly',
     ];
 
     protected $casts = [
@@ -55,6 +57,7 @@ class Service extends AbstractModel
         'log_id' => 'integer',
         'type_data' => 'json',
         'is_default' => 'boolean',
+        'is_readonly' => 'boolean',
         'status' => ServiceStatus::class,
     ];
 

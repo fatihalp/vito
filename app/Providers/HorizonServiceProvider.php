@@ -22,7 +22,7 @@ class HorizonServiceProvider extends HorizonApplicationServiceProvider
         // FrankenPHP's embedded PHP sets PHP_BINARY to an empty string, so
         // Horizon can't find php to spawn supervisor/worker processes.
         // Fall back to the php wrapper found on PATH.
-        if (PHP_BINARY === '') {
+        if (PHP_BINARY === '') { // @phpstan-ignore identical.alwaysFalse
             $php = (new PhpExecutableFinder)->find(false);
             if ($php) {
                 SupervisorCommandString::$command = "exec {$php} artisan horizon:supervisor";
