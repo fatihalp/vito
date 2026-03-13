@@ -226,6 +226,11 @@ ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem > /home/vito/vito/stora
 chown -R vito:vito /home/vito/vito/storage/ssh-private.pem
 chown -R vito:vito /home/vito/vito/storage/ssh-public.key
 
+# authorize vito's app key for local SSH access
+cat /home/vito/vito/storage/ssh-public.key >> /home/vito/.ssh/authorized_keys
+chown vito:vito /home/vito/.ssh/authorized_keys
+chmod 600 /home/vito/.ssh/authorized_keys
+
 # setup local server
 php artisan server:setup-local
 

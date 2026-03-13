@@ -41,6 +41,13 @@ echo "Running migrations..."
 php artisan migrate --force
 
 echo "Setting up local server..."
+if [ -f /home/vito/vito/storage/ssh-public.key ] && [ -f /home/vito/.ssh/authorized_keys ]; then
+  if ! grep -qF "$(cat /home/vito/vito/storage/ssh-public.key)" /home/vito/.ssh/authorized_keys 2>/dev/null; then
+    cat /home/vito/vito/storage/ssh-public.key >> /home/vito/.ssh/authorized_keys
+    chown vito:vito /home/vito/.ssh/authorized_keys
+    chmod 600 /home/vito/.ssh/authorized_keys
+  fi
+fi
 php artisan server:setup-local
 
 echo "Optimizing..."
