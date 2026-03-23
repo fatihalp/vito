@@ -508,7 +508,7 @@ class DomainsTest extends TestCase
         Sanctum::actingAs($this->user, ['read']);
 
         // Create a second project for a different user
-        $otherUser = \App\Models\User::factory()->create();
+        $otherUser = User::factory()->create();
         $otherUser->ensureHasDefaultProject();
         $otherProject = $otherUser->currentProject;
 
@@ -555,7 +555,7 @@ class DomainsTest extends TestCase
         Sanctum::actingAs($this->user, ['write']);
 
         // Create a second project for a different user
-        $otherUser = \App\Models\User::factory()->create();
+        $otherUser = User::factory()->create();
         $otherUser->ensureHasDefaultProject();
         $otherProject = $otherUser->currentProject;
 
@@ -581,7 +581,7 @@ class DomainsTest extends TestCase
         Sanctum::actingAs($this->user, ['write']);
 
         // Create a second project for a different user
-        $otherUser = \App\Models\User::factory()->create();
+        $otherUser = User::factory()->create();
         $otherUser->ensureHasDefaultProject();
         $otherProject = $otherUser->currentProject;
 

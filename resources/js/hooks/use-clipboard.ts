@@ -19,15 +19,18 @@ export function useClipboard(timeout = 2000) {
         clearTimeout(timeoutRef.current);
       }
 
-      navigator.clipboard.writeText(text).then(() => {
-        setCopied(true);
-        toast.success('Copied to clipboard!');
-        timeoutRef.current = setTimeout(() => {
-          setCopied(false);
-        }, timeout);
-      }).catch(() => {
-        toast.error('Failed to copy to clipboard');
-      });
+      navigator.clipboard
+        .writeText(text)
+        .then(() => {
+          setCopied(true);
+          toast.success('Copied to clipboard!');
+          timeoutRef.current = setTimeout(() => {
+            setCopied(false);
+          }, timeout);
+        })
+        .catch(() => {
+          toast.error('Failed to copy to clipboard');
+        });
     },
     [timeout],
   );

@@ -65,7 +65,7 @@ export default function RecordForm({ domain, record, defaultOpen, onOpenChange, 
     content: record?.content || '',
     ttl: record?.ttl || 1,
     proxied: record?.proxied || false,
-    priority: record?.priority ?? (record?.type === 'MX' ? 10 : null) as number | null,
+    priority: record?.priority ?? ((record?.type === 'MX' ? 10 : null) as number | null),
   });
 
   useEffect(() => {

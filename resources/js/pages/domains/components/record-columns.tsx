@@ -30,7 +30,7 @@ function CopyableText({ text }: { text: string | null | undefined }) {
   return (
     <button
       type="button"
-      className={`cursor-pointer break-all text-left font-mono text-xs ${copied ? 'text-success' : ''}`}
+      className={`cursor-pointer text-left font-mono text-xs break-all ${copied ? 'text-success' : ''}`}
       onClick={() => copy(text || '')}
     >
       {text}
