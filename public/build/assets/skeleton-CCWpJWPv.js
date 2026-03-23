@@ -1,1 +1,0 @@
-import{j as o}from"./app-Cbv-zDaz.js";import{c as s}from"./utils-B8M8gZ2T.js";function r({className:t,...e}){return o.jsx("div",{"data-slot":"skeleton",className:s("bg-accent animate-pulse rounded-md",t),...e})}export{r as S};
