@@ -193,34 +193,46 @@ function home_path(string $user): string
     return '/home/'.$user;
 }
 
-function format_nginx_config(string $config): string
+function format_webserver_config(string $config): string
 {
     $lines = explode("\n", trim($config));
     $indent = 0;
     $formattedLines = [];
+    $lastWasEmpty = false;
 
     foreach ($lines as $line) {
         $trimmed = trim($line);
 
-        // Preserve empty lines exactly as they are
         if ($trimmed === '') {
-            $formattedLines[] = '';
+            if (! $lastWasEmpty) {
+                $formattedLines[] = '';
+                $lastWasEmpty = true;
+            }
 
             continue;
         }
 
-        // If line is a closing brace, decrease indentation first
+        $lastWasEmpty = false;
+
         if ($trimmed === '}') {
             $indent--;
+            if (end($formattedLines) === '') {
+                array_pop($formattedLines);
+            }
         }
 
-        // Apply indentation
         $formattedLines[] = str_repeat('    ', max(0, $indent)).$trimmed;
 
-        // If line contains an opening brace, increase indentation
         if (str_ends_with($trimmed, '{')) {
             $indent++;
         }
+    }
+
+    while (! empty($formattedLines) && $formattedLines[0] === '') {
+        array_shift($formattedLines);
+    }
+    while (! empty($formattedLines) && end($formattedLines) === '') {
+        array_pop($formattedLines);
     }
 
     return implode("\n", $formattedLines)."\n";

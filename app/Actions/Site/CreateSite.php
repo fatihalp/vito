@@ -2,10 +2,13 @@
 
 namespace App\Actions\Site;
 
+use App\Enums\HostedDomainStatus;
+use App\Enums\HostedDomainType;
 use App\Enums\SiteStatus;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
 use App\Exceptions\SourceControlIsNotConnected;
+use App\Jobs\HostedDomain\CheckDomainJob;
 use App\Jobs\Site\CreateJob;
 use App\Models\Server;
 use App\Models\Site;
@@ -35,7 +38,6 @@ class CreateSite
                 'server_id' => $server->id,
                 'type' => $input['type'],
                 'domain' => $input['domain'],
-                'aliases' => $input['aliases'] ?? [],
                 'user' => $user,
                 'path' => '/home/'.$user.'/'.$input['domain'],
                 'status' => SiteStatus::INSTALLING,
@@ -51,6 +53,12 @@ class CreateSite
 
             // fields based on the type
             $site->fill($site->type()->createFields($input));
+
+            /** @var \App\Models\Service $webserver */
+            $webserver = $server->webserver();
+            /** @var \App\Services\Webserver\Webserver $webserverHandler */
+            $webserverHandler = $webserver->handler();
+            $site->fill($webserverHandler->siteDefaults());
 
             // check has access to repository
             try {
@@ -77,13 +85,37 @@ class CreateSite
             // save
             $site->save();
 
+            $defaultSslMethod = $webserverHandler->defaultSslMethod();
+
+            $primaryDomain = $site->hostedDomains()->create([
+                'domain' => $site->domain,
+                'type' => HostedDomainType::PRIMARY,
+                'status' => HostedDomainStatus::CREATING,
+                'ssl_method' => $defaultSslMethod,
+            ]);
+
+            $aliasDomains = [];
+            foreach ($input['aliases'] ?? [] as $alias) {
+                $aliasDomains[] = $site->hostedDomains()->create([
+                    'domain' => $alias,
+                    'type' => HostedDomainType::ALIAS,
+                    'status' => HostedDomainStatus::CREATING,
+                    'ssl_method' => $defaultSslMethod,
+                ]);
+            }
+
             // create base commands if any
             $site->commands()->createMany($site->type()->baseCommands());
+
+            DB::commit();
 
             // install site
             dispatch(new CreateJob($site))->onQueue('ssh');
 
-            DB::commit();
+            dispatch(new CheckDomainJob($primaryDomain))->onQueue('ssh');
+            foreach ($aliasDomains as $aliasDomain) {
+                dispatch(new CheckDomainJob($aliasDomain))->onQueue('ssh');
+            }
 
             return $site;
         } catch (Exception $e) {

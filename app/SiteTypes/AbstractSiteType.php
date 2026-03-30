@@ -2,8 +2,11 @@
 
 namespace App\SiteTypes;
 
+use App\DTOs\SocketEventDTO;
+use App\Events\SocketEvent;
 use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\SSHError;
+use App\Http\Resources\SiteResource;
 use App\Models\Service;
 use App\Models\Site;
 use App\Services\PHP\PHP;
@@ -36,10 +39,40 @@ abstract class AbstractSiteType implements SiteType
         return [];
     }
 
+    public function vhostData(): array
+    {
+        return [];
+    }
+
+    /**
+     * Return null to support all webservers.
+     *
+     * @return string[]|null
+     */
+    public function supportedWebservers(): ?array
+    {
+        return null;
+    }
+
+    /**
+     * Return a Mustache template string to completely replace the default webserver vhost template.
+     * Return null to use the built-in template.
+     */
+    public function vhostTemplate(string $webserver): ?string
+    {
+        return null;
+    }
+
     protected function progress(int $percentage): void
     {
         $this->site->progress = $percentage;
         $this->site->save();
+
+        SocketEvent::dispatch(new SocketEventDTO(
+            projectId: $this->site->server->project_id,
+            type: 'site.updated',
+            data: new SiteResource($this->site),
+        ));
     }
 
     /**

@@ -72,13 +72,17 @@ class HandleInertiaRequests extends Middleware
             $sites = [];
             if ($user && $user->can('viewAny', [Site::class, $server])) {
                 // TODO: limit sites
+                $server->load('sites.hostedDomains.ssl');
                 $sites = SiteResource::collection($server->sites);
             }
 
             $data['server_sites'] = $sites;
 
             if ($request->route('site')) {
-                $data['site'] = SiteResource::make($request->route('site'));
+                /** @var Site $site */
+                $site = $request->route('site');
+                $site->load('hostedDomains.ssl');
+                $data['site'] = SiteResource::make($site);
             }
         }
 

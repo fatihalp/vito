@@ -20,6 +20,8 @@ import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-scr
 import { useRealtime, useSocketListener } from '@/hooks/use-socket-events';
 import { useCallback } from 'react';
 
+import SiteBanners from '@/components/site-banners';
+
 export default function AppWithDeployment() {
   const page = usePage<{
     server: Server;
@@ -116,6 +118,8 @@ export default function AppWithDeployment() {
             </DropdownMenu>
           </div>
         </HeaderContainer>
+
+        <SiteBanners site={page.props.site} />
 
         <DataTable columns={columns} paginatedData={deployments} />
       </Container>

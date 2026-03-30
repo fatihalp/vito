@@ -35,6 +35,7 @@ class WebSocketServer
     public function __construct(
         protected LoopInterface $loop,
         int $maxConnections = 50,
+        protected array $allowedOrigins = [],
     ) {
         $this->negotiator = new ServerNegotiator(
             new RequestVerifier,
@@ -123,8 +124,14 @@ class WebSocketServer
             $response = $this->negotiator->handshake($psrRequest);
 
             if ($response->getStatusCode() !== 101) {
-                $conn->write(\GuzzleHttp\Psr7\Message::toString($response));
-                $conn->close();
+                $conn->end(\GuzzleHttp\Psr7\Message::toString($response));
+
+                return;
+            }
+
+            $origin = $psrRequest->getHeaderLine('Origin');
+            if ($origin !== '' && ! $this->isOriginAllowed($origin)) {
+                $this->sendErrorAndClose($conn, 'Origin not allowed');
 
                 return;
             }
@@ -225,28 +232,69 @@ class WebSocketServer
         $handler = $this->httpHandlers[$path] ?? null;
 
         if ($handler === null || strtoupper($request->getMethod()) !== 'POST') {
-            $conn->write("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
-            $conn->close();
+            $conn->end("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n");
 
             return;
         }
 
         try {
             $handler($request);
-            $conn->write("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n");
+            $conn->end("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n");
         } catch (\Throwable $e) {
             Log::error('HTTP handler error', ['error' => $e->getMessage()]);
-            $conn->write("HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n");
+            $conn->end("HTTP/1.1 500 Internal Server Error\r\nConnection: close\r\n\r\n");
+        }
+    }
+
+    protected function isOriginAllowed(string $origin): bool
+    {
+        if ($this->allowedOrigins === []) {
+            return true;
         }
 
-        $conn->close();
+        $originParts = parse_url($origin);
+        if (! is_array($originParts) || ! isset($originParts['host'])) {
+            return false;
+        }
+
+        $defaultPorts = ['http' => 80, 'https' => 443];
+        $originScheme = strtolower($originParts['scheme'] ?? 'http');
+        $originHost = strtolower($originParts['host']);
+        $originPort = $originParts['port'] ?? null;
+        $originDefaultPort = $defaultPorts[$originScheme] ?? null;
+
+        foreach ($this->allowedOrigins as $allowed) {
+            $allowedParts = parse_url($allowed);
+            if (! is_array($allowedParts) || ! isset($allowedParts['host'])) {
+                continue;
+            }
+
+            $allowedScheme = strtolower($allowedParts['scheme'] ?? 'http');
+            $allowedHost = strtolower($allowedParts['host']);
+            $allowedPort = $allowedParts['port'] ?? null;
+            $allowedDefaultPort = $defaultPorts[$allowedScheme] ?? null;
+
+            if ($originScheme !== $allowedScheme || $originHost !== $allowedHost) {
+                continue;
+            }
+
+            $originHasExplicitPort = $originPort !== null && $originPort !== $originDefaultPort;
+            $allowedHasExplicitPort = $allowedPort !== null && $allowedPort !== $allowedDefaultPort;
+
+            if ($originHasExplicitPort && $allowedHasExplicitPort && $originPort !== $allowedPort) {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     protected function sendErrorAndClose(ConnectionInterface $conn, string $message): void
     {
         $response = "HTTP/1.1 403 Forbidden\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n{$message}";
-        $conn->write($response);
-        $conn->close();
+        $conn->end($response);
     }
 
     public function getConnectionCount(): int

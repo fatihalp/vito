@@ -9,7 +9,6 @@ use App\Exceptions\SSHError;
 use App\Models\Site;
 use App\Models\Worker;
 use App\SSH\OS\Git;
-use Illuminate\Contracts\View\View;
 use Illuminate\Validation\Rule;
 
 class NodeJS extends AbstractSiteType
@@ -81,11 +80,13 @@ class NodeJS extends AbstractSiteType
     public function install(): void
     {
         $this->isolate();
+        $this->progress(10);
         $this->site->webserver()->createVHost($this->site);
-        $this->progress(15);
+        $this->progress(20);
         $this->deployKey();
         $this->progress(30);
         app(Git::class)->clone($this->site);
+        $this->progress(45);
         $this->site->server->ssh($this->site->user)->exec(
             __('npm install --prefix=:path', [
                 'path' => $this->site->path,
@@ -93,6 +94,7 @@ class NodeJS extends AbstractSiteType
             'install-npm-dependencies',
             $this->site->id
         );
+        $this->progress(60);
         $this->site->server->ssh($this->site->user)->exec(
             __('npm run build --prefix=:path', [
                 'path' => $this->site->path,
@@ -100,11 +102,10 @@ class NodeJS extends AbstractSiteType
             'npm-build',
             $this->site->id
         );
-        $this->progress(65);
+        $this->progress(75);
         $command = __('npm start --prefix=:path', [
             'path' => $this->site->path,
         ]);
-        $this->progress(80);
         /** @var ?Worker $worker */
         $worker = $this->site->workers()->where('name', 'app')->first();
         if ($worker) {
@@ -123,6 +124,7 @@ class NodeJS extends AbstractSiteType
                 $this->site,
             );
         }
+        $this->progress(90);
     }
 
     public function baseCommands(): array
@@ -135,35 +137,10 @@ class NodeJS extends AbstractSiteType
         ];
     }
 
-    public function vhost(string $webserver): string|View
+    public function vhostData(): array
     {
-        if ($webserver === 'nginx') {
-            return view('ssh.services.webserver.nginx.vhost', [
-                'header' => [
-                    view('ssh.services.webserver.nginx.vhost-blocks.force-ssl', ['site' => $this->site]),
-                ],
-                'main' => [
-                    view('ssh.services.webserver.nginx.vhost-blocks.port', ['site' => $this->site]),
-                    view('ssh.services.webserver.nginx.vhost-blocks.core', ['site' => $this->site]),
-                    view('ssh.services.webserver.nginx.vhost-blocks.reverse-proxy', ['site' => $this->site]),
-                    view('ssh.services.webserver.nginx.vhost-blocks.redirects', ['site' => $this->site]),
-                ],
-            ]);
-        }
-
-        if ($webserver === 'caddy') {
-            return view('ssh.services.webserver.caddy.vhost', [
-                'site' => $this->site,
-                'main' => [
-                    view('ssh.services.webserver.caddy.vhost-blocks.force-ssl', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.port', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.core', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.reverse-proxy', ['site' => $this->site]),
-                    view('ssh.services.webserver.caddy.vhost-blocks.redirects', ['site' => $this->site]),
-                ],
-            ]);
-        }
-
-        return '';
+        return [
+            'is_reverse_proxy' => true,
+        ];
     }
 }

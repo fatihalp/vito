@@ -2,6 +2,7 @@
 
 namespace App\Services\Webserver;
 
+use App\Actions\Webserver\GenerateNginxConfig;
 use App\Exceptions\SSHError;
 use App\Exceptions\SSLCreationException;
 use App\Models\Site;
@@ -79,6 +80,11 @@ class Nginx extends AbstractWebserver
         $this->service->server->os()->cleanup();
     }
 
+    public function generateVhost(Site $site, ?string $template = null): string
+    {
+        return app(GenerateNginxConfig::class)->generate($site, $template);
+    }
+
     /**
      * @throws SSHError
      */
@@ -115,19 +121,19 @@ class Nginx extends AbstractWebserver
     /**
      * @throws SSHError
      */
-    public function updateVHost(Site $site, ?string $vhost = null, array $replace = [], array $regenerate = [], array $append = [], bool $restart = true): void
+    public function updateVHost(Site $site, ?string $vhost = null, bool $restart = false): void
     {
-        if (! $vhost) {
-            $vhost = $this->getVHost($site);
+        if (! $vhost && ! $site->vhost_generation_enabled) {
+            return;
         }
 
-        if (! $vhost || ! preg_match('/#\[header]/', $vhost) || ! preg_match('/#\[main]/', $vhost) || ! preg_match('/#\[footer]/', $vhost)) {
+        if (! $vhost) {
             $vhost = $this->generateVhost($site);
         }
 
         $this->service->server->ssh()->write(
             '/etc/nginx/sites-available/'.$site->domain,
-            format_nginx_config($this->getUpdatedVHost($site, $vhost, $replace, $regenerate, $append)),
+            $vhost,
             'root'
         );
 
@@ -166,22 +172,6 @@ class Nginx extends AbstractWebserver
             $site->id
         );
         $this->service->restart();
-    }
-
-    /**
-     * @throws SSHError
-     */
-    public function changePHPVersion(Site $site, string $version): void
-    {
-        $this->service->server->ssh()->exec(
-            view('ssh.services.webserver.nginx.change-php-version', [
-                'domain' => $site->domain,
-                'oldVersion' => $site->php_version,
-                'newVersion' => $version,
-            ]),
-            'change-php-version',
-            $site->id
-        );
     }
 
     /**

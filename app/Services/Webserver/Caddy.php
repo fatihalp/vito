@@ -2,6 +2,8 @@
 
 namespace App\Services\Webserver;
 
+use App\Actions\Webserver\GenerateCaddyConfig;
+use App\Enums\SslMethod;
 use App\Exceptions\SSHError;
 use App\Exceptions\SSLCreationException;
 use App\Models\Site;
@@ -13,6 +15,29 @@ class Caddy extends AbstractWebserver
     public static function id(): string
     {
         return 'caddy';
+    }
+
+    public function siteDefaults(): array
+    {
+        return [
+            'ssl_enabled' => true,
+            'force_ssl' => true,
+        ];
+    }
+
+    public function canConfigureSSL(): bool
+    {
+        return false;
+    }
+
+    public function allowedSslMethods(): ?array
+    {
+        return [SslMethod::LETSENCRYPT->value, SslMethod::CUSTOM->value];
+    }
+
+    public function defaultSslMethod(): SslMethod
+    {
+        return SslMethod::LETSENCRYPT;
     }
 
     public static function type(): string
@@ -101,22 +126,27 @@ class Caddy extends AbstractWebserver
         );
     }
 
+    public function generateVhost(Site $site, ?string $template = null): string
+    {
+        return app(GenerateCaddyConfig::class)->generate($site, $template);
+    }
+
     /**
      * @throws SSHError
      */
-    public function updateVHost(Site $site, ?string $vhost = null, array $replace = [], array $regenerate = [], array $append = [], bool $restart = true): void
+    public function updateVHost(Site $site, ?string $vhost = null, bool $restart = false): void
     {
-        if (! $vhost) {
-            $vhost = $this->getVHost($site);
+        if (! $vhost && ! $site->vhost_generation_enabled) {
+            return;
         }
 
-        if (! $vhost || ! preg_match('/#\[main]/', $vhost)) {
+        if (! $vhost) {
             $vhost = $this->generateVhost($site);
         }
 
         $this->service->server->ssh()->write(
             '/etc/caddy/sites-available/'.$site->domain,
-            format_nginx_config($this->getUpdatedVHost($site, $vhost, $replace, $regenerate, $append)),
+            $vhost,
             'root'
         );
 
@@ -155,22 +185,6 @@ class Caddy extends AbstractWebserver
             $site->id
         );
         $this->service->restart();
-    }
-
-    /**
-     * @throws SSHError
-     */
-    public function changePHPVersion(Site $site, string $version): void
-    {
-        $this->service->server->ssh()->exec(
-            view('ssh.services.webserver.caddy.change-php-version', [
-                'domain' => $site->domain,
-                'oldVersion' => $site->php_version,
-                'newVersion' => $version,
-            ]),
-            'change-php-version',
-            $site->id
-        );
     }
 
     /**

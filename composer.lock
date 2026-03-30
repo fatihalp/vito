@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "4d9bb8563ec0676798f3333b34e315b9",
+    "content-hash": "c453490e3d2b3817d974ec4ff8f14afa",
     "packages": [
         {
             "name": "aws/aws-crt-php",
@@ -810,6 +810,73 @@
                 "source": "https://github.com/igorw/evenement/tree/v3.0.2"
             },
             "time": "2023-08-08T05:53:35+00:00"
+        },
+        {
+            "name": "forjedio/inertia-table",
+            "version": "v1.1.1",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/forjedio/inertia-table.git",
+                "reference": "93c6c59e2ed7598e4b055b9366c9a1e7bc9a807d"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/forjedio/inertia-table/zipball/93c6c59e2ed7598e4b055b9366c9a1e7bc9a807d",
+                "reference": "93c6c59e2ed7598e4b055b9366c9a1e7bc9a807d",
+                "shasum": ""
+            },
+            "require": {
+                "illuminate/console": "^12.0|^13.0",
+                "illuminate/database": "^12.0|^13.0",
+                "illuminate/http": "^12.0|^13.0",
+                "illuminate/support": "^12.0|^13.0",
+                "php": "^8.2"
+            },
+            "require-dev": {
+                "larastan/larastan": "^3.9",
+                "laravel/pint": "^1.29",
+                "orchestra/testbench": "^10.0",
+                "pestphp/pest": "^3.0",
+                "pestphp/pest-plugin-laravel": "^3.0",
+                "phpstan/phpstan": "^2.1"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "Forjed\\InertiaTable\\TableServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "Forjed\\InertiaTable\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Forjed",
+                    "email": "packages@forjed.io",
+                    "homepage": "https://forjed.io"
+                }
+            ],
+            "description": "Backend-driven dynamic tables for Laravel + Inertia.js",
+            "keywords": [
+                "datatable",
+                "dynamic-tables",
+                "inertia",
+                "laravel",
+                "tables"
+            ],
+            "support": {
+                "issues": "https://github.com/forjedio/inertia-table/issues",
+                "source": "https://github.com/forjedio/inertia-table/tree/v1.1.1"
+            },
+            "time": "2026-03-26T15:22:05+00:00"
         },
         {
             "name": "fruitcake/php-cors",
@@ -2829,6 +2896,59 @@
                 "source": "https://github.com/jmespath/jmespath.php/tree/2.8.0"
             },
             "time": "2024-09-04T18:46:31+00:00"
+        },
+        {
+            "name": "mustache/mustache",
+            "version": "v3.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/bobthecow/mustache.php.git",
+                "reference": "176b6b21d68516dd5107a63ab71b0050e518b7a4"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/bobthecow/mustache.php/zipball/176b6b21d68516dd5107a63ab71b0050e518b7a4",
+                "reference": "176b6b21d68516dd5107a63ab71b0050e518b7a4",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=5.6"
+            },
+            "require-dev": {
+                "friendsofphp/php-cs-fixer": "~2.19.3",
+                "yoast/phpunit-polyfills": "^2.0"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Mustache\\": "src/"
+                },
+                "classmap": [
+                    "src/compat.php"
+                ]
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Justin Hileman",
+                    "email": "justin@justinhileman.info",
+                    "homepage": "http://justinhileman.com"
+                }
+            ],
+            "description": "A Mustache implementation in PHP.",
+            "homepage": "https://github.com/bobthecow/mustache.php",
+            "keywords": [
+                "mustache",
+                "templating"
+            ],
+            "support": {
+                "issues": "https://github.com/bobthecow/mustache.php/issues",
+                "source": "https://github.com/bobthecow/mustache.php/tree/v3.0.0"
+            },
+            "time": "2025-06-28T18:28:20+00:00"
         },
         {
             "name": "nesbot/carbon",

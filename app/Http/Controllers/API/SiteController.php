@@ -4,10 +4,12 @@ namespace App\Http\Controllers\API;
 
 use App\Actions\Site\CreateSite;
 use App\Actions\Site\Deploy;
-use App\Actions\Site\UpdateAliases;
+use App\Actions\Site\DisableSsl;
+use App\Actions\Site\EnableSsl;
 use App\Actions\Site\UpdateDeploymentScript;
 use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
+use App\Actions\Site\UpdateVhostGeneration;
 use App\Actions\Site\UpdateWebDirectory;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Helpers\EnvParser;
@@ -83,18 +85,6 @@ class SiteController extends Controller
         $this->validateRoute($project, $server, $site);
 
         app(UpdateLoadBalancer::class)->update($site, $request->all());
-
-        return new SiteResource($site);
-    }
-
-    #[Put('{site}/aliases', name: 'api.projects.servers.sites.aliases', middleware: 'ability:write')]
-    public function updateAliases(Request $request, Project $project, Server $server, Site $site): SiteResource
-    {
-        $this->authorize('update', [$site, $server]);
-
-        $this->validateRoute($project, $server, $site);
-
-        app(UpdateAliases::class)->update($site, $request->all());
 
         return new SiteResource($site);
     }
@@ -182,6 +172,42 @@ class SiteController extends Controller
         $this->validateRoute($project, $server, $site);
 
         app(UpdateEnv::class)->update($site, $request->all());
+
+        return new SiteResource($site);
+    }
+
+    #[Post('{site}/enable-ssl', name: 'api.projects.servers.sites.enable-ssl', middleware: 'ability:write')]
+    public function enableSsl(Project $project, Server $server, Site $site): SiteResource
+    {
+        $this->authorize('update', [$site, $server]);
+
+        $this->validateRoute($project, $server, $site);
+
+        app(EnableSsl::class)->enable($site);
+
+        return new SiteResource($site);
+    }
+
+    #[Post('{site}/disable-ssl', name: 'api.projects.servers.sites.disable-ssl', middleware: 'ability:write')]
+    public function disableSsl(Project $project, Server $server, Site $site): SiteResource
+    {
+        $this->authorize('update', [$site, $server]);
+
+        $this->validateRoute($project, $server, $site);
+
+        app(DisableSsl::class)->disable($site);
+
+        return new SiteResource($site);
+    }
+
+    #[Put('{site}/vhost-generation', name: 'api.projects.servers.sites.vhost-generation', middleware: 'ability:write')]
+    public function updateVhostGeneration(Request $request, Project $project, Server $server, Site $site): SiteResource
+    {
+        $this->authorize('update', [$site, $server]);
+
+        $this->validateRoute($project, $server, $site);
+
+        app(UpdateVhostGeneration::class)->update($site, $request->all());
 
         return new SiteResource($site);
     }

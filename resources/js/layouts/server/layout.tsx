@@ -9,6 +9,7 @@ import {
   CommandIcon,
   DatabaseIcon,
   FlameIcon,
+  GlobeIcon,
   HomeIcon,
   KeyIcon,
   ListEndIcon,
@@ -105,6 +106,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
                 icon: RocketIcon,
               },
               {
+                title: 'Domains',
+                href: route('hosted-domains', { server: page.props.server.id, site: site.id }),
+                onlyActivePath: route('hosted-domains', { server: page.props.server.id, site: site.id }),
+                icon: GlobeIcon,
+              },
+              {
                 title: 'Features',
                 href: route('site-features', { server: page.props.server.id, site: site.id }),
                 icon: BoxIcon,
@@ -113,11 +120,6 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
                 title: 'Commands',
                 href: route('commands', { server: page.props.server.id, site: site.id }),
                 icon: CommandIcon,
-              },
-              {
-                title: 'SSL',
-                href: route('ssls', { server: page.props.server.id, site: site.id }),
-                icon: LockIcon,
               },
               {
                 title: 'Workers',
@@ -181,6 +183,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       title: 'SSH Keys',
       href: route('server-ssh-keys', { server: page.props.server.id }),
       icon: KeyIcon,
+      isDisabled: isMenuDisabled,
+    },
+    {
+      title: 'SSL',
+      href: route('server-ssls', { server: page.props.server.id }),
+      icon: LockIcon,
       isDisabled: isMenuDisabled,
     },
     {

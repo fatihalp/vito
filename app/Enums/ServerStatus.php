@@ -3,8 +3,9 @@
 namespace App\Enums;
 
 use App\Contracts\VitoEnum;
+use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
-enum ServerStatus: string implements VitoEnum
+enum ServerStatus: string implements HasTableDisplay, VitoEnum
 {
     case READY = 'ready';
     case INSTALLING = 'installing';

@@ -13,9 +13,12 @@ export interface Site {
     [key: string]: unknown;
   };
   domain: string;
-  aliases?: string[];
   web_directory: string;
   webserver: string;
+  webserver_creates_site_ssls: boolean;
+  can_configure_ssl: boolean;
+  webserver_allowed_ssl_methods: string[] | null;
+  webserver_default_ssl_method: string;
   path: string;
   php_version: string;
   repository: string;
@@ -27,9 +30,12 @@ export interface Site {
   user: string;
   url: string;
   force_ssl: boolean;
+  ssl_enabled: boolean;
   progress: number;
+  vhost_generation_enabled: boolean;
   features: SiteFeature[];
   modern_deployment: boolean;
+  warnings: SiteWarning[];
   created_at: string;
   updated_at: string;
 
@@ -50,6 +56,13 @@ export interface SiteFeature {
     [key: string]: SiteFeatureAction;
   };
 }
+
+export type SiteWarning =
+  | { key: 'pending_domains'; count: number; domains: string[] }
+  | { key: 'ssl_disabled' }
+  | { key: 'vhost_generation_disabled' }
+  | { key: 'ssl_expiring'; count: number; domains: string[]; earliest_expiry: string }
+  | { key: string; [k: string]: unknown };
 
 export interface SiteFeatureAction {
   label: string;

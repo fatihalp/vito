@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\HostedDomainType;
 use App\Enums\RedirectStatus;
 use App\Enums\SiteStatus;
-use App\Enums\SslStatus;
 use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
+use App\Jobs\SSL\DeleteSiteSslJob;
 use App\Services\PHP\PHP;
 use App\Services\Webserver\Webserver;
 use App\SiteFeatures\ActionInterface;
@@ -42,6 +43,9 @@ use RuntimeException;
  * @property int $progress
  * @property string $user
  * @property bool $force_ssl
+ * @property bool $ssl_enabled
+ * @property ?string $vhost_template
+ * @property bool $vhost_generation_enabled
  * @property Server $server
  * @property Collection<int, ServerLog> $logs
  * @property Collection<int, Deployment> $deployments
@@ -53,7 +57,6 @@ use RuntimeException;
  * @property ?DeploymentScript $preFlightScript
  * @property Collection<int, Worker> $workers
  * @property Collection<int, Ssl> $ssls
- * @property ?Ssl $activeSsl
  * @property string $ssh_key_name
  * @property ?SourceControl $sourceControl
  * @property Collection<int, LoadBalancerServer> $loadBalancerServers
@@ -88,6 +91,9 @@ class Site extends AbstractModel
         'progress',
         'user',
         'force_ssl',
+        'ssl_enabled',
+        'vhost_template',
+        'vhost_generation_enabled',
     ];
 
     protected $casts = [
@@ -99,6 +105,8 @@ class Site extends AbstractModel
         'aliases' => 'array',
         'source_control_id' => 'integer',
         'force_ssl' => 'boolean',
+        'ssl_enabled' => 'boolean',
+        'vhost_generation_enabled' => 'boolean',
         'status' => SiteStatus::class,
     ];
 
@@ -111,7 +119,9 @@ class Site extends AbstractModel
                 /** @var Worker $worker */
                 $worker->delete();
             });
-            $site->ssls()->delete();
+            $site->ssls()->each(function (Ssl $ssl) use ($site): void {
+                dispatch(new DeleteSiteSslJob($site->server, $ssl))->onQueue('ssh');
+            });
             $site->deployments()->delete();
             $site->deploymentScript()->delete();
             $site->gitHook?->destroyHook();
@@ -264,6 +274,22 @@ class Site extends AbstractModel
     }
 
     /**
+     * @return HasMany<HostedDomain, covariant $this>
+     */
+    public function hostedDomains(): HasMany
+    {
+        return $this->hasMany(HostedDomain::class);
+    }
+
+    /**
+     * @return HasOne<HostedDomain, covariant $this>
+     */
+    public function primaryHostedDomain(): HasOne
+    {
+        return $this->hasOne(HostedDomain::class)->where('type', HostedDomainType::PRIMARY);
+    }
+
+    /**
      * @return BelongsTo<SourceControl, covariant $this>
      */
     public function sourceControl(): BelongsTo
@@ -312,9 +338,6 @@ class Site extends AbstractModel
      */
     public function changePHPVersion(string $version): void
     {
-        $webserver = $this->webserver();
-        $webserver->changePHPVersion($this, $version);
-
         if ($this->isIsolated()) {
             /** @var Service $php */
             $php = $this->server->php();
@@ -326,23 +349,13 @@ class Site extends AbstractModel
 
         $this->php_version = $version;
         $this->save();
-    }
 
-    /**
-     * @return HasOne<Ssl, covariant $this>
-     */
-    public function activeSsl(): HasOne
-    {
-        return $this->hasOne(Ssl::class)
-            ->where('expires_at', '>=', now())
-            ->where('status', SslStatus::CREATED)
-            ->where('is_active', true)
-            ->orderByDesc('id');
+        $this->webserver()->updateVHost($this);
     }
 
     public function getUrl(): string
     {
-        if ($this->activeSsl) {
+        if ($this->ssl_enabled) {
             return 'https://'.$this->domain;
         }
 

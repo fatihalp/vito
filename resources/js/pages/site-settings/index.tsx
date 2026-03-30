@@ -5,6 +5,7 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
+import SiteBanners from '@/components/site-banners';
 import { BookOpenIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -18,8 +19,8 @@ import CopyableBadge from '@/components/copyable-badge';
 import ChangePHPVersion from '@/pages/site-settings/components/php-version';
 import DeleteSite from '@/pages/site-settings/components/delete-site';
 import VHost from '@/pages/site-settings/components/vhost';
+import VHostPreview from '@/pages/site-settings/components/vhost-preview';
 import ChangeSourceControl from '@/pages/site-settings/components/source-control';
-import Aliases from './components/aliases';
 import WebDirectory from './components/web-directory';
 
 export default function Databases() {
@@ -46,6 +47,8 @@ export default function Databases() {
           </div>
         </HeaderContainer>
 
+        <SiteBanners site={page.props.site} />
+
         <Card>
           <CardHeader className="flex-row items-center justify-between gap-2">
             <div className="space-y-2">
@@ -64,15 +67,6 @@ export default function Databases() {
               <a href={page.props.site.url} target="_blank" className="text-muted-foreground hover:underline">
                 {page.props.site.domain}
               </a>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Aliases</span>
-              <Aliases site={page.props.site}>
-                <Button variant="outline" className="h-6">
-                  Update Aliases
-                </Button>
-              </Aliases>
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">
@@ -113,9 +107,18 @@ export default function Databases() {
             <Separator />
             <div className="flex items-center justify-between p-4">
               <span>VHost</span>
+              <VHostPreview site={page.props.site}>
+                <Button variant="outline" className="h-6">
+                  View VHost
+                </Button>
+              </VHostPreview>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between p-4">
+              <span>VHost Template</span>
               <VHost site={page.props.site}>
                 <Button variant="outline" className="h-6">
-                  Edit VHost
+                  Edit Template
                 </Button>
               </VHost>
             </div>
