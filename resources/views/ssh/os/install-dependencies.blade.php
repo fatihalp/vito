@@ -1,9 +1,10 @@
 export NEEDRESTART_MODE=l
-sudo DEBIAN_FRONTEND=noninteractive apt-get install -y software-properties-common curl zip unzip git gcc openssl ufw cron
+export DEBIAN_FRONTEND=noninteractive
+sudo apt-get install -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" software-properties-common curl zip unzip git gcc openssl ufw cron
 git config --global user.email "{{ $email }}"
 git config --global user.name "{{ $name }}"
 
 # Install Node.js
 curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
-sudo DEBIAN_FRONTEND=noninteractive apt-get update
-sudo DEBIAN_FRONTEND=noninteractive apt-get install nodejs -y
+sudo apt-get update
+sudo apt-get install nodejs -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
