@@ -1,3 +1,4 @@
+export NEEDRESTART_MODE=l
 # Update package lists
 sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 
