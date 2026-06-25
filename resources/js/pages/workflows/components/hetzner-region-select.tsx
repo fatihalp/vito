@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
+import axios from 'axios';
 import { CheckIcon, GaugeIcon, LoaderCircleIcon, MapPinIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { getHetznerRegion, hetznerRegions } from '../hetzner-regions';
@@ -20,45 +21,16 @@ export default function HetznerRegionSelect({ value, onChange }: { value: string
     return measured.sort((a, b) => a[1] - b[1])[0]?.[0];
   }, [latencies]);
 
-  const measureRegion = async (url: string) => {
-    const samples: number[] = [];
-
-    for (let index = 0; index < 3; index += 1) {
-      const controller = new AbortController();
-      const timeout = window.setTimeout(() => controller.abort(), 5000);
-      const startedAt = performance.now();
-
-      try {
-        await fetch(`${url}?v=${Date.now()}-${index}`, {
-          method: 'GET',
-          mode: 'no-cors',
-          cache: 'no-store',
-          signal: controller.signal,
-        });
-        samples.push(performance.now() - startedAt);
-      } catch {
-        if (samples.length === 0) return null;
-      } finally {
-        window.clearTimeout(timeout);
-      }
-    }
-
-    return Math.round(Math.min(...samples));
-  };
-
   const measureAll = async () => {
     setTesting(true);
     setLatencies(Object.fromEntries(hetznerRegions.map((region) => [region.value, null])));
 
-    const results = await Promise.all(
-      hetznerRegions.map(async (region) => ({
-        value: region.value,
-        latency: await measureRegion(region.speedTestUrl),
-      })),
-    );
-
-    setLatencies(Object.fromEntries(results.map((result) => [result.value, result.latency])));
-    setTesting(false);
+    try {
+      const response = await axios.get<{ latencies: Latencies }>(route('hetzner.latency'));
+      setLatencies(response.data.latencies);
+    } finally {
+      setTesting(false);
+    }
   };
 
   const latencyText = (value: string) => {
@@ -90,7 +62,7 @@ export default function HetznerRegionSelect({ value, onChange }: { value: string
       <DialogContent className="gap-0 p-0 sm:max-w-4xl">
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle>Hetzner Region</DialogTitle>
-          <DialogDescription>Latency is measured from this browser with small HTTP requests to Hetzner speedtest endpoints.</DialogDescription>
+          <DialogDescription>Latency is measured from this Vito server with small HTTP requests to Hetzner speedtest endpoints.</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 p-6">
           <div className="flex items-center justify-between gap-3">

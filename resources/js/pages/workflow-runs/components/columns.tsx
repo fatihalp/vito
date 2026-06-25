@@ -2,6 +2,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
 import { WorkflowRun } from '@/types/workflow-run';
 import { Badge } from '@/components/ui/badge';
+import Duration from './duration';
 
 export const columns: ColumnDef<WorkflowRun>[] = [
   {
@@ -25,7 +26,7 @@ export const columns: ColumnDef<WorkflowRun>[] = [
     header: 'Duration',
     enableColumnFilter: true,
     enableSorting: true,
-    cell: ({ row }) => row.original.duration,
+    cell: ({ row }) => <Duration workflowRun={row.original} />,
   },
   {
     accessorKey: 'status',

@@ -7,6 +7,7 @@ import { WorkflowRun } from '@/types/workflow-run';
 import { Badge } from '@/components/ui/badge';
 import { Workflow } from '@/types/workflow';
 import { BreadcrumbItem } from '@/types';
+import Duration from './components/duration';
 
 export default function Show() {
   const page = usePage<{
@@ -36,7 +37,9 @@ export default function Show() {
         <div className="flex items-start justify-between">
           <Heading title={`Workflow [${page.props.workflow.name}]`} description="Here you can see the result of your workflow's execution" />
           <div className="flex items-center gap-2">
-            <span className="text-muted-foreground text-sm">{page.props.workflowRun.duration}</span>
+            <span className="text-muted-foreground text-sm">
+              <Duration workflowRun={page.props.workflowRun} />
+            </span>
             <Badge variant={page.props.workflowRun.status_color}>{page.props.workflowRun.status}</Badge>
           </div>
         </div>

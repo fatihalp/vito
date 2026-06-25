@@ -14,7 +14,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Falkenstein',
     country: 'Germany',
     zone: 'eu-central',
-    speedTestUrl: 'https://fsn1-speed.hetzner.com/',
+    speedTestUrl: 'http://fsn1-speed.hetzner.com/100MB.bin',
   },
   {
     value: 'nbg1',
@@ -22,7 +22,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Nuremberg',
     country: 'Germany',
     zone: 'eu-central',
-    speedTestUrl: 'https://nbg1-speed.hetzner.com/',
+    speedTestUrl: 'http://nbg1-speed.hetzner.com/100MB.bin',
   },
   {
     value: 'hel1',
@@ -30,7 +30,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Helsinki',
     country: 'Finland',
     zone: 'eu-central',
-    speedTestUrl: 'https://hel1-speed.hetzner.com/',
+    speedTestUrl: 'http://hel1-speed.hetzner.com/100MB.bin',
   },
   {
     value: 'ash',
@@ -38,7 +38,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Ashburn, VA',
     country: 'United States',
     zone: 'us-east',
-    speedTestUrl: 'https://ash-speed.hetzner.com/',
+    speedTestUrl: 'http://ash-speed.hetzner.com/100MB.bin',
   },
   {
     value: 'hil',
@@ -46,7 +46,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Hillsboro, OR',
     country: 'United States',
     zone: 'us-west',
-    speedTestUrl: 'https://hil-speed.hetzner.com/',
+    speedTestUrl: 'http://hil-speed.hetzner.com/100MB.bin',
   },
   {
     value: 'sin',
@@ -54,7 +54,7 @@ export const hetznerRegions: HetznerRegion[] = [
     city: 'Singapore',
     country: 'Singapore',
     zone: 'ap-southeast',
-    speedTestUrl: 'https://sin-speed.hetzner.com/',
+    speedTestUrl: 'http://sin-speed.hetzner.com/100MB.bin',
   },
 ];
 

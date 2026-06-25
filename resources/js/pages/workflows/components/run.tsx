@@ -40,6 +40,7 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
 
   const normalizedInputs = Object.fromEntries(
     Object.entries(workflow.run_inputs || {}).map(([key, value]) => {
+      if (key === 'os') return [key, 'ubuntu_24'];
       if (typeof value !== 'string') return [key, value];
 
       try {
@@ -130,18 +131,7 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
       return (
         <FormField key={key}>
           <Label>Operating System</Label>
-          <Select value={value?.toString() || ''} onValueChange={(selected) => setInput(key, selected)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select OS" />
-            </SelectTrigger>
-            <SelectContent>
-              {['ubuntu_24', 'ubuntu_22', 'ubuntu_20'].map((os) => (
-                <SelectItem key={os} value={os}>
-                  {os}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input value="ubuntu_24" readOnly />
         </FormField>
       );
     }

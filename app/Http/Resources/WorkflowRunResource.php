@@ -3,6 +3,7 @@
 namespace App\Http\Resources;
 
 use App\Models\WorkflowRun;
+use App\Enums\WorkflowRunStatus;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -14,9 +15,8 @@ class WorkflowRunResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-        $durationSeconds = $this->created_at
-            ? (int) $this->created_at->diffInSeconds($this->updated_at ?? now(), true)
-            : 0;
+        $endedAt = $this->status === WorkflowRunStatus::RUNNING ? now() : $this->updated_at;
+        $durationSeconds = $this->created_at ? (int) $this->created_at->diffInSeconds($endedAt ?? now(), true) : 0;
 
         return [
             'id' => $this->id,

@@ -470,11 +470,7 @@ export default function CreateServer({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {page.props.configs.operating_systems.map((value) => (
-                        <SelectItem key={`os-${value}`} value={value}>
-                          {value}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="ubuntu_24">ubuntu_24</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
