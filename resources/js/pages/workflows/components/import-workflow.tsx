@@ -14,9 +14,13 @@ import { toast } from 'sonner';
 import SelectRepo from '@/pages/source-controls/components/select-repo';
 import { defaultHetznerPlan, getHetznerPlan } from '../hetzner-plans';
 import HetznerPlanSelect from './hetzner-plan-select';
+import { defaultHetznerRegion, getHetznerRegion } from '../hetzner-regions';
+import HetznerRegionSelect from './hetzner-region-select';
 
 type WorkflowImport = {
   name?: string;
+  site_addresses?: string[];
+  domains?: string[];
   nodes: Node[];
   edges: Edge[];
 };
@@ -45,8 +49,10 @@ export default function ImportWorkflow({
   const [domain, setDomain] = useState('');
   const [serverProvider, setServerProvider] = useState('');
   const [plan, setPlan] = useState(defaultHetznerPlan);
+  const [region, setRegion] = useState(defaultHetznerRegion);
   const [sourceControl, setSourceControl] = useState('');
   const [repository, setRepository] = useState('');
+  const [domainOptions, setDomainOptions] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
 
@@ -98,8 +104,23 @@ export default function ImportWorkflow({
     return repository;
   };
 
+  const uniqueDomains = (values: unknown) => {
+    if (!Array.isArray(values)) return [];
+
+    return [...new Set(values.map((value) => value?.toString() || '').filter(Boolean))]
+      .map((value) => {
+        try {
+          return normalizeDomain(value);
+        } catch {
+          return '';
+        }
+      })
+      .filter(Boolean);
+  };
+
   const applyTemplateDefaults = async (selectedFile: File | null) => {
     setFile(selectedFile);
+    setDomainOptions([]);
     if (!selectedFile) return;
 
     try {
@@ -112,14 +133,19 @@ export default function ImportWorkflow({
       const serverInputs = getActionInputs(template, 'App\\WorkflowActions\\Server\\CreateServer');
       const siteInputs = getActionInputs(template, 'App\\WorkflowActions\\Site\\CreateLaravelSite');
       const filePlan = serverInputs.plan?.toString();
+      const fileRegion = serverInputs.region?.toString();
       const fileProviderId = serverInputs.server_provider?.toString();
       const fileProvider = serverInputs.provider?.toString();
       const fileSourceControl = siteInputs.source_control?.toString();
       const fileRepository = siteInputs.repository?.toString();
       const fileDomain = siteInputs.domain?.toString();
+      const fileDomains = uniqueDomains(template.site_addresses || template.domains);
 
       if (filePlan && getHetznerPlan(filePlan)) {
         setPlan(filePlan);
+      }
+      if (fileRegion && getHetznerRegion(fileRegion)) {
+        setRegion(fileRegion);
       }
       if (fileProviderId && serverProviders.some((provider) => provider.id.toString() === fileProviderId)) {
         setServerProvider(fileProviderId);
@@ -134,6 +160,10 @@ export default function ImportWorkflow({
       }
       if (fileRepository && !fileRepository.includes('__')) {
         setRepository(fileRepository);
+      }
+      if (fileDomains.length > 0) {
+        setDomainOptions(fileDomains);
+        setDomain(fileDomains[0]);
       }
       if (fileDomain && !fileDomain.includes('__')) {
         setDomain(fileDomain);
@@ -154,6 +184,10 @@ export default function ImportWorkflow({
     }
     if (!plan) {
       toast.error('Select a Hetzner plan.');
+      return null;
+    }
+    if (!region) {
+      toast.error('Select a Hetzner region.');
       return null;
     }
     if (!sourceControl) {
@@ -218,6 +252,7 @@ export default function ImportWorkflow({
                 inputs: {
                   ...inputs,
                   plan,
+                  region,
                   server_provider: Number(serverProvider),
                 },
               },
@@ -291,7 +326,22 @@ export default function ImportWorkflow({
           </div>
           <div className="grid gap-2">
             <Label htmlFor="workflow-import-domain">Site Address</Label>
-            <Input id="workflow-import-domain" value={domain} placeholder="alobot.net" onChange={(event) => setDomain(event.target.value)} />
+            {domainOptions.length > 0 ? (
+              <Select value={domain} onValueChange={setDomain}>
+                <SelectTrigger id="workflow-import-domain">
+                  <SelectValue placeholder="Select site address" />
+                </SelectTrigger>
+                <SelectContent searchable>
+                  {domainOptions.map((domain) => (
+                    <SelectItem key={domain} value={domain}>
+                      {domain}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <Input id="workflow-import-domain" value={domain} placeholder="alobot.net" onChange={(event) => setDomain(event.target.value)} />
+            )}
           </div>
           <div className="grid gap-2">
             <Label>Server Provider</Label>
@@ -311,6 +361,10 @@ export default function ImportWorkflow({
           <div className="grid gap-2">
             <Label>Hetzner Plan</Label>
             <HetznerPlanSelect value={plan} onChange={setPlan} />
+          </div>
+          <div className="grid gap-2">
+            <Label>Hetzner Region</Label>
+            <HetznerRegionSelect value={region} onChange={setRegion} />
           </div>
           <div className="grid gap-2">
             <Label>Source Control</Label>

@@ -21,6 +21,7 @@ import { LoaderCircleIcon } from 'lucide-react';
 import { FormEvent, ReactNode, useState } from 'react';
 import { useInputFocus } from '@/stores/useInputFocus';
 import HetznerPlanSelect from './hetzner-plan-select';
+import HetznerRegionSelect from './hetzner-region-select';
 
 type WorkflowInputValue = string | number | boolean | string[] | null;
 
@@ -150,6 +151,15 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
         <FormField key={key}>
           <Label>Hetzner Plan</Label>
           <HetznerPlanSelect value={value?.toString() || ''} onChange={(selected) => setInput(key, selected)} />
+        </FormField>
+      );
+    }
+
+    if (key === 'region' && form.data.inputs.provider === 'hetzner') {
+      return (
+        <FormField key={key}>
+          <Label>Hetzner Region</Label>
+          <HetznerRegionSelect value={value?.toString() || ''} onChange={(selected) => setInput(key, selected)} />
         </FormField>
       );
     }

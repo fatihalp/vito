@@ -901,6 +901,10 @@ return [
                 'title' => 'US - Hillsboro, OR',
                 'value' => 'hil',
             ],
+            [
+                'title' => 'SG - Singapore',
+                'value' => 'sin',
+            ],
         ],
         'images' => [
             'ubuntu_20' => 'ubuntu-20.04',

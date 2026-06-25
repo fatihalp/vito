@@ -1,5 +1,10 @@
 {
   "name": "__DOMAIN__ Laravel Provision",
+  "site_addresses": [
+    "test.alobot.net",
+    "alobot.net",
+    "beta.alobot.net"
+  ],
   "nodes": [
     {
       "id": "create-server",

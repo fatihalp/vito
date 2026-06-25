@@ -49,7 +49,10 @@ class CreateSite
             }
 
             // fields based on the type
-            $site->fill($site->type()->createFields($input));
+            $site->fill(array_intersect_key(
+                $site->type()->createFields($input),
+                array_flip($site->getFillable())
+            ));
 
             // check has access to repository
             try {
