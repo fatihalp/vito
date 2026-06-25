@@ -64,7 +64,6 @@ class SitesTest extends TestCase
 
         $this->assertDatabaseHas('sites', [
             'domain' => $inputs['domain'],
-            'aliases' => $this->castAsJson($inputs['aliases'] ?? []),
             'status' => SiteStatus::READY->value,
             'user' => $inputs['user'],
             'path' => '/home/'.$inputs['user'].'/'.$inputs['domain'],
@@ -90,7 +89,6 @@ class SitesTest extends TestCase
         $inputs = [
             'type' => Laravel::id(),
             'domain' => 'example.com',
-            'aliases' => ['www.example.com'],
             'php_version' => '8.2',
             'web_directory' => 'public',
             'repository' => 'test/test',
@@ -288,24 +286,6 @@ class SitesTest extends TestCase
         $this->assertEquals('master', $this->site->branch);
 
         SSH::assertExecutedContains('git checkout -f master');
-    }
-
-    public function test_update_aliases(): void
-    {
-        SSH::fake();
-
-        $this->actingAs($this->user);
-
-        $this->patch(route('site-settings.update-aliases', [
-            'server' => $this->server->id,
-            'site' => $this->site,
-        ]), [
-            'aliases' => ['www.example.com', 'test.example.com'],
-        ])
-            ->assertSessionDoesntHaveErrors();
-
-        $this->site->refresh();
-        $this->assertEquals(['www.example.com', 'test.example.com'], $this->site->aliases);
     }
 
     public function test_update_web_directory(): void
@@ -544,7 +524,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => 'a',
@@ -554,7 +533,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => 'root',
@@ -564,7 +542,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => 'vito',
@@ -574,7 +551,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => '123',
@@ -584,7 +560,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => 'qwertyuiopasdfghjklzxcvbnmqwertyu',
@@ -603,7 +578,6 @@ class SitesTest extends TestCase
                 [
                     'type' => Laravel::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com', 'www2.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'repository' => 'test/test',
@@ -616,7 +590,6 @@ class SitesTest extends TestCase
                 [
                     'type' => Wordpress::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'title' => 'Example',
                     'username' => 'example',
@@ -631,7 +604,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPBlank::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'web_directory' => 'public',
                     'user' => 'example',
@@ -641,7 +613,6 @@ class SitesTest extends TestCase
                 [
                     'type' => PHPMyAdmin::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'php_version' => '8.2',
                     'version' => '5.1.2',
                     'user' => 'example',
@@ -651,7 +622,6 @@ class SitesTest extends TestCase
                 [
                     'type' => LoadBalancer::id(),
                     'domain' => 'example.com',
-                    'aliases' => ['www.example.com'],
                     'user' => 'example',
                     'method' => LoadBalancerMethod::ROUND_ROBIN->value,
                 ],

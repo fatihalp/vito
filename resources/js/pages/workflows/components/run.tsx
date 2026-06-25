@@ -20,7 +20,7 @@ import { useForm, usePage } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { FormEvent, ReactNode, useState } from 'react';
 import { useInputFocus } from '@/stores/useInputFocus';
-import { hetznerPlans } from '../hetzner-plans';
+import HetznerPlanSelect from './hetzner-plan-select';
 
 type WorkflowInputValue = string | number | boolean | string[] | null;
 
@@ -149,18 +149,7 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
       return (
         <FormField key={key}>
           <Label>Hetzner Plan</Label>
-          <Select value={value?.toString() || ''} onValueChange={(selected) => setInput(key, selected)}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select Hetzner plan" />
-            </SelectTrigger>
-            <SelectContent searchable>
-              {hetznerPlans.map((plan) => (
-                <SelectItem key={plan.value} value={plan.value}>
-                  {plan.group}: {plan.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <HetznerPlanSelect value={value?.toString() || ''} onChange={(selected) => setInput(key, selected)} />
         </FormField>
       );
     }

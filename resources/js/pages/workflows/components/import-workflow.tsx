@@ -12,7 +12,8 @@ import { LoaderCircle } from 'lucide-react';
 import { FormEvent, MouseEvent, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import SelectRepo from '@/pages/source-controls/components/select-repo';
-import { defaultHetznerPlan, hetznerPlans } from '../hetzner-plans';
+import { defaultHetznerPlan, getHetznerPlan } from '../hetzner-plans';
+import HetznerPlanSelect from './hetzner-plan-select';
 
 type WorkflowImport = {
   name?: string;
@@ -76,6 +77,17 @@ export default function ImportWorkflow({
     return value;
   };
 
+  const getActionInputs = (workflow: WorkflowImport, handler: string) => {
+    const node = workflow.nodes.find((node) => {
+      const action = node.data?.action as WorkflowNodeAction | undefined;
+
+      return action?.handler === handler;
+    });
+    const action = node?.data?.action as WorkflowNodeAction | undefined;
+
+    return action?.inputs && typeof action.inputs === 'object' ? action.inputs : {};
+  };
+
   const normalizeRepository = (value: string) => {
     const repository = value.trim();
 
@@ -84,6 +96,51 @@ export default function ImportWorkflow({
     }
 
     return repository;
+  };
+
+  const applyTemplateDefaults = async (selectedFile: File | null) => {
+    setFile(selectedFile);
+    if (!selectedFile) return;
+
+    try {
+      const template = JSON.parse(await selectedFile.text()) as WorkflowImport;
+      if (!Array.isArray(template.nodes) || !Array.isArray(template.edges)) {
+        toast.error('Invalid workflow JSON file.');
+        return;
+      }
+
+      const serverInputs = getActionInputs(template, 'App\\WorkflowActions\\Server\\CreateServer');
+      const siteInputs = getActionInputs(template, 'App\\WorkflowActions\\Site\\CreateLaravelSite');
+      const filePlan = serverInputs.plan?.toString();
+      const fileProviderId = serverInputs.server_provider?.toString();
+      const fileProvider = serverInputs.provider?.toString();
+      const fileSourceControl = siteInputs.source_control?.toString();
+      const fileRepository = siteInputs.repository?.toString();
+      const fileDomain = siteInputs.domain?.toString();
+
+      if (filePlan && getHetznerPlan(filePlan)) {
+        setPlan(filePlan);
+      }
+      if (fileProviderId && serverProviders.some((provider) => provider.id.toString() === fileProviderId)) {
+        setServerProvider(fileProviderId);
+      } else if (fileProvider) {
+        const matchedProviders = serverProviders.filter((provider) => provider.provider === fileProvider);
+        if (matchedProviders.length === 1) {
+          setServerProvider(matchedProviders[0].id.toString());
+        }
+      }
+      if (fileSourceControl && sourceControls.some((sourceControl) => sourceControl.id.toString() === fileSourceControl)) {
+        setSourceControl(fileSourceControl);
+      }
+      if (fileRepository && !fileRepository.includes('__')) {
+        setRepository(fileRepository);
+      }
+      if (fileDomain && !fileDomain.includes('__')) {
+        setDomain(fileDomain);
+      }
+    } catch {
+      toast.error('Could not read workflow JSON defaults.');
+    }
   };
 
   const buildWorkflow = async (): Promise<ImportForm | null> => {
@@ -224,6 +281,15 @@ export default function ImportWorkflow({
         </DialogHeader>
         <form className="grid gap-4 p-4" onSubmit={submit}>
           <div className="grid gap-2">
+            <Label htmlFor="workflow-import-file">Workflow JSON</Label>
+            <Input
+              id="workflow-import-file"
+              type="file"
+              accept="application/json,.json"
+              onChange={(event) => void applyTemplateDefaults(event.target.files?.[0] ?? null)}
+            />
+          </div>
+          <div className="grid gap-2">
             <Label htmlFor="workflow-import-domain">Site Address</Label>
             <Input id="workflow-import-domain" value={domain} placeholder="alobot.net" onChange={(event) => setDomain(event.target.value)} />
           </div>
@@ -244,18 +310,7 @@ export default function ImportWorkflow({
           </div>
           <div className="grid gap-2">
             <Label>Hetzner Plan</Label>
-            <Select value={plan} onValueChange={setPlan}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select Hetzner plan" />
-              </SelectTrigger>
-              <SelectContent searchable>
-                {hetznerPlans.map((plan) => (
-                  <SelectItem key={plan.value} value={plan.value}>
-                    {plan.group}: {plan.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <HetznerPlanSelect value={plan} onChange={setPlan} />
           </div>
           <div className="grid gap-2">
             <Label>Source Control</Label>
@@ -281,15 +336,6 @@ export default function ImportWorkflow({
           <div className="grid gap-2">
             <Label htmlFor="workflow-import-repository">Repository</Label>
             <SelectRepo sourceControlId={sourceControl} value={repository} onValueChange={setRepository} placeholder="owner/repository" />
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="workflow-import-file">Workflow JSON</Label>
-            <Input
-              id="workflow-import-file"
-              type="file"
-              accept="application/json,.json"
-              onChange={(event) => setFile(event.target.files?.[0] ?? null)}
-            />
           </div>
         </form>
         <DialogFooter>

@@ -27,7 +27,6 @@ use RuntimeException;
  * @property string $type
  * @property array<string, mixed> $type_data
  * @property string $domain
- * @property array<int, string> $aliases
  * @property string $web_directory
  * @property string $path
  * @property string $php_version
@@ -72,7 +71,6 @@ class Site extends AbstractModel
         'type',
         'type_data',
         'domain',
-        'aliases',
         'web_directory',
         'path',
         'php_version',
@@ -93,7 +91,6 @@ class Site extends AbstractModel
         'type_data' => 'json',
         'port' => 'integer',
         'progress' => 'integer',
-        'aliases' => 'array',
         'source_control_id' => 'integer',
         'force_ssl' => 'boolean',
         'status' => SiteStatus::class,
@@ -271,15 +268,6 @@ class Site extends AbstractModel
     public function getFullRepositoryUrl(): ?string
     {
         return $this->sourceControl?->provider()?->fullRepoUrl($this->repository, $this->getSshKeyName());
-    }
-
-    public function getAliasesString(): string
-    {
-        if (count($this->aliases) > 0) {
-            return implode(' ', $this->aliases);
-        }
-
-        return '';
     }
 
     public function type(): SiteType

@@ -16,11 +16,6 @@ abstract class CreateSite extends AbstractWorkflowAction
         return [
             'server_id' => 'The ID of the server to create the site on',
             'domain' => 'The domain of the site (example.com)',
-            'aliases' => [
-                'alias-1',
-                'alias-2',
-                'send this field empty [] if you do not want to set any aliases',
-            ],
             'user' => 'Isolated user, remove this field to use the default user (vito)',
         ];
     }

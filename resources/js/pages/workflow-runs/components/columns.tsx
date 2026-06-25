@@ -21,6 +21,13 @@ export const columns: ColumnDef<WorkflowRun>[] = [
     },
   },
   {
+    accessorKey: 'duration_seconds',
+    header: 'Duration',
+    enableColumnFilter: true,
+    enableSorting: true,
+    cell: ({ row }) => row.original.duration,
+  },
+  {
     accessorKey: 'status',
     header: 'Status',
     enableColumnFilter: true,

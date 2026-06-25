@@ -79,12 +79,6 @@ class ServiceTypeServiceProvider extends ServiceProvider
             ->handler(Postgresql::class)
             ->versions([
                 '18',
-                '17',
-                '16',
-                '15',
-                '14',
-                '13',
-                '12',
             ])
             ->configPaths([
                 [

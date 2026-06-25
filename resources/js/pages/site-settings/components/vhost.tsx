@@ -90,7 +90,7 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
             <Alert variant="destructive">
               <AlertDescription className="flex items-center gap-2">
                 <StatusRipple variant="destructive" />
-                <p>Some parts of the vhost file will get reset if you generate or modify SSLs, Aliases, or create/delete site redirects.</p>
+                <p>Some parts of the vhost file will get reset if you generate or modify SSLs or create/delete site redirects.</p>
               </AlertDescription>
             </Alert>
           </div>

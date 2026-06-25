@@ -35,7 +35,10 @@ export default function Show() {
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
           <Heading title={`Workflow [${page.props.workflow.name}]`} description="Here you can see the result of your workflow's execution" />
-          <Badge variant={page.props.workflowRun.status_color}>{page.props.workflowRun.status}</Badge>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-sm">{page.props.workflowRun.duration}</span>
+            <Badge variant={page.props.workflowRun.status_color}>{page.props.workflowRun.status}</Badge>
+          </div>
         </div>
 
         <Logs workflowRun={page.props.workflowRun} />

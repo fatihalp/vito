@@ -34,3 +34,4 @@ AGENTS.md
 .github/copilot-instructions.md
 boost.json
 opencode.json
+/public/build/assets/

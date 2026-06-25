@@ -14,7 +14,6 @@ return new class extends Migration
             $table->string('type');
             $table->json('type_data')->nullable();
             $table->string('domain')->index();
-            $table->json('aliases')->nullable();
             $table->string('web_directory')->nullable();
             $table->string('path');
             $table->string('php_version')->nullable();

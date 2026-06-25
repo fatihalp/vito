@@ -1,4 +1,4 @@
-{{ $site->domain }} {{ $site->getAliasesString() }} {
+{{ $site->domain }} {
 #[main]
 @foreach($main ?? [] as $main)
 {{ $main }}

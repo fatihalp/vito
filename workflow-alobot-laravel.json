@@ -21,6 +21,7 @@
           "inputs": {
             "name": "__DOMAIN__",
             "provider": "hetzner",
+            "plan": "cx23",
             "region": "hel1",
             "os": "ubuntu_24"
           },
@@ -306,9 +307,9 @@
           "inputs": {
             "server_id": "{server_id}",
             "type": "laravel",
-            "aliases": [],
             "user": "__SITE_USER__",
             "php_version": "8.4",
+            "repository": "fatihalp/alobot",
             "branch": "main",
             "web_directory": "public",
             "composer": true

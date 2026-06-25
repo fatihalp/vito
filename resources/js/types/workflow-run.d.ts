@@ -5,6 +5,8 @@ export interface WorkflowRun {
   status_color: 'success' | 'danger' | 'warning' | 'info';
   current_node_label: string | null;
   current_node_id: string | null;
+  duration: string;
+  duration_seconds: number;
   created_at: string;
   updated_at: string;
   [key: string]: unknown;

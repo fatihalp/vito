@@ -14,6 +14,10 @@ class WorkflowRunResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
+        $durationSeconds = $this->created_at
+            ? (int) $this->created_at->diffInSeconds($this->updated_at ?? now(), true)
+            : 0;
+
         return [
             'id' => $this->id,
             'workflow_id' => $this->workflow_id,
@@ -21,8 +25,27 @@ class WorkflowRunResource extends JsonResource
             'status_color' => $this->status->getColor(),
             'current_node_label' => $this->current_node_label,
             'current_node_id' => $this->current_node_id,
+            'duration' => $this->formatDuration($durationSeconds),
+            'duration_seconds' => $durationSeconds,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
+    }
+
+    private function formatDuration(int $seconds): string
+    {
+        $hours = intdiv($seconds, 3600);
+        $minutes = intdiv($seconds % 3600, 60);
+        $remainingSeconds = $seconds % 60;
+
+        if ($hours > 0) {
+            return sprintf('%dh %02dm %02ds', $hours, $minutes, $remainingSeconds);
+        }
+
+        if ($minutes > 0) {
+            return sprintf('%dm %02ds', $minutes, $remainingSeconds);
+        }
+
+        return $remainingSeconds.'s';
     }
 }

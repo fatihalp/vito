@@ -1,5 +1,5 @@
 #[core]
-server_name {{ $site->domain }} {{ $site->getAliasesString() }};
+server_name {{ $site->domain }};
 root {{ $site->getWebDirectoryPath() }};
 add_header X-Frame-Options "SAMEORIGIN";
 add_header X-Content-Type-Options "nosniff";

@@ -35,7 +35,6 @@ class CreateSite
                 'server_id' => $server->id,
                 'type' => $input['type'],
                 'domain' => $input['domain'],
-                'aliases' => $input['aliases'] ?? [],
                 'user' => $user,
                 'path' => '/home/'.$user.'/'.$input['domain'],
                 'status' => SiteStatus::INSTALLING,
@@ -106,9 +105,6 @@ class CreateSite
                 'required',
                 new DomainRule,
                 Rule::unique('sites', 'domain')->where(fn ($query) => $query->where('server_id', $server->id)),
-            ],
-            'aliases.*' => [
-                new DomainRule,
             ],
             'user' => [
                 'required',

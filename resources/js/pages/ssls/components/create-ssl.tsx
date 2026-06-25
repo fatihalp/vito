@@ -17,7 +17,6 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Site } from '@/types/site';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,7 +27,6 @@ type CreateForm = {
   certificate: string;
   private: string;
   expires_at: string;
-  aliases: boolean;
 };
 
 export default function CreateSSL({ site, children }: { site: Site; children: ReactNode }) {
@@ -40,7 +38,6 @@ export default function CreateSSL({ site, children }: { site: Site; children: Re
     certificate: '',
     private: '',
     expires_at: '',
-    aliases: false,
   });
 
   const submit = (e: FormEvent) => {
@@ -133,13 +130,6 @@ export default function CreateSSL({ site, children }: { site: Site; children: Re
                 </FormField>
               </>
             )}
-            <FormField>
-              <div className="flex items-center space-x-3">
-                <Checkbox id="aliases" name="aliases" checked={form.data.aliases} onClick={() => form.setData('aliases', !form.data.aliases)} />
-                <Label htmlFor="aliases">Set SSL for site's aliases as well</Label>
-              </div>
-              <InputError message={form.errors.aliases} />
-            </FormField>
           </FormFields>
         </Form>
         <DialogFooter>

@@ -19,7 +19,6 @@ import ChangePHPVersion from '@/pages/site-settings/components/php-version';
 import DeleteSite from '@/pages/site-settings/components/delete-site';
 import VHost from '@/pages/site-settings/components/vhost';
 import ChangeSourceControl from '@/pages/site-settings/components/source-control';
-import Aliases from './components/aliases';
 import WebDirectory from './components/web-directory';
 
 export default function Databases() {
@@ -64,15 +63,6 @@ export default function Databases() {
               <a href={page.props.site.url} target="_blank" className="text-muted-foreground hover:underline">
                 {page.props.site.domain}
               </a>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Aliases</span>
-              <Aliases site={page.props.site}>
-                <Button variant="outline" className="h-6">
-                  Update Aliases
-                </Button>
-              </Aliases>
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">
