@@ -1,0 +1,535 @@
+{
+  "name": "__DOMAIN__ Laravel Provision",
+  "nodes": [
+    {
+      "id": "create-server",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "Create Server",
+        "action": {
+          "id": "create-server",
+          "label": "Create Server",
+          "category": "server",
+          "handler": "App\\WorkflowActions\\Server\\CreateServer",
+          "starting": true,
+          "inputs": {
+            "name": "__DOMAIN__",
+            "provider": "hetzner",
+            "region": "hel1",
+            "os": "ubuntu_24"
+          },
+          "outputs": {
+            "server_id": "The ID of the created server",
+            "server_name": "The name of the created server",
+            "server_ip": "The IP address of the created server",
+            "server_public_key": "The public key of the created server",
+            "server_provider_id": "The provider-specific ID of the created server",
+            "server_provider": "The provider of the created server",
+            "server_status": "The status of the created server"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-nginx",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 360,
+        "y": 0
+      },
+      "data": {
+        "label": "Install Nginx",
+        "action": {
+          "id": "install-service",
+          "label": "Install Nginx",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "nginx",
+            "version": "latest"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-php",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 720,
+        "y": 0
+      },
+      "data": {
+        "label": "Install PHP 8.4",
+        "action": {
+          "id": "install-service",
+          "label": "Install PHP 8.4",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "php",
+            "version": "8.4"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-postgresql",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 1080,
+        "y": 0
+      },
+      "data": {
+        "label": "Install PostgreSQL 18",
+        "action": {
+          "id": "install-service",
+          "label": "Install PostgreSQL 18",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "postgresql",
+            "version": "18"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-redis",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 1440,
+        "y": 0
+      },
+      "data": {
+        "label": "Install Redis",
+        "action": {
+          "id": "install-service",
+          "label": "Install Redis",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "redis",
+            "version": "latest"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-supervisor",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 1800,
+        "y": 0
+      },
+      "data": {
+        "label": "Install Supervisor",
+        "action": {
+          "id": "install-service",
+          "label": "Install Supervisor",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "supervisor",
+            "version": "latest"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "install-nodejs",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 2160,
+        "y": 0
+      },
+      "data": {
+        "label": "Install Node.js 22",
+        "action": {
+          "id": "install-service",
+          "label": "Install Node.js 22",
+          "category": "service",
+          "handler": "App\\WorkflowActions\\Service\\InstallService",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "nodejs",
+            "version": "22"
+          },
+          "outputs": {
+            "server_id": "The ID of the server the service was installed on",
+            "service_id": "The ID of the installed service",
+            "service_status": "The status of the installed service"
+          }
+        }
+      }
+    },
+    {
+      "id": "create-database",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 2520,
+        "y": 0
+      },
+      "data": {
+        "label": "Create Database",
+        "action": {
+          "id": "create-database",
+          "label": "Create Database",
+          "category": "database",
+          "handler": "App\\WorkflowActions\\Database\\CreateDatabase",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "name": "__DATABASE_NAME__",
+            "charset": "UTF8",
+            "collation": "en_US.UTF-8"
+          },
+          "outputs": {
+            "server_id": "The ID of the server where the database was created",
+            "database_name": "The name of the created database",
+            "database_id": "The ID of the created database"
+          }
+        }
+      }
+    },
+    {
+      "id": "create-database-user",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 2880,
+        "y": 0
+      },
+      "data": {
+        "label": "Create Database User",
+        "action": {
+          "id": "create-database-user",
+          "label": "Create Database User",
+          "category": "database",
+          "handler": "App\\WorkflowActions\\Database\\CreateDatabaseUser",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "username": "__DATABASE_USERNAME__",
+            "password": "__DATABASE_PASSWORD__",
+            "remote": false,
+            "databases": [
+              "__DATABASE_NAME__"
+            ],
+            "permission": "admin"
+          },
+          "outputs": {
+            "server_id": "The ID of the server where the database was created",
+            "database_user_id": "The ID of the created database user",
+            "database_user_username": "The name of the created database user",
+            "database_user_host": "The host of the created database user",
+            "database_user_databases": "The databases assigned to the created database user",
+            "database_user_permission": "The permission level of the created database user",
+            "database_user_status": "The status of the created database user"
+          }
+        }
+      }
+    },
+    {
+      "id": "create-laravel-site",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 3240,
+        "y": 0
+      },
+      "data": {
+        "label": "Create Laravel Site",
+        "action": {
+          "id": "create-laravel-site",
+          "label": "Create Laravel Site",
+          "category": "site",
+          "handler": "App\\WorkflowActions\\Site\\CreateLaravelSite",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "type": "laravel",
+            "aliases": [],
+            "user": "__SITE_USER__",
+            "php_version": "8.4",
+            "branch": "main",
+            "web_directory": "public",
+            "composer": true
+          },
+          "outputs": {
+            "server_id": "The ID of the server where the site was created",
+            "site_id": "The ID of the created site",
+            "site_domain": "The domain of the created site",
+            "site_path": "The path of the created site on the server",
+            "site_status": "The status of the created site"
+          }
+        }
+      }
+    },
+    {
+      "id": "write-env",
+      "type": "custom",
+      "sourcePosition": "right",
+      "targetPosition": "left",
+      "position": {
+        "x": 3600,
+        "y": 0
+      },
+      "data": {
+        "label": "Write .env and Setup Laravel",
+        "action": {
+          "id": "run-command",
+          "label": "Write .env and Setup Laravel",
+          "category": "general",
+          "handler": "App\\WorkflowActions\\General\\RunCommand",
+          "starting": false,
+          "inputs": {
+            "server_id": "{server_id}",
+            "user": "__SITE_USER__",
+            "command": "cd {site_path} && php -r 'file_put_contents(\".env\", implode(PHP_EOL, [\"APP_NAME=__APP_NAME__\", \"APP_ENV=production\", \"APP_KEY=base64:\".base64_encode(random_bytes(32)), \"APP_DEBUG=false\", \"APP_URL=__APP_URL__\", \"\", \"LOG_CHANNEL=stack\", \"LOG_LEVEL=error\", \"\", \"DB_CONNECTION=pgsql\", \"DB_HOST=127.0.0.1\", \"DB_PORT=5432\", \"DB_DATABASE=__DATABASE_NAME__\", \"DB_USERNAME=__DATABASE_USERNAME__\", \"DB_PASSWORD=__DATABASE_PASSWORD__\", \"\", \"CACHE_STORE=redis\", \"QUEUE_CONNECTION=redis\", \"SESSION_DRIVER=redis\", \"\", \"REDIS_HOST=127.0.0.1\", \"REDIS_PASSWORD=null\", \"REDIS_PORT=6379\", \"\"]).PHP_EOL);' && php8.4 artisan migrate --force && php8.4 artisan storage:link || true"
+          },
+          "outputs": []
+        }
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "create-server-install-nginx",
+      "source": "create-server",
+      "target": "install-nginx",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-nginx-install-php",
+      "source": "install-nginx",
+      "target": "install-php",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-php-install-postgresql",
+      "source": "install-php",
+      "target": "install-postgresql",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-postgresql-install-redis",
+      "source": "install-postgresql",
+      "target": "install-redis",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-redis-install-supervisor",
+      "source": "install-redis",
+      "target": "install-supervisor",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-supervisor-install-nodejs",
+      "source": "install-supervisor",
+      "target": "install-nodejs",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "install-nodejs-create-database",
+      "source": "install-nodejs",
+      "target": "create-database",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "create-database-create-database-user",
+      "source": "create-database",
+      "target": "create-database-user",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "create-database-user-create-laravel-site",
+      "source": "create-database-user",
+      "target": "create-laravel-site",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    },
+    {
+      "id": "create-laravel-site-write-env",
+      "source": "create-laravel-site",
+      "target": "write-env",
+      "type": "smoothstep",
+      "animated": true,
+      "data": {
+        "status": "success"
+      },
+      "style": {
+        "stroke": "oklch(51.1% 0.262 276.966)",
+        "strokeWidth": 2
+      },
+      "markerEnd": {
+        "type": "arrowclosed",
+        "color": "oklch(51.1% 0.262 276.966)"
+      }
+    }
+  ]
+}

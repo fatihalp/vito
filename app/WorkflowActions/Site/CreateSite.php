@@ -4,7 +4,9 @@ namespace App\WorkflowActions\Site;
 
 use App\Models\Server;
 use App\Models\Site;
+use App\Jobs\Site\CreateJob;
 use App\WorkflowActions\AbstractWorkflowAction;
+use Exception;
 use Illuminate\Support\Facades\Validator;
 
 abstract class CreateSite extends AbstractWorkflowAction
@@ -26,6 +28,7 @@ abstract class CreateSite extends AbstractWorkflowAction
     public function outputs(): array
     {
         return [
+            'server_id' => 'The ID of the server where the site was created',
             'site_id' => 'The ID of the created site',
             'site_domain' => 'The domain of the created site',
             'site_path' => 'The path of the created site on the server',
@@ -46,10 +49,19 @@ abstract class CreateSite extends AbstractWorkflowAction
 
         $site = app(\App\Actions\Site\CreateSite::class)->create(
             $server,
-            $input,
+            array_merge($input, ['queue' => false]),
         );
 
+        try {
+            (new CreateJob($site))->handle();
+            $site->refresh();
+        } catch (Exception $e) {
+            (new CreateJob($site))->failed($e);
+            throw $e;
+        }
+
         return [
+            'server_id' => $server->id,
             'site_id' => $site->id,
             'site_domain' => $site->domain,
             'site_path' => $site->path,

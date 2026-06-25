@@ -5,7 +5,11 @@ namespace App\Http\Controllers\Workflow;
 use App\Actions\Workflow\CreateWorkflow;
 use App\Actions\Workflow\UpdateWorkflow;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ServerProviderResource;
+use App\Http\Resources\SourceControlResource;
 use App\Http\Resources\WorkflowResource;
+use App\Models\ServerProvider;
+use App\Models\SourceControl;
 use App\Models\Workflow;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -37,6 +41,8 @@ class WorkflowController extends Controller
 
         return Inertia::render('workflows/index', [
             'workflows' => WorkflowResource::collection($workflows),
+            'serverProviders' => ServerProviderResource::collection(ServerProvider::getByProjectId($user->currentProject->id, $user)->get()),
+            'sourceControls' => SourceControlResource::collection(SourceControl::getByProjectId($user->currentProject->id, $user)->get()),
         ]);
     }
 

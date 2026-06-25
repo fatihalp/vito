@@ -80,8 +80,9 @@ class CreateSite
             // create base commands if any
             $site->commands()->createMany($site->type()->baseCommands());
 
-            // install site
-            dispatch(new CreateJob($site))->onQueue('ssh');
+            if ($input['queue'] ?? true) {
+                dispatch(new CreateJob($site))->onQueue('ssh');
+            }
 
             DB::commit();
 

@@ -10,74 +10,180 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Form, FormField, FormFields } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { useAppearance } from '@/hooks/use-appearance';
+import { ServerProvider } from '@/types/server-provider';
 import { Workflow } from '@/types/workflow';
-import { useForm } from '@inertiajs/react';
-import { Editor } from '@monaco-editor/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
-import { ReactNode, useState } from 'react';
-import { toast } from 'sonner';
+import { FormEvent, ReactNode, useState } from 'react';
 import { useInputFocus } from '@/stores/useInputFocus';
+import { hetznerPlans } from '../hetzner-plans';
+
+type WorkflowInputValue = string | number | boolean | string[] | null;
 
 export default function Run({ workflow, children }: { workflow: Workflow; children: ReactNode }) {
+  const page = usePage<{ serverProviders?: ServerProvider[] }>();
   const setFocused = useInputFocus((state) => state.setFocused);
   const [open, setOpen] = useState(false);
+  const serverProviders = page.props.serverProviders || [];
+  const workflowName = (() => {
+    try {
+      return decodeURIComponent(workflow.name);
+    } catch {
+      return workflow.name;
+    }
+  })();
+
+  const normalizedInputs = Object.fromEntries(
+    Object.entries(workflow.run_inputs || {}).map(([key, value]) => {
+      if (typeof value !== 'string') return [key, value];
+
+      try {
+        return [key, decodeURIComponent(value)];
+      } catch {
+        return [key, value];
+      }
+    }),
+  ) as Record<string, WorkflowInputValue>;
 
   const form = useForm<{
-    inputs: Record<string, string>;
+    inputs: Record<string, WorkflowInputValue>;
     verbose: boolean;
   }>({
-    inputs: workflow.run_inputs || {},
+    inputs: normalizedInputs,
     verbose: false,
   });
-  const { getActualAppearance } = useAppearance();
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     setFocused(isOpen);
   };
 
-  const submit = () => {
-    validateInputs();
+  const submit = (event?: FormEvent) => {
+    event?.preventDefault();
     form.post(route('workflow-runs.store', { workflow: workflow.id }));
   };
 
-  const validateInputs = () => {
-    try {
-      const reformatted = JSON.stringify(form.data.inputs, null, 2);
-      JSON.parse(reformatted);
-    } catch (e) {
-      toast.error('Invalid JSON format. Please correct it before reformatting.');
-      throw e;
+  const setInput = (key: string, value: WorkflowInputValue) => {
+    form.setData('inputs', {
+      ...form.data.inputs,
+      [key]: value,
+    });
+  };
+
+  const setServerProvider = (id: string) => {
+    const serverProvider = serverProviders.find((provider) => provider.id.toString() === id);
+
+    form.setData('inputs', {
+      ...form.data.inputs,
+      server_provider: Number(id),
+      provider: serverProvider?.provider || form.data.inputs.provider,
+    });
+  };
+
+  const renderField = (key: string, value: WorkflowInputValue) => {
+    if (key === 'server_provider') {
+      return (
+        <FormField key={key}>
+          <Label>Server Provider</Label>
+          <Select value={value?.toString() || ''} onValueChange={setServerProvider}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select server provider" />
+            </SelectTrigger>
+            <SelectContent searchable>
+              {serverProviders.map((provider) => (
+                <SelectItem key={provider.id} value={provider.id.toString()}>
+                  {provider.name} ({provider.provider})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      );
     }
+
+    if (key === 'provider') {
+      return (
+        <FormField key={key}>
+          <Label>Provider</Label>
+          <Select value={value?.toString() || ''} onValueChange={(selected) => setInput(key, selected)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select provider" />
+            </SelectTrigger>
+            <SelectContent>
+              {['hetzner', 'digitalocean', 'aws', 'vultr', 'linode'].map((provider) => (
+                <SelectItem key={provider} value={provider}>
+                  {provider}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      );
+    }
+
+    if (key === 'os') {
+      return (
+        <FormField key={key}>
+          <Label>Operating System</Label>
+          <Select value={value?.toString() || ''} onValueChange={(selected) => setInput(key, selected)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select OS" />
+            </SelectTrigger>
+            <SelectContent>
+              {['ubuntu_24', 'ubuntu_22', 'ubuntu_20'].map((os) => (
+                <SelectItem key={os} value={os}>
+                  {os}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      );
+    }
+
+    if (key === 'plan' && form.data.inputs.provider === 'hetzner') {
+      return (
+        <FormField key={key}>
+          <Label>Hetzner Plan</Label>
+          <Select value={value?.toString() || ''} onValueChange={(selected) => setInput(key, selected)}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select Hetzner plan" />
+            </SelectTrigger>
+            <SelectContent searchable>
+              {hetznerPlans.map((plan) => (
+                <SelectItem key={plan.value} value={plan.value}>
+                  {plan.group}: {plan.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </FormField>
+      );
+    }
+
+    return (
+      <FormField key={key}>
+        <Label htmlFor={`workflow-input-${key}`}>{key}</Label>
+        <Input id={`workflow-input-${key}`} value={value?.toString() || ''} onChange={(event) => setInput(key, event.target.value)} />
+      </FormField>
+    );
   };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-4xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Run workflow [{workflow.name}]</DialogTitle>
-          <DialogDescription className="sr-only">Run workflow [{workflow.name}]</DialogDescription>
+          <DialogTitle>Run workflow [{workflowName}]</DialogTitle>
+          <DialogDescription className="sr-only">Run workflow [{workflowName}]</DialogDescription>
         </DialogHeader>
         <Form id="run-workflow-form" onSubmit={submit} className="p-4">
           <FormFields>
-            <FormField>
-              <Label htmlFor="inputs">Action Inputs (JSON)</Label>
-              <Editor
-                defaultLanguage="json"
-                value={form.data.inputs ? JSON.stringify(form.data.inputs, null, 2) : '{}'}
-                theme={getActualAppearance() === 'dark' ? 'vs-dark' : 'vs'}
-                className="h-[400px]"
-                onChange={(value) => form.setData('inputs', JSON.parse(value || '{}'))}
-                options={{
-                  fontSize: 15,
-                  minimap: { enabled: false },
-                }}
-              />
-            </FormField>
+            {Object.entries(form.data.inputs).map(([key, value]) => renderField(key, value))}
             <FormField>
               <Label htmlFor="verbose">Verbose Output</Label>
               <Switch id="verbose" checked={form.data.verbose} onCheckedChange={(checked) => form.setData('verbose', checked)} />
@@ -88,7 +194,7 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
           <DialogClose asChild>
             <Button variant="outline">Close</Button>
           </DialogClose>
-          <Button form="run-workflow-form" disabled={form.processing} onClick={submit}>
+          <Button type="submit" form="run-workflow-form" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             Run
           </Button>

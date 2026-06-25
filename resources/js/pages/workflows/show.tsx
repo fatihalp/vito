@@ -28,15 +28,24 @@ import { toast } from 'sonner';
 import { WorkflowAction } from '@/types/workflow-action';
 import Actions from './components/actions';
 import { Button } from '@/components/ui/button';
-import { DotIcon, LoaderCircleIcon, SaveIcon, TrashIcon } from 'lucide-react';
+import { DotIcon, LoaderCircleIcon, SaveIcon, TrashIcon, UploadIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import DeleteWorkflow from './components/delete-workflow';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 type Page = {
   workflow: Workflow;
   actions: {
     [key: string]: WorkflowAction;
   };
+};
+
+type WorkflowImport = {
+  name?: string;
+  nodes: Node[];
+  edges: Edge[];
 };
 
 const fitViewOptions: FitViewOptions = {
@@ -59,6 +68,9 @@ export default function Show() {
   const { getActualAppearance } = useAppearance();
   const [nodes, setNodes] = useState<Node[]>(page.props.workflow.nodes);
   const [edges, setEdges] = useState<Edge[]>(page.props.workflow.edges);
+  const [importOpen, setImportOpen] = useState(false);
+  const [importDomain, setImportDomain] = useState('');
+  const [importFile, setImportFile] = useState<File | null>(null);
 
   useEffect(() => {
     form.setData('nodes', JSON.parse(JSON.stringify(nodes)));
@@ -170,6 +182,87 @@ export default function Show() {
     form.put(route('workflows.update', page.props.workflow.id));
   };
 
+  const normalizeDomain = (value: string) => {
+    const withProtocol = value.match(/^https?:\/\//) ? value : `https://${value}`;
+    const hostname = new URL(withProtocol).hostname.replace(/^www\./, '').toLowerCase();
+
+    if (!/^[a-z0-9.-]+$/.test(hostname)) {
+      throw new Error('Invalid domain');
+    }
+
+    return hostname;
+  };
+
+  const replaceTokens = (value: unknown, tokens: Record<string, string>): unknown => {
+    if (typeof value === 'string') {
+      return Object.entries(tokens).reduce((text, [token, replacement]) => text.replaceAll(token, replacement), value);
+    }
+
+    if (Array.isArray(value)) {
+      return value.map((item) => replaceTokens(item, tokens));
+    }
+
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, replaceTokens(item, tokens)]));
+    }
+
+    return value;
+  };
+
+  const importWorkflow = async () => {
+    if (!importFile) {
+      toast.error('Select a workflow JSON file.');
+      return;
+    }
+
+    let domain: string;
+    try {
+      domain = normalizeDomain(importDomain);
+    } catch {
+      toast.error('Enter a valid site address.');
+      return;
+    }
+
+    const baseName = domain.split('.')[0] || 'site';
+    const siteUser = domain
+      .replace(/[^a-z0-9]/g, '')
+      .replace(/^[^a-z]+/, '')
+      .slice(0, 32);
+    const databaseName = baseName.replace(/[^a-zA-Z0-9_]/g, '_').slice(0, 63);
+    const appName = baseName.charAt(0).toUpperCase() + baseName.slice(1);
+    const databasePassword = Array.from(crypto.getRandomValues(new Uint8Array(24)), (byte) => byte.toString(36))
+      .join('')
+      .slice(0, 32);
+
+    try {
+      const template = JSON.parse(await importFile.text()) as WorkflowImport;
+      const imported = replaceTokens(template, {
+        '__DOMAIN__': domain,
+        '__APP_URL__': `https://${domain}`,
+        '__APP_NAME__': appName,
+        '__SITE_USER__': siteUser,
+        '__DATABASE_NAME__': databaseName,
+        '__DATABASE_USERNAME__': databaseName,
+        '__DATABASE_PASSWORD__': databasePassword,
+      }) as WorkflowImport;
+
+      if (!Array.isArray(imported.nodes) || !Array.isArray(imported.edges)) {
+        toast.error('Invalid workflow JSON file.');
+        return;
+      }
+
+      setNodes(imported.nodes);
+      setEdges(imported.edges);
+      if (imported.name) {
+        form.setData('name', imported.name.replace('__DOMAIN__', domain));
+      }
+      setImportOpen(false);
+      toast.success('Workflow imported. Save changes to persist it.');
+    } catch {
+      toast.error('Could not import workflow JSON.');
+    }
+  };
+
   return (
     <Layout>
       <Head title={`Workflow - ${page.props.workflow.name}`} />
@@ -180,6 +273,47 @@ export default function Show() {
           <Button variant="ghost" className="size-7" onClick={saveWorkflow} disabled={form.processing}>
             {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <SaveIcon />}
           </Button>
+          <Dialog open={importOpen} onOpenChange={setImportOpen}>
+            <DialogTrigger asChild>
+              <Button variant="ghost" className="size-7">
+                <UploadIcon />
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Import Workflow</DialogTitle>
+                <DialogDescription>Enter the site address and select a workflow JSON template.</DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 p-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="import-domain">Site Address</Label>
+                  <Input
+                    id="import-domain"
+                    value={importDomain}
+                    placeholder="alobot.net"
+                    onChange={(event) => setImportDomain(event.target.value)}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="import-file">Workflow JSON</Label>
+                  <Input
+                    id="import-file"
+                    type="file"
+                    accept="application/json,.json"
+                    onChange={(event) => setImportFile(event.target.files?.[0] ?? null)}
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setImportOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={importWorkflow}>
+                  Import
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <DeleteWorkflow workflow={page.props.workflow}>
             <Button variant="ghost" className="size-7">
               <TrashIcon />
