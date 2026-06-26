@@ -7,7 +7,7 @@ use App\Services\ServiceInterface;
 interface ProcessManager extends ServiceInterface
 {
     public function create(
-        int $id,
+        int|string $id,
         string $command,
         string $user,
         bool $autoStart,
@@ -18,13 +18,13 @@ interface ProcessManager extends ServiceInterface
         ?int $siteId = null,
     ): void;
 
-    public function delete(int $id, ?int $siteId = null): void;
+    public function delete(int|string $id, ?int $siteId = null): void;
 
-    public function restart(int $id, ?int $siteId = null): void;
+    public function restart(int|string $id, ?int $siteId = null): void;
 
-    public function stop(int $id, ?int $siteId = null): void;
+    public function stop(int|string $id, ?int $siteId = null): void;
 
-    public function start(int $id, ?int $siteId = null): void;
+    public function start(int|string $id, ?int $siteId = null): void;
 
     public function restartAll(?int $siteId = null): void;
 

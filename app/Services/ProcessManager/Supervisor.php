@@ -52,7 +52,7 @@ class Supervisor extends AbstractProcessManager
      * @throws SSHError
      */
     public function create(
-        int $id,
+        int|string $id,
         string $command,
         string $user,
         bool $autoStart,
@@ -91,7 +91,7 @@ class Supervisor extends AbstractProcessManager
     /**
      * @throws Throwable
      */
-    public function delete(int $id, ?int $siteId = null): void
+    public function delete(int|string $id, ?int $siteId = null): void
     {
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.delete-worker', [
@@ -105,7 +105,7 @@ class Supervisor extends AbstractProcessManager
     /**
      * @throws Throwable
      */
-    public function restart(int $id, ?int $siteId = null): void
+    public function restart(int|string $id, ?int $siteId = null): void
     {
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.restart-worker', [
@@ -119,7 +119,7 @@ class Supervisor extends AbstractProcessManager
     /**
      * @throws Throwable
      */
-    public function stop(int $id, ?int $siteId = null): void
+    public function stop(int|string $id, ?int $siteId = null): void
     {
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.stop-worker', [
@@ -133,7 +133,7 @@ class Supervisor extends AbstractProcessManager
     /**
      * @throws Throwable
      */
-    public function start(int $id, ?int $siteId = null): void
+    public function start(int|string $id, ?int $siteId = null): void
     {
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.start-worker', [
@@ -154,7 +154,7 @@ class Supervisor extends AbstractProcessManager
     }
 
     /**
-     * @param  array<int>  $workerIds
+     * @param  array<int, int|string>  $workerIds
      *
      * @throws Throwable
      */

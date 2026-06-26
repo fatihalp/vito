@@ -41,6 +41,7 @@ class CreateWorker
             'status' => WorkerStatus::CREATING,
         ]);
         $worker->save();
+        $worker->forceFill(['process_name' => (string) $worker->id])->save();
 
         dispatch(function () use ($worker): void {
             /** @var Service $service */
@@ -48,7 +49,7 @@ class CreateWorker
             /** @var ProcessManager $processManager */
             $processManager = $service->handler();
             $processManager->create(
-                $worker->id,
+                $worker->processName(),
                 $worker->command,
                 $worker->user,
                 $worker->auto_start,

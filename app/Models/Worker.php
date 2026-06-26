@@ -22,6 +22,7 @@ use Throwable;
  * @property string $stdout_logfile
  * @property WorkerStatus $status
  * @property string $name
+ * @property ?string $process_name
  * @property Server $server
  * @property ?Site $site
  */
@@ -42,6 +43,7 @@ class Worker extends AbstractModel
         'stdout_logfile',
         'status',
         'name',
+        'process_name',
     ];
 
     protected $casts = [
@@ -65,7 +67,7 @@ class Worker extends AbstractModel
                 /** @var ProcessManager $handler */
                 $handler = $service->handler();
 
-                $handler->delete($worker->id, $worker->site_id);
+                $handler->delete($worker->processName(), $worker->site_id);
             } catch (Throwable $e) {
                 Log::error($e);
             }
@@ -111,5 +113,10 @@ class Worker extends AbstractModel
     public function getLogFile(): string
     {
         return $this->getLogDirectory().'/'.$this->id.'.log';
+    }
+
+    public function processName(): string
+    {
+        return $this->process_name ?: (string) $this->id;
     }
 }

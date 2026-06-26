@@ -18,6 +18,7 @@ class WorkerResource extends JsonResource
             'id' => $this->id,
             'server_id' => $this->server_id,
             'site_id' => $this->site_id,
+            'process_name' => $this->process_name,
             'name' => $this->name,
             'command' => $this->command,
             'user' => $this->user,

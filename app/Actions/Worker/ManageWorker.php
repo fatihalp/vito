@@ -18,7 +18,7 @@ class ManageWorker
             $service = $worker->server->processManager();
             /** @var ProcessManager $handler */
             $handler = $service->handler();
-            $handler->start($worker->id, $worker->site_id);
+            $handler->start($worker->processName(), $worker->site_id);
             $worker->status = WorkerStatus::RUNNING;
             $worker->save();
         })->onQueue('ssh');
@@ -33,7 +33,7 @@ class ManageWorker
             $service = $worker->server->processManager();
             /** @var ProcessManager $handler */
             $handler = $service->handler();
-            $handler->stop($worker->id, $worker->site_id);
+            $handler->stop($worker->processName(), $worker->site_id);
             $worker->status = WorkerStatus::STOPPED;
             $worker->save();
         })->onQueue('ssh');
@@ -48,7 +48,7 @@ class ManageWorker
             $service = $worker->server->processManager();
             /** @var ProcessManager $handler */
             $handler = $service->handler();
-            $handler->restart($worker->id, $worker->site_id);
+            $handler->restart($worker->processName(), $worker->site_id);
             $worker->status = WorkerStatus::RUNNING;
             $worker->save();
         })->onQueue('ssh');

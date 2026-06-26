@@ -45,10 +45,10 @@ class EditWorker
             $service = $worker->server->processManager();
             /** @var ProcessManager $processManager */
             $processManager = $service->handler();
-            $processManager->delete($worker->id, $worker->site_id);
+            $processManager->delete($worker->processName(), $worker->site_id);
 
             $processManager->create(
-                $worker->id,
+                $worker->processName(),
                 $worker->command,
                 $worker->user,
                 $worker->auto_start,

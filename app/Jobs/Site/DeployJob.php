@@ -81,7 +81,7 @@ class DeployJob implements ShouldQueue
         if ($site->deploymentScript->shouldRestartWorkers()) {
             /** @var ProcessManager $processManager */
             $processManager = $site->server->processManager()->handler();
-            $workerIds = $site->workers()->pluck('id')->toArray();
+            $workerIds = $site->workers()->get()->map->processName()->toArray();
             $processManager->restartByIds($workerIds, $site->id);
         }
     }
@@ -133,7 +133,7 @@ class DeployJob implements ShouldQueue
         if ($site->preFlightScript?->shouldRestartWorkers()) {
             /** @var ProcessManager $processManager */
             $processManager = $site->server->processManager()->handler();
-            $workerIds = $site->workers()->pluck('id')->toArray();
+            $workerIds = $site->workers()->get()->map->processName()->toArray();
             $processManager->restartByIds($workerIds, $site->id);
         }
     }

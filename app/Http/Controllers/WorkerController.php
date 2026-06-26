@@ -7,6 +7,7 @@ use App\Actions\Worker\DeleteWorker;
 use App\Actions\Worker\EditWorker;
 use App\Actions\Worker\GetWorkerLogs;
 use App\Actions\Worker\ManageWorker;
+use App\Actions\Worker\SyncWorkers;
 use App\Http\Resources\WorkerResource;
 use App\Models\Server;
 use App\Models\Site;
@@ -51,6 +52,17 @@ class WorkerController extends Controller
             ),
             'sites' => $server->sites()->select('id', 'domain')->get(),
         ]);
+    }
+
+    #[Post('/worker-sync/{site?}', name: 'workers.sync')]
+    public function sync(Server $server, ?Site $site = null): RedirectResponse
+    {
+        $this->authorize('create', [Worker::class, $server, $site]);
+
+        $result = app(SyncWorkers::class)->sync($server, $site);
+
+        return back()
+            ->with('success', "Workers synced. Created: {$result['created']}, Updated: {$result['updated']}.");
     }
 
     #[Post('/workers/{site?}', name: 'workers.store')]
