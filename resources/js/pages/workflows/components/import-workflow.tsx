@@ -8,8 +8,9 @@ import { SourceControl } from '@/types/source-control';
 import { router } from '@inertiajs/react';
 import { type RequestPayload } from '@inertiajs/core';
 import { type Edge, type Node } from '@xyflow/react';
+import axios from 'axios';
 import { LoaderCircle } from 'lucide-react';
-import { FormEvent, MouseEvent, ReactNode, useState } from 'react';
+import { FormEvent, MouseEvent, ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import SelectRepo from '@/pages/source-controls/components/select-repo';
 import { defaultHetznerPlan, getHetznerPlan } from '../hetzner-plans';
@@ -55,6 +56,48 @@ export default function ImportWorkflow({
   const [domainOptions, setDomainOptions] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState(false);
+  const [detectingRegion, setDetectingRegion] = useState(false);
+  const [isPlanFromFile, setIsPlanFromFile] = useState(false);
+  const [bestRegionLatency, setBestRegionLatency] = useState<number | null>(null);
+  const [isRegionAutoDetected, setIsRegionAutoDetected] = useState(false);
+  const [isRegionFromFile, setIsRegionFromFile] = useState(false);
+
+  useEffect(() => {
+    if (!open) return;
+
+    setDetectingRegion(true);
+    setIsRegionAutoDetected(false);
+    setBestRegionLatency(null);
+    setIsPlanFromFile(false);
+    setIsRegionFromFile(false);
+    setFile(null);
+    setDomainOptions([]);
+    setDomain('');
+    setRepository('');
+    setSourceControl('');
+    setServerProvider('');
+    setPlan(defaultHetznerPlan);
+    setRegion(defaultHetznerRegion);
+
+    axios.get<{ latencies: Record<string, number | null> }>(route('hetzner.latency'))
+      .then((response) => {
+        const measured = Object.entries(response.data.latencies)
+          .filter((entry): entry is [string, number] => typeof entry[1] === 'number');
+        const bestEntry = measured.sort((a, b) => a[1] - b[1])[0];
+        if (bestEntry) {
+          const [bestRegionCode, latency] = bestEntry;
+          setRegion(bestRegionCode);
+          setBestRegionLatency(latency);
+          setIsRegionAutoDetected(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to auto-detect region', err);
+      })
+      .finally(() => {
+        setDetectingRegion(false);
+      });
+  }, [open]);
 
   const normalizeDomain = (value: string) => {
     const withProtocol = value.match(/^https?:\/\//) ? value : `https://${value}`;
@@ -143,9 +186,17 @@ export default function ImportWorkflow({
 
       if (filePlan && getHetznerPlan(filePlan)) {
         setPlan(filePlan);
+        setIsPlanFromFile(true);
+      } else {
+        setIsPlanFromFile(false);
       }
       if (fileRegion && getHetznerRegion(fileRegion)) {
         setRegion(fileRegion);
+        setIsRegionFromFile(true);
+        setIsRegionAutoDetected(false);
+        setBestRegionLatency(null);
+      } else {
+        setIsRegionFromFile(false);
       }
       if (fileProviderId && serverProviders.some((provider) => provider.id.toString() === fileProviderId)) {
         setServerProvider(fileProviderId);
@@ -359,12 +410,46 @@ export default function ImportWorkflow({
             </Select>
           </div>
           <div className="grid gap-2">
-            <Label>Hetzner Plan</Label>
-            <HetznerPlanSelect value={plan} onChange={setPlan} />
+            <div className="flex items-center justify-between">
+              <Label>Hetzner Plan</Label>
+              {isPlanFromFile && (
+                <span className="text-green-600 dark:text-green-400 text-xs font-medium">Json plan selected.</span>
+              )}
+            </div>
+            <HetznerPlanSelect
+              value={plan}
+              onChange={(value) => {
+                setPlan(value);
+                setIsPlanFromFile(false);
+              }}
+            />
           </div>
           <div className="grid gap-2">
-            <Label>Hetzner Region</Label>
-            <HetznerRegionSelect value={region} onChange={setRegion} />
+            <div className="flex items-center justify-between">
+              <Label>Hetzner Region</Label>
+              {detectingRegion && (
+                <span className="text-muted-foreground animate-pulse text-xs">Detecting best region...</span>
+              )}
+              {isRegionAutoDetected && bestRegionLatency !== null && (
+                <span className="text-green-600 dark:text-green-400 text-xs font-medium">
+                  Best region detected and selected ({bestRegionLatency} ms)
+                </span>
+              )}
+              {isRegionFromFile && (
+                <span className="text-green-600 dark:text-green-400 text-xs font-medium">
+                  Json region selected.
+                </span>
+              )}
+            </div>
+            <HetznerRegionSelect
+              value={region}
+              onChange={(value) => {
+                setRegion(value);
+                setIsRegionAutoDetected(false);
+                setIsRegionFromFile(false);
+                setBestRegionLatency(null);
+              }}
+            />
           </div>
           <div className="grid gap-2">
             <Label>Source Control</Label>

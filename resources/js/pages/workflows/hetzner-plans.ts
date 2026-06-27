@@ -33,7 +33,7 @@ export const hetznerPlans: HetznerPlan[] = [
   { value: 'ccx63', name: 'CCX63', label: 'CCX63 - 48 dedicated vCPU, 192 GB RAM, 960 GB SSD - production', group: 'Dedicated vCPU', cpu: 48, ram: 192, disk: 960, architecture: 'AMD dedicated', monthlyEur: 853.49, hourlyEur: 1.3678 },
 ];
 
-export const defaultHetznerPlan = 'cx23';
+export const defaultHetznerPlan = 'cx33';
 
 export const getHetznerPlan = (value: string | number | boolean | string[] | null | undefined) =>
   hetznerPlans.find((plan) => plan.value === value?.toString());

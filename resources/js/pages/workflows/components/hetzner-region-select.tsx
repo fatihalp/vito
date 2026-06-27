@@ -35,7 +35,9 @@ export default function HetznerRegionSelect({ value, onChange }: { value: string
 
   const latencyText = (value: string) => {
     if (!(value in latencies)) return '-';
-    if (latencies[value] === null) return 'timeout';
+    if (latencies[value] === null) {
+      return testing ? '...' : 'timeout';
+    }
 
     return `${latencies[value]} ms`;
   };
