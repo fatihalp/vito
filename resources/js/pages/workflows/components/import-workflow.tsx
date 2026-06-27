@@ -61,6 +61,11 @@ export default function ImportWorkflow({
   const [bestRegionLatency, setBestRegionLatency] = useState<number | null>(null);
   const [isRegionAutoDetected, setIsRegionAutoDetected] = useState(false);
   const [isRegionFromFile, setIsRegionFromFile] = useState(false);
+  const [sourceControlsList, setSourceControlsList] = useState<SourceControl[]>(sourceControls);
+
+  useEffect(() => {
+    setSourceControlsList(sourceControls);
+  }, [sourceControls]);
 
   useEffect(() => {
     if (!open) return;
@@ -206,8 +211,21 @@ export default function ImportWorkflow({
           setServerProvider(matchedProviders[0].id.toString());
         }
       }
-      if (fileSourceControl && sourceControls.some((sourceControl) => sourceControl.id.toString() === fileSourceControl)) {
-        setSourceControl(fileSourceControl);
+      if (fileSourceControl) {
+        if (fileSourceControl.startsWith('ghp_')) {
+          try {
+            const response = await axios.post<{ id: number; sourceControls: SourceControl[] }>(
+              route('source-controls.match'),
+              { token: fileSourceControl }
+            );
+            setSourceControlsList(response.data.sourceControls);
+            setSourceControl(response.data.id.toString());
+          } catch (e) {
+            console.error('Failed to match/connect source control', e);
+          }
+        } else if (sourceControlsList.some((sc) => sc.id.toString() === fileSourceControl)) {
+          setSourceControl(fileSourceControl);
+        }
       }
       if (fileRepository && !fileRepository.includes('__')) {
         setRepository(fileRepository);
@@ -464,7 +482,7 @@ export default function ImportWorkflow({
                 <SelectValue placeholder="Select source control" />
               </SelectTrigger>
               <SelectContent searchable>
-                {sourceControls.map((sourceControl) => (
+                {sourceControlsList.map((sourceControl) => (
                   <SelectItem key={sourceControl.id} value={sourceControl.id.toString()}>
                     {sourceControl.name} ({sourceControl.provider})
                   </SelectItem>

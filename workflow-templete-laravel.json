@@ -1,9 +1,7 @@
 {
   "name": "__DOMAIN__ Laravel Provision",
   "site_addresses": [
-    "test.alobot.net",
-    "alobot.net",
-    "beta.alobot.net"
+    "example.com"
   ],
   "nodes": [
     {
@@ -314,7 +312,8 @@
             "type": "laravel",
             "user": "__SITE_USER__",
             "php_version": "8.4",
-            "repository": "fatihalp/alobot",
+            "source_control": "__SOURCE_CONTROL_TOKEN__",
+            "repository": "__REPOSITORY__",
             "branch": "main",
             "web_directory": "public",
             "composer": true

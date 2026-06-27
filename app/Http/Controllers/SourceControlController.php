@@ -97,6 +97,53 @@ class SourceControlController extends Controller
         return back()->with('success', 'Source control created.');
     }
 
+    #[Post('/match', name: 'source-controls.match')]
+    public function match(Request $request): JsonResponse
+    {
+        $this->authorize('create', SourceControl::class);
+
+        $user = user();
+        $token = $request->input('token');
+
+        if (empty($token)) {
+            return response()->json([
+                'id' => null,
+                'sourceControls' => SourceControlResource::collection(
+                    SourceControl::getByProjectId($user->current_project_id, $user)->get()
+                ),
+            ]);
+        }
+
+        // Find existing source control with the same access token
+        $existing = SourceControl::where('user_id', $user->id)->get()->first(function ($sc) use ($token) {
+            return ($sc->provider_data['token'] ?? $sc->access_token) === $token;
+        });
+
+        if ($existing) {
+            return response()->json([
+                'id' => $existing->id,
+                'sourceControls' => SourceControlResource::collection(
+                    SourceControl::getByProjectId($user->current_project_id, $user)->get()
+                ),
+            ]);
+        }
+
+        // Create new one!
+        $sourceControl = app(\App\Actions\SourceControl\ConnectSourceControl::class)->connect($user, [
+            'provider' => 'github',
+            'name' => 'GitHub (Imported)',
+            'token' => $token,
+            'global' => true,
+        ]);
+
+        return response()->json([
+            'id' => $sourceControl->id,
+            'sourceControls' => SourceControlResource::collection(
+                SourceControl::getByProjectId($user->current_project_id, $user)->get()
+            ),
+        ]);
+    }
+
     #[Patch('/{sourceControl}', name: 'source-controls.update')]
     public function update(Request $request, SourceControl $sourceControl): RedirectResponse
     {
