@@ -251,7 +251,12 @@ export default function Show() {
         return;
       }
 
-      setNodes(imported.nodes);
+      const formattedNodes = imported.nodes.map((node, index) => ({
+        ...node,
+        position: node.position || { x: index * 360, y: 0 },
+      }));
+
+      setNodes(formattedNodes);
       setEdges(imported.edges);
       if (imported.name) {
         form.setData('name', imported.name.replace('__DOMAIN__', domain));

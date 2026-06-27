@@ -39,10 +39,23 @@ class WorkflowActionDTO
      */
     public static function fromArray(array $actionData, string $nodeId): self
     {
+        $handlerClass = $actionData['handler'] ?? '';
+        $outputs = $actionData['outputs'] ?? null;
+
+        if ($outputs === null && $handlerClass && class_exists($handlerClass)) {
+            try {
+                $reflection = new \ReflectionClass($handlerClass);
+                $instance = $reflection->newInstanceWithoutConstructor();
+                $outputs = $instance->outputs();
+            } catch (\Throwable) {
+                $outputs = [];
+            }
+        }
+
         return new self(
             label: $actionData['label'] ?? '',
-            handler: $actionData['handler'] ?? '',
-            outputs: array_keys($actionData['outputs'] ?? []),
+            handler: $handlerClass,
+            outputs: array_keys($outputs ?? []),
             inputs: $actionData['inputs'] ?? [],
             id: $nodeId,
         );

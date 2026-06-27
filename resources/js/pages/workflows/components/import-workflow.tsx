@@ -308,12 +308,17 @@ export default function ImportWorkflow({
         return null;
       }
 
-      imported.nodes = imported.nodes.map((node) => {
+      imported.nodes = imported.nodes.map((node, index) => {
         const action = node.data?.action as WorkflowNodeAction | undefined;
         const inputs = action?.inputs;
+        const nodeWithPosition = {
+          ...node,
+          position: node.position || { x: index * 360, y: 0 },
+        };
+
         if (inputs && typeof inputs === 'object' && action?.handler === 'App\\WorkflowActions\\Server\\CreateServer') {
           return {
-            ...node,
+            ...nodeWithPosition,
             data: {
               ...node.data,
               action: {
@@ -331,7 +336,7 @@ export default function ImportWorkflow({
 
         if (inputs && typeof inputs === 'object' && action?.handler === 'App\\WorkflowActions\\Site\\CreateLaravelSite') {
           return {
-            ...node,
+            ...nodeWithPosition,
             data: {
               ...node.data,
               action: {
@@ -347,7 +352,7 @@ export default function ImportWorkflow({
           };
         }
 
-        return node;
+        return nodeWithPosition;
       });
 
       return {

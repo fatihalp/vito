@@ -78,7 +78,8 @@ class RunWorkflow
 
         try {
             $output = $workflowActionDto->handler($user, $workflow)->run($resolvedInput);
-            $this->executeAction($run, $user, $workflow, $workflowActionDto->success, $output);
+            $nextInput = array_merge($input ?? [], $output);
+            $this->executeAction($run, $user, $workflow, $workflowActionDto->success, $nextInput);
         } catch (\Throwable $e) {
             $run->log('Workflow action failed: '.$e->getMessage());
             $this->executeAction($run, $user, $workflow, $workflowActionDto->failure, $input);

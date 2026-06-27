@@ -34,6 +34,7 @@ class WorkflowServiceProvider extends ServiceProvider
         $this->general();
         $this->database();
         $this->domain();
+        $this->worker();
     }
 
     private function server(): void
@@ -147,6 +148,15 @@ class WorkflowServiceProvider extends ServiceProvider
             ->label('Delete DNS Record')
             ->category('domain')
             ->handler(DeleteDNSRecord::class)
+            ->register();
+    }
+
+    private function worker(): void
+    {
+        RegisterWorkflowAction::make('create-worker')
+            ->label('Create Worker')
+            ->category('worker')
+            ->handler(\App\WorkflowActions\Worker\CreateWorker::class)
             ->register();
     }
 }
