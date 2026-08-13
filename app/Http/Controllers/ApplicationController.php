@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Site\Deploy;
 use App\Actions\Site\GetEnv;
+use App\Actions\Site\GetSiteOverview;
 use App\Actions\Site\ParseEnv;
 use App\Actions\Site\Rollback;
 use App\Actions\Site\StringifyEnv;
@@ -17,6 +18,7 @@ use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\DeploymentResource;
+use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Deployment;
@@ -55,14 +57,29 @@ class ApplicationController extends Controller
 
         $type = $site->type();
         $bootstrapWorker = $type instanceof AbstractProxiedSiteType ? $type->bootstrapWorker() : null;
+        $overview = app(GetSiteOverview::class)->get($site);
 
         return Inertia::render('application/index', [
-            'deployments' => DeploymentTable::make($site->deployments())->paginate(),
+            'deployments' => DeploymentTable::make($site->deployments())->overview(),
             'deploymentScript' => new DeploymentScriptResource($deploymentScript),
             'buildScript' => $buildScript ? new DeploymentScriptResource($buildScript) : null,
             'preFlightScript' => $preFlightScript ? new DeploymentScriptResource($preFlightScript) : null,
             'loadBalancerServers' => LoadBalancerServerResource::collection($site->loadBalancerServers),
             'worker' => $bootstrapWorker ? new WorkerResource($bootstrapWorker) : null,
+            'overviewWorkers' => WorkerResource::collection($overview['workers']),
+            'overviewWorkersCount' => $overview['workers_count'],
+            'overviewCronJobs' => CronJobResource::collection($overview['cron_jobs']),
+            'overviewCronJobsCount' => $overview['cron_jobs_count'],
+        ]);
+    }
+
+    #[Get('/deployments', name: 'application.deployments.index')]
+    public function deployments(Server $server, Site $site): Response
+    {
+        $this->authorize('view', [$site, $server]);
+
+        return Inertia::render('application/deployments/index', [
+            'deployments' => DeploymentTable::make($site->deployments())->paginate(),
         ]);
     }
 

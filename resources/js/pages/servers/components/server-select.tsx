@@ -24,6 +24,7 @@ interface ServerSelectProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   footer?: ReactNode;
+  header?: ReactNode;
   showIp?: boolean;
 }
 
@@ -40,6 +41,7 @@ export default function ServerSelect({
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
   footer,
+  header,
   showIp = true,
 }: ServerSelectProps) {
   const page = usePage<SharedData>();
@@ -165,6 +167,7 @@ export default function ServerSelect({
         <Command shouldFilter={false} className="flex flex-col overflow-hidden">
           <CommandInput placeholder="Search server..." value={query} onValueChange={setQuery} />
           <CommandList data-slot="command-list" className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
+            {header && <div className="border-b">{header}</div>}
             {servers.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
                 {isFetching ? 'Searching...' : query === '' ? 'Start typing to search servers' : 'No servers found.'}

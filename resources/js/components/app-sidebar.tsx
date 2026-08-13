@@ -44,6 +44,7 @@ import { Button } from '@/components/ui/button';
 export function AppSidebar({
   secondNavItems,
   secondNavGroups,
+  secondNavTitle,
   secondNavOpen = true,
   onSecondNavOpenChange,
 }: {
@@ -239,7 +240,8 @@ export function AppSidebar({
           className={cn('flex flex-1', !secondNavOpen && 'hidden')}
         >
           <SidebarHeader className="min-h-12 justify-center border-b px-3 py-2">
-            <div className="flex items-center justify-end">
+            <div className="flex min-w-0 items-center justify-between gap-2">
+              {secondNavTitle && <span className="truncate text-sm font-semibold" title={secondNavTitle}>{secondNavTitle}</span>}
               {onSecondNavOpenChange && (
                 <Button
                   variant="ghost"

@@ -202,9 +202,9 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   return (
     <Layout
       secondNavGroups={[
-        { title: `Server · ${page.props.server.name}`, items: sidebarNavItems },
+        { title: '', items: sidebarNavItems },
       ]}
-      secondNavTitle={page.props.server.name}
+      secondNavTitle={server.name}
     >
       <ServerHeader server={server} site={page.props.site} />
 

@@ -22,6 +22,7 @@ import { orderTableColumns } from '@/lib/table-columns';
 interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   tableData: InertiaTableData;
   children?: ReactNode;
+  showPagination?: boolean;
 }
 
 function getRealtimePrefix(tableData: InertiaTableData): string | undefined {
@@ -66,7 +67,7 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
   return defaultRender();
 }
 
-export function VitoTable({ tableData, children, modal, isFetching, ...props }: VitoTableProps) {
+export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, ...props }: VitoTableProps) {
   const orderedTableData = useMemo(
     () => ({ ...tableData, columns: orderTableColumns(tableData.columns, (column) => column.name) }),
     [tableData],
@@ -163,7 +164,7 @@ export function VitoTable({ tableData, children, modal, isFetching, ...props }: 
           </TableBody>
         </Table>
 
-        {orderedTableData.meta && (
+        {showPagination && orderedTableData.meta && (
           <div className="flex items-center justify-between border-t px-4 py-3">
             <div className="text-muted-foreground flex items-center text-sm">
               {tableData.meta.from && tableData.meta.to && (

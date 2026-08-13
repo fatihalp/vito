@@ -1,9 +1,9 @@
 import { type SharedData } from '@/types';
 import { type Server } from '@/types/server';
-import { useForm, usePage } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, PlusIcon, ServerIcon } from 'lucide-react';
 import { useInitials } from '@/hooks/use-initials';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateServer from '@/pages/servers/components/create-server';
@@ -55,6 +55,23 @@ export function ServerSwitch() {
     </CommandGroup>
   );
 
+  const header = (
+    <CommandGroup>
+      <CommandItem
+        value="all-servers"
+        onSelect={() => {
+          setSelected('');
+          setOpen(false);
+          router.visit(route('servers'));
+        }}
+      >
+        <ServerIcon />
+        <span>All Servers</span>
+        <CheckIcon className={`ml-auto ${page.props.server ? 'opacity-0' : 'opacity-100'}`} />
+      </CommandItem>
+    </CommandGroup>
+  );
+
   const trigger = (
     <Button
       variant="ghost"
@@ -91,6 +108,7 @@ export function ServerSwitch() {
         open={open}
         onOpenChange={setOpen}
         footer={footer}
+        header={header}
         showIp={false}
         prefetch
       />
