@@ -3,13 +3,16 @@
 namespace App\Http\Controllers\Workflow;
 
 use App\Actions\Workflow\CreateWorkflow;
+use App\Actions\Workflow\ImportWorkflow;
 use App\Actions\Workflow\UpdateWorkflow;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\WorkflowResource;
 use App\Models\Workflow;
 use App\Tables\WorkflowTable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -46,6 +49,34 @@ class WorkflowController extends Controller
         $workflow = app(CreateWorkflow::class)->create($user, $user->currentProject, $request->all());
 
         return redirect()->route('workflows.show', $workflow->id);
+    }
+
+    #[Post('/import', name: 'workflows.import')]
+    public function import(Request $request): RedirectResponse
+    {
+        $user = user();
+
+        $this->authorize('create', [Workflow::class, $user->currentProject]);
+
+        try {
+            $workflow = app(ImportWorkflow::class)->import($user, $user->currentProject, $request->all());
+        } catch (ValidationException $e) {
+            return back()->with('error', collect($e->errors())->first()[0] ?? 'An error occurred');
+        }
+
+        return redirect()->route('workflows.show', $workflow->id);
+    }
+
+    #[Get('/{workflow}/export', name: 'workflows.export')]
+    public function export(Workflow $workflow): JsonResponse
+    {
+        $this->authorize('view', $workflow);
+
+        return response()->json([
+            'name' => $workflow->name,
+            'nodes' => $workflow->payload['nodes'] ?? [],
+            'edges' => $workflow->payload['edges'] ?? [],
+        ])->header('Content-Disposition', 'attachment; filename="'.Str::slug($workflow->name).'.json"');
     }
 
     #[Get('/{workflow}', name: 'workflows.show')]

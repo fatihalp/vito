@@ -93,7 +93,22 @@ abstract class AbstractSiteType implements SiteType
 
     public function defaultDeploymentScript(): string
     {
-        $path = resource_path('deployment-scripts/'.static::id().'.sh');
+        return $this->readDeploymentScriptFile(static::id().'.sh');
+    }
+
+    public function defaultBuildScript(): string
+    {
+        return $this->readDeploymentScriptFile(static::id().'-build.sh');
+    }
+
+    public function defaultPreFlightScript(): string
+    {
+        return $this->readDeploymentScriptFile(static::id().'-pre-flight.sh');
+    }
+
+    private function readDeploymentScriptFile(string $filename): string
+    {
+        $path = resource_path('deployment-scripts/'.$filename);
 
         return File::exists($path) ? File::get($path) : '';
     }

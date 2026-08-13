@@ -71,6 +71,37 @@ test('enabling modern deployment inherits restart workers flag into pre flight',
     expect($this->site->deploymentScriptFor(false)->shouldRestartWorkers())->toBeTrue();
 });
 
+test('enabling modern deployment fills laravel build and pre flight scripts with defaults', function () {
+    SSH::fake();
+
+    Http::fake([
+        'https://api.github.com/repos/*' => Http::response([], 201),
+    ]);
+
+    $this->site->update([
+        'type' => Laravel::id(),
+    ]);
+
+    $this->actingAs($this->user)
+        ->post(route('site-features.action', [
+            'server' => $this->server,
+            'site' => $this->site,
+            'feature' => 'modern-deployment',
+            'action' => 'enable',
+        ]), [
+            'shared_resources' => '.env',
+            'history' => 10,
+        ])
+        ->assertRedirect();
+
+    $this->site->refresh();
+
+    expect($this->site->buildScript->content)->toContain('composer install')
+        ->toContain('npm run build');
+    expect($this->site->preFlightScript->content)->toContain('php artisan migrate --force')
+        ->toContain('php artisan optimize');
+});
+
 test('disable modern deployment', function () {
     SSH::fake();
 

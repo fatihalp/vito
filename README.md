@@ -35,6 +35,32 @@ bash <(curl -Ls https://raw.githubusercontent.com/vitodeploy/vito/4.x/scripts/in
 - Workflows and Automations
 - Domains and DNS Management
 
+## Modern Deployment Default Scripts
+
+When [Modern Deployment](https://vitodeploy.com/docs/sites/modern-deployment) (zero-downtime deployments with
+rollback support) is enabled on a standard Laravel site, Vito seeds the **Build** and **Pre-flight** scripts with
+the following defaults:
+
+Build script — builds resources before the release is swapped in:
+
+```sh
+composer install --no-interaction --prefer-dist --optimize-autoloader
+
+npm ci
+npm run build
+```
+
+Pre-flight script — runs right before the release goes live:
+
+```sh
+php artisan migrate --force
+
+php artisan optimize:clear
+php artisan optimize
+```
+
+Both scripts are fully editable per site from the Application page.
+
 ## Useful Links
 
 - [Documentation](https://vitodeploy.com)

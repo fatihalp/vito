@@ -369,14 +369,14 @@ class Site extends AbstractModel
             if (! $this->buildScript) {
                 $this->deploymentScripts()->create([
                     'name' => 'build',
-                    'content' => '',
+                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultBuildScript()),
                 ]);
                 $created = true;
             }
             if (! $this->preFlightScript) {
                 $this->deploymentScripts()->create([
                     'name' => 'pre-flight',
-                    'content' => '',
+                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultPreFlightScript()),
                     'configs' => [
                         'restart_workers' => $this->deploymentScript?->shouldRestartWorkers() ?? false,
                     ],
@@ -869,26 +869,33 @@ class Site extends AbstractModel
             return;
         }
 
-        try {
-            $script = $this->type()->defaultDeploymentScript();
-        } catch (\Throwable $e) {
-            Log::error('Failed to render default deploy script for site '.$this->id, [
-                'type' => $this->type,
-                'error' => $e->getMessage(),
-            ]);
-            $script = '';
-        }
-
         $deploymentScript = new DeploymentScript([
             'site_id' => $this->id,
             'name' => 'default',
-            'content' => $script,
+            'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultDeploymentScript()),
             'configs' => [
                 'restart_workers' => true,
             ],
         ]);
         $deploymentScript->save();
         $this->refresh();
+    }
+
+    /**
+     * @param  callable(SiteType): string  $resolver
+     */
+    private function resolveDefaultScript(callable $resolver): string
+    {
+        try {
+            return $resolver($this->type());
+        } catch (\Throwable $e) {
+            Log::error('Failed to render default deployment script for site '.$this->id, [
+                'type' => $this->type,
+                'error' => $e->getMessage(),
+            ]);
+
+            return '';
+        }
     }
 
     public function basePath(): string

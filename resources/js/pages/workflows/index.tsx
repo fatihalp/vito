@@ -3,7 +3,7 @@ import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { BookOpenIcon, DownloadIcon, MoreVerticalIcon, PlusIcon, UploadIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
 import { Workflow } from '@/types/workflow';
 import Layout from '@/layouts/app/layout';
@@ -13,11 +13,13 @@ import DeleteWorkflow from '@/pages/workflows/components/delete-workflow';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
+import { useDialog } from '@/hooks/use-dialog';
 
 export default function Workflows() {
   const page = usePage<{
     workflows: InertiaTableData;
   }>();
+  const dialog = useDialog();
 
   return (
     <Layout>
@@ -33,6 +35,10 @@ export default function Workflows() {
                 <span className="hidden lg:block">Docs</span>
               </Button>
             </a>
+            <Button variant="outline" onClick={() => dialog.workflowImport.open({})}>
+              <UploadIcon />
+              <span className="hidden lg:block">Import</span>
+            </Button>
             <CreateWorkflow>
               <Button>
                 <PlusIcon />
@@ -61,6 +67,10 @@ export default function Workflows() {
                     </Run>
                     <DropdownMenuItem onSelect={() => router.visit(route('workflow-runs', { workflow: workflow.id }))}>History</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => router.visit(route('workflows.show', { workflow: workflow.id }))}>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => (window.location.href = route('workflows.export', { workflow: workflow.id }))}>
+                      <DownloadIcon />
+                      Export
+                    </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DeleteWorkflow workflow={workflow}>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()} className="text-destructive focus:text-destructive">

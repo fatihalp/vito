@@ -28,7 +28,7 @@ import { toast } from 'sonner';
 import { WorkflowAction } from '@/types/workflow-action';
 import Actions from './components/actions';
 import { Button } from '@/components/ui/button';
-import { DotIcon, LoaderCircleIcon, SaveIcon, TrashIcon } from 'lucide-react';
+import { DotIcon, DownloadIcon, LoaderCircleIcon, SaveIcon, TrashIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import DeleteWorkflow from './components/delete-workflow';
 
@@ -179,6 +179,13 @@ export default function Show() {
           <DotIcon />
           <Button variant="ghost" className="size-7" onClick={saveWorkflow} disabled={form.processing}>
             {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <SaveIcon />}
+          </Button>
+          <Button
+            variant="ghost"
+            className="size-7"
+            onClick={() => (window.location.href = route('workflows.export', { workflow: page.props.workflow.id }))}
+          >
+            <DownloadIcon />
           </Button>
           <DeleteWorkflow workflow={page.props.workflow}>
             <Button variant="ghost" className="size-7">

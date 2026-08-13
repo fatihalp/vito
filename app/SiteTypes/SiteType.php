@@ -63,4 +63,8 @@ interface SiteType
     public function afterDeploy(Deployment $deployment): void;
 
     public function defaultDeploymentScript(): string;
+
+    public function defaultBuildScript(): string;
+
+    public function defaultPreFlightScript(): string;
 }
