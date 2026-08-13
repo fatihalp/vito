@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from 'react';
+import { ReactNode, useEffect, useMemo } from 'react';
 import { useTable, type InertiaTableData, type InertiaTableProps, type CellRenderProps } from '@forjedio/inertia-table-react';
 import { Link, router } from '@inertiajs/react';
 import { SOCKET_EVENT, type SocketEventData } from '@/stores/socket-store';
@@ -17,6 +17,7 @@ import {
   ChevronDownIcon,
   LoaderCircleIcon,
 } from 'lucide-react';
+import { orderTableColumns } from '@/lib/table-columns';
 
 interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   tableData: InertiaTableData;
@@ -66,15 +67,19 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
 }
 
 export function VitoTable({ tableData, children, modal, isFetching, ...props }: VitoTableProps) {
+  const orderedTableData = useMemo(
+    () => ({ ...tableData, columns: orderTableColumns(tableData.columns, (column) => column.name) }),
+    [tableData],
+  );
   const { columns, searchTerm, onSearch, onSort, getSortState, onPageChange, isProcessing } = useTable({
-    tableData,
+    tableData: orderedTableData,
     modal,
     isFetching,
     renderCell: vitoCellRenderer as InertiaTableProps['renderCell'],
     ...props,
   });
 
-  const realtimePrefix = getRealtimePrefix(tableData);
+  const realtimePrefix = getRealtimePrefix(orderedTableData);
   useEffect(() => {
     if (!realtimePrefix) return;
     let timeout: ReturnType<typeof setTimeout> | undefined;
@@ -96,7 +101,7 @@ export function VitoTable({ tableData, children, modal, isFetching, ...props }: 
 
   return (
     <div>
-      {tableData.searchable && (
+      {orderedTableData.searchable && (
         <div className="mb-4 flex items-center gap-2">
           <Input placeholder="Search..." className="max-w-sm" value={searchTerm} onChange={(e) => onSearch(e.target.value)} />
           {processing && <LoaderCircleIcon className="text-muted-foreground animate-spin" />}
@@ -107,7 +112,7 @@ export function VitoTable({ tableData, children, modal, isFetching, ...props }: 
         <Table>
           <TableHeader>
             <TableRow>
-              {tableData.columns
+              {orderedTableData.columns
                 .filter((c) => !c.hidden)
                 .map((colDef) => {
                   const sortState = getSortState(colDef.sort_key);
@@ -136,8 +141,8 @@ export function VitoTable({ tableData, children, modal, isFetching, ...props }: 
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tableData.data.length > 0 ? (
-              tableData.data.map((row, rowIndex) => (
+            {orderedTableData.data.length > 0 ? (
+              orderedTableData.data.map((row, rowIndex) => (
                 <TableRow
                   key={row.id}
                   onClick={() => props.onRowClick?.(row)}
@@ -158,7 +163,7 @@ export function VitoTable({ tableData, children, modal, isFetching, ...props }: 
           </TableBody>
         </Table>
 
-        {tableData.meta && (
+        {orderedTableData.meta && (
           <div className="flex items-center justify-between border-t px-4 py-3">
             <div className="text-muted-foreground flex items-center text-sm">
               {tableData.meta.from && tableData.meta.to && (

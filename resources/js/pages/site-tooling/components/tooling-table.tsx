@@ -48,10 +48,10 @@ export default function ToolingTable({ site, tools, installedVersions, statuses,
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-[180px]">Actions</TableHead>
               <TableHead className="w-[180px]">Tool</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="w-[180px]">Version</TableHead>
-              <TableHead className="w-[180px] text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -150,41 +150,8 @@ function ToolingRow({
 
   return (
     <TableRow>
-      <TableCell className="align-middle font-medium">
-        <span className="inline-flex items-center gap-2">
-          {tool.label}
-          {installed ? (
-            <CircleCheckIcon className="text-success size-4" aria-label={`${tool.label} is installed`} />
-          ) : (
-            <CircleIcon className="text-muted-foreground/40 size-4" aria-label={`${tool.label} is not installed`} />
-          )}
-          {(installFailed || uninstallFailed) && (
-            <TriangleAlertIcon
-              className="text-destructive size-4"
-              aria-label={installFailed ? `${tool.label} install failed` : `${tool.label} uninstall failed`}
-            />
-          )}
-        </span>
-      </TableCell>
-      <TableCell className="text-muted-foreground py-3 whitespace-normal">{tool.description}</TableCell>
       <TableCell className="align-middle">
-        <Select value={selected} onValueChange={setSelected} disabled={busy || submitting}>
-          <SelectTrigger id={`${tool.id}-version`} className="w-[160px]">
-            <SelectValue placeholder="Select version" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectGroup>
-              {tool.supported_versions.map((v) => (
-                <SelectItem key={v} value={v}>
-                  {`${tool.label} ${v}`}
-                </SelectItem>
-              ))}
-            </SelectGroup>
-          </SelectContent>
-        </Select>
-      </TableCell>
-      <TableCell className="align-middle">
-        <form onSubmit={submitInstall} className="flex items-center justify-end gap-2">
+        <form onSubmit={submitInstall} className="flex items-center gap-2">
           <Button
             type="submit"
             size="sm"
@@ -250,6 +217,39 @@ function ToolingRow({
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      </TableCell>
+      <TableCell className="align-middle font-medium">
+        <span className="inline-flex items-center gap-2">
+          {tool.label}
+          {installed ? (
+            <CircleCheckIcon className="text-success size-4" aria-label={`${tool.label} is installed`} />
+          ) : (
+            <CircleIcon className="text-muted-foreground/40 size-4" aria-label={`${tool.label} is not installed`} />
+          )}
+          {(installFailed || uninstallFailed) && (
+            <TriangleAlertIcon
+              className="text-destructive size-4"
+              aria-label={installFailed ? `${tool.label} install failed` : `${tool.label} uninstall failed`}
+            />
+          )}
+        </span>
+      </TableCell>
+      <TableCell className="text-muted-foreground py-3 whitespace-normal">{tool.description}</TableCell>
+      <TableCell className="align-middle">
+        <Select value={selected} onValueChange={setSelected} disabled={busy || submitting}>
+          <SelectTrigger id={`${tool.id}-version`} className="w-[160px]">
+            <SelectValue placeholder="Select version" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {tool.supported_versions.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {`${tool.label} ${v}`}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
       </TableCell>
     </TableRow>
   );

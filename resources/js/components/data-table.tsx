@@ -16,7 +16,8 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { PaginatedData } from '@/types';
 import { Input } from './ui/input';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { orderTableColumns } from '@/lib/table-columns';
 
 function SortIndicator({ sortKey }: { sortKey: string }) {
   if (typeof window === 'undefined') {
@@ -67,10 +68,17 @@ export function DataTable<TData, TValue>({
 }: DataTableProps<TData, TValue>) {
   // Use paginatedData.data if available, otherwise fall back to data prop
   const tableData = paginatedData?.data || data || [];
+  const orderedColumns = useMemo(
+    () =>
+      orderTableColumns(columns, (column) =>
+        column.id ?? ('accessorKey' in column && typeof column.accessorKey === 'string' ? column.accessorKey : undefined),
+      ),
+    [columns],
+  );
 
   const table = useReactTable({
     data: tableData,
-    columns,
+    columns: orderedColumns,
     getCoreRowModel: getCoreRowModel(),
   });
 
@@ -254,7 +262,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
                   No results.
                 </TableCell>
               </TableRow>
