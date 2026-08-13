@@ -6,6 +6,7 @@ use App\Actions\Site\CreateSite;
 use App\Actions\Site\DisableSsl;
 use App\Actions\Site\EnableSsl;
 use App\Actions\Site\GetIsolatedUsers;
+use App\Actions\Site\GetAccessibleSites;
 use App\Actions\Site\GetSites;
 use App\Actions\Site\RetrySite;
 use App\Helpers\QueryBuilder;
@@ -30,12 +31,14 @@ use Throwable;
 class SiteController extends Controller
 {
     #[Get('/sites', name: 'sites.all')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', user()->currentProject);
+        $sites = app(GetAccessibleSites::class)->get(user(), $request->input());
 
         return Inertia::render('sites/index', [
-            'sites' => SiteTable::make(user()->currentProject->sites())->simplePaginate(),
+            'sites' => SiteTable::make($sites['query'])->simplePaginate(),
+            'siteScope' => $sites['scope'],
         ]);
     }
 

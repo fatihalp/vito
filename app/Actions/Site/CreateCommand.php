@@ -11,7 +11,7 @@ class CreateCommand
     /**
      * @param  array<string, mixed>  $input
      */
-    public function create(Site $site, array $input): Command
+    public function create(Site $site, array $input, bool $isRaw = false): Command
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
@@ -22,6 +22,7 @@ class CreateCommand
             'site_id' => $site->id,
             'name' => $input['name'],
             'command' => $input['command'],
+            'is_raw' => $isRaw,
         ]);
         $script->save();
 

@@ -81,7 +81,7 @@ export default function SiteSelect({
       const response = await axios.get(route('sites.json', { server: serverId, query: debouncedQuery || '', page: pageParam }));
       return response.data;
     },
-    enabled: open && prefetch !== false && !!serverId,
+    enabled: !!serverId && (open || prefetch === true),
     staleTime: Infinity,
     gcTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -133,6 +133,9 @@ export default function SiteSelect({
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
+    if (isOpen) {
+      void refetch();
+    }
     if (!isOpen) {
       const commandList = document.querySelector('[data-slot="command-list"]');
       if (commandList instanceof HTMLElement) {

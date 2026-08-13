@@ -15,6 +15,7 @@ use Illuminate\Support\Collection;
  * @property int $site_id
  * @property string $name
  * @property string $command
+ * @property bool $is_raw
  * @property Carbon $created_at
  * @property Carbon $updated_at
  * @property Collection<int, CommandExecution> $executions
@@ -30,10 +31,12 @@ class Command extends AbstractModel
         'site_id',
         'name',
         'command',
+        'is_raw',
     ];
 
     protected $casts = [
         'site_id' => 'integer',
+        'is_raw' => 'boolean',
     ];
 
     public static function boot(): void
@@ -58,6 +61,10 @@ class Command extends AbstractModel
      */
     public function getVariables(): array
     {
+        if ($this->is_raw) {
+            return [];
+        }
+
         $variables = [];
         preg_match_all('/\${(.*?)}/', $this->command, $matches);
         $variables = $matches[1];

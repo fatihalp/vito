@@ -9,6 +9,7 @@ import { DynamicFieldConfig } from './dynamic-field-config';
 export interface Auth {
   user: User;
   currentProject?: Project;
+  pendingInvitationsCount: number;
 }
 
 export interface BreadcrumbItem {

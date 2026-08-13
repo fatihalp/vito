@@ -33,7 +33,7 @@ export default function EditCommand({ open, onOpenChange, command }: { open: boo
           <DialogTitle>Edit command</DialogTitle>
           <DialogDescription className="sr-only">Create a new command</DialogDescription>
         </DialogHeader>
-        <Form id="create-command-form" onSubmit={submit} className="p-4">
+        <Form id="edit-command-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
               <Label htmlFor="name">Name</Label>
@@ -43,9 +43,13 @@ export default function EditCommand({ open, onOpenChange, command }: { open: boo
             <FormField>
               <Label htmlFor="command">Command</Label>
               <Textarea id="command" name="command" value={form.data.command} onChange={(e) => form.setData('command', e.target.value)} />
-              <p className="text-muted-foreground text-sm">
-                You can use variables like {'${VARIABLE_NAME}'} in the command. The variables will be asked when executing the command
-              </p>
+              {command.is_raw ? (
+                <p className="text-muted-foreground text-sm">Shell variables are passed through as written and are not prompted.</p>
+              ) : (
+                <p className="text-muted-foreground text-sm">
+                  You can use variables like {'${VARIABLE_NAME}'} in the command. The variables will be asked when executing the command
+                </p>
+              )}
               <InputError message={form.errors.command} />
             </FormField>
           </FormFields>
@@ -55,7 +59,7 @@ export default function EditCommand({ open, onOpenChange, command }: { open: boo
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button form="create-command-form" type="button" onClick={submit} disabled={form.processing}>
+            <Button form="edit-command-form" type="submit" disabled={form.processing}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Save
             </Button>

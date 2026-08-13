@@ -6,33 +6,26 @@ import {
   CloudIcon,
   CloudUploadIcon,
   CogIcon,
-  CommandIcon,
   DatabaseIcon,
   FlameIcon,
-  GlobeIcon,
   HomeIcon,
   KeyIcon,
   ListEndIcon,
-  ListIcon,
   LockIcon,
   LogsIcon,
   MousePointerClickIcon,
   NetworkIcon,
-  RocketIcon,
   Settings2Icon,
   ShieldIcon,
-  SignpostIcon,
   UsersIcon,
-  WrenchIcon,
 } from 'lucide-react';
-import { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import { Server } from '@/types/server';
 import ServerHeader from '@/pages/servers/components/header';
 import Layout from '@/layouts/app/layout';
 import { usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import PHPIcon from '@/icons/php';
-import siteHelper from '@/lib/site-helper';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 
 export default function ServerLayout({ children }: { children: ReactNode }) {
@@ -43,14 +36,6 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
 
   const server = useRealtimeRecord<Server>(page.props.server, 'server')!;
   const isMenuDisabled = server.status !== 'ready';
-  const storedSite = siteHelper.getStoredSite();
-  const site = page.props.site || (storedSite?.server_id === page.props.server.id ? storedSite : null) || null;
-
-  useEffect(() => {
-    if (storedSite && storedSite.server_id !== page.props.server.id) {
-      siteHelper.storeSite(undefined);
-    }
-  }, [page.props.server.id, storedSite]);
 
   if (typeof window === 'undefined') {
     return null;
@@ -92,90 +77,10 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     {
       title: 'Sites',
       href: route('sites', { server: page.props.server.id }),
+      onlyActivePath: route('sites', { server: page.props.server.id }),
       icon: MousePointerClickIcon,
       isDisabled: isMenuDisabled,
       hidden: !page.props.server.services['webserver'],
-      children:
-        site && site.id
-          ? [
-              {
-                title: 'All sites',
-                href: route('sites', { server: page.props.server.id }),
-                onlyActivePath: route('sites', { server: page.props.server.id }),
-                icon: ListIcon,
-              },
-              {
-                title: 'Application',
-                href: route('application', { server: page.props.server.id, site: site.id }),
-                onlyActivePath: route('application', { server: page.props.server.id, site: site.id }),
-                icon: RocketIcon,
-              },
-              {
-                title: 'Domains',
-                href: route('hosted-domains', { server: page.props.server.id, site: site.id }),
-                onlyActivePath: route('hosted-domains', { server: page.props.server.id, site: site.id }),
-                icon: GlobeIcon,
-              },
-              {
-                title: 'Features',
-                href: route('site-features', { server: page.props.server.id, site: site.id }),
-                icon: BoxIcon,
-              },
-              {
-                title: 'Tooling',
-                href: route('site-tooling', { server: page.props.server.id, site: site.id }),
-                icon: WrenchIcon,
-                hidden: site.user === page.props.server.ssh_user || site.status !== 'ready',
-              },
-              {
-                title: 'Commands',
-                href: route('commands', { server: page.props.server.id, site: site.id }),
-                icon: CommandIcon,
-              },
-              {
-                title: 'Workers',
-                href: route('workers.site', { server: page.props.server.id, site: site.id }),
-                icon: ListEndIcon,
-                isDisabled: isMenuDisabled,
-                hidden: !page.props.server.services['process_manager'],
-              },
-              {
-                title: 'CronJobs',
-                href: route('cronjobs.site', { server: page.props.server.id, site: site.id }),
-                icon: ClockIcon,
-                isDisabled: isMenuDisabled,
-              },
-              {
-                title: 'Redirects',
-                href: route('redirects', { server: page.props.server.id, site: site.id }),
-                icon: SignpostIcon,
-              },
-              {
-                title: 'Logs',
-                href: route('sites.logs', { server: page.props.server.id, site: site.id }),
-                icon: LogsIcon,
-              },
-              {
-                title: 'Stats',
-                href: route('site-stats', { server: page.props.server.id, site: site.id }),
-                icon: ChartLineIcon,
-                isDisabled: isMenuDisabled,
-                hidden: !page.props.server.services['log_analysis'] || !site.stats_enabled,
-              },
-              {
-                title: 'Settings',
-                href: route('site-settings', { server: page.props.server.id, site: site.id }),
-                icon: Settings2Icon,
-              },
-            ]
-          : [],
-    },
-    {
-      title: 'PHP',
-      href: route('php', { server: page.props.server.id }),
-      icon: PHPIcon,
-      isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['php'],
     },
     {
       title: 'Security',
@@ -234,6 +139,21 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       href: route('services', { server: page.props.server.id }),
       icon: CogIcon,
       isDisabled: isMenuDisabled,
+      children: [
+        {
+          title: 'Services',
+          href: route('services', { server: page.props.server.id }),
+          onlyActivePath: route('services', { server: page.props.server.id }),
+          icon: CogIcon,
+        },
+        {
+          title: 'PHP',
+          href: route('php', { server: page.props.server.id }),
+          onlyActivePath: route('php', { server: page.props.server.id }),
+          icon: PHPIcon,
+          hidden: !page.props.server.services['php'],
+        },
+      ],
     },
     {
       title: 'Monitoring',
@@ -280,7 +200,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <Layout secondNavItems={sidebarNavItems} secondNavTitle={page.props.server.name}>
+    <Layout
+      secondNavGroups={[
+        { title: `Server · ${page.props.server.name}`, items: sidebarNavItems },
+      ]}
+      secondNavTitle={page.props.server.name}
+    >
       <ServerHeader server={server} site={page.props.site} />
 
       <div>{children}</div>

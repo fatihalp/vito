@@ -5,8 +5,9 @@ export interface CommandExecution {
   command_id: number;
   server_id: number;
   user_id: number;
-  server_log_id: number;
-  log: ServerLog;
+  server_log_id: number | null;
+  log: ServerLog | null;
+  variables: Record<string, null>;
   status: string;
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
   created_at: string;

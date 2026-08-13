@@ -1,50 +1,39 @@
 import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreVerticalIcon } from 'lucide-react';
+import { CheckIcon, XIcon } from 'lucide-react';
 import { ProjectUser } from '@/types/project-user';
 import { Badge } from '@/components/ui/badge';
 import { useDialog } from '@/hooks/use-dialog';
+import { Link } from '@inertiajs/react';
 
 function Actions({ invitation }: { invitation: ProjectUser }) {
   const dialog = useDialog();
 
   return (
-    <div className="flex items-center justify-end">
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreVerticalIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem
-            onSelect={(e) => {
-              e.preventDefault();
-              window.location.href = `/settings/projects/${invitation.project_id}/invitations/accept`;
-            }}
-          >
-            Accept & Join
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            variant="destructive"
-            onSelect={() =>
-              dialog.confirm.open({
-                title: `Reject invitation to ${invitation.project_name}`,
-                description: 'Are you sure you want to reject joining this project?',
-                variant: 'destructive',
-                confirmLabel: 'Reject',
-                method: 'delete',
-                url: `/settings/projects/${invitation.project_id}/leave`,
-              })
-            }
-          >
-            Reject
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div className="flex items-center justify-end gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() =>
+          dialog.confirm.open({
+            title: `Reject invitation to ${invitation.project_name}`,
+            description: 'Are you sure you want to reject joining this project?',
+            variant: 'destructive',
+            confirmLabel: 'Reject',
+            method: 'delete',
+            url: route('projects.leave', { project: invitation.project_id }),
+          })
+        }
+      >
+        <XIcon />
+        Reject
+      </Button>
+      <Button size="sm" asChild>
+        <Link href={route('projects.invitations.accept', { project: invitation.project_id })}>
+          <CheckIcon />
+          Accept & join
+        </Link>
+      </Button>
     </div>
   );
 }

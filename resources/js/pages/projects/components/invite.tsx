@@ -1,60 +1,58 @@
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormField, FormFields } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import InviteeSelect from '@/pages/projects/components/invitee-select';
 import { Project } from '@/types/project';
 import { useForm } from '@inertiajs/react';
+import { useQueryClient } from '@tanstack/react-query';
 import { LoaderCircleIcon } from 'lucide-react';
-import { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent } from 'react';
 
-export default function Invite({ project, onInviteSent, children }: { project: Project; onInviteSent?: () => void; children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const form = useForm({
-    email: '',
+export default function Invite({
+  open,
+  onOpenChange,
+  project,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  project: Project;
+}) {
+  const queryClient = useQueryClient();
+  const form = useForm<{ user_id: number | null; role: string }>({
+    user_id: null,
     role: 'user',
   });
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(`/settings/projects/${project.id}/users`, {
+    form.post(route('projects.users.store', { project: project.id }), {
       onSuccess: () => {
-        setOpen(false);
-        if (onInviteSent) {
-          onInviteSent();
-        }
+        void queryClient.invalidateQueries({ queryKey: ['project-invitees', project.id] });
+        onOpenChange(false);
       },
     });
   };
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Invite users to project</DialogTitle>
-          <DialogDescription className="sr-only">Invite a new user to project</DialogDescription>
+          <DialogTitle>Invite user to {project.name}</DialogTitle>
+          <DialogDescription>Select a Vito user and choose their role. They will be asked to accept the invitation.</DialogDescription>
         </DialogHeader>
         <Form id="invite-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="email">Email</Label>
-              <Input id="email" name="email" type="email" onChange={(e) => form.setData('email', e.target.value)} />
-              <InputError message={form.errors.email} />
+              <Label htmlFor="invite-user">User</Label>
+              <InviteeSelect id="invite-user" projectId={project.id} value={form.data.user_id} onValueChange={(user) => form.setData('user_id', user.id)} />
+              <InputError message={form.errors.user_id} />
             </FormField>
             <FormField>
               <Label htmlFor="role">Role</Label>
-              <Select defaultValue={form.data.role} onValueChange={(value) => form.setData('role', value)}>
+              <Select value={form.data.role} onValueChange={(value) => form.setData('role', value)}>
                 <SelectTrigger id="role" name="role" className="w-full">
                   <SelectValue placeholder="Select a role" />
                 </SelectTrigger>
@@ -71,11 +69,11 @@ export default function Invite({ project, onInviteSent, children }: { project: P
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
-          <Button form="invite-form" disabled={form.processing}>
+          <Button form="invite-form" type="submit" disabled={form.processing || form.data.user_id === null}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Invite
+            Send invitation
           </Button>
         </DialogFooter>
       </DialogContent>

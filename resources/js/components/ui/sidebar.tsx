@@ -19,10 +19,24 @@ const SIDEBAR_WIDTH_MOBILE = '18rem';
 const SIDEBAR_WIDTH_ICON = '3rem';
 const SIDEBAR_KEYBOARD_SHORTCUT = 'b';
 
+function getStoredSidebarOpen(fallback = true): boolean {
+  if (typeof document === 'undefined') {
+    return fallback;
+  }
+
+  const storedState = document.cookie
+    .split('; ')
+    .find((cookie) => cookie.startsWith(`${SIDEBAR_COOKIE_NAME}=`))
+    ?.split('=')[1];
+
+  return storedState === 'true' || storedState === 'false' ? storedState === 'true' : fallback;
+}
+
 type SidebarContext = {
   state: 'expanded' | 'collapsed';
   open: boolean;
   setOpen: (open: boolean) => void;
+  setOpenTransient: (open: boolean) => void;
   openMobile: boolean;
   setOpenMobile: (open: boolean) => void;
   isMobile: boolean;
@@ -41,7 +55,7 @@ function useSidebar() {
 }
 
 function SidebarProvider({
-  defaultOpen = true,
+  defaultOpen,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
@@ -58,8 +72,16 @@ function SidebarProvider({
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  const [_open, _setOpen] = React.useState(defaultOpen ?? true);
   const open = openProp ?? _open;
+
+  React.useEffect(() => {
+    if (openProp !== undefined) {
+      return;
+    }
+
+    _setOpen(getStoredSidebarOpen(defaultOpen ?? true));
+  }, [defaultOpen, openProp]);
   const setOpen = React.useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === 'function' ? value(open) : value;
@@ -73,6 +95,16 @@ function SidebarProvider({
       document.cookie = `${SIDEBAR_COOKIE_NAME}=${openState}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`;
     },
     [setOpenProp, open],
+  );
+  const setOpenTransient = React.useCallback(
+    (openState: boolean) => {
+      if (setOpenProp) {
+        setOpenProp(openState);
+      } else {
+        _setOpen(openState);
+      }
+    },
+    [setOpenProp],
   );
 
   // Helper to toggle the sidebar.
@@ -102,12 +134,13 @@ function SidebarProvider({
       state,
       open,
       setOpen,
+      setOpenTransient,
       isMobile,
       openMobile,
       setOpenMobile,
       toggleSidebar,
     }),
-    [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
+    [state, open, setOpen, setOpenTransient, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
 
   return (
@@ -142,7 +175,7 @@ function Sidebar({
 }: React.ComponentProps<'div'> & {
   side?: 'left' | 'right';
   variant?: 'sidebar' | 'floating' | 'inset';
-  collapsible?: 'offcanvas' | 'icon' | 'none';
+  collapsible?: 'offcanvas' | 'icon' | 'primary' | 'none';
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -156,7 +189,7 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
         <SheetHeader className="sr-only">
           <SheetTitle>Sidebar</SheetTitle>
           <SheetDescription>Displays the mobile sidebar.</SheetDescription>
@@ -165,15 +198,16 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
+          className={cn('bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden', className)}
           style={
             {
               '--sidebar-width': SIDEBAR_WIDTH_MOBILE,
             } as React.CSSProperties
           }
           side={side}
+          {...props}
         >
-          <div className="flex h-full w-full flex-col">{children}</div>
+          <div className={cn('flex h-full w-full', collapsible === 'primary' ? 'flex-row' : 'flex-col')}>{children}</div>
         </SheetContent>
       </Sheet>
     );
@@ -193,6 +227,7 @@ function Sidebar({
         className={cn(
           'relative h-svh w-(--sidebar-width) bg-transparent transition-[width] duration-200 ease-linear',
           'group-data-[collapsible=offcanvas]:w-0',
+          'group-data-[collapsible=primary]:w-[calc(var(--sidebar-width)_-_var(--primary-sidebar-width)_+_var(--sidebar-width-icon))]',
           'group-data-[side=right]:rotate-180',
           variant === 'floating' || variant === 'inset'
             ? 'group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]'
@@ -208,7 +243,7 @@ function Sidebar({
           // Adjust the padding for floating and inset variants.
           variant === 'floating' || variant === 'inset'
             ? 'p-2 group-data-[collapsible=icon]:w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]'
-            : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[side=left]:border-r group-data-[side=right]:border-l',
+            : 'group-data-[collapsible=icon]:w-(--sidebar-width-icon) group-data-[collapsible=primary]:w-[calc(var(--sidebar-width)_-_var(--primary-sidebar-width)_+_var(--sidebar-width-icon))] group-data-[side=left]:border-r group-data-[side=right]:border-l',
           className,
         )}
         {...props}
@@ -225,7 +260,7 @@ function Sidebar({
 }
 
 function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { isMobile, open, openMobile, toggleSidebar } = useSidebar();
 
   return (
     <Button
@@ -234,6 +269,7 @@ function SidebarTrigger({ className, onClick, ...props }: React.ComponentProps<t
       variant="ghost"
       size="icon"
       className={cn('h-7 w-7', className)}
+      aria-expanded={isMobile ? openMobile : open}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
@@ -590,5 +626,6 @@ export {
   SidebarRail,
   SidebarSeparator,
   SidebarTrigger,
+  getStoredSidebarOpen,
   useSidebar,
 };

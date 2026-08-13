@@ -2,12 +2,16 @@
 
 use App\Enums\ServiceStatus;
 use App\Enums\SiteStatus;
+use App\Enums\UserRole;
 use App\Facades\SSH;
 use App\Models\Database;
 use App\Models\DatabaseUser;
+use App\Models\Project;
+use App\Models\Server;
 use App\Models\Service;
 use App\Models\Site;
 use App\Models\SourceControl;
+use App\Models\User;
 use App\SiteTypes\Blank;
 use App\SiteTypes\Laravel;
 use App\SiteTypes\PHPBlank;
@@ -410,6 +414,52 @@ test('see sites list', function () {
     ]))
         ->assertSuccessful()
         ->assertInertia(fn (AssertableInertia $page) => $page->component('sites/index'));
+});
+
+test('search sites across all accessible projects', function () {
+    $this->actingAs($this->user);
+
+    $otherProject = Project::factory()->create(['name' => 'Other Project']);
+    $otherProject->users()->create([
+        'user_id' => $this->user->id,
+        'role' => UserRole::USER,
+    ]);
+    $otherServer = Server::factory()->create([
+        'project_id' => $otherProject->id,
+        'user_id' => $this->user->id,
+    ]);
+    Site::factory()->create([
+        'server_id' => $otherServer->id,
+        'domain' => 'other-project.test',
+    ]);
+
+    $inaccessibleProject = Project::factory()->create();
+    $inaccessibleServer = Server::factory()->create([
+        'project_id' => $inaccessibleProject->id,
+        'user_id' => User::factory()->create()->id,
+    ]);
+    Site::factory()->create([
+        'server_id' => $inaccessibleServer->id,
+        'domain' => 'inaccessible-project.test',
+    ]);
+
+    $this->get(route('sites.all', ['project' => 'all']))
+        ->assertSuccessful()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('siteScope', 'all')
+            ->has('sites.data', 2)
+        );
+
+    $this->get(route('sites.all', [
+        'project' => 'all',
+        'search' => 'other-project',
+    ]))
+        ->assertSuccessful()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('siteScope', 'all')
+            ->has('sites.data', 1)
+            ->where('sites.data.0.domain', 'other-project.test')
+        );
 });
 
 test('delete site', function () {

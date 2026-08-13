@@ -9,6 +9,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateServer from '@/pages/servers/components/create-server';
 import ServerSelect from '@/pages/servers/components/server-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
+import serverHelper from '@/lib/server-helper';
 
 export function ServerSwitch() {
   const page = usePage<SharedData>();
@@ -22,9 +23,16 @@ export function ServerSwitch() {
     setSelected(page.props.server?.id?.toString() ?? '');
   }, [page.props.server?.id]);
 
+  useEffect(() => {
+    if (page.props.server) {
+      serverHelper.storeServer(page.props.server, page.props.auth.user.id);
+    }
+  }, [page.props.auth.user.id, page.props.server]);
+
   const handleServerChange = (value: string, server: Server) => {
     setSelected(value);
     setOpen(false);
+    serverHelper.storeServer(server, page.props.auth.user.id);
     form.post(route('servers.switch', { server: server.id }));
   };
 
@@ -48,20 +56,26 @@ export function ServerSwitch() {
   );
 
   const trigger = (
-    <Button variant="ghost" className="px-1!">
+    <Button
+      variant="ghost"
+      className="px-1!"
+      role="combobox"
+      aria-expanded={open}
+      aria-label={`Switch server. Current server: ${page.props.server?.name ?? 'none'}`}
+    >
       {page.props.server ? (
         <>
           <Avatar className="size-6 rounded-sm">
             <AvatarFallback className="rounded-sm">{initials(page.props.server?.name ?? '')}</AvatarFallback>
           </Avatar>
-          <span className="hidden lg:flex">{page.props.server?.name}</span>
+          <span className="hidden max-w-36 truncate sm:flex">{page.props.server?.name}</span>
         </>
       ) : (
         <>
           <Avatar className="size-6 rounded-sm">
             <AvatarFallback className="rounded-sm">S</AvatarFallback>
           </Avatar>
-          <span className="hidden lg:flex">Select a server</span>
+          <span className="hidden sm:flex">Select a server</span>
         </>
       )}
       <ChevronsUpDownIcon size={5} />
@@ -78,6 +92,7 @@ export function ServerSwitch() {
         onOpenChange={setOpen}
         footer={footer}
         showIp={false}
+        prefetch
       />
     </div>
   );

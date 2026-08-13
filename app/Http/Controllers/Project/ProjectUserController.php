@@ -3,13 +3,17 @@
 namespace App\Http\Controllers\Project;
 
 use App\Actions\Projects\InviteToProject;
+use App\Actions\Projects\GetProjectInvitees;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\ProjectInviteeResource;
 use App\Models\Project;
 use App\Models\UserProject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Spatie\RouteAttributes\Attributes\Delete;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
@@ -18,6 +22,16 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ProjectUserController extends Controller
 {
+    #[Get('/json', name: 'projects.users.json')]
+    public function json(Request $request, Project $project): ResourceCollection
+    {
+        $this->authorize('update', $project);
+
+        return ProjectInviteeResource::collection(
+            app(GetProjectInvitees::class)->get($project, $request->input())
+        );
+    }
+
     #[Post('/', name: 'projects.users.store')]
     public function store(Request $request, Project $project): RedirectResponse
     {
@@ -25,7 +39,7 @@ class ProjectUserController extends Controller
 
         app(InviteToProject::class)->invite($project, $request->input());
 
-        return back()->with('success', __('An invitation has been sent to the email address.'));
+        return back()->with('success', __('The user has been invited to the project.'));
     }
 
     #[Delete('{id}', name: 'projects.users.destroy')]

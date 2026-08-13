@@ -36,7 +36,7 @@ class ProjectController extends Controller
             'projects' => ProjectResource::collection(
                 user()
                     ->allProjects()
-                    ->with(['users'])
+                    ->with(['users.project', 'users.user'])
                     ->simplePaginate(20)
             ),
             'invitations' => ProjectUserResource::collection(

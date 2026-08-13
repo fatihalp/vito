@@ -1,34 +1,55 @@
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
-import { NavItem, SharedData } from '@/types';
-import { type PropsWithChildren, useCallback, useEffect, useState } from 'react';
-import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { NavGroup, NavItem, SharedData } from '@/types';
+import { type CSSProperties, type PropsWithChildren, useCallback, useEffect, useState } from 'react';
+import { getStoredSidebarOpen, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
 import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { type SocketEventData, useSocketEvents, useSocketListener } from '@/hooks/use-socket-events';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
 import { Button } from '@/components/ui/button';
 import { AlertCircleIcon } from 'lucide-react';
 import DialogHost from '@/components/dialogs/dialog-host';
+import { getQueryClient } from '@/lib/query-client';
 
 export default function Layout({
   children,
   secondNavItems,
+  secondNavGroups,
   secondNavTitle,
+  secondNavSubtitle,
 }: PropsWithChildren<{
   secondNavItems?: NavItem[];
+  secondNavGroups?: NavGroup[];
   secondNavTitle?: string;
+  secondNavSubtitle?: string;
 }>) {
   const page = usePage<SharedData>();
+  const queryClient = getQueryClient(page.props.auth.user.id);
   const { status: socketStatus, reconnect: socketReconnect } = useSocketEvents();
   const syncBootstrap = useBootstrapStore((s) => s.syncWithServerVersion);
   const fetchBootstrap = useBootstrapStore((s) => s.fetch);
   const bootstrapConfigsLoaded = useBootstrapStore((s) => s.configs !== null);
   const bootstrapStatus = useBootstrapStore((s) => s.status);
   const serverBootstrapVersion = page.props.bootstrap_version;
+  const hasSecondNav = secondNavGroups?.some((group) => group.items.length > 0) ?? !!secondNavItems?.length;
+  const [primaryNavOpen, setPrimaryNavOpen] = useState(() => (page.props.site ? false : getStoredSidebarOpen(hasSecondNav)));
+  const [secondNavOpen, setSecondNavOpen] = useState(hasSecondNav);
+
+  useEffect(() => {
+    if (page.props.site) {
+      setPrimaryNavOpen(false);
+    } else {
+      setPrimaryNavOpen(getStoredSidebarOpen(hasSecondNav));
+    }
+  }, [hasSecondNav, page.props.site?.id]);
+
+  useEffect(() => {
+    setSecondNavOpen(hasSecondNav);
+  }, [hasSecondNav]);
 
   useEffect(() => {
     syncBootstrap(serverBootstrapVersion);
@@ -66,17 +87,34 @@ export default function Layout({
     }
   }, [page.props.flash]);
 
-  const [queryClient] = useState(() => new QueryClient());
-
   const showBootstrapError = bootstrapStatus === 'error' && !bootstrapConfigsLoaded;
 
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <SidebarProvider defaultOpen={!!(secondNavItems && secondNavItems.length > 0)}>
-          <AppSidebar secondNavItems={secondNavItems} secondNavTitle={secondNavTitle} />
+        <SidebarProvider
+          open={primaryNavOpen}
+          onOpenChange={setPrimaryNavOpen}
+          style={
+            {
+              '--primary-sidebar-width': '12rem',
+              '--sidebar-width': hasSecondNav && secondNavOpen ? '28rem' : '12rem',
+            } as CSSProperties
+          }
+        >
+          <AppSidebar
+            secondNavItems={secondNavItems}
+            secondNavGroups={secondNavGroups}
+            secondNavTitle={secondNavTitle}
+            secondNavSubtitle={secondNavSubtitle}
+            secondNavOpen={secondNavOpen}
+            onSecondNavOpenChange={setSecondNavOpen}
+          />
           <SidebarInset>
-            <AppHeader socketStatus={socketStatus} socketReconnect={socketReconnect} />
+            <AppHeader
+              socketStatus={socketStatus}
+              socketReconnect={socketReconnect}
+            />
             <div className="flex flex-1 flex-col">
               {showBootstrapError ? (
                 <div className="flex flex-1 items-center justify-center p-6">

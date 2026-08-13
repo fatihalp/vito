@@ -26,7 +26,13 @@ class DeploymentTable extends Table
     protected function columns(): array
     {
         return [
-            TextColumn::make('id', 'ID')->sortable(),
+            TextColumn::make('id', 'ID')
+                ->sortable()
+                ->link('application.deployments.show', [
+                    'server' => ':server_id',
+                    'site' => ':site_id',
+                    'deployment' => ':id',
+                ]),
             Column::make('commit', 'Commit'),
             DateTimeColumn::make('created_at', 'Deployed At')->sortable()->toLocal(),
             EnumColumn::make('status', 'Status')->sortable(),

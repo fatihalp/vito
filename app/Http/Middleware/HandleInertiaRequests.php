@@ -12,6 +12,7 @@ use App\Models\Network;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\User;
+use App\Models\UserProject;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -108,6 +109,10 @@ class HandleInertiaRequests extends Middleware
             'auth' => $user ? [
                 'user' => UserResource::make($user->load('projects')),
                 'currentProject' => ProjectResource::make($currentProject),
+                'pendingInvitationsCount' => UserProject::query()
+                    ->where('email', $user->email)
+                    ->whereNull('user_id')
+                    ->count(),
             ] : null,
             'csrf_token' => csrf_token(),
             'bootstrap_version' => app(GetBootstrap::class)->version(),

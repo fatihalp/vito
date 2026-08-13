@@ -407,6 +407,48 @@ test('delete release', function () {
     SSH::assertExecutedContains('rm -rf '.$this->site->basePath().'/releases/20240901000000');
 });
 
+test('see deployment details', function () {
+    $this->actingAs($this->user);
+
+    $deployment = Deployment::factory()->create([
+        'site_id' => $this->site->id,
+        'deployment_script_id' => $this->site->deploymentScript->id,
+        'log_id' => null,
+        'commit_data' => null,
+    ]);
+
+    $this->get(route('application.deployments.show', [
+        'server' => $this->server,
+        'site' => $this->site,
+        'deployment' => $deployment,
+    ]))
+        ->assertSuccessful()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('application/deployments/show')
+            ->where('deployment.id', $deployment->id)
+            ->where('deployment.commit_data', [])
+        );
+});
+
+test('deployment details must belong to the selected site', function () {
+    $this->actingAs($this->user);
+
+    $otherSite = Site::factory()->create([
+        'server_id' => $this->server->id,
+    ]);
+    $deployment = Deployment::factory()->create([
+        'site_id' => $otherSite->id,
+        'deployment_script_id' => $this->site->deploymentScript->id,
+        'log_id' => null,
+    ]);
+
+    $this->get(route('application.deployments.show', [
+        'server' => $this->server,
+        'site' => $this->site,
+        'deployment' => $deployment,
+    ]))->assertNotFound();
+});
+
 test('disable auto deployment', function () {
     Http::fake([
         'api.github.com/repos/organization/repository' => Http::response([

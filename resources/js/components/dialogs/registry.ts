@@ -26,6 +26,8 @@ import ServerIpForm from '@/pages/server-network/components/form';
 import RecordForm from '@/pages/domains/components/record-form';
 import ScriptForm from '@/pages/scripts/components/form';
 import EditCommand from '@/pages/commands/components/edit-command';
+import CreateCommand from '@/pages/commands/components/create-command';
+import ExecuteCommand from '@/pages/commands/components/execute';
 import EditRedirect from '@/pages/redirects/components/edit-redirect';
 import CreateBackup from '@/pages/backups/components/create-backup';
 import EditBackup from '@/pages/backups/components/edit-backup';
@@ -41,6 +43,8 @@ import NetworkFirewallRuleForm from '@/pages/networks/components/firewall-rule-f
 import AddNetworkPeer from '@/pages/networks/components/add-peer';
 import PeerConfigDialog from '@/pages/networks/components/peer-config';
 import ImportWorkflow from '@/pages/workflows/components/import-workflow';
+import InviteProjectUser from '@/pages/projects/components/invite';
+import ProjectUsers from '@/pages/projects/components/users';
 
 export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -84,6 +88,8 @@ export const dialogs = {
   dnsRecordForm: RecordForm,
   scriptForm: ScriptForm,
   commandEdit: EditCommand,
+  commandCreate: CreateCommand,
+  commandExecute: ExecuteCommand,
   redirectEdit: EditRedirect,
   backupCreate: CreateBackup,
   backupEdit: EditBackup,
@@ -99,6 +105,8 @@ export const dialogs = {
   networkAddPeer: AddNetworkPeer,
   networkPeerConfig: PeerConfigDialog,
   workflowImport: ImportWorkflow,
+  projectInvite: InviteProjectUser,
+  projectUsers: ProjectUsers,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as const satisfies Record<string, ComponentType<any>>;
 

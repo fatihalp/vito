@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -20,10 +20,14 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { LoaderCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import serverHelper from '@/lib/server-helper';
+import { SharedData } from '@/types';
+import siteHelper from '@/lib/site-helper';
 
 type DeleteFromProviderChoice = '' | 'yes' | 'no';
 
 export default function DeleteServer({ server, children }: { server: Server; children: ReactNode }) {
+  const page = usePage<SharedData>();
   const configs = useConfigs();
   const isCustom = server.provider === 'custom';
   const providerLabel = configs?.server_provider.providers[server.provider]?.label ?? server.provider;
@@ -55,7 +59,11 @@ export default function DeleteServer({ server, children }: { server: Server; chi
       ...(isCustom ? {} : { delete_from_provider: data.delete_from_provider === 'yes' }),
     }));
     form.delete(route('servers.destroy', server.id), {
-      onSuccess: () => setOpen(false),
+      onSuccess: () => {
+        serverHelper.removeRecentServer(page.props.auth.user.id, server.project_id, server.id);
+        siteHelper.removeRecentServerSites(page.props.auth.user.id, server.project_id, server.id);
+        setOpen(false);
+      },
     });
   };
 

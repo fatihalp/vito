@@ -161,7 +161,8 @@ export function AppSidebar() {
     },
     {
       title: 'Sites',
-      href: route('sites.all'),
+      href: route('sites.all', { project: 'all' }),
+      onlyActivePath: route('sites.all'),
       icon: MousePointerClickIcon,
     },
     {
@@ -238,7 +239,7 @@ export function AppSidebar() {
 
   const getMenuItems = (items: NavItem[]) => {
     return items.map((item) => {
-      const isActive = item.onlyActivePath ? currentPath() === item.href : window.location.href.startsWith(item.href);
+      const isActive = item.onlyActivePath ? currentPath() === item.onlyActivePath : window.location.href.startsWith(item.href);
 
       if (item.children && item.children.length > 0) {
         return (

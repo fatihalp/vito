@@ -10,9 +10,11 @@ import CreateSite from '@/pages/sites/components/create-site';
 import SiteSelect from '@/pages/sites/components/site-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 import siteHelper from '@/lib/site-helper';
+import { useSidebar } from '@/components/ui/sidebar';
 
 export function SiteSwitch() {
   const page = usePage<SharedData>();
+  const { setOpenTransient: setPrimaryNavOpen } = useSidebar();
   const [open, setOpen] = useState(false);
   const [siteFormOpen, setSiteFormOpen] = useState(false);
   const storedSite = siteHelper.getStoredSite();
@@ -28,9 +30,9 @@ export function SiteSwitch() {
 
   useEffect(() => {
     if (page.props.site) {
-      siteHelper.storeSite(page.props.site);
+      siteHelper.storeSite(page.props.site, page.props.auth.user.id, page.props.server?.project_id);
     }
-  }, [page.props.site]);
+  }, [page.props.auth.user.id, page.props.server?.project_id, page.props.site]);
 
   useEffect(() => {
     if (storedSite && page.props.server && storedSite.server_id !== page.props.server.id) {
@@ -47,7 +49,8 @@ export function SiteSwitch() {
     }
     setSelected(value);
     setOpen(false);
-    siteHelper.storeSite(site);
+    setPrimaryNavOpen(false);
+    siteHelper.storeSite(site, page.props.auth.user.id, page.props.auth.currentProject?.id);
     form.post(route('sites.switch', { server: site.server_id, site: site.id }));
   };
 
@@ -71,20 +74,26 @@ export function SiteSwitch() {
   );
 
   const trigger = (
-    <Button variant="ghost" className="px-1!">
+    <Button
+      variant="ghost"
+      className="px-1!"
+      role="combobox"
+      aria-expanded={open}
+      aria-label={`Switch site. Current site: ${currentSite?.domain ?? 'none'}`}
+    >
       {currentSite ? (
         <>
           <Avatar className="size-6 rounded-sm">
             <AvatarFallback className="rounded-sm">{initials(currentSite?.domain ?? '')}</AvatarFallback>
           </Avatar>
-          <span className="hidden lg:flex">{currentSite?.domain}</span>
+          <span className="hidden max-w-48 truncate sm:flex">{currentSite?.domain}</span>
         </>
       ) : (
         <>
           <Avatar className="size-6 rounded-sm">
             <AvatarFallback className="rounded-sm">S</AvatarFallback>
           </Avatar>
-          <span className="hidden lg:flex">Select a site</span>
+          <span className="hidden sm:flex">Select a site</span>
         </>
       )}
       <ChevronsUpDownIcon size={5} />
@@ -102,6 +111,7 @@ export function SiteSwitch() {
           open={open}
           onOpenChange={setOpen}
           footer={footer}
+          prefetch
         />
       </div>
     )

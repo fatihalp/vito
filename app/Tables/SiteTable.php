@@ -11,6 +11,7 @@ use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
 use Forjed\InertiaTable\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class SiteTable extends Table
 {
@@ -28,7 +29,7 @@ class SiteTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with(['server', 'isolatedUser', 'hostedDomains.ssl', 'workers'])->latest();
+        $this->query->with(['server.project', 'isolatedUser', 'hostedDomains.ssl', 'workers'])->latest();
     }
 
     protected function columns(): array
@@ -36,19 +37,19 @@ class SiteTable extends Table
         $columns = [];
 
         if (! $this->server) {
-            $columns[] = Column::make('server.name', 'Server')
-                ->link('servers.show', ['server' => ':server_id']);
+            $columns[] = Column::make('server.project.name', 'Project');
         }
 
         return [
             ...$columns,
             Column::make('id', 'ID')->sortable(),
-            TextColumn::make('domain', 'Domain')->sortable(),
+            TextColumn::make('domain', $this->server ? 'Domain' : 'Site')->sortable(),
             BadgeColumn::make('user', 'User')->variant('outline')->sortable(),
             BadgeColumn::make('type', 'Type')->variant('outline')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
             Column::data('server_id'),
+            Column::data('server_name', fn (Site $site) => $site->server->name),
             Column::data('warnings', fn (Site $site) => $site->getWarnings()),
             ActionsColumn::make(),
         ];
@@ -57,5 +58,28 @@ class SiteTable extends Table
     protected function searchable(): array
     {
         return ['domain', 'user'];
+    }
+
+    protected function applySearch(): void
+    {
+        $search = request()->input($this->getSearchParam());
+
+        if (! is_string($search) || $search === '') {
+            return;
+        }
+
+        $this->query->where(function (Builder $sites) use ($search): void {
+            $sites->where('domain', 'LIKE', "%{$search}%");
+
+            if ($this->server) {
+                $sites->orWhere('user', 'LIKE', "%{$search}%");
+
+                return;
+            }
+
+            $sites->orWhereHas('server', function (Builder $servers) use ($search): void {
+                $servers->where('name', 'LIKE', "%{$search}%");
+            });
+        });
     }
 }

@@ -17,7 +17,9 @@ interface ProjectSelectProps {
   className?: string;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  header?: ReactNode;
   footer?: ReactNode;
+  prefetch?: boolean;
 }
 
 export function ProjectSelect({
@@ -28,7 +30,9 @@ export function ProjectSelect({
   className,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
+  header,
   footer,
+  prefetch = false,
 }: ProjectSelectProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -43,7 +47,7 @@ export function ProjectSelect({
       const response = await axios.get(route('projects.json', { query: query || '', page: pageParam }));
       return response.data;
     },
-    enabled: open,
+    enabled: open || prefetch,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -105,6 +109,9 @@ export function ProjectSelect({
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
+    if (isOpen) {
+      void refetch();
+    }
     if (!isOpen) {
       handleClose();
     }
@@ -129,6 +136,7 @@ export function ProjectSelect({
         <Command shouldFilter={false} className="flex flex-col overflow-hidden">
           <CommandInput placeholder="Search project..." value={query} onValueChange={setQuery} />
           <CommandList className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
+            {header && <div className="bg-popover sticky top-0 z-10 border-b">{header}</div>}
             {projects.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
                 {isFetching ? 'Searching...' : query === '' ? 'Start typing to search projects' : 'No projects found.'}

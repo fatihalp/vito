@@ -20,6 +20,7 @@ class CommandResource extends JsonResource
             'site_id' => $this->site_id,
             'name' => $this->name,
             'command' => $this->command,
+            'is_raw' => $this->is_raw,
             'variables' => $this->getVariables(),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,

@@ -2,6 +2,7 @@
 
 use App\Enums\UserRole;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia;
 
@@ -32,10 +33,24 @@ test('see projects list', function () {
         'user_id' => $this->user->id,
         'role' => UserRole::ADMIN,
     ]);
+    $member = User::factory()->create();
+    $project->users()->create([
+        'user_id' => $member->id,
+        'role' => UserRole::USER,
+    ]);
 
     $this->get(route('projects'))
         ->assertSuccessful()
-        ->assertInertia(fn (AssertableInertia $page) => $page->component('projects/index'));
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('projects/index')
+            ->where('projects.data', function ($projects) use ($member, $project): bool {
+                $projectData = collect($projects)->firstWhere('id', $project->id);
+
+                return collect($projectData['users'])->contains(
+                    fn (array $user): bool => $user['name'] === $member->name && $user['email'] === $member->email
+                );
+            })
+        );
 });
 
 test('no permission to delete project', function () {

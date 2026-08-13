@@ -3,9 +3,12 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types/user';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings } from 'lucide-react';
+import { LogOut, Settings, ShieldCheckIcon } from 'lucide-react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
+import { clearQueryClient } from '@/lib/query-client';
+import serverHelper from '@/lib/server-helper';
+import siteHelper from '@/lib/site-helper';
 
 interface UserMenuContentProps {
   user: User;
@@ -17,6 +20,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
   const handleLogout = () => {
     cleanup();
     router.flushAll();
+    clearQueryClient();
+    serverHelper.clearRecentServers(user.id);
+    siteHelper.clearRecentSites(user.id);
     useBootstrapStore.getState().clear();
   };
 
@@ -37,6 +43,14 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
             Settings
           </Link>
         </DropdownMenuItem>
+        {user.is_admin && (
+          <DropdownMenuItem asChild>
+            <Link className="block w-full" href={route('vito-settings')} as="button" prefetch onClick={cleanup}>
+              <ShieldCheckIcon className="mr-2" />
+              Vito Settings
+            </Link>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild>

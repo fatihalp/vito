@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Site\CreateCommand;
 use App\Actions\Site\EditCommand;
 use App\Actions\Site\ExecuteCommand;
+use App\Actions\Site\RunQuickCommand;
 use App\Http\Resources\CommandExecutionResource;
 use App\Http\Resources\CommandResource;
 use App\Models\Command;
@@ -31,7 +32,9 @@ class CommandController extends Controller
         $this->authorize('viewAny', [Command::class, $site, $server]);
 
         return Inertia::render('commands/index', [
-            'commands' => CommandResource::collection($site->commands()->latest()->simplePaginate(config('web.pagination_size'))),
+            'commands' => CommandResource::collection(
+                $site->commands()->with('site')->latest('updated_at')->simplePaginate(config('web.pagination_size'))
+            ),
         ]);
     }
 
@@ -46,14 +49,30 @@ class CommandController extends Controller
             ->with('success', 'Command created successfully.');
     }
 
+    #[Post('/quick-run', name: 'commands.quick-run')]
+    public function quickRun(Request $request, Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('create', [Command::class, $site, $server]);
+
+        $execution = app(RunQuickCommand::class)->run($site, user(), $request->input());
+
+        return redirect()->route('commands.show', [
+            'server' => $server,
+            'site' => $site,
+            'command' => $execution->command_id,
+        ])->with('info', 'Command is being executed.');
+    }
+
     #[Get('/{command}', name: 'commands.show')]
     public function show(Server $server, Site $site, Command $command): Response
     {
         $this->authorize('view', [$command, $site, $server]);
 
         return Inertia::render('commands/show', [
-            'command' => new CommandResource($command),
-            'executions' => CommandExecutionResource::collection($command->executions()->latest()->simplePaginate(config('web.pagination_size'))),
+            'command' => new CommandResource($command->load('site')),
+            'executions' => CommandExecutionResource::collection(
+                $command->executions()->with('serverLog')->latest()->simplePaginate(config('web.pagination_size'))
+            ),
         ]);
     }
 
@@ -82,7 +101,7 @@ class CommandController extends Controller
     #[Post('/{command}/execute', name: 'commands.execute')]
     public function execute(Request $request, Server $server, Site $site, Command $command): RedirectResponse
     {
-        $this->authorize('update', [$site, $server]);
+        $this->authorize('update', [$command, $site, $server]);
 
         app(ExecuteCommand::class)->execute($command, user(), $request->input());
 

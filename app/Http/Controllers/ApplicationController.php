@@ -16,6 +16,7 @@ use App\Exceptions\ReverseProxyNotConfiguredException;
 use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Http\Resources\DeploymentScriptResource;
+use App\Http\Resources\DeploymentResource;
 use App\Http\Resources\LoadBalancerServerResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Deployment;
@@ -62,6 +63,20 @@ class ApplicationController extends Controller
             'preFlightScript' => $preFlightScript ? new DeploymentScriptResource($preFlightScript) : null,
             'loadBalancerServers' => LoadBalancerServerResource::collection($site->loadBalancerServers),
             'worker' => $bootstrapWorker ? new WorkerResource($bootstrapWorker) : null,
+        ]);
+    }
+
+    #[Get('/deployments/{deployment}', name: 'application.deployments.show')]
+    public function showDeployment(Server $server, Site $site, Deployment $deployment): Response
+    {
+        $this->authorize('view', [$site, $server]);
+
+        if ($deployment->site_id !== $site->id) {
+            abort(404);
+        }
+
+        return Inertia::render('application/deployments/show', [
+            'deployment' => new DeploymentResource($deployment->load('log')),
         ]);
     }
 

@@ -21,7 +21,7 @@ class CommandExecutionResource extends JsonResource
             'user_id' => $this->user_id,
             'server_log_id' => $this->server_log_id,
             'log' => ServerLogResource::make($this->serverLog),
-            'variables' => $this->variables,
+            'variables' => array_fill_keys(array_keys((array) $this->variables), null),
             'status' => $this->status->getText(),
             'status_color' => $this->status->getColor(),
             'created_at' => $this->created_at,

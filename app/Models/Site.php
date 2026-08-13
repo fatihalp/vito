@@ -230,7 +230,7 @@ class Site extends AbstractModel
         }
 
         if ($this->type() instanceof AbstractProxiedSiteType
-            && ! $this->deployments()->where('status', DeploymentStatus::FINISHED)->exists()) {
+            && ! ($this->getAttribute('has_finished_deployment') ?? $this->deployments()->where('status', DeploymentStatus::FINISHED)->exists())) {
             $warnings[] = ['key' => 'needs_first_deploy'];
         }
 

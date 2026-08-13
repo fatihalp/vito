@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -18,8 +18,10 @@ import InputError from '@/components/ui/input-error';
 import { LoaderCircleIcon } from 'lucide-react';
 import { Site } from '@/types/site';
 import siteHelper from '@/lib/site-helper';
+import { SharedData } from '@/types';
 
 export default function DeleteSite({ site, children }: { site: Site; children: ReactNode }) {
+  const page = usePage<SharedData>();
   const form = useForm({
     domain: '',
   });
@@ -29,6 +31,9 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
     form.delete(route('site-settings.destroy', { server: site.server_id, site: site.id }), {
       onSuccess: () => {
         siteHelper.storeSite();
+        if (page.props.auth.currentProject) {
+          siteHelper.removeRecentSite(page.props.auth.user.id, page.props.auth.currentProject.id, site.server_id, site.id);
+        }
       },
     });
   };

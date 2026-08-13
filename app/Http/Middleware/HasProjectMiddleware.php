@@ -21,7 +21,7 @@ class HasProjectMiddleware
                 $user->ensureHasDefaultProject();
                 $user->refresh();
 
-                return redirect()->route('servers');
+                return redirect()->route('overview');
             }
 
             abort(403, 'You must have a project to access the panel.');

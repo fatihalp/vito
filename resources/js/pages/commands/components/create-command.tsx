@@ -1,5 +1,4 @@
-import { Server } from '@/types/server';
-import React, { FormEvent, ReactNode, useState } from 'react';
+import { FormEvent } from 'react';
 import {
   Dialog,
   DialogClose,
@@ -8,25 +7,27 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Form, FormField, FormFields } from '@/components/ui/form';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/ui/input-error';
 import { Input } from '@/components/ui/input';
-import { Site } from '@/types/site';
 import { Textarea } from '@/components/ui/textarea';
 
-export default function CreateCommand({ children }: { children: ReactNode }) {
-  const [open, setOpen] = useState(false);
-  const page = usePage<{
-    server: Server;
-    site: Site;
-  }>();
-
+export default function CreateCommand({
+  open,
+  onOpenChange,
+  serverId,
+  siteId,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  serverId: number;
+  siteId: number;
+}) {
   const form = useForm<{
     name: string;
     command: string;
@@ -37,17 +38,14 @@ export default function CreateCommand({ children }: { children: ReactNode }) {
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('commands.store', { server: page.props.server.id, site: page.props.site.id }), {
-      onSuccess: () => {
-        setOpen(false);
-      },
+    form.post(route('commands.store', { server: serverId, site: siteId }), {
+      onSuccess: () => onOpenChange(false),
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Create command</DialogTitle>
           <DialogDescription className="sr-only">Create a new command</DialogDescription>
@@ -73,7 +71,7 @@ export default function CreateCommand({ children }: { children: ReactNode }) {
         </Form>
         <DialogFooter>
           <div className="flex items-center gap-2">
-            <Button form="create-command-form" type="button" onClick={submit} disabled={form.processing}>
+            <Button form="create-command-form" type="submit" disabled={form.processing}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Create
             </Button>

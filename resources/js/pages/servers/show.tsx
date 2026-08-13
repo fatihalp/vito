@@ -4,16 +4,12 @@ import { type Configs } from '@/types';
 
 import { type Server } from '@/types/server';
 import InstallingServer from '@/pages/servers/installing';
-import type { ServerLog } from '@/types/server-log';
 import ServerOverview from '@/pages/servers/overview';
 import ServerLayout from '@/layouts/server/layout';
 
 type Response = {
   servers: {
     data: Server[];
-  };
-  logs: {
-    data: ServerLog[];
   };
   server: Server;
   public_key: string;

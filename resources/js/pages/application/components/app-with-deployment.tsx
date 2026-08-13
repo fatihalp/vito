@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
 import { Server } from '@/types/server';
@@ -154,6 +154,17 @@ export default function AppWithDeployment() {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link
+                        href={route('application.deployments.show', {
+                          server: deployment.server_id,
+                          site: deployment.site_id,
+                          deployment: deployment.id,
+                        })}
+                      >
+                        View details
+                      </Link>
+                    </DropdownMenuItem>
                     {deployment.log && (
                       <>
                         <View serverLog={deployment.log} />

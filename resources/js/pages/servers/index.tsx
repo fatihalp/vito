@@ -1,4 +1,4 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 
 import { type Configs } from '@/types';
 
@@ -9,8 +9,10 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import Layout from '@/layouts/app/layout';
 import { BookOpenIcon, EyeIcon, PlusIcon, TriangleAlertIcon } from 'lucide-react';
-import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
+import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
+import { useEffect } from 'react';
 
 type Page = {
   servers: InertiaTableData;
@@ -18,15 +20,59 @@ type Page = {
   configs: Configs;
 };
 
+const formatPercent = (value: unknown) => (typeof value === 'number' ? `${value.toFixed(1)}%` : '-');
+
+const performanceCell = ({ row, value }: CellRenderProps) => {
+  const performance = row.performance as { label: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; stale: boolean };
+
+  if (value === null || value === undefined) {
+    return <Badge variant={performance.color}>{performance.label}</Badge>;
+  }
+
+  const score = Number(value);
+  if (performance.stale) {
+    return (
+      <div className="flex min-w-52 flex-col gap-1.5 py-1">
+        <Badge variant={performance.color} className="w-fit">
+          {performance.label}
+        </Badge>
+        <span className="text-muted-foreground text-xs">No fresh sample in the last 5 minutes</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex min-w-52 flex-col gap-1.5 py-1">
+      <Badge variant={performance.color} className="w-fit">
+        {performance.label} · {score.toFixed(1)}
+      </Badge>
+      <span className="text-muted-foreground text-xs tabular-nums">
+        CPU {formatPercent(row.cpu_usage_percent)} · RAM {formatPercent(row.memory_used_percent)} · Disk {formatPercent(row.disk_used_percent)}
+      </span>
+    </div>
+  );
+};
+
 export default function Servers() {
   const page = usePage<Page>();
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        router.reload({ only: ['servers'], preserveScroll: true });
+      }
+    }, 60_000);
+
+    return () => window.clearInterval(interval);
+  }, []);
+
   return (
     <Layout>
       <Head title="Servers" />
 
-      <Container className="max-w-5xl">
+      <Container className="max-w-7xl">
         <div className="flex items-start justify-between">
-          <Heading title="Servers" description="All of the servers of your project listed here" />
+          <Heading title="Servers" description="Latest server resource pressure, with slow or stale servers shown first." />
           <div className="flex items-center gap-2">
             <a href="https://vitodeploy.com/docs/servers/create" target="_blank">
               <Button variant="outline">
@@ -44,6 +90,7 @@ export default function Servers() {
         </div>
         <VitoTable
           tableData={page.props.servers}
+          cellRenderers={{ performance_score: performanceCell }}
           actions={(row: Row) => {
             const warnings = (row.warnings as Array<{ key: string }>) ?? [];
             const count = warnings.length;
