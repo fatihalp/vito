@@ -43,6 +43,9 @@ import NetworkFirewallRuleForm from '@/pages/networks/components/firewall-rule-f
 import AddNetworkPeer from '@/pages/networks/components/add-peer';
 import PeerConfigDialog from '@/pages/networks/components/peer-config';
 import ImportWorkflow from '@/pages/workflows/components/import-workflow';
+import ConnectBucketCredentialsDialog from '@/pages/buckets/components/connect-credentials-dialog';
+import CreateBucketDialog from '@/pages/buckets/components/create-bucket-dialog';
+import RevealBucketCredentialsDialog from '@/pages/buckets/components/reveal-credentials-dialog';
 import InviteProjectUser from '@/pages/projects/components/invite';
 import ProjectUsers from '@/pages/projects/components/users';
 
@@ -107,6 +110,9 @@ export const dialogs = {
   workflowImport: ImportWorkflow,
   projectInvite: InviteProjectUser,
   projectUsers: ProjectUsers,
+  bucketCredentialsConnect: ConnectBucketCredentialsDialog,
+  bucketCreate: CreateBucketDialog,
+  bucketCredentialsReveal: RevealBucketCredentialsDialog,
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } as const satisfies Record<string, ComponentType<any>>;
 

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Database;
 
+use App\Actions\SiteResource\GuardProvisionedDatabase;
 use App\Enums\DatabaseUserPermission;
 use App\Models\DatabaseUser;
 use App\Models\Service;
@@ -12,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateDatabaseUser
 {
+    public function __construct(private GuardProvisionedDatabase $guard) {}
+
     /**
      * @param  array<string, mixed>  $input
      *
@@ -19,6 +22,7 @@ class UpdateDatabaseUser
      */
     public function update(DatabaseUser $databaseUser, array $input): DatabaseUser
     {
+        $this->guard->user($databaseUser);
         $this->validate($databaseUser, $input);
 
         $oldHost = $databaseUser->host;

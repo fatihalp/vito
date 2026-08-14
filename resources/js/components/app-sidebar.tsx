@@ -22,6 +22,7 @@ import {
   ChevronRightIcon,
   CloudUploadIcon,
   CogIcon,
+  DatabaseBackupIcon,
   Folder,
   Globe,
   LayoutDashboardIcon,
@@ -86,6 +87,11 @@ export function AppSidebar({
       title: 'Backups',
       href: route('backups.all'),
       icon: CloudUploadIcon,
+    },
+    {
+      title: 'Buckets',
+      href: route('buckets'),
+      icon: DatabaseBackupIcon,
     },
     {
       title: 'Scripts',

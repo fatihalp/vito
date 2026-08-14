@@ -37,6 +37,7 @@ export function SiteHeaderNav() {
   const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
   const primaryItems: SiteNavItem[] = [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
+    { title: 'Resources', href: route('site-resources', routeParams) },
     { title: 'Domains', href: route('hosted-domains', routeParams) },
     { title: 'Commands', href: route('commands', routeParams) },
     { title: 'Workers', href: route('workers.site', routeParams) },

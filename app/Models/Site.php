@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Actions\SiteResource\CleanupSiteResources;
 use App\Enums\DeploymentStatus;
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
@@ -82,6 +83,7 @@ use RuntimeException;
  * @property Project $project
  * @property Collection<int, Redirect> $redirects
  * @property Collection<int, Redirect> $activeRedirects
+ * @property Collection<int, SiteResource> $resources
  */
 class Site extends AbstractModel
 {
@@ -140,6 +142,7 @@ class Site extends AbstractModel
         parent::boot();
 
         static::deleting(function (Site $site): void {
+            app(CleanupSiteResources::class)->cleanup($site);
             $site->workers()->each(function ($worker): void {
                 /** @var Worker $worker */
                 $worker->delete();
@@ -428,6 +431,12 @@ class Site extends AbstractModel
     public function workers(): HasMany
     {
         return $this->hasMany(Worker::class);
+    }
+
+    /** @return HasMany<SiteResource, covariant $this> */
+    public function resources(): HasMany
+    {
+        return $this->hasMany(SiteResource::class);
     }
 
     /**

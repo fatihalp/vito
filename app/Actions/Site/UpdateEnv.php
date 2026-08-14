@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Actions\SiteResource\SyncManagedEnvironment;
 use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
 use App\Models\Site;
@@ -10,6 +11,8 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateEnv
 {
+    public function __construct(private SyncManagedEnvironment $managedEnvironment) {}
+
     /**
      * @param  array<string, mixed>  $input
      *
@@ -49,12 +52,23 @@ class UpdateEnv
         $path = $site->resolveEnvPath($input['path'] ?? null);
 
         $variables = $this->resolveVariables($site, $input, $path, $hasVariables);
+        $hasManagedVariables = $path === $site->resolveEnvPath()
+            && $this->managedEnvironment->managed($site->loadMissing('resources')) !== [];
+        if ($hasManagedVariables) {
+            $variables = $this->managedEnvironment->enforce($site, $variables);
+        }
 
-        $site->server->os()->write(
-            $path,
-            $hasVariables ? EnvParser::stringify($variables) : trim((string) ($input['env'] ?? null)),
-            $site->user,
-        );
+        $content = $hasVariables
+            ? EnvParser::stringify($variables)
+            : ($hasManagedVariables
+                ? $this->managedEnvironment->enforceRaw($site, trim((string) ($input['env'] ?? null)))
+                : trim((string) ($input['env'] ?? null)));
+
+        if (! $hasVariables) {
+            $variables = $this->resolveVariables($site, ['env' => $content], $path, false);
+        }
+
+        $site->server->os()->write($path, $content, $site->user);
 
         $site->env_variables = $this->secretKeys($variables);
         $site->jsonUpdate('type_data', 'env_path', $path, save: false);

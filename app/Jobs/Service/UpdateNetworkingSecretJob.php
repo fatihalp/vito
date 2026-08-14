@@ -2,6 +2,7 @@
 
 namespace App\Jobs\Service;
 
+use App\Actions\SiteResource\RefreshServerResourceConnections;
 use App\DTOs\SocketEventDTO;
 use App\Enums\ServiceStatus;
 use App\Events\SocketEvent;
@@ -43,6 +44,7 @@ class UpdateNetworkingSecretJob implements ShouldQueue
 
             $this->service->secret = $secret;
             $this->service->save();
+            app(RefreshServerResourceConnections::class)->refresh($this->service->server);
 
             $this->broadcastServiceUpdate();
         });

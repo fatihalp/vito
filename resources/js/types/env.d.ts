@@ -4,4 +4,5 @@ export interface EnvVariable {
   value: string;
   isSecret: boolean;
   isNew?: boolean; // True for variables being created in this session
+  managedBy?: string;
 }

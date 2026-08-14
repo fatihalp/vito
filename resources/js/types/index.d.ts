@@ -5,6 +5,7 @@ import { Project } from '@/types/project';
 import { User } from '@/types/user';
 import { Site, SiteType } from '@/types/site';
 import { DynamicFieldConfig } from './dynamic-field-config';
+import type { ServerRole } from '@/lib/server-roles';
 
 export interface Auth {
   user: User;
@@ -42,6 +43,7 @@ export interface Configs {
     [key: string]: string;
   };
   metrics_periods: string[];
+  server_roles: Array<{ value: ServerRole; label: string }>;
 
   server_provider: {
     providers: {
@@ -61,6 +63,9 @@ export interface Configs {
         edit_form?: DynamicFieldConfig[];
       };
     };
+  };
+  bucket: {
+    regions: Array<{ value: string; label: string }>;
   };
   source_control: {
     providers: {

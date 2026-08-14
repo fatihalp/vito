@@ -69,6 +69,8 @@ export default function ServerHeader({ server: initialServer, site: initialSite 
             </TooltipContent>
           </Tooltip>
           <SlashIcon className="size-3" />
+          <Badge variant={server.role_color}>{server.role}</Badge>
+          <SlashIcon className="size-3" />
           <Tooltip>
             <TooltipTrigger asChild>
               {ipCopied ? (

@@ -35,6 +35,7 @@ class ServerTable extends Table
         return [
             Column::make('id', 'ID')->sortable(),
             LinkColumn::make('name', 'Name')->sortable()->route('servers.show', ['server' => ':id']),
+            EnumColumn::make('role', 'Type')->sortable(),
             TextColumn::make('ip', 'IP')->sortable(),
             Column::make('performance_score', 'Performance')
                 ->value(fn (Server $server) => $server->latestMetric ? (float) $server->getAttribute('performance_score') : null)

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Actions\Server\CreateServer;
+use App\Actions\Server\DeleteServer;
 use App\Actions\Server\RebootServer;
 use App\Actions\Server\Update;
 use App\Http\Controllers\Controller;
@@ -87,8 +88,10 @@ class ServerController extends Controller
             'delete_from_provider' => ['nullable', 'boolean'],
         ])->validate();
 
-        $server->deleteFromProvider = $request->boolean('delete_from_provider', true);
-        $server->delete();
+        app(DeleteServer::class)->delete($server, [
+            'name' => $server->name,
+            'delete_from_provider' => $request->boolean('delete_from_provider', true),
+        ]);
 
         return response()->noContent();
     }

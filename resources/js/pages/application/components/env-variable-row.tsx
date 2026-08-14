@@ -6,6 +6,7 @@ import { AutoGrowTextarea } from '@/components/ui/auto-grow-textarea';
 import { EnvVariable } from '@/types/env';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 interface EnvVariableRowProps {
   variable: EnvVariable;
@@ -19,6 +20,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
   const [showValue, setShowValue] = useState(false);
   const hintId = useId();
   const isMultiLine = variable.value.includes('\n');
+  const isManaged = !!variable.managedBy;
 
   const isExistingSecret = variable.isSecret && !variable.isNew && !revealable;
   const canToggleSecret = variable.isNew || revealable;
@@ -49,6 +51,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               type="password"
               value={variable.value}
               onChange={handleValueChange}
+              disabled={isManaged}
               placeholder="Enter new value to change..."
               className="h-9 w-full pr-10"
             />
@@ -70,7 +73,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
 
       return (
         <div className="relative min-h-9 flex-1">
-          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter new value to change..." className="w-full pr-10" />
+          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter new value to change..." className="w-full pr-10" disabled={isManaged} />
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center"
@@ -91,6 +94,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               type="password"
               value={variable.value}
               onChange={handleValueChange}
+              disabled={isManaged}
               readOnly={isMultiLine}
               placeholder={isMultiLine ? 'Reveal to edit this value' : 'Enter value...'}
               title={isMultiLine ? 'This value spans several lines. Reveal it to edit.' : undefined}
@@ -116,7 +120,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
 
       return (
         <div className="relative min-h-9 flex-1">
-          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter value..." className="w-full pr-10" />
+          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter value..." className="w-full pr-10" disabled={isManaged} />
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center"
@@ -132,13 +136,13 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
     // Non-secret value - use AutoGrowTextarea for multiline support
     return (
       <div className="min-h-9 flex-1">
-        <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter value..." className="w-full" />
+        <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder="Enter value..." className="w-full" disabled={isManaged} />
       </div>
     );
   };
 
   const renderSecretToggle = () => {
-    if (!canToggleSecret) {
+    if (!canToggleSecret || isManaged) {
       return <div className="size-9 shrink-0" />;
     }
 
@@ -166,7 +170,8 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
 
     if (isExisting && variable.isSecret && !revealable) {
       return (
-        <div className={cn('relative', isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
+        <div className={cn('grid gap-1', isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
+          <div className="relative">
           <Input value={variable.key} onChange={handleKeyChange} placeholder="KEY" className="pr-9 font-mono" disabled />
           <Tooltip>
             <TooltipTrigger asChild>
@@ -174,14 +179,16 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
                 <LockIcon className="size-4" />
               </div>
             </TooltipTrigger>
-            <TooltipContent>This is a secret variable</TooltipContent>
+            <TooltipContent>{isManaged ? `Managed by ${variable.managedBy}` : 'This is a secret variable'}</TooltipContent>
           </Tooltip>
+          </div>
+          {isManaged && <Badge variant="info">Managed by {variable.managedBy}</Badge>}
         </div>
       );
     }
 
     return (
-      <div className={cn(isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
+      <div className={cn('grid gap-1', isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
         <Input
           value={variable.key}
           onChange={handleKeyChange}
@@ -191,6 +198,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
           aria-invalid={hasError}
         />
         {hasError && <p className="text-destructive mt-1 text-xs">{error}</p>}
+        {isManaged && <Badge variant="info">Managed by {variable.managedBy}</Badge>}
       </div>
     );
   };
@@ -200,7 +208,15 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
       {renderKeyInput()}
       {renderValueInput()}
       {renderSecretToggle()}
-      <Button type="button" variant="ghost" size="icon" onClick={onDelete} className="text-muted-foreground hover:text-destructive shrink-0">
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        onClick={onDelete}
+        disabled={isManaged}
+        aria-label={isManaged ? `${variable.key} is managed by ${variable.managedBy}` : `Delete ${variable.key}`}
+        className="text-muted-foreground hover:text-destructive shrink-0"
+      >
         <TrashIcon className="size-4" />
       </Button>
     </div>

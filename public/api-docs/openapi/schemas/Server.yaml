@@ -23,6 +23,17 @@ properties:
   name:
     type: string
     example: 'production-server'
+  role:
+    type: string
+    example: 'App server'
+  role_value:
+    type: string
+    enum: ['app', 'queue', 'database', 'cache']
+    example: 'app'
+  role_color:
+    type: string
+    enum: ['default', 'success', 'info', 'warning']
+    example: 'info'
   ssh_user:
     type: string
     example: 'root'

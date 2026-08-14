@@ -1,4 +1,5 @@
 import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import type { ServerRole } from '@/lib/server-roles';
 
 export interface Server {
   id: number;
@@ -8,6 +9,9 @@ export interface Server {
   };
   user_id: number;
   name: string;
+  role: string;
+  role_value: ServerRole;
+  role_color: 'gray' | 'success' | 'info' | 'warning' | 'danger' | 'default';
   ssh_user: string;
   ssh_users: string[];
   ip: string;

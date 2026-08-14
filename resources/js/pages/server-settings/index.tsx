@@ -15,8 +15,13 @@ import { Input } from '@/components/ui/input';
 import React, { useState } from 'react';
 import DeleteServer from '@/pages/servers/components/delete-server';
 import TransferServer from '@/pages/servers/components/transfer-server';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import type { ServerRole } from '@/lib/server-roles';
+import InputError from '@/components/ui/input-error';
+import { useConfigs } from '@/stores/bootstrap-store';
 
 export default function Databases() {
+  const configs = useConfigs()!;
   const page = usePage<{
     server: Server;
   }>();
@@ -28,11 +33,13 @@ export default function Databases() {
     ip: string;
     port: string;
     local_ip?: string;
+    role: ServerRole;
   }>({
     name: page.props.server.name,
     ip: page.props.server.ip,
     port: page.props.server.port.toString(),
     local_ip: page.props.server.local_ip,
+    role: page.props.server.role_value,
   });
 
   const submit = () => {
@@ -97,6 +104,25 @@ export default function Databases() {
             <div className="flex items-center justify-between p-4">
               <span>ID</span>
               <span className="text-muted-foreground">{page.props.server.id}</span>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between gap-4 p-4">
+              <span>Server type</span>
+              <div className="grid gap-2">
+                <Select value={form.data.role} onValueChange={(value: typeof form.data.role) => form.setData('role', value)}>
+                  <SelectTrigger className="w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {configs.server_roles.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <InputError message={form.errors.role} />
+              </div>
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">

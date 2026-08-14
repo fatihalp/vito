@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ServerRole;
 use App\Models\PersonalAccessToken;
 use App\Models\Server;
 use App\Models\Site;
@@ -19,6 +20,7 @@ class SitePolicy
     {
         return $this->hasReadAccess($user, $server->project)
             && $server->isReady()
+            && $server->role === ServerRole::APP
             && $server->webserver();
     }
 
@@ -29,6 +31,7 @@ class SitePolicy
         return $this->hasReadAccess($user, $siteServer->project)
             && $site->server_id === $server->id
             && $siteServer->isReady()
+            && $siteServer->role === ServerRole::APP
             && $siteServer->webserver();
     }
 
@@ -36,6 +39,7 @@ class SitePolicy
     {
         return $this->hasWriteAccess($user, $server->project)
             && $server->isReady()
+            && $server->role === ServerRole::APP
             && $server->webserver();
     }
 

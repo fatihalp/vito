@@ -4,6 +4,7 @@ namespace App\Actions\Site;
 
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
+use App\Enums\ServerRole;
 use App\Enums\SiteStatus;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
@@ -34,6 +35,12 @@ class CreateSite
      */
     public function create(Server $server, array $input): Site
     {
+        if ($server->role !== ServerRole::APP) {
+            throw ValidationException::withMessages([
+                'server' => __('Sites can only be created on app servers.'),
+            ]);
+        }
+
         $input = $this->lockRuntimeVersionsToExistingUser($server, $input);
 
         $this->validate($server, $input);

@@ -4,8 +4,11 @@ namespace App\Models;
 
 use App\Actions\Network\ResyncNetworkSiblings;
 use App\Actions\Server\CheckConnection;
+use App\Actions\SiteResource\CleanupSiteResources;
+use App\Actions\SiteResource\DisconnectSiteResource;
 use App\Enums\OperatingSystem;
 use App\Enums\SecurityControlStatus;
+use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
 use App\Exceptions\SSHError;
@@ -37,6 +40,7 @@ use Throwable;
  * @property int $project_id
  * @property int $user_id
  * @property string $name
+ * @property ServerRole $role
  * @property string $ssh_user
  * @property string $ip
  * @property ?string $local_ip
@@ -68,6 +72,7 @@ use Throwable;
  * @property Collection<int, Worker> $queues
  * @property Collection<int, Backup> $backups
  * @property Collection<int, SshKey> $sshKeys
+ * @property Collection<int, SiteResource> $siteResources
  * @property string $hostname
  * @property int $updates
  * @property int $kernel_updates
@@ -78,10 +83,15 @@ class Server extends AbstractModel
     /** @use HasFactory<ServerFactory> */
     use HasFactory;
 
+    protected $attributes = [
+        'role' => ServerRole::APP->value,
+    ];
+
     protected $fillable = [
         'project_id',
         'user_id',
         'name',
+        'role',
         'ssh_user',
         'ip',
         'local_ip',
@@ -105,6 +115,7 @@ class Server extends AbstractModel
 
     protected $casts = [
         'project_id' => 'integer',
+        'role' => ServerRole::class,
         'user_id' => 'integer',
         'port' => 'integer',
         'provider_data' => 'json',
@@ -147,8 +158,19 @@ class Server extends AbstractModel
         static::deleting(function (Server $server): void {
             DB::beginTransaction();
             try {
+                $server->siteResources()
+                    ->with('site.server')
+                    ->get()
+                    ->each(function (SiteResource $resource): void {
+                        app(DisconnectSiteResource::class)->disconnect(
+                            $resource,
+                            removeFirewall: false,
+                            removeProvisioned: false,
+                        );
+                    });
                 $server->sites()->each(function ($site): void {
                     /** @var Site $site */
+                    app(CleanupSiteResources::class)->cleanup($site);
                     $site->workers()->delete();
                     $site->ssls()->delete();
                     $site->deployments()->delete();
@@ -191,6 +213,12 @@ class Server extends AbstractModel
     public function isReady(): bool
     {
         return in_array($this->status, [ServerStatus::READY, ServerStatus::UPDATING]);
+    }
+
+    /** @return HasMany<SiteResource, covariant $this> */
+    public function siteResources(): HasMany
+    {
+        return $this->hasMany(SiteResource::class);
     }
 
     public function isInstalling(): bool

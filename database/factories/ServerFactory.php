@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\OperatingSystem;
+use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use App\Models\Server;
 use App\ServerProviders\Custom;
@@ -21,6 +22,7 @@ class ServerFactory extends Factory
             'project_id' => 1,
             'user_id' => 1,
             'name' => $this->faker->name(),
+            'role' => ServerRole::APP,
             'ssh_user' => 'vito',
             'ip' => $this->faker->ipv4(),
             'local_ip' => $this->faker->ipv4(),

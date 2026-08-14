@@ -59,7 +59,7 @@ export default function Servers() {
   useEffect(() => {
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
-        router.reload({ only: ['servers'], preserveScroll: true });
+        router.reload({ only: ['servers'] });
       }
     }, 60_000);
 

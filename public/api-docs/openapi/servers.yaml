@@ -83,6 +83,11 @@ paths:
                   type: string
                   description: Server name
                   example: 'production-server'
+                role:
+                  type: string
+                  enum: ['app', 'queue', 'database', 'cache']
+                  default: 'app'
+                  description: Server role. App servers are the default.
                 os:
                   type: string
                   enum: ['ubuntu_20', 'ubuntu_22', 'ubuntu_24']
@@ -369,4 +374,3 @@ paths:
             application/json:
               schema:
                 $ref: '/api-docs/openapi/schemas/ErrorResponse.yaml'
-

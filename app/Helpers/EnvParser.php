@@ -201,6 +201,42 @@ class EnvParser
     }
 
     /**
+     * @param  array<string, string|null>  $values
+     */
+    public static function patch(string $raw, array $values): string
+    {
+        $newline = str_contains($raw, "\r\n") ? "\r\n" : "\n";
+        $lines = $raw === '' ? [] : (preg_split('/\r?\n/', $raw) ?: []);
+        $matched = [];
+
+        foreach ($lines as $index => $line) {
+            foreach ($values as $key => $value) {
+                if (preg_match('/^\s*(?:export\s+)?'.preg_quote($key, '/').'\s*=/', $line) !== 1) {
+                    continue;
+                }
+
+                $matched[$key] = true;
+                $lines[$index] = $value === null
+                    ? null
+                    : self::stringify([['key' => $key, 'value' => $value]]);
+                break;
+            }
+        }
+
+        $lines = array_values(array_filter($lines, fn (?string $line): bool => $line !== null));
+
+        foreach ($values as $key => $value) {
+            if ($value === null || isset($matched[$key])) {
+                continue;
+            }
+
+            $lines[] = self::stringify([['key' => $key, 'value' => $value]]);
+        }
+
+        return implode($newline, $lines);
+    }
+
+    /**
      * Normalise the stored secret marker into a flat list of secret keys.
      *
      * Values are NEVER stored in the database; only the list of keys the user

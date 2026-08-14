@@ -2,6 +2,7 @@
 
 namespace App\Actions\Database;
 
+use App\Actions\SiteResource\GuardProvisionedDatabase;
 use App\Models\Database;
 use App\Models\DatabaseUser;
 use App\Models\Server;
@@ -12,6 +13,8 @@ use Illuminate\Validation\ValidationException;
 
 class LinkUser
 {
+    public function __construct(private GuardProvisionedDatabase $guard) {}
+
     /**
      * @param  array<string, mixed>  $input
      * @return DatabaseUser $databaseUser
@@ -20,6 +23,7 @@ class LinkUser
      */
     public function link(DatabaseUser $databaseUser, array $input): DatabaseUser
     {
+        $this->guard->user($databaseUser);
         $this->validate($databaseUser->server, $input);
 
         if (! isset($input['databases']) || ! is_array($input['databases'])) {

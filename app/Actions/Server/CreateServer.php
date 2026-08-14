@@ -3,6 +3,7 @@
 namespace App\Actions\Server;
 
 use App\Jobs\Server\InstallJob;
+use App\Enums\ServerRole;
 use App\Models\Project;
 use App\Models\Server;
 use App\Models\ServerProvider;
@@ -38,6 +39,7 @@ class CreateServer
             'project_id' => $project->id,
             'user_id' => $creator->id,
             'name' => $input['name'],
+            'role' => $input['role'] ?? ServerRole::APP->value,
             'ssh_user' => data_get(config('server-provider.providers'), $input['provider'].'.default_user') ?? 'root',
             'ip' => $input['ip'] ?? '',
             'port' => $input['port'] ?? 22,
@@ -94,6 +96,10 @@ class CreateServer
             'name' => [
                 'required',
             ],
+            'role' => [
+                'sometimes',
+                Rule::enum(ServerRole::class),
+            ],
             'os' => [
                 'required',
                 Rule::in(config('core.operating_systems')),
@@ -140,7 +146,28 @@ class CreateServer
             ],
         ];
 
-        Validator::make($input, array_merge($rules, $this->providerRules($input)))->validate();
+        Validator::make($input, array_merge($rules, $this->providerRules($input)))
+            ->after(function ($validator) use ($input): void {
+                $role = ServerRole::tryFrom($input['role'] ?? ServerRole::APP->value);
+                if (! $role) {
+                    return;
+                }
+
+                $serviceTypes = collect($input['services'] ?? [])->pluck('type');
+                $required = match ($role) {
+                    ServerRole::APP => ['webserver', 'firewall'],
+                    ServerRole::QUEUE => ['php', 'process_manager', 'firewall'],
+                    ServerRole::DATABASE => ['database', 'firewall'],
+                    ServerRole::CACHE => ['memory_database', 'firewall'],
+                };
+
+                foreach ($required as $type) {
+                    if (! $serviceTypes->contains($type)) {
+                        $validator->errors()->add('services', __('The selected server type requires a :service service.', ['service' => $type]));
+                    }
+                }
+            })
+            ->validate();
     }
 
     /**

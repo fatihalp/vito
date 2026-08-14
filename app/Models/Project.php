@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -28,6 +29,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @property Collection<int, Workflow> $workflows
  * @property Collection<int, Domain> $domains
  * @property Collection<int, Network> $networks
+ * @property Collection<int, Bucket> $buckets
+ * @property ?BucketCredential $bucketCredential
  */
 class Project extends Model
 {
@@ -134,5 +137,17 @@ class Project extends Model
     public function networks(): HasMany
     {
         return $this->hasMany(Network::class);
+    }
+
+    /** @return HasMany<Bucket, covariant $this> */
+    public function buckets(): HasMany
+    {
+        return $this->hasMany(Bucket::class);
+    }
+
+    /** @return HasOne<BucketCredential, covariant $this> */
+    public function bucketCredential(): HasOne
+    {
+        return $this->hasOne(BucketCredential::class);
     }
 }

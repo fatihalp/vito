@@ -44,6 +44,7 @@ import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useSocketListener } from '@/hooks/use-socket-events';
+import type { ServerRole } from '@/lib/server-roles';
 
 type PlanOption = {
   label: string;
@@ -53,6 +54,7 @@ type PlanOption = {
 const normalizePlan = (plan: string | PlanOption): PlanOption => (typeof plan === 'string' ? { label: plan, available: true } : plan);
 
 type CreateServerForm = {
+  role: ServerRole;
   provider: string;
   server_provider: number;
   name: string;
@@ -62,6 +64,30 @@ type CreateServerForm = {
   region: string;
   plan: string;
   services: Service[];
+};
+
+const baseServices: Service[] = [
+  { type: 'firewall', name: 'ufw', version: 'latest' },
+  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
+];
+
+const servicesForRole = (role: CreateServerForm['role']): Service[] => {
+  const roleServices: Record<CreateServerForm['role'], Service[]> = {
+    app: [
+      { type: 'webserver', name: 'nginx', version: 'latest' },
+      { type: 'database', name: 'mysql', version: '8.4' },
+      { type: 'memory_database', name: 'redis', version: 'latest' },
+      { type: 'process_manager', name: 'supervisor', version: 'latest' },
+    ],
+    queue: [
+      { type: 'php', name: 'php', version: '8.4' },
+      { type: 'process_manager', name: 'supervisor', version: 'latest' },
+    ],
+    database: [{ type: 'database', name: 'mysql', version: '8.4' }],
+    cache: [{ type: 'memory_database', name: 'redis', version: 'latest' }],
+  };
+
+  return [...roleServices[role], ...baseServices];
 };
 
 function AddService() {
@@ -247,6 +273,7 @@ export default function CreateServer({
   };
 
   const form = useForm<Required<CreateServerForm>>({
+    role: 'app',
     provider: 'custom',
     server_provider: 0,
     name: '',
@@ -255,38 +282,7 @@ export default function CreateServer({
     port: 22,
     region: '',
     plan: '',
-    services: [
-      {
-        type: 'webserver',
-        name: 'nginx',
-        version: 'latest',
-      },
-      {
-        type: 'database',
-        name: 'mysql',
-        version: '8.4',
-      },
-      {
-        type: 'memory_database',
-        name: 'redis',
-        version: 'latest',
-      },
-      {
-        type: 'process_manager',
-        name: 'supervisor',
-        version: 'latest',
-      },
-      {
-        type: 'firewall',
-        name: 'ufw',
-        version: 'latest',
-      },
-      {
-        type: 'monitoring',
-        name: 'remote-monitor',
-        version: 'latest',
-      },
-    ],
+    services: servicesForRole('app'),
   });
 
   const submit: FormEventHandler = (e) => {
@@ -558,11 +554,33 @@ export default function CreateServer({
 
             <div className="grid grid-cols-2 items-start gap-6">
               <FormField>
+                <Label htmlFor="role">Server Type</Label>
+                <Select
+                  value={form.data.role}
+                  onValueChange={(value: CreateServerForm['role']) => {
+                    form.setData('role', value);
+                    form.setData('services', servicesForRole(value));
+                  }}
+                >
+                  <SelectTrigger id="role">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {configs.server_roles.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <InputError message={form.errors.role} />
+              </FormField>
+              <FormField>
                 <Label htmlFor="name">Server Name</Label>
                 <Input id="name" type="text" autoComplete="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                 <InputError message={form.errors.name} />
               </FormField>
-              <FormField>
+              <FormField className="col-span-2">
                 <Label htmlFor="os">Operating System</Label>
                 <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
                   <SelectTrigger id="os">

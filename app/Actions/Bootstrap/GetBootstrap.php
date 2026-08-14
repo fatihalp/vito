@@ -2,6 +2,7 @@
 
 namespace App\Actions\Bootstrap;
 
+use App\Enums\ServerRole;
 use App\Models\GithubApp;
 use App\Tooling\ToolingRegistry;
 use Illuminate\Support\Facades\Cache;
@@ -69,6 +70,10 @@ final class GetBootstrap
             'colors' => config('core.colors'),
             'cronjob_intervals' => config('core.cronjob_intervals'),
             'metrics_periods' => config('core.metrics_periods'),
+            'server_roles' => array_map(fn (ServerRole $role): array => [
+                'value' => $role->value,
+                'label' => $role->getText(),
+            ], ServerRole::cases()),
             'site' => [
                 'types' => config('site.types'),
                 'reserved_user_names' => config('core.reserved_user_names'),
@@ -81,6 +86,12 @@ final class GetBootstrap
             ],
             'storage_provider' => [
                 'providers' => config('storage-provider.providers'),
+            ],
+            'bucket' => [
+                'regions' => collect(config('hetzner-object-storage.regions'))
+                    ->map(fn (string $label, string $value): array => ['value' => $value, 'label' => $label])
+                    ->values()
+                    ->all(),
             ],
             'notification_channel' => [
                 'providers' => config('notification-channel.providers'),

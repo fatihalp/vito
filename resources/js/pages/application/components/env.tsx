@@ -20,7 +20,7 @@ import EnvVariableRow from './env-variable-row';
 import { generateUniqueKey } from '@/lib/env';
 import { cn, rowId } from '@/lib/utils';
 
-type ParsedVariable = { key: string; value: string; is_secret: boolean };
+type ParsedVariable = { key: string; value: string; is_secret: boolean; managed_by?: string };
 
 const defaultEnvPath = (site: Site): string => site.type_data.env_path || `${site.path}/.env`;
 
@@ -31,7 +31,16 @@ const toVariables = (parsed: ParsedVariable[], isNew = true): EnvVariable[] =>
     value: v.value,
     isSecret: v.is_secret,
     isNew,
+    managedBy: v.managed_by,
   }));
+
+const preserveManagedVariables = (next: EnvVariable[], current: EnvVariable[]): EnvVariable[] => {
+  const managed = new Map(current.filter((variable) => variable.managedBy).map((variable) => [variable.key, variable]));
+  const merged = next.map((variable) => managed.get(variable.key) ?? variable);
+  const nextKeys = new Set(next.map((variable) => variable.key));
+
+  return [...merged, ...Array.from(managed.values()).filter((variable) => !nextKeys.has(variable.key))];
+};
 
 const errorMessage = (error: unknown, fallback: string): string => {
   if (axios.isAxiosError(error)) {
@@ -247,7 +256,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
         previous.set(v.key, [...(previous.get(v.key) ?? []), v]);
       });
 
-      setVariables(
+      setVariables((current) => preserveManagedVariables(
         parsed.map((v) => {
           const match = previous.get(v.key)?.shift();
 
@@ -257,9 +266,11 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
             value: v.value,
             isSecret: match ? match.isSecret : v.is_secret,
             isNew: match ? match.isNew : true,
+            managedBy: match?.managedBy,
           };
         }),
-      );
+        current,
+      ));
       setVariablesDirty(false);
       setMode('variables');
     } catch (error) {
@@ -282,7 +293,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
         try {
           const parsed = await parseRawContent(content);
           setVariablesDirty(true);
-          setVariables(toVariables(parsed));
+          setVariables((current) => preserveManagedVariables(toVariables(parsed), current));
         } catch (error) {
           setUploadError(errorMessage(error, 'Failed to parse uploaded file'));
         } finally {
@@ -316,7 +327,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
       const parsed = await parseRawContent(content);
 
       setVariablesDirty(true);
-      setVariables(toVariables(parsed));
+      setVariables((current) => preserveManagedVariables(toVariables(parsed), current));
     } catch (error) {
       setUploadError(errorMessage(error, 'Failed to read from clipboard'));
     } finally {
@@ -413,10 +424,17 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
                 <Alert className="shrink-0">
                   <InfoIcon className="size-4" />
                   <AlertDescription>
-                    Comments are shown here, but the variables form cannot store them - they are discarded once you edit a variable or save from that
-                    form.
+                    {variables.some((variable) => variable.managedBy)
+                      ? 'This file contains resource-managed variables. Saving rewrites the variable list and discards comments.'
+                      : 'Comments are shown here, but the variables form cannot store them - they are discarded once you edit a variable or save from that form.'}
                   </AlertDescription>
                 </Alert>
+                {variables.some((variable) => variable.managedBy) && (
+                  <Alert className="shrink-0">
+                    <InfoIcon className="size-4" />
+                    <AlertDescription>Resource-managed variables are restored automatically when this file is saved.</AlertDescription>
+                  </Alert>
+                )}
                 <div className="min-h-0 flex-1">
                   <Editor
                     defaultLanguage="dotenv"
