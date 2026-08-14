@@ -42,6 +42,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
+import HetznerRegionSelect from './hetzner-region-select';
+import HetznerPlanSelect from './hetzner-plan-select';
 import { toast } from 'sonner';
 import { useSocketListener } from '@/hooks/use-socket-events';
 import type { ServerRole } from '@/lib/server-roles';
@@ -75,7 +77,7 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
   const roleServices: Record<CreateServerForm['role'], Service[]> = {
     app: [
       { type: 'webserver', name: 'nginx', version: 'latest' },
-      { type: 'database', name: 'mysql', version: '8.4' },
+      { type: 'database', name: 'postgresql', version: '16' },
       { type: 'memory_database', name: 'redis', version: 'latest' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
@@ -83,7 +85,7 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
       { type: 'php', name: 'php', version: '8.4' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
-    database: [{ type: 'database', name: 'mysql', version: '8.4' }],
+    database: [{ type: 'database', name: 'postgresql', version: '16' }],
     cache: [{ type: 'memory_database', name: 'redis', version: 'latest' }],
   };
 
@@ -307,8 +309,15 @@ export default function CreateServer({
 
   const [serverProviders, setServerProviders] = useState<ServerProvider[]>([]);
   const fetchServerProviders = async () => {
-    const serverProviders = await axios.get(route('server-providers.json'));
-    setServerProviders(serverProviders.data);
+    const response = await axios.get<ServerProvider[]>(route('server-providers.json'));
+    const providers = response.data;
+    setServerProviders(providers);
+
+    // If default 'custom' provider is set, try auto-selecting the first hetzner connection
+    const hetznerConnection = providers.find((p) => p.provider === 'hetzner');
+    if (hetznerConnection && form.data.provider === 'custom') {
+      selectCombinedProvider(hetznerConnection.id.toString(), providers);
+    }
   };
 
   useEffect(() => {
@@ -325,7 +334,7 @@ export default function CreateServer({
 
   const providerValue = form.data.provider === 'custom' ? 'custom' : form.data.server_provider ? form.data.server_provider.toString() : '';
 
-  const selectCombinedProvider = async (value: string) => {
+  const selectCombinedProvider = async (value: string, providersList = serverProviders) => {
     form.clearErrors();
     form.setData('region', '');
     form.setData('plan', '');
@@ -338,7 +347,7 @@ export default function CreateServer({
       return;
     }
 
-    const connection = serverProviders.find((item) => item.id.toString() === value);
+    const connection = providersList.find((item) => item.id.toString() === value);
     if (!connection) {
       return;
     }
@@ -437,90 +446,108 @@ export default function CreateServer({
               <div className="grid grid-cols-2 gap-6">
                 <FormField>
                   <Label htmlFor="region">Region</Label>
-                  <Popover open={regionOpen} onOpenChange={setRegionOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="region"
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={regionOpen}
-                        className="w-full justify-between font-normal"
-                        disabled={form.data.server_provider === 0}
-                      >
-                        {form.data.region ? regions[form.data.region] || form.data.region : 'Select a region'}
-                        <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Search region..." />
-                        <CommandList>
-                          <CommandGroup>
-                            {Object.entries(regions).map(([key, value]) => (
-                              <CommandItem
-                                key={`region-${key}`}
-                                value={value}
-                                onSelect={() => {
-                                  selectRegion(key);
-                                  setRegionOpen(false);
-                                }}
-                              >
-                                {value}
-                                <CheckIcon className={cn('ml-auto', form.data.region === key ? 'opacity-100' : 'opacity-0')} />
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  {form.data.provider === 'hetzner' ? (
+                    <HetznerRegionSelect
+                      value={form.data.region}
+                      onChange={(region) => {
+                        selectRegion(region);
+                      }}
+                    />
+                  ) : (
+                    <Popover open={regionOpen} onOpenChange={setRegionOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="region"
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={regionOpen}
+                          className="w-full justify-between font-normal"
+                          disabled={form.data.server_provider === 0}
+                        >
+                          {form.data.region ? regions[form.data.region] || form.data.region : 'Select a region'}
+                          <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search region..." />
+                          <CommandList>
+                            <CommandGroup>
+                              {Object.entries(regions).map(([key, value]) => (
+                                <CommandItem
+                                  key={`region-${key}`}
+                                  value={value}
+                                  onSelect={() => {
+                                    selectRegion(key);
+                                    setRegionOpen(false);
+                                  }}
+                                >
+                                  {value}
+                                  <CheckIcon className={cn('ml-auto', form.data.region === key ? 'opacity-100' : 'opacity-0')} />
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                   <InputError message={form.errors.region} />
                 </FormField>
 
                 <FormField>
                   <Label htmlFor="plan">Plan</Label>
-                  <Popover open={planOpen} onOpenChange={setPlanOpen}>
-                    <PopoverTrigger asChild>
-                      <Button
-                        id="plan"
-                        variant="outline"
-                        role="combobox"
-                        aria-expanded={planOpen}
-                        className="w-full justify-between font-normal"
-                        disabled={form.data.region === ''}
-                      >
-                        {form.data.plan ? (plans[form.data.plan] ? normalizePlan(plans[form.data.plan]).label : form.data.plan) : 'Select a plan'}
-                        <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                      <Command>
-                        <CommandInput placeholder="Search plan..." />
-                        <CommandList>
-                          <CommandGroup>
-                            {Object.entries(plans).map(([key, value]) => {
-                              const plan = normalizePlan(value);
-                              return (
-                                <CommandItem
-                                  key={`plan-${key}`}
-                                  value={plan.label}
-                                  disabled={!plan.available}
-                                  onSelect={() => {
-                                    selectPlan(key);
-                                    setPlanOpen(false);
-                                  }}
-                                >
-                                  {plan.label}
-                                  {!plan.available && <span className="text-muted-foreground ml-2">(unavailable)</span>}
-                                  <CheckIcon className={cn('ml-auto', form.data.plan === key ? 'opacity-100' : 'opacity-0')} />
-                                </CommandItem>
-                              );
-                            })}
-                          </CommandGroup>
-                        </CommandList>
-                      </Command>
-                    </PopoverContent>
-                  </Popover>
+                  {form.data.provider === 'hetzner' ? (
+                    <HetznerPlanSelect
+                      value={form.data.plan}
+                      onChange={(plan) => {
+                        selectPlan(plan);
+                      }}
+                    />
+                  ) : (
+                    <Popover open={planOpen} onOpenChange={setPlanOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          id="plan"
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={planOpen}
+                          className="w-full justify-between font-normal"
+                          disabled={form.data.region === ''}
+                        >
+                          {form.data.plan ? (plans[form.data.plan] ? normalizePlan(plans[form.data.plan]).label : form.data.plan) : 'Select a plan'}
+                          <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Search plan..." />
+                          <CommandList>
+                            <CommandGroup>
+                              {Object.entries(plans).map(([key, value]) => {
+                                const plan = normalizePlan(value);
+                                return (
+                                  <CommandItem
+                                    key={`plan-${key}`}
+                                    value={plan.label}
+                                    disabled={!plan.available}
+                                    onSelect={() => {
+                                      selectPlan(key);
+                                      setPlanOpen(false);
+                                    }}
+                                  >
+                                    {plan.label}
+                                    {!plan.available && <span className="text-muted-foreground ml-2">(unavailable)</span>}
+                                    <CheckIcon className={cn('ml-auto', form.data.plan === key ? 'opacity-100' : 'opacity-0')} />
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                   <InputError message={form.errors.plan} />
                 </FormField>
               </div>
