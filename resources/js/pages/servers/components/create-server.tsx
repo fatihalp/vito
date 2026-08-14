@@ -351,21 +351,39 @@ export default function CreateServer({
 
     form.setData('provider', connection.provider);
     form.setData('server_provider', connection.id);
-    await fetchRegions(connection.id);
+    await fetchRegions(connection.id, connection.provider);
   };
 
   const [regionOpen, setRegionOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
 
   const [regions, setRegions] = useState<{ [key: string]: string }>({});
-  const fetchRegions = async (serverProvider: number) => {
-    const regions = await axios.get(route('server-providers.regions', { serverProvider: serverProvider }));
-    setRegions(regions.data);
+  const fetchRegions = async (serverProvider: number, providerName?: string) => {
+    const regionsRes = await axios.get(route('server-providers.regions', { serverProvider: serverProvider }));
+    setRegions(regionsRes.data);
+
+    if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
+      try {
+        const latencyRes = await axios.get<{ latencies: Record<string, number | null> }>(route('hetzner.latency'));
+        const latencies = latencyRes.data.latencies;
+        const validLatencies = Object.entries(latencies).filter((e): e is [string, number] => typeof e[1] === 'number');
+        if (validLatencies.length > 0) {
+          validLatencies.sort((a, b) => a[1] - b[1]);
+          const bestRegion = validLatencies[0][0];
+          if (regionsRes.data[bestRegion]) {
+            await selectRegion(bestRegion, serverProvider);
+          }
+        }
+      } catch (e) {
+        // Fallback if latency test fails
+      }
+    }
   };
-  const selectRegion = async (region: string) => {
+
+  const selectRegion = async (region: string, providerId = form.data.server_provider) => {
     form.setData('region', region);
-    if (region !== '') {
-      await fetchPlans(form.data.server_provider, region);
+    if (region !== '' && providerId > 0) {
+      await fetchPlans(providerId, region);
     }
   };
 

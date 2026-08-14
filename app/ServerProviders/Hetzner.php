@@ -313,17 +313,37 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
     {
         $this->generateKeyPair();
 
-        $sshKey = Http::withToken($this->server->serverProvider->credentials['token'])
+        $token = $this->server->serverProvider->credentials['token'];
+        $publicKey = trim($this->server->sshKey()['public_key']);
+
+        $sshKey = Http::withToken($token)
             ->post($this->apiUrl.'/ssh_keys', [
                 'name' => 'server-'.$this->server->id.'-key',
-                'public_key' => $this->server->sshKey()['public_key'],
+                'public_key' => $publicKey,
             ]);
 
-        if ($sshKey->status() != 201) {
+        $keyId = null;
+
+        if ($sshKey->status() == 201) {
+            $keyId = $sshKey->json()['ssh_key']['id'];
+        } elseif ($sshKey->status() == 422) {
+            // Key might already exist on Hetzner with the same fingerprint
+            $existingKeys = Http::withToken($token)->get($this->apiUrl.'/ssh_keys')->json()['ssh_keys'] ?? [];
+            foreach ($existingKeys as $key) {
+                if (trim($key['public_key'] ?? '') === $publicKey) {
+                    $keyId = $key['id'];
+                    break;
+                }
+            }
+
+            if (! $keyId) {
+                $this->providerError($sshKey);
+            }
+        } else {
             $this->providerError($sshKey);
         }
 
-        $this->server->jsonUpdate('provider_data', 'ssh_key_id', $sshKey->json()['ssh_key']['id']);
+        $this->server->jsonUpdate('provider_data', 'ssh_key_id', $keyId);
 
         $create = Http::withToken($this->server->serverProvider->credentials['token'])
             ->post($this->apiUrl.'/servers', [
@@ -331,7 +351,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
                 'image' => config('serverproviders.hetzner.images')[$this->server->os->value],
                 // 'root_password' => $this->server->authentication['root_pass'],
                 'ssh_keys' => [
-                    $sshKey->json()['ssh_key']['id'],
+                    $keyId,
                 ],
                 'name' => str($this->server->name)->slug(),
                 'location' => $this->server->provider_data['region'],
