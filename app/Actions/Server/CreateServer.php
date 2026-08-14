@@ -155,10 +155,10 @@ class CreateServer
 
                 $serviceTypes = collect($input['services'] ?? [])->pluck('type');
                 $required = match ($role) {
-                    ServerRole::APP => ['webserver', 'firewall'],
-                    ServerRole::QUEUE => ['php', 'process_manager', 'firewall'],
-                    ServerRole::DATABASE => ['database', 'firewall'],
-                    ServerRole::CACHE => ['memory_database', 'firewall'],
+                    ServerRole::APP => ['webserver'],
+                    ServerRole::QUEUE => ['php', 'process_manager'],
+                    ServerRole::DATABASE => ['database'],
+                    ServerRole::CACHE => ['memory_database'],
                 };
 
                 foreach ($required as $type) {

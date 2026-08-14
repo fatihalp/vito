@@ -29,14 +29,13 @@ class InstallServer
 
         $maxWait = 180;
         while ($maxWait > 0) {
-            if (! $this->server->provider()->isRunning()) {
-                continue;
-            }
-            try {
-                $this->server->ssh()->connect();
-                break;
-            } catch (SSHConnectionError) {
-                // ignore
+            if ($this->server->provider()->isRunning()) {
+                try {
+                    $this->server->ssh()->connect();
+                    break;
+                } catch (SSHConnectionError) {
+                    // ignore
+                }
             }
             Sleep::sleep(10);
             $maxWait -= 10;

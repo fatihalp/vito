@@ -69,7 +69,6 @@ type CreateServerForm = {
 };
 
 const baseServices: Service[] = [
-  { type: 'firewall', name: 'ufw', version: 'latest' },
   { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
 ];
 
@@ -77,8 +76,6 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
   const roleServices: Record<CreateServerForm['role'], Service[]> = {
     app: [
       { type: 'webserver', name: 'nginx', version: 'latest' },
-      { type: 'database', name: 'postgresql', version: '16' },
-      { type: 'memory_database', name: 'redis', version: 'latest' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
     queue: [
