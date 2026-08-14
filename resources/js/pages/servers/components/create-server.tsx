@@ -82,7 +82,7 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
       { type: 'php', name: 'php', version: '8.4' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
-    database: [{ type: 'database', name: 'postgresql', version: '16' }],
+    database: [{ type: 'database', name: 'postgresql', version: '18' }],
     cache: [{ type: 'memory_database', name: 'redis', version: 'latest' }],
   };
 
@@ -276,7 +276,7 @@ export default function CreateServer({
     provider: 'custom',
     server_provider: 0,
     name: '',
-    os: '',
+    os: 'ubuntu_24',
     ip: '',
     port: 22,
     region: '',
@@ -357,26 +357,32 @@ export default function CreateServer({
   const [regionOpen, setRegionOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
 
+  const [regionLoading, setRegionLoading] = useState(false);
   const [regions, setRegions] = useState<{ [key: string]: string }>({});
   const fetchRegions = async (serverProvider: number, providerName?: string) => {
-    const regionsRes = await axios.get(route('server-providers.regions', { serverProvider: serverProvider }));
-    setRegions(regionsRes.data);
+    setRegionLoading(true);
+    try {
+      const regionsRes = await axios.get(route('server-providers.regions', { serverProvider: serverProvider }));
+      setRegions(regionsRes.data);
 
-    if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
-      try {
-        const latencyRes = await axios.get<{ latencies: Record<string, number | null> }>(route('hetzner.latency'));
-        const latencies = latencyRes.data.latencies;
-        const validLatencies = Object.entries(latencies).filter((e): e is [string, number] => typeof e[1] === 'number');
-        if (validLatencies.length > 0) {
-          validLatencies.sort((a, b) => a[1] - b[1]);
-          const bestRegion = validLatencies[0][0];
-          if (regionsRes.data[bestRegion]) {
-            await selectRegion(bestRegion, serverProvider);
+      if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
+        try {
+          const latencyRes = await axios.get<{ latencies: Record<string, number | null> }>(route('hetzner.latency'));
+          const latencies = latencyRes.data.latencies;
+          const validLatencies = Object.entries(latencies).filter((e): e is [string, number] => typeof e[1] === 'number');
+          if (validLatencies.length > 0) {
+            validLatencies.sort((a, b) => a[1] - b[1]);
+            const bestRegion = validLatencies[0][0];
+            if (regionsRes.data[bestRegion]) {
+              await selectRegion(bestRegion, serverProvider);
+            }
           }
+        } catch (e) {
+          // Fallback if latency test fails
         }
-      } catch (e) {
-        // Fallback if latency test fails
       }
+    } finally {
+      setRegionLoading(false);
     }
   };
 
@@ -464,6 +470,7 @@ export default function CreateServer({
                   {form.data.provider === 'hetzner' ? (
                     <HetznerRegionSelect
                       value={form.data.region}
+                      loading={regionLoading}
                       onChange={(region) => {
                         selectRegion(region);
                       }}

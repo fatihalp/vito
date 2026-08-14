@@ -27,7 +27,7 @@ class ServerFactory extends Factory
             'ip' => $this->faker->ipv4(),
             'local_ip' => $this->faker->ipv4(),
             'port' => 22,
-            'os' => OperatingSystem::UBUNTU22,
+            'os' => OperatingSystem::UBUNTU24,
             'provider' => Custom::id(),
             'authentication' => [
                 'user' => 'vito',

@@ -316,32 +316,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         $token = $this->server->serverProvider->credentials['token'];
         $publicKey = trim($this->server->sshKey()['public_key']);
 
-        $sshKey = Http::withToken($token)
-            ->post($this->apiUrl.'/ssh_keys', [
-                'name' => 'server-'.$this->server->id.'-key',
-                'public_key' => $publicKey,
-            ]);
-
-        $keyId = null;
-
-        if ($sshKey->status() == 201) {
-            $keyId = $sshKey->json()['ssh_key']['id'];
-        } elseif ($sshKey->status() == 422) {
-            // Key might already exist on Hetzner with the same fingerprint
-            $existingKeys = Http::withToken($token)->get($this->apiUrl.'/ssh_keys')->json()['ssh_keys'] ?? [];
-            foreach ($existingKeys as $key) {
-                if (trim($key['public_key'] ?? '') === $publicKey) {
-                    $keyId = $key['id'];
-                    break;
-                }
-            }
-
-            if (! $keyId) {
-                $this->providerError($sshKey);
-            }
-        } else {
-            $this->providerError($sshKey);
-        }
+        $keyId = $this->getOrCreateSshKeyId($token, $publicKey);
 
         $this->server->jsonUpdate('provider_data', 'ssh_key_id', $keyId);
 
@@ -407,5 +382,68 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
     private function providerError(Response $response): void
     {
         throw new ServerProviderError($response->json('error')['message']);
+    }
+
+    /**
+     * Get or create SSH key on Hetzner without throwing duplicate key errors.
+     *
+     * @throws ServerProviderError
+     */
+    private function getOrCreateSshKeyId(string $token, string $publicKey): int
+    {
+        $keyName = 'server-'.$this->server->id.'-key';
+
+        $pubParts = explode(' ', trim($publicKey));
+        $targetBase64 = $pubParts[1] ?? trim($publicKey);
+
+        $response = Http::withToken($token)->get($this->apiUrl.'/ssh_keys', ['per_page' => 100]);
+        $existingKeys = $response->json('ssh_keys') ?? [];
+
+        foreach ($existingKeys as $key) {
+            $keyPubParts = explode(' ', trim($key['public_key'] ?? ''));
+            $keyBase64 = $keyPubParts[1] ?? trim($key['public_key'] ?? '');
+
+            if ($keyBase64 !== '' && $keyBase64 === $targetBase64) {
+                return (int) $key['id'];
+            }
+
+            if (($key['name'] ?? '') === $keyName) {
+                Http::withToken($token)->delete($this->apiUrl.'/ssh_keys/'.$key['id']);
+            }
+        }
+
+        $createRes = Http::withToken($token)->post($this->apiUrl.'/ssh_keys', [
+            'name' => $keyName,
+            'public_key' => $publicKey,
+        ]);
+
+        if ($createRes->status() === 201) {
+            return (int) $createRes->json('ssh_key.id');
+        }
+
+        if ($createRes->status() === 422) {
+            $fallbackName = $keyName.'-'.str()->random(6);
+            $fallbackRes = Http::withToken($token)->post($this->apiUrl.'/ssh_keys', [
+                'name' => $fallbackName,
+                'public_key' => $publicKey,
+            ]);
+
+            if ($fallbackRes->status() === 201) {
+                return (int) $fallbackRes->json('ssh_key.id');
+            }
+
+            $reFetch = Http::withToken($token)->get($this->apiUrl.'/ssh_keys', ['per_page' => 100]);
+            foreach ($reFetch->json('ssh_keys') ?? [] as $key) {
+                $keyPubParts = explode(' ', trim($key['public_key'] ?? ''));
+                $keyBase64 = $keyPubParts[1] ?? trim($key['public_key'] ?? '');
+                if ($keyBase64 !== '' && $keyBase64 === $targetBase64) {
+                    return (int) $key['id'];
+                }
+            }
+
+            $this->providerError($fallbackRes);
+        }
+
+        $this->providerError($createRes);
     }
 }

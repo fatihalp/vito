@@ -31,7 +31,7 @@ class InstallJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(\Throwable $e): void
     {
         $this->server->update([
             'status' => ServerStatus::INSTALLATION_FAILED,

@@ -46,7 +46,7 @@ test('create server', function () {
         'name' => 'test',
         'ip' => '1.1.1.1',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [],
     ])
         ->assertSuccessful()

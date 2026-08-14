@@ -78,6 +78,6 @@ class Security
      */
     private function supportsConfigDropin(): bool
     {
-        return $this->server->os !== OperatingSystem::UBUNTU18;
+        return true;
     }
 }

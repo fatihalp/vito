@@ -56,9 +56,8 @@ return [
      * General
      */
     'operating_systems' => [
-        OperatingSystem::UBUNTU20->value,
-        OperatingSystem::UBUNTU22->value,
         OperatingSystem::UBUNTU24->value,
+        OperatingSystem::UBUNTU26->value,
     ],
 
     /*

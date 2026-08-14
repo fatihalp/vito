@@ -2,6 +2,7 @@ set -o pipefail 2>/dev/null || true
 export LC_ALL=C
 UPGRADE_LOG=$(mktemp)
 trap 'rm -f "$UPGRADE_LOG"' EXIT
+sudo rm -f /etc/apt/keyrings/mise-archive-keyring.pub /etc/apt/sources.list.d/mise.list 2>/dev/null || true
 sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get clean
 sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get update -o Acquire::AllowReleaseInfoChange::Label=true
 sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get upgrade -y | tee "$UPGRADE_LOG"

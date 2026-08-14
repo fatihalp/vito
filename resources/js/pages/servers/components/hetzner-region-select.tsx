@@ -10,7 +10,15 @@ import { getHetznerRegion, hetznerRegions } from './hetzner-regions';
 
 type Latencies = Record<string, number | null>;
 
-export default function HetznerRegionSelect({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+export default function HetznerRegionSelect({
+  value,
+  onChange,
+  loading = false,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  loading?: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const [testing, setTesting] = useState(false);
   const [latencies, setLatencies] = useState<Latencies>({});
@@ -54,8 +62,13 @@ export default function HetznerRegionSelect({ value, onChange }: { value: string
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button type="button" variant="outline" className="h-auto min-h-10 justify-between gap-3 px-3 py-2 text-left font-normal">
-          {selectedRegion ? (
+        <Button type="button" variant="outline" className="h-auto min-h-10 justify-between gap-3 px-3 py-2 text-left font-normal" disabled={loading}>
+          {loading ? (
+            <span className="flex items-center gap-2 text-muted-foreground text-sm">
+              <LoaderCircleIcon className="size-4 animate-spin" />
+              Detecting nearest region...
+            </span>
+          ) : selectedRegion ? (
             <span className="grid min-w-0 gap-1">
               <span className="truncate font-medium">
                 {selectedRegion.code} - {selectedRegion.city}
@@ -67,7 +80,7 @@ export default function HetznerRegionSelect({ value, onChange }: { value: string
           ) : (
             <span className="text-muted-foreground">Select Hetzner region</span>
           )}
-          <MapPinIcon className="size-4 shrink-0" />
+          {loading ? <LoaderCircleIcon className="size-4 shrink-0 animate-spin opacity-50" /> : <MapPinIcon className="size-4 shrink-0" />}
         </Button>
       </DialogTrigger>
       <DialogContent className="gap-0 p-0 sm:max-w-4xl">

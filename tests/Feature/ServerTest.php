@@ -35,7 +35,7 @@ test('create server', function () {
         'name' => 'test',
         'ip' => '1.1.1.1',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [
             [
                 'name' => 'ufw',
@@ -602,7 +602,7 @@ test('user role cannot create server', function () {
         'name' => 'test-user-server',
         'ip' => '2.2.2.2',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [
             [
                 'name' => 'ufw',
@@ -629,7 +629,7 @@ test('admin role can create server', function () {
         'name' => 'test-admin-server',
         'ip' => '3.3.3.3',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [
             [
                 'name' => 'ufw',
@@ -661,7 +661,7 @@ test('owner role can create server', function () {
         'name' => 'test-owner-server',
         'ip' => '4.4.4.4',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [
             [
                 'name' => 'ufw',
@@ -884,7 +884,7 @@ test('cannot create server with unauthorized provider', function () {
         'provider' => Hetzner::id(),
         'server_provider' => $unauthorizedProvider->id,
         'name' => 'test-unauthorized-server',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'plan' => 'cx11',
         'region' => 'nbg1',
         'services' => [
@@ -914,7 +914,7 @@ test('cannot create server with ssh connection failure', function () {
         'name' => 'test-connection-fail',
         'ip' => '5.5.5.5',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [],
     ])
         ->assertSessionHasErrors();
@@ -935,7 +935,7 @@ test('cannot create server on vito server', function () {
         'name' => 'test-vito-server',
         'ip' => '6.6.6.6',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [],
     ])
         ->assertSessionHasErrors();
@@ -956,7 +956,7 @@ test('can create server when host has unrelated vito user', function () {
         'name' => 'unrelated-vito-user',
         'ip' => '7.7.7.7',
         'port' => '22',
-        'os' => OperatingSystem::UBUNTU22->value,
+        'os' => OperatingSystem::UBUNTU24->value,
         'services' => [],
     ])
         ->assertSessionDoesntHaveErrors();
