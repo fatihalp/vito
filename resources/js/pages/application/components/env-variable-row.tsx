@@ -168,37 +168,39 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
     const isExisting = !variable.isNew;
     const hasError = !!error;
 
-    if (isExisting && variable.isSecret && !revealable) {
-      return (
-        <div className={cn('grid gap-1', isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
-          <div className="relative">
-          <Input value={variable.key} onChange={handleKeyChange} placeholder="KEY" className="pr-9 font-mono" disabled />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="text-muted-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center">
-                <LockIcon className="size-4" />
-              </div>
-            </TooltipTrigger>
-            <TooltipContent>{isManaged ? `Managed by ${variable.managedBy}` : 'This is a secret variable'}</TooltipContent>
-          </Tooltip>
-          </div>
-          {isManaged && <Badge variant="info">Managed by {variable.managedBy}</Badge>}
-        </div>
-      );
-    }
-
     return (
       <div className={cn('grid gap-1', isMultiLine ? 'w-full sm:w-72' : 'w-72')}>
-        <Input
-          value={variable.key}
-          onChange={handleKeyChange}
-          placeholder="KEY"
-          className={cn('font-mono', hasError && 'border-destructive')}
-          disabled={isExisting}
-          aria-invalid={hasError}
-        />
+        <div className="relative">
+          <Input
+            value={variable.key}
+            onChange={handleKeyChange}
+            placeholder="KEY"
+            className={cn(
+              'font-mono',
+              isManaged ? 'pr-36' : isExisting && variable.isSecret && !revealable ? 'pr-9' : '',
+              hasError && 'border-destructive',
+            )}
+            disabled={isExisting}
+            aria-invalid={hasError}
+          />
+          {isManaged ? (
+            <div className="pointer-events-none absolute top-0 right-1.5 flex h-9 items-center">
+              <Badge variant="info" className="text-[10px] px-1.5 py-0.5 leading-none whitespace-nowrap">
+                Managed by {variable.managedBy}
+              </Badge>
+            </div>
+          ) : isExisting && variable.isSecret && !revealable ? (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="text-muted-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center">
+                  <LockIcon className="size-4" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>This is a secret variable</TooltipContent>
+            </Tooltip>
+          ) : null}
+        </div>
         {hasError && <p className="text-destructive mt-1 text-xs">{error}</p>}
-        {isManaged && <Badge variant="info">Managed by {variable.managedBy}</Badge>}
       </div>
     );
   };

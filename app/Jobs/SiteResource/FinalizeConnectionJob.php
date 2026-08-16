@@ -22,9 +22,10 @@ class FinalizeConnectionJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public int $tries = 30;
-
-    public function __construct(protected SiteResource $resource) {}
+    public function __construct(protected SiteResource $resource)
+    {
+        $this->tries = 30;
+    }
 
     /** @return array<int, int> */
     public function backoff(): array
