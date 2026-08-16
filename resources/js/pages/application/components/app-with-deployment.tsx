@@ -8,10 +8,19 @@ import { Badge } from '@/components/ui/badge';
 import {
   BookOpenIcon,
   CalendarClockIcon,
+  CodeXmlIcon,
   ExternalLinkIcon,
   GitBranchIcon,
+  Globe2Icon,
+  Layers3Icon,
   ListEndIcon,
+  LockKeyholeIcon,
   MoreHorizontalIcon,
+  NetworkIcon,
+  ServerIcon,
+  UserRoundIcon,
+  ZapIcon,
+  type LucideIcon,
 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DeploymentScript from '@/pages/application/components/deployment-script';
@@ -29,11 +38,28 @@ import { CronJob } from '@/types/cronjob';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
 
-function Detail({ label, children }: { label: string; children: React.ReactNode }) {
+function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-[6.5rem_minmax(0,1fr)] items-start gap-3 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="min-w-0 break-words font-medium">{children}</dd>
+    <div className="flex items-center gap-3">
+      <div className="bg-muted text-muted-foreground flex size-8 shrink-0 items-center justify-center rounded-md">
+        <Icon className="size-4" />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-muted-foreground text-xs">{label}</p>
+        <p className="break-words text-sm font-medium">{children}</p>
+      </div>
+    </div>
+  );
+}
+
+function StatusDetail({ icon: Icon, label, enabled }: { icon: LucideIcon; label: string; enabled: boolean }) {
+  return (
+    <div className="flex min-w-0 flex-col gap-2 p-4">
+      <div className="text-muted-foreground flex items-center gap-2 text-xs">
+        <Icon className="size-3.5" />
+        {label}
+      </div>
+      <Badge variant={enabled ? 'success' : 'outline'}>{enabled ? 'Enabled' : 'Disabled'}</Badge>
     </div>
   );
 }
@@ -231,28 +257,51 @@ export default function AppWithDeployment() {
             </div>
           </div>
 
-          <Card className="lg:sticky lg:top-4">
-            <CardHeader>
-              <CardTitle>Site details</CardTitle>
+          <Card className="overflow-hidden lg:sticky lg:top-4">
+            <CardHeader className="flex-row items-center gap-3">
+              <div className="bg-primary/10 text-primary flex size-9 shrink-0 items-center justify-center rounded-lg">
+                <Layers3Icon className="size-4" />
+              </div>
+              <div className="flex flex-col gap-1">
+                <CardTitle>Site details</CardTitle>
+                <p className="text-muted-foreground text-sm">Runtime and connection information</p>
+              </div>
             </CardHeader>
-            <CardContent>
-              <dl className="flex flex-col gap-4">
-                <Detail label="Server">{page.props.server.name}</Detail>
-                <Detail label="Public IP">{page.props.server.ip}</Detail>
-                <Detail label="Site type">{formatSiteType(site.type)}</Detail>
-                {site.php_version && <Detail label="PHP">{site.php_version}</Detail>}
-                <Detail label="Site user">{site.user}</Detail>
-                <Detail label="Webserver">{site.webserver}</Detail>
-                {site.branch && <Detail label="Branch">{site.branch}</Detail>}
-                <Detail label="SSL">
-                  <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>{site.ssl_enabled ? 'Enabled' : 'Disabled'}</Badge>
-                </Detail>
-                <Detail label="Auto deploy">
-                  <Badge variant={site.auto_deploy ? 'success' : 'outline'}>{site.auto_deploy ? 'Enabled' : 'Disabled'}</Badge>
-                </Detail>
-                <Detail label="Server ID">{page.props.server.id}</Detail>
-                <Detail label="Site ID">{site.id}</Detail>
-              </dl>
+            <CardContent className="p-0">
+              <div>
+                <div className="flex flex-col gap-3 p-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Connection</p>
+                  <Detail icon={ServerIcon} label="Server">
+                    {page.props.server.name}
+                  </Detail>
+                  <Detail icon={NetworkIcon} label="Public IP">
+                    <span className="font-mono">{page.props.server.ip}</span>
+                  </Detail>
+                </div>
+
+                <div className="flex flex-col gap-3 border-t p-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Runtime</p>
+                  <Detail icon={CodeXmlIcon} label="Site type">
+                    {formatSiteType(site.type)}
+                  </Detail>
+                  {site.php_version && <Detail icon={CodeXmlIcon} label="PHP">{site.php_version}</Detail>}
+                  <Detail icon={UserRoundIcon} label="Site user">
+                    {site.user}
+                  </Detail>
+                  <Detail icon={Globe2Icon} label="Webserver">
+                    {site.webserver}
+                  </Detail>
+                  {site.branch && <Detail icon={GitBranchIcon} label="Branch">{site.branch}</Detail>}
+                </div>
+              </div>
+              <div className="grid grid-cols-2 divide-x border-y">
+                <StatusDetail icon={LockKeyholeIcon} label="SSL" enabled={site.ssl_enabled} />
+                <StatusDetail icon={ZapIcon} label="Auto deploy" enabled={site.auto_deploy} />
+              </div>
+              <div className="bg-muted/30 text-muted-foreground flex items-center justify-between gap-3 px-4 py-3 text-xs">
+                <span>Server ID: {page.props.server.id}</span>
+                <span>Site ID: {site.id}</span>
+              </div>
             </CardContent>
           </Card>
         </div>

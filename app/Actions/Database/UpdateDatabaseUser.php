@@ -67,6 +67,25 @@ class UpdateDatabaseUser
         return $databaseUser;
     }
 
+    public function updateManagedHost(DatabaseUser $databaseUser, string $host): DatabaseUser
+    {
+        /** @var Database $databaseHandler */
+        $databaseHandler = $databaseUser->server->database()->handler();
+
+        if (! $databaseHandler->usesHost() || $databaseUser->host === $host) {
+            return $databaseUser;
+        }
+
+        $oldHost = $databaseUser->host;
+        $databaseHandler->updateUser($databaseUser->username, $oldHost, newHost: $host);
+        $databaseUser->host = $host;
+        $databaseUser->save();
+
+        $this->updatePermissions($databaseUser, $oldHost, $host);
+
+        return $databaseUser;
+    }
+
     private function validate(DatabaseUser $databaseUser, array $input): void
     {
         $rules = [];

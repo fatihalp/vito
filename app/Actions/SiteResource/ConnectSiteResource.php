@@ -90,7 +90,7 @@ class ConnectSiteResource
         $service = $server->database();
         $handler = $service?->handler();
 
-        if (! $service || ! $handler instanceof DatabaseHandler || ! $handler instanceof SupportsNetworking || ! $server->firewall()) {
+        if (! $service || ! $handler instanceof DatabaseHandler || ! $handler instanceof SupportsNetworking) {
             throw ValidationException::withMessages(['server_id' => __('The selected server has no network-capable database service.')]);
         }
 
@@ -121,7 +121,7 @@ class ConnectSiteResource
                 'password' => $password,
                 'permission' => 'admin',
                 'remote' => true,
-                'host' => '%',
+                'host' => $this->host($site->server),
             ], [$database->name]);
             $firewallRule = $this->allowApplicationServer($site, $server, $handler->networkingPort(), $this->firewallName($site, 'db'));
 
@@ -154,7 +154,7 @@ class ConnectSiteResource
         $service = $server->memoryDatabase();
         $handler = $service?->handler();
 
-        if (! $service || ! $handler instanceof SupportsNetworkingSecret || ! $server->firewall()) {
+        if (! $service || ! $handler instanceof SupportsNetworkingSecret) {
             throw ValidationException::withMessages(['server_id' => __('The selected server has no network-capable Redis service.')]);
         }
 
@@ -260,8 +260,12 @@ class ConnectSiteResource
         }
     }
 
-    private function allowApplicationServer(Site $site, Server $server, int $port, string $name): FirewallRule
+    private function allowApplicationServer(Site $site, Server $server, int $port, string $name): ?FirewallRule
     {
+        if (! $server->firewall()) {
+            return null;
+        }
+
         return app(ManageRule::class)->create($server, [
             'name' => $name,
             'type' => 'allow',

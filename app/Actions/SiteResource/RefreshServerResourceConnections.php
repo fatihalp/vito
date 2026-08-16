@@ -2,11 +2,13 @@
 
 namespace App\Actions\SiteResource;
 
+use App\Actions\Database\UpdateDatabaseUser;
 use App\Actions\FirewallRule\ManageRule;
 use App\Enums\SiteResourceType;
 use App\Enums\SiteResourceStatus;
 use App\Jobs\SiteResource\FinalizeConnectionJob;
 use App\Models\FirewallRule;
+use App\Models\DatabaseUser;
 use App\Models\Server;
 use App\Models\SiteResource;
 
@@ -44,6 +46,15 @@ class RefreshServerResourceConnections
             ->get()
             ->flatMap(fn ($site) => $site->resources)
             ->each(function (SiteResource $resource) use ($server): void {
+                if ($resource->type === SiteResourceType::DATABASE) {
+                    $databaseUserId = $resource->configuration['database_user_id'] ?? null;
+                    $databaseUser = $databaseUserId ? DatabaseUser::query()->find($databaseUserId) : null;
+
+                    if ($databaseUser) {
+                        app(UpdateDatabaseUser::class)->updateManagedHost($databaseUser, $this->host($server));
+                    }
+                }
+
                 $firewallRuleId = $resource->configuration['firewall_rule_id'] ?? null;
                 $rule = $firewallRuleId ? FirewallRule::query()->find($firewallRuleId) : null;
 

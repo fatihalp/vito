@@ -43,9 +43,10 @@ class FinalizeConnectionJob implements ShouldQueue
 
             $service = $this->service();
             $handler = $service?->hasHandler() ? $service->handler() : null;
+            $firewallRuleId = $this->resource->configuration['firewall_rule_id'] ?? null;
             $firewallRule = $this->firewallRule();
 
-            if (! $service || ! $handler instanceof SupportsNetworking || ! $firewallRule) {
+            if (! $service || ! $handler instanceof SupportsNetworking || ($firewallRuleId && ! $firewallRule)) {
                 $this->failConnection();
 
                 return;
@@ -59,7 +60,7 @@ class FinalizeConnectionJob implements ShouldQueue
                 return;
             }
 
-            $firewallReady = $firewallRule->status === FirewallRuleStatus::READY;
+            $firewallReady = ! $firewallRule || $firewallRule->status === FirewallRuleStatus::READY;
             if (! $handler->networkingEnabled() || ! $firewallReady) {
                 $this->release(5);
 
