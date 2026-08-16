@@ -3,7 +3,6 @@
 namespace Database\Factories;
 
 use App\Models\SourceControl;
-use App\SourceControlProviders\Bitbucket;
 use App\SourceControlProviders\Github;
 use App\SourceControlProviders\GithubApp;
 use App\SourceControlProviders\Gitlab;
@@ -44,16 +43,6 @@ class SourceControlFactory extends Factory
     {
         return $this->state(fn (array $attributes): array => [
             'provider' => Github::id(),
-        ]);
-    }
-
-    /**
-     * @return Factory<SourceControl>
-     */
-    public function bitbucket(): Factory
-    {
-        return $this->state(fn (array $attributes): array => [
-            'provider' => Bitbucket::id(),
         ]);
     }
 

@@ -16,13 +16,8 @@ class DeployKeyToServer
      *
      * @throws SSHError
      */
-    public function deploy(Server $server, SshKey $sshKey, array $input = []): void
+    public function deploy(Server $server, SshKey $sshKey, array $input): void
     {
-        // Set default user for backward compatibility
-        if (! isset($input['user'])) {
-            $input['user'] = $server->getSshUser();
-        }
-
         $this->validate($server, $input);
 
         $user = $input['user'];
@@ -40,10 +35,6 @@ class DeployKeyToServer
 
     private function validate(Server $server, array $input): void
     {
-        if (empty($input) || ! isset($input['user'])) {
-            return;
-        }
-
         $rules = [
             'user' => [
                 'required',

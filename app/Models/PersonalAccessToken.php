@@ -35,18 +35,9 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
             ->all();
     }
 
-    /**
-     * Check if the token has access to the given project.
-     * Tokens with no project restrictions have access to all projects (backward compatible).
-     */
+    /** Check if the token has access to the given project. */
     public function hasProjectAccess(Project $project): bool
     {
-        $projectIds = $this->getProjectIds();
-
-        if (empty($projectIds)) {
-            return true;
-        }
-
-        return in_array($project->id, $projectIds);
+        return in_array($project->id, $this->getProjectIds());
     }
 }

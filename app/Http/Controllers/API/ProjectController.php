@@ -30,10 +30,7 @@ class ProjectController extends Controller
 
         $token = user()->currentAccessToken();
         if ($token instanceof PersonalAccessToken && $token->exists) {
-            $scopedProjectIds = $token->getProjectIds();
-            if (! empty($scopedProjectIds)) {
-                $projects->whereIn('projects.id', $scopedProjectIds);
-            }
+            $projects->whereIn('projects.id', $token->getProjectIds());
         }
 
         return ProjectResource::collection($projects->get());

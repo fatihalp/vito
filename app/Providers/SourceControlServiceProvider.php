@@ -5,7 +5,6 @@ namespace App\Providers;
 use App\DTOs\DynamicField;
 use App\DTOs\DynamicForm;
 use App\Plugins\RegisterSourceControl;
-use App\SourceControlProviders\Bitbucket;
 use App\SourceControlProviders\BitbucketV2;
 use App\SourceControlProviders\Gitea;
 use App\SourceControlProviders\Github;
@@ -22,7 +21,6 @@ class SourceControlServiceProvider extends ServiceProvider
         $this->github();
         $this->githubApp();
         $this->gitlab();
-        $this->bitbucket();
         $this->bitbucketV2();
         $this->gitea();
     }
@@ -70,24 +68,6 @@ class SourceControlServiceProvider extends ServiceProvider
                         ->default(22)
                         ->placeholder('22')
                         ->description('Numeric SSH port used when cloning repositories (default: 22).'),
-                ])
-            )
-            ->register();
-    }
-
-    private function bitbucket(): void
-    {
-        RegisterSourceControl::make(Bitbucket::id())
-            ->label('Bitbucket (deprecated)')
-            ->handler(Bitbucket::class)
-            ->form(
-                DynamicForm::make([
-                    DynamicField::make('username')
-                        ->text()
-                        ->label('Username'),
-                    DynamicField::make('password')
-                        ->text()
-                        ->label('Password'),
                 ])
             )
             ->register();

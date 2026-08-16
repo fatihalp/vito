@@ -207,6 +207,3 @@ export default function ServerSelect({
     </Popover>
   );
 }
-
-// Named export for backward compatibility
-export { ServerSelect };

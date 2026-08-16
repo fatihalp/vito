@@ -15,7 +15,6 @@ use App\SiteTypes\Blank;
 use App\SiteTypes\BunSite;
 use App\SiteTypes\Laravel;
 use App\SiteTypes\LoadBalancer;
-use App\SiteTypes\NodeJS;
 use App\SiteTypes\NodeSite;
 use App\SiteTypes\PHPBlank;
 use App\SiteTypes\PHPMyAdmin;
@@ -35,7 +34,6 @@ class SiteTypeServiceProvider extends ServiceProvider
         $this->php();
         $this->phpBlank();
         $this->laravel();
-        $this->nodeJS();
         $this->nodeSite();
         $this->bunSite();
         $this->blank();
@@ -167,15 +165,6 @@ class SiteTypeServiceProvider extends ServiceProvider
         RegisterSiteFeatureAction::make(Laravel::id(), 'modern-deployment', 'configuration')
             ->label('Configure')
             ->handler(Configuration::class)
-            ->register();
-    }
-
-    private function nodeJS(): void
-    {
-        RegisterSiteType::make(NodeJS::id())
-            ->label('NodeJS (Deprecated - Do Not Use)')
-            ->handler(NodeJS::class)
-            ->form(DynamicForm::make([]))
             ->register();
     }
 

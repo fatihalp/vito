@@ -207,6 +207,3 @@ export default function SiteSelect({
     </Popover>
   );
 }
-
-// Named export for backward compatibility
-export { SiteSelect };

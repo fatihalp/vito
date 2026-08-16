@@ -189,7 +189,7 @@ abstract class AbstractSiteType implements SiteType
             return;
         }
 
-        $lock = $this->site->isolatedUser?->lock() ?? $this->site->server->isolatedUserLock($this->site->user);
+        $lock = $this->site->isolatedUser->lock();
 
         try {
             $lock->block(30);

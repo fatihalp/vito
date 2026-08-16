@@ -53,7 +53,6 @@ paths:
               description: |
                 Required credential fields depend on the provider:
                 - github, gitlab, gitea: token
-                - bitbucket (deprecated): username + password
                 - bitbucket-v2: key + secret
               properties:
                 name:
@@ -62,21 +61,13 @@ paths:
                   example: 'GitHub'
                 provider:
                   type: string
-                  enum: ['github', 'gitlab', 'bitbucket', 'bitbucket-v2', 'gitea']
+                  enum: ['github', 'gitlab', 'bitbucket-v2', 'gitea']
                   description: Source control provider type
                   example: 'github'
                 token:
                   type: string
                   description: 'Access token. Required for github, gitlab and gitea.'
                   example: 'ghp_xxxxxxxxxxxxxxxxxxxx'
-                username:
-                  type: string
-                  description: 'Account username. Required for bitbucket (deprecated).'
-                  example: 'my-bitbucket-user'
-                password:
-                  type: string
-                  description: 'Account password / app password. Required for bitbucket (deprecated).'
-                  example: 'app-password'
                 key:
                   type: string
                   description: 'OAuth consumer key. Required for bitbucket-v2.'

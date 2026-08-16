@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\SourceControl;
-use App\SourceControlProviders\Bitbucket;
 use App\SourceControlProviders\Github;
 use App\SourceControlProviders\Gitlab;
 use Illuminate\Database\Seeder;
@@ -28,13 +27,5 @@ class SourceControlsSeeder extends Seeder
             ],
         ]);
 
-        SourceControl::factory()->create([
-            'profile' => 'Bitbucket',
-            'provider' => Bitbucket::id(),
-            'provider_data' => [
-                'username' => 'bitbucket_username',
-                'password' => 'bitbucket_password',
-            ],
-        ]);
     }
 }

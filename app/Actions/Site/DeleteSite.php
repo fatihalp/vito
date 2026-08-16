@@ -40,7 +40,7 @@ class DeleteSite
         }
 
         $iuser = $site->isolatedUser;
-        $lock = $iuser?->lock() ?? $site->server->isolatedUserLock($site->user);
+        $lock = $iuser->lock();
 
         try {
             $lock->block(30);

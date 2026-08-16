@@ -229,26 +229,6 @@ class OS
     }
 
     /**
-     * @deprecated use write() instead
-     *
-     * @throws SSHError
-     */
-    public function editFileAs(string $path, string $user, ?string $content = null): void
-    {
-        $sudo = $user === 'root';
-        $actualUser = $sudo ? $this->server->getSshUser() : $user;
-
-        $this->server->ssh($actualUser)->exec(
-            view('ssh.os.edit-file', [
-                'path' => $path,
-                'content' => $content,
-                'sudo' => $sudo,
-            ]),
-            'edit-file'
-        );
-    }
-
-    /**
      * @throws SSHError
      */
     public function readFile(string $path): string

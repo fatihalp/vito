@@ -240,10 +240,7 @@ class EnvParser
      * Normalise the stored secret marker into a flat list of secret keys.
      *
      * Values are NEVER stored in the database; only the list of keys the user
-     * marked as secret is persisted (e.g. ['APP_KEY', 'JWT_SECRET']). Existing
-     * servers from before this change stored the full variable array
-     * ([{key, value, is_secret}]); this normaliser reads that legacy shape too
-     * so secret classifications survive the upgrade without a data migration.
+     * marked as secret is persisted (e.g. ['APP_KEY', 'JWT_SECRET']).
      *
      * @param  array<int, mixed>|null  $stored
      * @return array<int, string>
@@ -263,9 +260,6 @@ class EnvParser
                 continue;
             }
 
-            if (is_array($entry) && ($entry['is_secret'] ?? false) && isset($entry['key'])) {
-                $keys[] = (string) $entry['key'];
-            }
         }
 
         return array_values(array_unique($keys));

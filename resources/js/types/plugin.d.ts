@@ -1,8 +1,3 @@
-export interface LegacyPlugin {
-  name: string;
-  version: string;
-}
-
 export interface Plugin {
   name: string;
   id: number;

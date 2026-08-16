@@ -21,7 +21,6 @@ use App\SSH\OS\Systemd;
 use App\Support\Testing\SSHFake;
 use Carbon\Carbon;
 use Database\Factories\ServerFactory;
-use Illuminate\Contracts\Cache\Lock;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -400,14 +399,6 @@ class Server extends AbstractModel
         }
 
         return config('core.ssh_user');
-    }
-
-    /**
-     * @deprecated Prefer `$site->isolatedUser->lock()`
-     */
-    public function isolatedUserLock(string $user): Lock
-    {
-        return Cache::lock("isolate:{$this->id}:{$user}", 60);
     }
 
     /**

@@ -40,7 +40,7 @@ class CreateApiKey
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'permission' => ['required', Rule::in(['read', 'write'])],
-            'projects' => ['nullable', 'array'],
+            'projects' => ['required', 'array', 'min:1'],
             'projects.*' => ['required', 'integer', Rule::in($projectIds)],
         ])->validate();
     }

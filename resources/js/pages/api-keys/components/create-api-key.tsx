@@ -120,10 +120,10 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
                   options={projectOptions}
                   onValueChange={(value) => form.setData('projects', value)}
                   defaultValue={form.data.projects}
-                  placeholder="All projects"
+                  placeholder="Select projects"
                   maxCount={3}
                 />
-                <p className="text-muted-foreground text-xs">Leave empty for access to all projects.</p>
+                <p className="text-muted-foreground text-xs">Select at least one project.</p>
                 <InputError message={form.errors.projects} />
               </FormField>
             </FormFields>
@@ -136,7 +136,7 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
                 Cancel
               </Button>
             </DialogClose>
-            <Button type="button" onClick={submit} disabled={form.processing}>
+            <Button type="button" onClick={submit} disabled={form.processing || form.data.projects.length === 0}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Create
             </Button>
