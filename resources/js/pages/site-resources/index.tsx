@@ -6,6 +6,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,9 +16,9 @@ import type { Server } from '@/types/server';
 import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
 import type { Bucket } from '@/types/bucket';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { BoxesIcon, DatabaseIcon, HardDriveIcon, InfoIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
-import { type FormEvent, useEffect } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { BoxesIcon, DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { type FormEvent, useEffect, useState } from 'react';
 
 type ResourceType = SiteResource['type_value'];
 
@@ -40,20 +41,25 @@ export default function SiteResources() {
     resources: SiteResource[];
     servers: SiteResourceServerOption[];
     buckets: Bucket[];
+    credentialsConnected?: boolean;
   }>();
   const dialog = useDialog();
   const connectedTypes = new Set(page.props.resources.map((resource) => resource.type_value));
   const availableTypes = resourceTypes.filter((type) => !connectedTypes.has(type.value));
-  const form = useForm<{ type: ResourceType | ''; server_id: string; bucket_id: string }>({
+  const [isCreatingBucket, setIsCreatingBucket] = useState(page.props.buckets.length === 0);
+  const form = useForm<{ type: ResourceType | ''; server_id: string; bucket_id: string; bucket_name: string }>({
     type: '',
     server_id: '',
     bucket_id: '',
+    bucket_name: '',
   });
   const selectedDefinition = resourceTypes.find((type) => type.value === form.data.type);
   const matchingServers = form.data.type === 'bucket' || form.data.type === ''
     ? []
     : page.props.servers.filter((server) => server.role_value === form.data.type);
-  const targetSelected = form.data.type === 'bucket' ? form.data.bucket_id !== '' : form.data.server_id !== '';
+  const targetSelected = form.data.type === 'bucket'
+    ? (isCreatingBucket || page.props.buckets.length === 0 ? form.data.bucket_name.trim().length >= 3 : form.data.bucket_id !== '')
+    : form.data.server_id !== '';
 
   useEffect(() => {
     if (!page.props.resources.some((resource) => resource.status === 'connecting')) {
@@ -71,7 +77,10 @@ export default function SiteResources() {
     event.preventDefault();
     form.post(route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }), {
       preserveScroll: true,
-      onSuccess: () => form.reset(),
+      onSuccess: () => {
+        form.reset();
+        setIsCreatingBucket(page.props.buckets.length === 0);
+      },
     });
   };
 
@@ -81,9 +90,10 @@ export default function SiteResources() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title="Resources" description="Attach dedicated infrastructure to this site and let Vito maintain its environment configuration." />
+          <SiteBanners site={page.props.site} compact />
         </HeaderContainer>
 
-        <SiteBanners site={page.props.site} />
+        {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}
 
         <Card>
           <CardHeader>
@@ -97,7 +107,12 @@ export default function SiteResources() {
                   <Label htmlFor="resource-type">Resource type</Label>
                   <Select
                     value={form.data.type}
-                    onValueChange={(value: ResourceType) => form.setData({ type: value, server_id: '', bucket_id: '' })}
+                    onValueChange={(value: ResourceType) => {
+                      form.setData({ type: value, server_id: '', bucket_id: '', bucket_name: '' });
+                      if (value === 'bucket') {
+                        setIsCreatingBucket(page.props.buckets.length === 0);
+                      }
+                    }}
                   >
                     <SelectTrigger id="resource-type">
                       <SelectValue placeholder="Select a resource" />
@@ -112,18 +127,43 @@ export default function SiteResources() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="resource-target">Target</Label>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="resource-target">Target</Label>
+                    {form.data.type === 'bucket' && page.props.buckets.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsCreatingBucket(!isCreatingBucket);
+                          form.setData({ ...form.data, bucket_id: '', bucket_name: '' });
+                        }}
+                        className="text-primary hover:underline text-xs"
+                      >
+                        {isCreatingBucket ? 'Select existing bucket' : '+ Create new bucket'}
+                      </button>
+                    )}
+                  </div>
                   {form.data.type === 'bucket' ? (
-                    <Select value={form.data.bucket_id} onValueChange={(value) => form.setData('bucket_id', value)}>
-                      <SelectTrigger id="resource-target">
-                        <SelectValue placeholder="Select a bucket" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {page.props.buckets.map((bucket) => (
-                          <SelectItem key={bucket.id} value={bucket.id.toString()}>{bucket.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    isCreatingBucket || page.props.buckets.length === 0 ? (
+                      <Input
+                        id="resource-target"
+                        placeholder="Bucket name (e.g. my-app-uploads)"
+                        value={form.data.bucket_name}
+                        onChange={(e) => form.setData('bucket_name', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                        className="font-mono"
+                        autoComplete="off"
+                      />
+                    ) : (
+                      <Select value={form.data.bucket_id} onValueChange={(value) => form.setData('bucket_id', value)}>
+                        <SelectTrigger id="resource-target">
+                          <SelectValue placeholder="Select a bucket" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {page.props.buckets.map((bucket) => (
+                            <SelectItem key={bucket.id} value={bucket.id.toString()}>{bucket.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )
                   ) : (
                     <Select value={form.data.server_id} onValueChange={(value) => form.setData('server_id', value)} disabled={form.data.type === ''}>
                       <SelectTrigger id="resource-target">
@@ -136,7 +176,7 @@ export default function SiteResources() {
                       </SelectContent>
                     </Select>
                   )}
-                  <InputError message={form.errors.server_id || form.errors.bucket_id} />
+                  <InputError message={form.errors.server_id || form.errors.bucket_id || form.errors.bucket_name} />
                 </div>
 
                 <Button type="submit" disabled={!form.data.type || !targetSelected || form.processing}>
@@ -147,13 +187,22 @@ export default function SiteResources() {
                 {selectedDefinition && (
                   <p className="text-muted-foreground text-sm md:col-span-3">{selectedDefinition.description}</p>
                 )}
-                {form.data.type === 'bucket' && page.props.buckets.length === 0 && (
-                  <Alert className="md:col-span-3">
-                    <InfoIcon />
-                    <AlertDescription>
-                      Create a <Link href={route('buckets')} className="text-primary underline">bucket connection</Link> first.
-                    </AlertDescription>
-                  </Alert>
+                {form.data.type === 'bucket' && (isCreatingBucket || page.props.buckets.length === 0) && (
+                  page.props.credentialsConnected === false ? (
+                    <Alert className="md:col-span-3">
+                      <KeyIcon className="size-4" />
+                      <AlertDescription className="flex items-center justify-between gap-4">
+                        <span>Connect your Hetzner Object Storage credentials to create buckets.</span>
+                        <Button size="sm" variant="outline" type="button" onClick={() => dialog.bucketCredentialsConnect.open({})}>
+                          Connect credentials
+                        </Button>
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <p className="text-muted-foreground text-xs md:col-span-3">
+                      Bucket will be automatically provisioned on Hetzner (Falkenstein, private visibility) and configured for Laravel (AWS_*).
+                    </p>
+                  )
                 )}
                 {form.data.type && form.data.type !== 'bucket' && matchingServers.length === 0 && (
                   <Alert className="md:col-span-3">
@@ -194,30 +243,46 @@ export default function SiteResources() {
                       <CardDescription className="truncate">{targetDetail}</CardDescription>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Disconnect ${resource.type}`}
-                    onClick={() =>
-                      dialog.confirm.open({
-                        title: `Disconnect ${resource.type}?`,
-                        description:
-                          resource.type_value === 'database'
-                            ? 'Vito-managed environment variables will be restored, and the database plus generated user will be permanently deleted.'
-                            : 'Vito-managed environment variables will be removed and their previous values restored.',
-                        confirmLabel: 'Disconnect',
-                        variant: 'destructive',
-                        method: 'delete',
-                        url: route('site-resources.destroy', {
-                          server: page.props.server.id,
-                          site: page.props.site.id,
-                          resource: resource.id,
-                        }),
-                      })
-                    }
-                  >
-                    <TrashIcon />
-                  </Button>
+                  <div className="flex items-center gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`View credentials for ${target}`}
+                      onClick={() =>
+                        dialog.siteResourceReveal.open({
+                          serverId: page.props.server.id,
+                          siteId: page.props.site.id,
+                          resource,
+                        })
+                      }
+                    >
+                      <EyeIcon className="size-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      aria-label={`Disconnect ${resource.type}`}
+                      onClick={() =>
+                        dialog.confirm.open({
+                          title: `Disconnect ${resource.type}?`,
+                          description:
+                            resource.type_value === 'database'
+                              ? 'Vito-managed environment variables will be restored, and the database plus generated user will be permanently deleted.'
+                              : 'Vito-managed environment variables will be removed and their previous values restored.',
+                          confirmLabel: 'Disconnect',
+                          variant: 'destructive',
+                          method: 'delete',
+                          url: route('site-resources.destroy', {
+                            server: page.props.server.id,
+                            site: page.props.site.id,
+                            resource: resource.id,
+                          }),
+                        })
+                      }
+                    >
+                      <TrashIcon />
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent className="grid gap-3 p-4">
                   <div className="flex flex-wrap gap-1.5">

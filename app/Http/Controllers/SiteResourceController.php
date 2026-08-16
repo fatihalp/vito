@@ -12,6 +12,7 @@ use App\Http\Resources\SiteResourceServerOptionResource;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\SiteResource;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -45,6 +46,23 @@ class SiteResourceController extends Controller
                     ->get()
             ),
             'buckets' => BucketResource::collection($project->buckets()->orderBy('name')->get()),
+            'credentialsConnected' => $project->bucketCredential()->exists(),
+        ]);
+    }
+
+    #[Get('/{resource}/reveal', name: 'site-resources.reveal')]
+    public function reveal(Server $server, Site $site, SiteResource $resource): JsonResponse
+    {
+        $this->authorize('view', [$resource, $site, $server]);
+
+        $target = $resource->server
+            ? $resource->server->name
+            : ($resource->bucket ? $resource->bucket->name : 'Resource');
+
+        return response()->json([
+            'type' => $resource->type->getText(),
+            'target' => $target,
+            'environment' => $resource->environment,
         ]);
     }
 

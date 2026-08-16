@@ -2,7 +2,7 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useForm, usePage } from '@inertiajs/react';
-import { FormEvent } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,67 @@ import { SharedData } from '@/types';
 import { Server } from '@/types/server';
 import { Switch } from '@/components/ui/switch';
 import { Site } from '@/types/site';
+import { cn } from '@/lib/utils';
+
+export interface WorkerTemplate {
+  id: string;
+  label: string;
+  name: string;
+  command: string;
+  description: string;
+  numprocs?: string;
+}
+
+export const WORKER_TEMPLATES: WorkerTemplate[] = [
+  {
+    id: 'horizon',
+    label: 'Laravel Horizon',
+    name: 'horizon',
+    command: 'php artisan horizon',
+    description: 'Laravel Horizon queue manager and supervisor',
+    numprocs: '1',
+  },
+  {
+    id: 'queue-work',
+    label: 'Queue Worker',
+    name: 'queue-worker',
+    command: 'php artisan queue:work --sleep=3 --tries=3 --max-time=3600',
+    description: 'Standard Laravel queue processing daemon',
+    numprocs: '1',
+  },
+  {
+    id: 'schedule-work',
+    label: 'Scheduler',
+    name: 'schedule-worker',
+    command: 'php artisan schedule:work',
+    description: 'Executes Laravel scheduled tasks continuously',
+    numprocs: '1',
+  },
+  {
+    id: 'reverb',
+    label: 'Reverb (WebSocket)',
+    name: 'reverb',
+    command: 'php artisan reverb:start',
+    description: 'Laravel Reverb WebSocket server',
+    numprocs: '1',
+  },
+  {
+    id: 'queue-listen',
+    label: 'Queue Listen',
+    name: 'queue-listen',
+    command: 'php artisan queue:listen',
+    description: 'Queue listener with automatic code reloading',
+    numprocs: '1',
+  },
+  {
+    id: 'pulse',
+    label: 'Laravel Pulse',
+    name: 'pulse',
+    command: 'php artisan pulse:check',
+    description: 'Performance recording worker for Pulse',
+    numprocs: '1',
+  },
+];
 
 export default function WorkerForm({
   open,
@@ -28,6 +89,10 @@ export default function WorkerForm({
   worker?: Worker;
 }) {
   const page = usePage<SharedData & { server: Server; sites?: Array<{ id: number; domain: string }> }>();
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
+  const defaultUser = site?.user || (page.props.server?.ssh_users && page.props.server.ssh_users.length > 0 ? page.props.server.ssh_users[0] : '');
+
   const form = useForm<{
     name: string;
     command: string;
@@ -39,12 +104,52 @@ export default function WorkerForm({
   }>({
     name: worker?.name || '',
     command: worker?.command || '',
-    user: worker?.user || '',
-    auto_start: worker?.auto_start || true,
-    auto_restart: worker?.auto_restart || true,
-    numprocs: worker?.numprocs.toString() || '',
-    site_id: worker?.site_id?.toString() || '0',
+    user: worker?.user || defaultUser,
+    auto_start: worker?.auto_start ?? true,
+    auto_restart: worker?.auto_restart ?? true,
+    numprocs: worker?.numprocs?.toString() || '1',
+    site_id: worker?.site_id?.toString() || site?.id?.toString() || '0',
   });
+
+  useEffect(() => {
+    if (open) {
+      if (worker) {
+        form.setData({
+          name: worker.name || '',
+          command: worker.command || '',
+          user: worker.user || defaultUser,
+          auto_start: worker.auto_start ?? true,
+          auto_restart: worker.auto_restart ?? true,
+          numprocs: worker.numprocs?.toString() || '1',
+          site_id: worker.site_id?.toString() || '0',
+        });
+        setSelectedTemplate('');
+      } else {
+        form.setData({
+          name: '',
+          command: '',
+          user: defaultUser,
+          auto_start: true,
+          auto_restart: true,
+          numprocs: '1',
+          site_id: site?.id?.toString() || '0',
+        });
+        setSelectedTemplate('');
+      }
+    }
+  }, [open, worker, site]);
+
+  const applyTemplate = (templateId: string) => {
+    const template = WORKER_TEMPLATES.find((t) => t.id === templateId);
+    if (!template) return;
+    setSelectedTemplate(templateId);
+    form.setData({
+      ...form.data,
+      name: !form.data.name || WORKER_TEMPLATES.some((t) => t.name === form.data.name) ? template.name : form.data.name,
+      command: template.command,
+      numprocs: template.numprocs || form.data.numprocs || '1',
+    });
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -59,6 +164,7 @@ export default function WorkerForm({
       onSuccess: () => onOpenChange(false),
     });
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -68,6 +174,51 @@ export default function WorkerForm({
         </DialogHeader>
         <Form id="worker-form" onSubmit={submit} className="p-4">
           <FormFields>
+            {!worker && (
+              <div className="space-y-2 rounded-lg border bg-muted/40 p-3">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-medium text-foreground">Preset Templates</Label>
+                  {selectedTemplate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => {
+                        setSelectedTemplate('');
+                        form.setData({ ...form.data, name: '', command: '' });
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-3">
+                  {WORKER_TEMPLATES.map((t) => {
+                    const isSelected = selectedTemplate === t.id || form.data.command === t.command;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => applyTemplate(t.id)}
+                        className={cn(
+                          'flex flex-col items-start rounded-md border p-2 text-left transition-colors hover:bg-accent/50',
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : 'border-border/60 bg-background text-foreground',
+                        )}
+                      >
+                        <span className="text-xs font-semibold">{t.label}</span>
+                        <span className="text-muted-foreground line-clamp-1 font-mono text-[10px]">
+                          {t.command}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <FormField>
               <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
@@ -80,7 +231,10 @@ export default function WorkerForm({
                 type="text"
                 id="command"
                 value={form.data.command}
-                onChange={(e) => form.setData('command', e.target.value)}
+                onChange={(e) => {
+                  setSelectedTemplate('');
+                  form.setData('command', e.target.value);
+                }}
                 placeholder={site ? 'php artisan queue:work' : ''}
               />
               <p className="text-muted-foreground text-sm">`php` command will use the default php cli command</p>

@@ -28,6 +28,7 @@ class SiteResourceResource extends JsonResource
                 'role' => $this->server->role->getText(),
             ] : null,
             'bucket' => $this->bucket ? new BucketResource($this->bucket) : null,
+            'environment' => $this->environment,
             'environment_keys' => array_keys($this->environment),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

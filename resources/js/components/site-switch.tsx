@@ -1,9 +1,9 @@
 import { type SharedData } from '@/types';
 import { type Site } from '@/types/site';
-import { useForm, usePage } from '@inertiajs/react';
+import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDownIcon, PlusIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, GlobeIcon, PlusIcon } from 'lucide-react';
 import { useInitials } from '@/hooks/use-initials';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateSite from '@/pages/sites/components/create-site';
@@ -56,6 +56,24 @@ export function SiteSwitch() {
 
   const footer = (
     <CommandGroup>
+      <CommandItem
+        value="all-sites"
+        onSelect={() => {
+          setOpen(false);
+          setPrimaryNavOpen(false);
+          if (page.props.server?.id) {
+            router.visit(route('sites', { server: page.props.server.id }));
+          } else {
+            router.visit(route('sites.all'));
+          }
+        }}
+        className="gap-0"
+      >
+        <div className="flex items-center">
+          <GlobeIcon size={16} />
+          <span className="ml-2">All Sites</span>
+        </div>
+      </CommandItem>
       <CreateSite defaultOpen={siteFormOpen} onOpenChange={setSiteFormOpen} server={page.props.server}>
         <CommandItem
           value="create-site"
@@ -65,7 +83,7 @@ export function SiteSwitch() {
           className="gap-0"
         >
           <div className="flex items-center">
-            <PlusIcon size={5} />
+            <PlusIcon size={16} />
             <span className="ml-2">Create new site</span>
           </div>
         </CommandItem>

@@ -22,6 +22,13 @@ class SiteResourcePolicy
         return $site->server_id === $server->id && $this->hasWriteAccess($user, $server->project) && $site->isReady();
     }
 
+    public function view(User $user, SiteResource $resource, Site $site, Server $server): bool
+    {
+        return $resource->site_id === $site->id &&
+            $site->server_id === $server->id &&
+            $this->hasReadAccess($user, $server->project);
+    }
+
     public function delete(User $user, SiteResource $resource, Site $site, Server $server): bool
     {
         return $resource->site_id === $site->id &&

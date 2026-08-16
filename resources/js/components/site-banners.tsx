@@ -99,9 +99,8 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   );
 }
 
-export default function SiteBanners({ site, compact = false }: { site: Site; compact?: boolean }) {
+export function getSiteWarningItems(site: Site): BannerItem[] {
   const installing = site.status === 'installing';
-  const installationFailed = site.status === 'installation_failed';
   const warnings: SiteWarning[] = installing ? [] : (site.warnings ?? []);
 
   const pendingDomainsWarning = warnings.find((w) => w.key === 'pending_domains');
@@ -275,6 +274,13 @@ export default function SiteBanners({ site, compact = false }: { site: Site; com
       ),
     });
   }
+
+  return items;
+}
+
+export default function SiteBanners({ site, compact = false }: { site: Site; compact?: boolean }) {
+  const installationFailed = site.status === 'installation_failed';
+  const items = getSiteWarningItems(site);
 
   if (!installationFailed && items.length === 0) {
     return null;

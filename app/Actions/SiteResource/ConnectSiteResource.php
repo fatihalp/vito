@@ -38,7 +38,7 @@ class ConnectSiteResource
     {
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
         $projectId = $site->server->project_id;
-        $data = Validator::make($input, [
+        $validator = Validator::make($input, [
             'type' => ['required', Rule::enum(SiteResourceType::class)],
             'server_id' => [
                 'exclude_if:type,bucket',
@@ -51,12 +51,30 @@ class ConnectSiteResource
                 }),
             ],
             'bucket_id' => [
-                'required_if:type,bucket',
+                'exclude_unless:type,bucket',
                 'nullable',
                 'integer',
                 Rule::exists('buckets', 'id')->where('project_id', $projectId),
             ],
-        ])->validate();
+            'bucket_name' => [
+                'exclude_unless:type,bucket',
+                'nullable',
+                'string',
+                'min:3',
+                'max:63',
+                'regex:/^[a-z0-9][a-z0-9\-]*[a-z0-9]$/',
+            ],
+        ]);
+
+        $validator->after(function ($validator) use ($input): void {
+            if (($input['type'] ?? '') === SiteResourceType::BUCKET->value) {
+                if (empty($input['bucket_id']) && empty($input['bucket_name'])) {
+                    $validator->errors()->add('bucket_name', __('Select an existing bucket or enter a bucket name.'));
+                }
+            }
+        });
+
+        $data = $validator->validate();
 
         $type = SiteResourceType::from($data['type']);
 
@@ -65,6 +83,17 @@ class ConnectSiteResource
         }
 
         if ($type === SiteResourceType::BUCKET) {
+            if (! empty($data['bucket_name']) && empty($data['bucket_id'])) {
+                $bucket = app(\App\Actions\Bucket\CreateBucket::class)->create($site->server->project, [
+                    'name' => $data['bucket_name'],
+                    'region' => config('hetzner-object-storage.default_region', 'fsn1'),
+                    'visibility' => 'private',
+                    'allowed_origins' => [],
+                ]);
+
+                return $this->connectBucket($site, $bucket->id);
+            }
+
             return $this->connectBucket($site, (int) $data['bucket_id']);
         }
 
@@ -81,7 +110,6 @@ class ConnectSiteResource
         return match ($type) {
             SiteResourceType::DATABASE => $this->connectDatabase($site, $server),
             SiteResourceType::CACHE => $this->connectCache($site, $server),
-            SiteResourceType::BUCKET => throw new \LogicException('Bucket handled separately.'),
         };
     }
 

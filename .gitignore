@@ -40,3 +40,4 @@ opencode.json
 !.claude/agents/
 !.claude/commands/
 .opencode
+public/build/*

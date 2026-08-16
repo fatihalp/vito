@@ -40,6 +40,7 @@ class CreateBucket
         if (! $credential) {
             throw ValidationException::withMessages([
                 'name' => __('Connect your Hetzner Object Storage credentials first.'),
+                'bucket_name' => __('Connect your Hetzner Object Storage credentials first.'),
             ]);
         }
 
@@ -63,7 +64,12 @@ class CreateBucket
                 'aws_error_code' => $e->getAwsErrorCode(),
             ]);
 
-            throw ValidationException::withMessages(['name' => $this->friendlyMessage($e)]);
+            $message = $this->friendlyMessage($e);
+
+            throw ValidationException::withMessages([
+                'name' => $message,
+                'bucket_name' => $message,
+            ]);
         }
 
         return $project->buckets()->create([
