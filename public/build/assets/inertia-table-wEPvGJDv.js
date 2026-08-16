@@ -1,1 +1,0 @@
-function e(e,t){for(let n of t)if(e[n]===void 0||e[n]===null)throw Error(`InertiaTable row missing required field: ${n}`);return e}export{e as t};

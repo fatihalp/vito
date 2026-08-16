@@ -6,8 +6,6 @@
 - Analyse codebase before adding new code. Check sibling files for conventions.
 - Never run `npm build/dev` or `artisan serve` — user runs them.
 - Don't run formatters (pint/prettier) — user runs them later.
-- **Authoritative standards live in `.github/copilot-instructions.md` and `.github/instructions/*.md`** — read those before writing code in an unfamiliar area.
-- Run `/review-pr` before declaring work done.
 
 ## Stack
 
@@ -61,7 +59,7 @@ Vito has a specific architecture. Match these patterns exactly:
 
 - Schema changes and data transforms only. **Never** dispatch jobs, run SSH, make HTTP calls, or broadcast events from migrations.
 - Combine related schema changes into a single migration file per feature.
-- Never run `migrate:fresh` or other destructive DB commands — use tests to verify migrations.
+- Never run `migrate:fresh` or other destructive DB commands.
 
 ## Frontend
 
@@ -76,26 +74,6 @@ Vito has a specific architecture. Match these patterns exactly:
 - **TypeScript types**: keep `resources/js/types/*.d.ts` in sync with backend API Resources. Enum status fields arrive as `{ status: string, status_color: string }`.
 - Handle promise rejections from browser APIs (`navigator.clipboard.writeText`, etc.) and show error feedback.
 
-## Testing
-
-- Pest 5 only. Create with `php artisan make:test --pest`.
-- `TestCase` provides `$this->user`, `$this->server`, `$this->site` pre-configured.
-- Test logic only, not framework. Use factories. RefreshDatabase trait.
-- Add to existing test files when possible. Run minimal tests with `--filter`.
-- Don't remove tests without approval.
-- Feature tests for user flows, Unit tests for isolated logic.
-- Use `SSH::fake()` for SSH operations and `Http::fake()` for HTTP — never make real connections.
-- Use `assertDatabaseHas()` for DB assertions.
-
-## Architecture Tests
-
-- `tests/Arch/` enforces the rules in this file as executable Pest tests. **A failing architecture rule means the code is wrong — fix the code, don't exempt it.**
-- Every exception lives in ONE registry: `ArchTestCase::EXCEPTIONS` in `tests/ArchTestCase.php`, keyed and referenced via `ArchTestCase::except('key')`.
-- **NEVER add an entry to `EXCEPTIONS` without the user's explicit permission.** The only acceptable case is when you are adding or changing a rule and existing code cannot be brought into line in that same change.
-- Before asking permission, tell the user: which rule stops applying and to which classes, what that rule was protecting against, that the exemption is permanent until deliberately removed, and what fixing the code instead would cost. A general "sounds good" on surrounding work is not permission.
-- Removing entries after fixing the code needs no permission — lists may shrink freely, never grow.
-- **Read `.github/instructions/architecture-tests.instructions.md` before adding or changing any architecture rule.** It covers the Pest gotcha where negative dependency rules silently pass when given an array of source namespaces, and the requirement to prove a new rule can actually fail.
-
 ## API
 
 - Consider API endpoints for new features but ask user first.
@@ -108,7 +86,6 @@ Vito has a specific architecture. Match these patterns exactly:
 - Never log secrets, tokens, or credentials at any log level. Redact or hash if debugging.
 - Never expose internal filesystem paths (CSR/private key paths, etc.) in API responses or OpenAPI.
 - When editing credentials, merge updates server-side. Never round-trip existing secrets through the frontend.
-- No test-only routes or UI actions in production. Env-gate or remove before merging.
 
 ## SSH
 
