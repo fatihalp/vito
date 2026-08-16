@@ -53,21 +53,23 @@ class DomainController extends Controller
     }
 
     #[Get('/{dnsProvider}/available', name: 'domains.available')]
-    public function availableDomains(DNSProvider $dnsProvider): JsonResponse
+    public function availableDomains(Request $request, DNSProvider $dnsProvider): JsonResponse
     {
         $this->authorize('view', $dnsProvider);
 
-        $domains = app(GetAvailableDomains::class)->execute($dnsProvider);
+        $filterExisting = ! $request->boolean('all', false);
+        $domains = app(GetAvailableDomains::class)->execute($dnsProvider, true, $filterExisting);
 
         return response()->json($domains);
     }
 
     #[Get('/{dnsProvider}/refresh', name: 'domains.refresh')]
-    public function refreshDomains(DNSProvider $dnsProvider): JsonResponse
+    public function refreshDomains(Request $request, DNSProvider $dnsProvider): JsonResponse
     {
         $this->authorize('view', $dnsProvider);
 
-        $domains = app(GetAvailableDomains::class)->execute($dnsProvider, false);
+        $filterExisting = ! $request->boolean('all', false);
+        $domains = app(GetAvailableDomains::class)->execute($dnsProvider, false, $filterExisting);
 
         return response()->json($domains);
     }
