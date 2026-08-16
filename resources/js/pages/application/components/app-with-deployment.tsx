@@ -9,7 +9,6 @@ import {
   BookOpenIcon,
   CalendarClockIcon,
   CodeXmlIcon,
-  ExternalLinkIcon,
   GitBranchIcon,
   Globe2Icon,
   Layers3Icon,
@@ -35,7 +34,7 @@ import SiteBanners from '@/components/site-banners';
 import ProxiedAppCard from '@/pages/application/components/proxied-app-card';
 import { Worker } from '@/types/worker';
 import { CronJob } from '@/types/cronjob';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
 
 function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
@@ -92,88 +91,6 @@ export default function AppWithDeployment() {
       <Head title={`${site.domain} - ${page.props.server.name}`} />
 
       <Container className="max-w-7xl gap-6">
-        <section className="bg-card flex flex-col gap-5 rounded-2xl border p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-5" aria-labelledby="site-title">
-          <div className="flex min-w-0 items-center gap-3">
-            <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl text-lg font-semibold">
-              {site.domain.charAt(0).toUpperCase()}
-            </div>
-            <div className="min-w-0">
-              <div className="flex min-w-0 items-center gap-2">
-                <h1 id="site-title" className="sr-only">Application</h1>
-                <Badge variant={site.status_color}>{site.status}</Badge>
-              </div>
-              <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
-                {site.repository ? (
-                  <>
-                    <GitBranchIcon className="size-4 shrink-0" />
-                    <span className="truncate">{site.repository}</span>
-                    {site.branch && <span className="shrink-0">· {site.branch}</span>}
-                  </>
-                ) : (
-                  <span>{formatSiteType(site.type)} site</span>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="flex shrink-0 items-center gap-2">
-            {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
-            <Button variant="outline" asChild>
-              <a href={site.url} target="_blank" rel="noopener noreferrer">
-                <ExternalLinkIcon />
-                Visit
-              </a>
-            </Button>
-            <Deploy site={site} />
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontalIcon />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem asChild>
-                  <a href="https://vitodeploy.com/docs/sites/application" target="_blank" rel="noopener noreferrer">
-                    <BookOpenIcon />
-                    Documentation
-                  </a>
-                </DropdownMenuItem>
-                <AutoDeployment site={site}>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={!site.source_control_id}>
-                    {site.auto_deploy ? 'Disable' : 'Enable'} auto deploy
-                  </DropdownMenuItem>
-                </AutoDeployment>
-                {!site.modern_deployment && (
-                  <DeploymentScript site={site} script={page.props.deploymentScript} description="This script will be executed on every deployment.">
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Deployment Script</DropdownMenuItem>
-                  </DeploymentScript>
-                )}
-                {page.props.buildScript && site.modern_deployment && (
-                  <DeploymentScript
-                    site={site}
-                    script={page.props.buildScript}
-                    description="This script will build resources like composer and npm before release"
-                  >
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Build Script</DropdownMenuItem>
-                  </DeploymentScript>
-                )}
-                {page.props.preFlightScript && site.modern_deployment && (
-                  <DeploymentScript
-                    site={site}
-                    script={page.props.preFlightScript}
-                    description="This script will be executed before release like migrations and optimizations"
-                  >
-                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Pre Flight Script</DropdownMenuItem>
-                  </DeploymentScript>
-                )}
-                <Env site={site}>
-                  <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Update .env</DropdownMenuItem>
-                </Env>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </section>
-
         {site.status === 'installation_failed' && <SiteBanners site={site} />}
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
@@ -184,18 +101,92 @@ export default function AppWithDeployment() {
 
             <section aria-labelledby="deployments-heading">
               <Card>
-                <CardHeader className="flex-row items-center justify-between gap-3">
-                  <div className="flex min-w-0 flex-col gap-1">
-                    <CardTitle id="deployments-heading">Deployments</CardTitle>
-                    <p className="text-muted-foreground text-sm">Your three most recent deployments.</p>
+                <CardHeader className="gap-4 p-4 sm:p-5">
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="bg-primary/10 text-primary flex size-10 shrink-0 items-center justify-center rounded-lg text-lg font-semibold">
+                        {site.domain.charAt(0).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex min-w-0 items-center gap-2">
+                          <h1 id="deployments-heading" className="sr-only">Application</h1>
+                          <CardTitle>Deployments</CardTitle>
+                          <Badge variant={site.status_color}>{site.status}</Badge>
+                        </div>
+                        <div className="text-muted-foreground mt-1 flex min-w-0 items-center gap-2 text-sm">
+                          {site.repository ? (
+                            <>
+                              <GitBranchIcon className="size-4 shrink-0" />
+                              <span className="truncate">{site.repository}</span>
+                              {site.branch && <span className="shrink-0">· {site.branch}</span>}
+                            </>
+                          ) : (
+                            <span>{formatSiteType(site.type)} site</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
+                      <Deploy site={site} />
+                      <DropdownMenu modal={false}>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" className="p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontalIcon />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <a href="https://vitodeploy.com/docs/sites/application" target="_blank" rel="noopener noreferrer">
+                              <BookOpenIcon />
+                              Documentation
+                            </a>
+                          </DropdownMenuItem>
+                          <AutoDeployment site={site}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={!site.source_control_id}>
+                              {site.auto_deploy ? 'Disable' : 'Enable'} auto deploy
+                            </DropdownMenuItem>
+                          </AutoDeployment>
+                          {!site.modern_deployment && (
+                            <DeploymentScript site={site} script={page.props.deploymentScript} description="This script will be executed on every deployment.">
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Deployment Script</DropdownMenuItem>
+                            </DeploymentScript>
+                          )}
+                          {page.props.buildScript && site.modern_deployment && (
+                            <DeploymentScript
+                              site={site}
+                              script={page.props.buildScript}
+                              description="This script will build resources like composer and npm before release"
+                            >
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Build Script</DropdownMenuItem>
+                            </DeploymentScript>
+                          )}
+                          {page.props.preFlightScript && site.modern_deployment && (
+                            <DeploymentScript
+                              site={site}
+                              script={page.props.preFlightScript}
+                              description="This script will be executed before release like migrations and optimizations"
+                            >
+                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Pre Flight Script</DropdownMenuItem>
+                            </DeploymentScript>
+                          )}
+                          <Env site={site}>
+                            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Update .env</DropdownMenuItem>
+                          </Env>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>View all</Link>
-                  </Button>
                 </CardHeader>
                 <CardContent className="p-4">
                   <DeploymentsTable deployments={page.props.deployments} showPagination={false} />
                 </CardContent>
+                <CardFooter className="justify-end p-3">
+                  <Button variant="ghost" size="sm" asChild>
+                    <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>View all deployments</Link>
+                  </Button>
+                </CardFooter>
               </Card>
             </section>
 
