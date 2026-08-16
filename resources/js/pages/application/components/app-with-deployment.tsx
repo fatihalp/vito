@@ -39,6 +39,8 @@ import ProxiedAppCard from '@/pages/application/components/proxied-app-card';
 import { Worker } from '@/types/worker';
 import { CronJob } from '@/types/cronjob';
 import { SiteResource } from '@/types/site-resource';
+import { HostedDomain } from '@/types/hosted-domain';
+import { DNSProvider } from '@/types/dns-provider';
 import SiteResourceDiagram from '@/pages/application/components/site-resource-diagram';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
@@ -90,6 +92,8 @@ export default function AppWithDeployment() {
     overviewCronJobs: CronJob[];
     overviewCronJobsCount: number;
     resources?: SiteResource[];
+    hostedDomains?: HostedDomain[];
+    dnsProviders?: DNSProvider[];
   }>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
   const [showDetails, setShowDetails] = useState(false);
@@ -101,19 +105,22 @@ export default function AppWithDeployment() {
       <Container className="max-w-7xl gap-6">
         {site.status === 'installation_failed' && <SiteBanners site={site} />}
 
+        {/* 100% Width Architecture Diagram */}
+        <SiteResourceDiagram
+          server={page.props.server}
+          site={site}
+          resources={page.props.resources || []}
+          hostedDomains={page.props.hostedDomains || []}
+          dnsProviders={page.props.dnsProviders || []}
+          workersCount={page.props.overviewWorkersCount}
+          cronJobsCount={page.props.overviewCronJobsCount}
+        />
+
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="flex min-w-0 flex-col gap-6">
             {site.is_proxied_site_type && (
               <ProxiedAppCard site={site} initialWorker={page.props.worker} />
             )}
-
-            <SiteResourceDiagram
-              server={page.props.server}
-              site={site}
-              resources={page.props.resources || []}
-              workersCount={page.props.overviewWorkersCount}
-              cronJobsCount={page.props.overviewCronJobsCount}
-            />
 
             <section aria-labelledby="deployments-heading">
               <Card>

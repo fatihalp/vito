@@ -18,12 +18,15 @@ use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\DeploymentResource;
+use App\Http\Resources\DNSProviderResource;
+use App\Http\Resources\HostedDomainResource;
 use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
 use App\Http\Resources\SiteResourceResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
+use App\Models\DNSProvider;
 use App\Models\Server;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
@@ -60,6 +63,11 @@ class ApplicationController extends Controller
         $bootstrapWorker = $type instanceof AbstractProxiedSiteType ? $type->bootstrapWorker() : null;
         $overview = app(GetSiteOverview::class)->get($site);
 
+        $user = user();
+        $dnsProviders = DNSProvider::getByProjectId($user->current_project_id, $user)
+            ->where('connected', true)
+            ->get();
+
         return Inertia::render('application/index', [
             'deployments' => DeploymentTable::make($site->deployments())->overview(),
             'deploymentScript' => new DeploymentScriptResource($deploymentScript),
@@ -72,6 +80,8 @@ class ApplicationController extends Controller
             'overviewCronJobs' => CronJobResource::collection($overview['cron_jobs']),
             'overviewCronJobsCount' => $overview['cron_jobs_count'],
             'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'bucket'])->get()),
+            'hostedDomains' => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()),
+            'dnsProviders' => DNSProviderResource::collection($dnsProviders),
         ]);
     }
 
