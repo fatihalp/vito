@@ -94,6 +94,7 @@ export default function AppWithDeployment() {
     resources?: SiteResource[];
     hostedDomains?: HostedDomain[];
     dnsProviders?: DNSProvider[];
+    domainProxyStatus?: Record<string, boolean>;
   }>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
   const [showDetails, setShowDetails] = useState(false);
@@ -114,6 +115,7 @@ export default function AppWithDeployment() {
           dnsProviders={page.props.dnsProviders || []}
           workersCount={page.props.overviewWorkersCount}
           cronJobsCount={page.props.overviewCronJobsCount}
+          domainProxyStatus={page.props.domainProxyStatus || {}}
         />
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">

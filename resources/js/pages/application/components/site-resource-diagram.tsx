@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from '@inertiajs/react';
+import { useState, useRef } from 'react';
+import { Link, router } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import { Server } from '@/types/server';
 import { SiteResource } from '@/types/site-resource';
@@ -7,30 +7,33 @@ import { HostedDomain } from '@/types/hosted-domain';
 import { DNSProvider } from '@/types/dns-provider';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import {
   GlobeIcon,
   DatabaseIcon,
   ZapIcon,
   HardDriveIcon,
   ServerIcon,
-  ListOrderedIcon,
-  LockIcon,
-  KeyIcon,
   PlusIcon,
   ArrowRightIcon,
-  ArrowDownIcon,
   LayersIcon,
-  CloudIcon,
   ShieldCheckIcon,
-  NetworkIcon,
-  RadioIcon,
+  ShieldAlertIcon,
+  InfoIcon,
+  Layers3Icon,
   CpuIcon,
-  SlidersHorizontalIcon,
+  BoxesIcon,
+  Rows3Icon,
+  CreditCardIcon,
+  KeyIcon,
+  RadioIcon,
+  LockIcon,
+  SettingsIcon,
+  LoaderCircleIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDialog } from '@/hooks/use-dialog';
 import RevealSiteResourceDialog from '@/pages/site-resources/components/reveal-site-resource-dialog';
+import EdgeNetworkDialog from './edge-network-dialog';
 
 interface SiteResourceDiagramProps {
   server: Server;
@@ -40,6 +43,7 @@ interface SiteResourceDiagramProps {
   dnsProviders?: DNSProvider[];
   workersCount?: number;
   cronJobsCount?: number;
+  domainProxyStatus?: Record<string, boolean>;
 }
 
 export default function SiteResourceDiagram({
@@ -50,10 +54,43 @@ export default function SiteResourceDiagram({
   dnsProviders = [],
   workersCount = 0,
   cronJobsCount = 0,
+  domainProxyStatus = {},
 }: SiteResourceDiagramProps) {
   const [selectedResource, setSelectedResource] = useState<SiteResource | null>(null);
   const [isDetailed, setIsDetailed] = useState(false);
+  const [isEdgeDialogOpen, setIsEdgeDialogOpen] = useState(false);
+  const [togglingDomain, setTogglingDomain] = useState<string | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
   const dialog = useDialog();
+
+  const handleToggleProxy = (e: React.MouseEvent, domainName: string, currentStatus: boolean) => {
+    e.stopPropagation();
+    setTogglingDomain(domainName);
+    router.post(
+      route('sites.toggle-domain-proxy', { server: server.id, site: site.id }),
+      {
+        domain: domainName,
+        proxied: !currentStatus,
+      },
+      {
+        preserveScroll: true,
+        onFinish: () => setTogglingDomain(null),
+      },
+    );
+  };
+
+  const toggleMode = (detailed: boolean) => {
+    if (detailed === isDetailed) return;
+
+    const rect = containerRef.current?.getBoundingClientRect();
+    setIsDetailed(detailed);
+
+    if (rect && rect.top < 0) {
+      requestAnimationFrame(() => {
+        containerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    }
+  };
 
   const dbResource = resources.find((r) => r.type_value === 'database');
   const cacheResource = resources.find((r) => r.type_value === 'cache');
@@ -66,13 +103,15 @@ export default function SiteResourceDiagram({
   const hasCloudflare = Boolean(connectedCloudflare);
   const anyConnectedDns = dnsProviders.some((p) => p.connected);
 
-  // Filter custom domains (excluding the primary domain)
+  // Filter custom domains
   const customDomains = hostedDomains.filter(
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
   );
 
+  const regionLabel = server.region || server.provider || 'Host Infrastructure';
+
   return (
-    <Card className="overflow-hidden border-border/60 shadow-xs">
+    <Card ref={containerRef} className="relative overflow-hidden border-border/60 shadow-xs transition-all duration-300">
       <CardHeader className="flex flex-row items-center justify-between border-b bg-muted/20 px-5 py-3">
         <div className="flex items-center gap-2.5">
           <div className="flex size-7 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-foreground/80">
@@ -83,17 +122,35 @@ export default function SiteResourceDiagram({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Simple / Detailed View Toggle */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground border-border/60"
-            onClick={() => setIsDetailed(!isDetailed)}
-            title={isDetailed ? 'Switch to simple view' : 'Switch to detailed view'}
-          >
-            <SlidersHorizontalIcon className="size-3.5" />
-            <span>{isDetailed ? 'Simple' : 'Details'}</span>
-          </Button>
+          {/* Header View Switcher */}
+          <div className="flex items-center bg-muted/40 p-0.5 rounded-lg border border-border/60">
+            <button
+              type="button"
+              onClick={() => toggleMode(false)}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all',
+                !isDetailed
+                  ? 'bg-card text-foreground shadow-xs border border-border/60 font-semibold'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Rows3Icon className="size-3.5" />
+              <span>Simple</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => toggleMode(true)}
+              className={cn(
+                'flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all',
+                isDetailed
+                  ? 'bg-card text-foreground shadow-xs border border-border/60 font-semibold'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <CreditCardIcon className="size-3.5" />
+              <span>Detailed</span>
+            </button>
+          </div>
 
           <Button
             variant="outline"
@@ -104,7 +161,12 @@ export default function SiteResourceDiagram({
             <PlusIcon className="size-3.5" />
             <span>Add Domain</span>
           </Button>
-          <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground border-border/60">
+          <Button
+            variant="outline"
+            size="sm"
+            asChild
+            className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground border-border/60"
+          >
             <Link href={resourcesUrl}>
               Resources
               <ArrowRightIcon className="size-3.5" />
@@ -113,72 +175,92 @@ export default function SiteResourceDiagram({
         </div>
       </CardHeader>
 
-      <CardContent className="p-5 md:p-6 bg-[radial-gradient(rgba(255,255,255,0.03)_1px,transparent_1px)] [background-size:16px_16px]">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1.1fr_auto_1fr] items-stretch gap-4 lg:gap-2">
+      <CardContent className="relative p-5 md:p-8 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:16px_16px] pb-16 transition-all duration-300">
+        
+        {/* Main 3-Column Diagram Grid */}
+        <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1.15fr_auto_1.25fr] items-start gap-4 lg:gap-0">
           
-          {/* ================= COLUMN 1: NETWORK & EDGE ================= */}
-          <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <NetworkIcon className="size-3.5 text-muted-foreground/80" />
-                <span>Network</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono">Edge</span>
+          {/* ================= COLUMN 1: NETWORK ================= */}
+          <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3 relative z-10">
+            <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+              <span>Network</span>
+              <InfoIcon className="size-3.5 text-muted-foreground/60" />
             </div>
 
             {/* Edge Network Card */}
-            <div className="group relative rounded-xl border border-border/60 bg-card p-3.5 transition-all duration-200 hover:border-border">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                    <CloudIcon className="size-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-medium text-foreground">Edge Network</h4>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {hasCloudflare ? 'Cloudflare CDN' : 'Direct DNS'}
-                    </p>
-                  </div>
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+              <div className="flex items-center justify-between">
+                <button
+                  type="button"
+                  onClick={() => setIsEdgeDialogOpen(true)}
+                  className="flex items-center gap-2.5 text-left group"
+                >
+                  <BoxesIcon className="size-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                  <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">Edge network</span>
+                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => setIsEdgeDialogOpen(true)}
+                    className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-foreground bg-muted/30 px-2 py-0.5 rounded-md border border-border/40 hover:border-border transition-colors"
+                  >
+                    <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/40')} />
+                    {hasCloudflare ? 'Cloudflare' : anyConnectedDns ? 'DNS' : 'Direct'}
+                    <SettingsIcon className="size-2.5 opacity-60 ml-0.5" />
+                  </button>
                 </div>
-                <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground shrink-0">
-                  <span className="size-1.5 rounded-full bg-emerald-500" />
-                  {hasCloudflare ? 'Cloudflare' : anyConnectedDns ? 'DNS' : 'Active'}
-                </span>
               </div>
 
-              {/* Detailed Specs when expanded */}
               {isDetailed && (
-                <div className="mt-3 space-y-2 border-t border-border/40 pt-2.5 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                      <ShieldCheckIcon className="size-3 text-muted-foreground/70" />
-                      <span>DDoS Protection</span>
+                <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setIsEdgeDialogOpen(true)}
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEdgeDialogOpen(true)}
+                    className="flex items-center justify-between cursor-pointer hover:bg-muted/20 p-1 -mx-1 rounded-md transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <ShieldCheckIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>DDoS protection</span>
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-foreground font-medium">
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                      {hasCloudflare ? 'Active' : 'Origin Shield'}
+                    <span className="flex items-center gap-1.5 font-medium text-foreground">
+                      <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
+                      {hasCloudflare ? 'Active (Cloudflare)' : 'Origin Shield'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                      <RadioIcon className="size-3 text-muted-foreground/70" />
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setIsEdgeDialogOpen(true)}
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEdgeDialogOpen(true)}
+                    className="flex items-center justify-between cursor-pointer hover:bg-muted/20 p-1 -mx-1 rounded-md transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <RadioIcon className="size-3.5 text-muted-foreground/70" />
                       <span>CDN & Routing</span>
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-foreground font-medium">
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                      {hasCloudflare ? 'Proxied' : 'Direct (80/443)'}
+                    <span className="flex items-center gap-1.5 font-medium text-foreground">
+                      <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
+                      {hasCloudflare ? 'Edge Proxied' : 'DNS Direct (80/443)'}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                      <LockIcon className="size-3 text-muted-foreground/70" />
-                      <span>Edge SSL</span>
+                  <div
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setIsEdgeDialogOpen(true)}
+                    onKeyDown={(e) => e.key === 'Enter' && setIsEdgeDialogOpen(true)}
+                    className="flex items-center justify-between cursor-pointer hover:bg-muted/20 p-1 -mx-1 rounded-md transition-colors"
+                  >
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <LockIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Edge SSL / TLS</span>
                     </span>
-                    <span className="flex items-center gap-1 text-[11px] text-foreground font-medium">
-                      <span className="size-1.5 rounded-full bg-emerald-500" />
-                      {site.ssl_enabled ? 'Strict' : 'Disabled'}
+                    <span className="flex items-center gap-1.5 font-medium text-foreground">
+                      <span className={cn('size-1.5 rounded-full', site.ssl_enabled ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
+                      {site.ssl_enabled ? 'Strict HTTPS' : 'Disabled'}
                     </span>
                   </div>
                 </div>
@@ -186,33 +268,116 @@ export default function SiteResourceDiagram({
             </div>
 
             {/* Domains Card */}
-            <div className="group relative rounded-xl border border-border/60 bg-card p-3.5 transition-all duration-200 hover:border-border">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                    <GlobeIcon className="size-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-medium text-foreground">Domains</h4>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {1 + customDomains.length} {1 + customDomains.length === 1 ? 'domain' : 'domains'}
-                    </p>
-                  </div>
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <GlobeIcon className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Domains</span>
                 </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground hover:bg-muted/40 rounded-md font-medium"
+                <button
+                  type="button"
                   onClick={() => dialog.createHostedDomain.open({ site })}
+                  className="text-primary hover:underline flex items-center gap-1 font-medium text-[11px]"
                 >
                   <PlusIcon className="size-3" />
-                  <span>Add</span>
-                </Button>
+                  <span>Add domain</span>
+                </button>
               </div>
 
-              {/* Simple View: Compact domain summary */}
-              {!isDetailed && (
+              {isDetailed ? (
+                <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                  {/* Primary Domain */}
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <span className="font-mono text-[11px] font-medium text-foreground truncate max-w-[120px]" title={site.domain}>
+                        {site.domain}
+                      </span>
+                    </span>
+
+                    {hasCloudflare ? (
+                      <button
+                        type="button"
+                        disabled={togglingDomain === site.domain}
+                        onClick={(e) => handleToggleProxy(e, site.domain, domainProxyStatus[site.domain] ?? true)}
+                        className={cn(
+                          'flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-colors border',
+                          (domainProxyStatus[site.domain] ?? true)
+                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20'
+                            : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
+                          togglingDomain === site.domain && 'opacity-60 pointer-events-none',
+                        )}
+                        title={(domainProxyStatus[site.domain] ?? true) ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                      >
+                        {togglingDomain === site.domain ? (
+                          <LoaderCircleIcon className="size-2.5 animate-spin" />
+                        ) : (domainProxyStatus[site.domain] ?? true) ? (
+                          <ShieldCheckIcon className="size-2.5 text-emerald-500" />
+                        ) : (
+                          <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
+                        )}
+                        <span>{(domainProxyStatus[site.domain] ?? true) ? 'Protected' : 'DNS Direct'}</span>
+                      </button>
+                    ) : (
+                      <span className="text-[10px] font-mono text-muted-foreground">Direct</span>
+                    )}
+                  </div>
+
+                  {/* Custom Domains */}
+                  {customDomains.length > 0 ? (
+                    <div className="space-y-1.5 pt-1 border-t border-border/30">
+                      {customDomains.map((hd) => {
+                        const isProxied = domainProxyStatus[hd.domain] ?? true;
+                        const isUpdating = togglingDomain === hd.domain;
+
+                        return (
+                          <div key={hd.id} className="flex items-center justify-between text-[11px] font-mono">
+                            <span className="truncate max-w-[110px] text-muted-foreground pl-3" title={hd.domain}>
+                              {hd.domain}
+                            </span>
+
+                            {hasCloudflare ? (
+                              <button
+                                type="button"
+                                disabled={isUpdating}
+                                onClick={(e) => handleToggleProxy(e, hd.domain, isProxied)}
+                                className={cn(
+                                  'flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors border',
+                                  isProxied
+                                    ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20'
+                                    : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
+                                  isUpdating && 'opacity-60 pointer-events-none',
+                                )}
+                                title={isProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                              >
+                                {isUpdating ? (
+                                  <LoaderCircleIcon className="size-2.5 animate-spin" />
+                                ) : isProxied ? (
+                                  <ShieldCheckIcon className="size-2.5 text-emerald-500" />
+                                ) : (
+                                  <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
+                                )}
+                                <span>{isProxied ? 'Protected' : 'DNS Direct'}</span>
+                              </button>
+                            ) : (
+                              <span
+                                className={cn(
+                                  'size-1.5 rounded-full shrink-0',
+                                  hd.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500',
+                                )}
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-muted-foreground pl-3 italic">
+                      No custom domains added
+                    </div>
+                  )}
+                </div>
+              ) : (
                 <div className="mt-2.5 flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1.5 text-xs">
                   <div className="flex items-center gap-1.5 min-w-0">
                     <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -220,357 +385,399 @@ export default function SiteResourceDiagram({
                       {site.domain}
                     </span>
                   </div>
-                  {customDomains.length > 0 && (
-                    <span className="text-[10px] font-mono text-muted-foreground">
-                      +{customDomains.length} alias
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {/* Detailed View: Full domain breakdown */}
-              {isDetailed && (
-                <div className="mt-3 space-y-1.5 border-t border-border/40 pt-2.5 text-xs">
-                  <div className="flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1.5">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      <span className="font-mono text-xs font-medium text-foreground truncate max-w-[130px]" title={site.domain}>
-                        {site.domain}
+                  <div className="flex items-center gap-1.5">
+                    {hasCloudflare && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
+                        <ShieldCheckIcon className="size-2.5" />
+                        {(domainProxyStatus[site.domain] ?? true) ? 'Proxy' : 'DNS'}
                       </span>
-                    </div>
-                    <span className="text-[9px] font-mono text-muted-foreground border border-border/50 rounded px-1">
-                      Primary
-                    </span>
+                    )}
+                    {customDomains.length > 0 && (
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        +{customDomains.length} alias
+                      </span>
+                    )}
                   </div>
-
-                  {customDomains.map((hd) => (
-                    <div
-                      key={hd.id}
-                      className="flex items-center justify-between rounded-lg border border-border/30 bg-muted/10 px-2.5 py-1.5"
-                    >
-                      <div className="flex items-center gap-2 min-w-0">
-                        <span
-                          className={cn(
-                            'size-1.5 rounded-full shrink-0',
-                            hd.status === 'active' ? 'bg-emerald-500' : 'bg-amber-500',
-                          )}
-                        />
-                        <span className="font-mono text-xs text-muted-foreground truncate max-w-[130px]" title={hd.domain}>
-                          {hd.domain}
-                        </span>
-                      </div>
-                      <span className="text-[9px] font-mono text-muted-foreground capitalize">
-                        {hd.type || 'Alias'}
-                      </span>
-                    </div>
-                  ))}
                 </div>
               )}
             </div>
           </div>
 
-          {/* ================= FLOW CONNECTOR 1: NETWORK -> COMPUTE ================= */}
-          <div className="hidden lg:flex flex-col items-center justify-center px-1 z-10 select-none">
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center">
-                <div className="h-px w-3 bg-border/80" />
-                <div className="flex size-6 items-center justify-center rounded-full border border-border/60 bg-card text-muted-foreground shadow-xs">
-                  <ArrowRightIcon className="size-3" />
-                </div>
-                <div className="h-px w-3 bg-border/80" />
-              </div>
-              <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
-                Route
-              </span>
-            </div>
+          {/* ================= CONNECTOR 1: NETWORK -> COMPUTE ================= */}
+          <div className="hidden lg:flex items-center justify-center w-10 relative select-none">
+            <svg className="w-full h-24 overflow-visible" viewBox="0 0 40 100" fill="none" preserveAspectRatio="none">
+              <path
+                d="M 0 25 H 20 V 75 H 0 M 20 50 H 40"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="text-border hover:text-primary transition-colors"
+              />
+            </svg>
           </div>
 
-          {/* Mobile Downward Connector 1 */}
-          <div className="flex lg:hidden items-center justify-center py-0.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-              <div className="h-px w-8 bg-border/60" />
-              <ArrowDownIcon className="size-3" />
-              <span>Route</span>
-              <div className="h-px w-8 bg-border/60" />
-            </div>
-          </div>
-
-          {/* ================= COLUMN 2: COMPUTE & APP CLUSTER ================= */}
-          <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <ServerIcon className="size-3.5 text-muted-foreground/80" />
-                <span>Host & Compute</span>
-              </div>
-              <span className="text-[10px] text-muted-foreground font-mono uppercase">{server.stage || 'prod'}</span>
+          {/* ================= COLUMN 2: COMPUTE & HOST ================= */}
+          <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3 relative z-10">
+            <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+              <span>{regionLabel}</span>
             </div>
 
-            {/* Host Server & Application Target Card */}
-            <div className="group relative rounded-xl border border-border/80 bg-card p-3.5 transition-all duration-200 hover:border-border shadow-xs">
-              <div className="flex items-center justify-between gap-2 mb-2.5">
-                <div className="flex items-center gap-2 min-w-0">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/40 text-foreground font-bold text-sm shrink-0">
-                    {site.domain.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="min-w-0">
-                    <h3 className="truncate text-xs font-bold text-foreground font-mono" title={site.domain}>
-                      {site.domain}
-                    </h3>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {server.name} ({site.php_version ? `PHP ${site.php_version}` : 'Node'})
-                    </p>
-                  </div>
+            {/* App Cluster Card */}
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <ServerIcon className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">App server</span>
                 </div>
-
-                <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground shrink-0">
+                <span className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground">
                   <span className="size-1.5 rounded-full bg-emerald-500" />
                   {site.status || 'Ready'}
                 </span>
               </div>
 
-              {/* Detailed Specs when expanded */}
-              {isDetailed ? (
-                <>
-                  <div className="rounded-lg border border-border/50 bg-muted/20 p-2 space-y-1 text-xs">
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-muted-foreground">Host Server:</span>
-                      <span className="font-mono font-medium text-foreground">{server.name}</span>
-                    </div>
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="text-muted-foreground">Public IP:</span>
-                      <span className="font-mono font-medium text-foreground">{server.ip}</span>
-                    </div>
+              {isDetailed && (
+                <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <ServerIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Host server</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {server.name}
+                    </span>
                   </div>
 
-                  <div className="mt-2.5 grid grid-cols-2 gap-1.5 border-t border-border/40 pt-2 text-[11px]">
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-muted-foreground">Web Server</span>
-                      <span className="font-mono text-foreground">{site.webserver || 'Nginx'}</span>
-                    </div>
-                    <div className="flex flex-col">
-                      <span className="text-[10px] text-muted-foreground">User</span>
-                      <span className="font-mono text-foreground truncate">{site.user}</span>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <CpuIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Runtime</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {site.php_version ? `PHP ${site.php_version}` : site.type}
+                    </span>
                   </div>
-                </>
-              ) : (
-                <div className="flex items-center justify-between border-t border-border/40 pt-2 text-[11px] text-muted-foreground font-mono">
-                  <span>IP: {server.ip}</span>
-                  <span className="flex items-center gap-1 text-foreground">
-                    <LockIcon className="size-2.5 text-muted-foreground" />
-                    {site.ssl_enabled ? 'SSL' : 'No SSL'}
-                  </span>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <GlobeIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Web server</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {site.webserver || 'Nginx'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <CpuIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Public IP</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {server.ip}
+                    </span>
+                  </div>
                 </div>
               )}
             </div>
 
-            {/* Background Queues & Cron Card */}
-            <div className="group relative rounded-xl border border-border/60 bg-card p-3 transition-all duration-200 hover:border-border">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                    <ListOrderedIcon className="size-3.5" />
-                  </div>
-                  <div className="min-w-0">
-                    <h4 className="text-xs font-medium text-foreground">Queues & Cron</h4>
-                    <p className="text-[11px] text-muted-foreground">
-                      {workersCount} {workersCount === 1 ? 'worker' : 'workers'} • {cronJobsCount} {cronJobsCount === 1 ? 'cron' : 'crons'}
-                    </p>
-                  </div>
+            {/* Managed Queue Card */}
+            <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Layers3Icon className="size-4 text-muted-foreground" />
+                  <span className="text-sm font-semibold text-foreground">Queues & Cron</span>
                 </div>
                 <span className="size-1.5 rounded-full bg-emerald-500" />
               </div>
-            </div>
-          </div>
 
-          {/* ================= FLOW CONNECTOR 2: COMPUTE -> RESOURCES ================= */}
-          <div className="hidden lg:flex flex-col items-center justify-center px-1 z-10 select-none">
-            <div className="flex flex-col items-center gap-1">
-              <div className="flex items-center">
-                <div className="h-px w-3 bg-border/80" />
-                <div className="flex size-6 items-center justify-center rounded-full border border-border/60 bg-card text-muted-foreground shadow-xs">
-                  <ArrowRightIcon className="size-3" />
+              {isDetailed ? (
+                <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <CpuIcon className="size-3.5 text-muted-foreground/70" />
+                      <span>Background workers</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {workersCount} {workersCount === 1 ? 'worker' : 'workers'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-2 text-muted-foreground">
+                      <Layers3Icon className="size-3.5 text-muted-foreground/70" />
+                      <span>Scheduled crons</span>
+                    </span>
+                    <span className="font-mono text-xs font-medium text-foreground">
+                      {cronJobsCount} {cronJobsCount === 1 ? 'task' : 'tasks'}
+                    </span>
+                  </div>
                 </div>
-                <div className="h-px w-3 bg-border/80" />
-              </div>
-              <span className="text-[9px] font-mono text-muted-foreground uppercase tracking-wider">
-                Data
-              </span>
+              ) : (
+                <div className="mt-2.5 flex items-center justify-between border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
+                  <span>{workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}</span>
+                  <span>{cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}</span>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Mobile Downward Connector 2 */}
-          <div className="flex lg:hidden items-center justify-center py-0.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground font-mono">
-              <div className="h-px w-8 bg-border/60" />
-              <ArrowDownIcon className="size-3" />
-              <span>Data</span>
-              <div className="h-px w-8 bg-border/60" />
-            </div>
+          {/* ================= CONNECTOR 2: COMPUTE -> RESOURCES ================= */}
+          <div className="hidden lg:flex items-center justify-center w-10 relative select-none">
+            <svg className="w-full h-36 overflow-visible" viewBox="0 0 40 120" fill="none" preserveAspectRatio="none">
+              <path
+                d="M 0 30 H 20 V 100 H 40 M 20 30 H 40 M 20 65 H 40 M 0 65 H 20"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="text-border hover:text-primary transition-colors"
+              />
+            </svg>
           </div>
 
           {/* ================= COLUMN 3: DATA & STORAGE RESOURCES ================= */}
-          <div className="flex flex-col gap-3 min-w-0">
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                <DatabaseIcon className="size-3.5 text-muted-foreground/80" />
-                <span>Resources</span>
+          <div className="flex flex-col gap-3 relative z-10">
+            {/* Regional Resources Group */}
+            <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+                <span>{regionLabel}</span>
               </div>
-              <span className="text-[10px] text-muted-foreground font-mono">Storage</span>
+
+              {/* Database Card */}
+              {dbResource ? (
+                <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <DatabaseIcon className="size-4 text-muted-foreground shrink-0" />
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-sm font-semibold text-foreground">Database</span>
+                        <span className="text-xs text-muted-foreground font-normal truncate">
+                          {dbResource.server?.name || dbResource.server?.ip || 'Attached'}
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => setSelectedResource(dbResource)}
+                    >
+                      <KeyIcon className="size-3" />
+                    </Button>
+                  </div>
+
+                  {isDetailed && (
+                    <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ServerIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Server</span>
+                        </span>
+                        <span className="font-mono text-xs font-medium text-foreground">
+                          {dbResource.server?.name || dbResource.server?.ip || 'Local'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ZapIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Status</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <span className="size-1.5 rounded-full bg-emerald-500" />
+                          {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href={resourcesUrl}
+                  className="rounded-xl border border-dashed border-border/60 bg-muted/10 p-3.5 flex items-center justify-between text-xs transition-colors hover:border-border hover:bg-muted/20"
+                >
+                  <div className="flex items-center gap-2.5 text-muted-foreground">
+                    <DatabaseIcon className="size-4" />
+                    <span>Database (Not attached)</span>
+                  </div>
+                  <span className="text-primary font-medium flex items-center gap-1">
+                    <PlusIcon className="size-3" />
+                    Attach
+                  </span>
+                </Link>
+              )}
+
+              {/* Cache Card */}
+              {cacheResource ? (
+                <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <ZapIcon className="size-4 text-muted-foreground shrink-0" />
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-sm font-semibold text-foreground">Cache</span>
+                        <span className="text-xs text-muted-foreground font-normal truncate">
+                          {cacheResource.server?.name || cacheResource.server?.ip || 'Attached'}
+                        </span>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => setSelectedResource(cacheResource)}
+                    >
+                      <KeyIcon className="size-3" />
+                    </Button>
+                  </div>
+
+                  {isDetailed && (
+                    <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ServerIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Server</span>
+                        </span>
+                        <span className="font-mono text-xs font-medium text-foreground">
+                          {cacheResource.server?.name || cacheResource.server?.ip || 'Local'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ZapIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Status</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <span className="size-1.5 rounded-full bg-emerald-500" />
+                          {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href={resourcesUrl}
+                  className="rounded-xl border border-dashed border-border/60 bg-muted/10 p-3.5 flex items-center justify-between text-xs transition-colors hover:border-border hover:bg-muted/20"
+                >
+                  <div className="flex items-center gap-2.5 text-muted-foreground">
+                    <ZapIcon className="size-4" />
+                    <span>Cache / Redis (Not attached)</span>
+                  </div>
+                  <span className="text-primary font-medium flex items-center gap-1">
+                    <PlusIcon className="size-3" />
+                    Attach
+                  </span>
+                </Link>
+              )}
             </div>
 
-            {/* Database Resource Card */}
-            {dbResource ? (
-              <div className="group rounded-xl border border-border/60 bg-card p-3 transition-all duration-200 hover:border-border">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                      <DatabaseIcon className="size-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-medium text-foreground truncate">Database</h4>
-                        <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
-                      </div>
-                      <p className="font-mono text-[11px] text-muted-foreground truncate max-w-[120px]">
-                        {dbResource.server?.name || dbResource.server?.ip || 'Attached'}
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-6 px-2 text-[11px] gap-1 shrink-0 border-border/60 text-muted-foreground hover:text-foreground"
-                    onClick={() => setSelectedResource(dbResource)}
-                  >
-                    <KeyIcon className="size-3" />
-                    Keys
-                  </Button>
-                </div>
+            {/* Global Storage Group */}
+            <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3">
+              <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
+                <span>Global Storage</span>
               </div>
-            ) : (
-              <Link
-                href={resourcesUrl}
-                className="group flex items-center justify-between rounded-xl border border-dashed border-border/60 bg-muted/10 p-3 transition-colors hover:border-border hover:bg-muted/20"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground">
-                    <DatabaseIcon className="size-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-medium text-foreground">Database</h4>
-                    <p className="text-[10px] text-muted-foreground">Local / Not attached</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground group-hover:text-foreground">
-                  <PlusIcon className="size-3" />
-                  <span>Attach</span>
-                </div>
-              </Link>
-            )}
 
-            {/* Cache / Redis Resource Card */}
-            {cacheResource ? (
-              <div className="group rounded-xl border border-border/60 bg-card p-3 transition-all duration-200 hover:border-border">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                      <ZapIcon className="size-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-medium text-foreground truncate">Cache</h4>
-                        <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+              {/* Bucket Card */}
+              {bucketResource ? (
+                <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <HardDriveIcon className="size-4 text-muted-foreground shrink-0" />
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-sm font-semibold text-foreground">Storage Bucket</span>
+                        <span className="text-xs text-muted-foreground font-normal truncate">
+                          {bucketResource.bucket?.name || 'Attached'}
+                        </span>
                       </div>
-                      <p className="font-mono text-[11px] text-muted-foreground truncate max-w-[120px]">
-                        {cacheResource.server?.name || cacheResource.server?.ip || 'Attached'}
-                      </p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground"
+                      onClick={() => setSelectedResource(bucketResource)}
+                    >
+                      <KeyIcon className="size-3" />
+                    </Button>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-6 px-2 text-[11px] gap-1 shrink-0 border-border/60 text-muted-foreground hover:text-foreground"
-                    onClick={() => setSelectedResource(cacheResource)}
-                  >
-                    <KeyIcon className="size-3" />
-                    Keys
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <Link
-                href={resourcesUrl}
-                className="group flex items-center justify-between rounded-xl border border-dashed border-border/60 bg-muted/10 p-3 transition-colors hover:border-border hover:bg-muted/20"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground">
-                    <ZapIcon className="size-3.5" />
-                  </div>
-                  <div>
-                    <h4 className="text-xs font-medium text-foreground">Cache (Redis)</h4>
-                    <p className="text-[10px] text-muted-foreground">Local / Not attached</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground group-hover:text-foreground">
-                  <PlusIcon className="size-3" />
-                  <span>Attach</span>
-                </div>
-              </Link>
-            )}
 
-            {/* Storage Bucket Resource Card */}
-            {bucketResource ? (
-              <div className="group rounded-xl border border-border/60 bg-card p-3 transition-all duration-200 hover:border-border">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-muted/30 text-muted-foreground shrink-0">
-                      <HardDriveIcon className="size-3.5" />
-                    </div>
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-1.5">
-                        <h4 className="text-xs font-medium text-foreground truncate">Storage</h4>
-                        <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                  {isDetailed && (
+                    <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <HardDriveIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Bucket name</span>
+                        </span>
+                        <span className="font-mono text-xs font-medium text-foreground">
+                          {bucketResource.bucket?.name || 'S3 Bucket'}
+                        </span>
                       </div>
-                      <p className="font-mono text-[11px] text-muted-foreground truncate max-w-[120px]">
-                        {bucketResource.bucket?.name || 'Attached'}
-                      </p>
+
+                      <div className="flex items-center justify-between">
+                        <span className="flex items-center gap-2 text-muted-foreground">
+                          <ZapIcon className="size-3.5 text-muted-foreground/70" />
+                          <span>Status</span>
+                        </span>
+                        <span className="flex items-center gap-1.5 font-medium text-foreground">
+                          <span className="size-1.5 rounded-full bg-emerald-500" />
+                          {bucketResource.status === 'ready' ? 'Connected' : bucketResource.status}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-6 px-2 text-[11px] gap-1 shrink-0 border-border/60 text-muted-foreground hover:text-foreground"
-                    onClick={() => setSelectedResource(bucketResource)}
-                  >
-                    <KeyIcon className="size-3" />
-                    Keys
-                  </Button>
+                  )}
                 </div>
-              </div>
-            ) : (
-              <Link
-                href={resourcesUrl}
-                className="group flex items-center justify-between rounded-xl border border-dashed border-border/60 bg-muted/10 p-3 transition-colors hover:border-border hover:bg-muted/20"
-              >
-                <div className="flex items-center gap-2.5">
-                  <div className="flex size-7 items-center justify-center rounded-lg border border-border/60 bg-background text-muted-foreground">
-                    <HardDriveIcon className="size-3.5" />
+              ) : (
+                <Link
+                  href={resourcesUrl}
+                  className="rounded-xl border border-dashed border-border/60 bg-muted/10 p-3.5 flex items-center justify-between text-xs transition-colors hover:border-border hover:bg-muted/20"
+                >
+                  <div className="flex items-center gap-2.5 text-muted-foreground">
+                    <HardDriveIcon className="size-4" />
+                    <span>Object Storage (Not attached)</span>
                   </div>
-                  <div>
-                    <h4 className="text-xs font-medium text-foreground">Object Storage</h4>
-                    <p className="text-[10px] text-muted-foreground">S3 / Bucket</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 text-[11px] text-muted-foreground group-hover:text-foreground">
-                  <PlusIcon className="size-3" />
-                  <span>Attach</span>
-                </div>
-              </Link>
-            )}
+                  <span className="text-primary font-medium flex items-center gap-1">
+                    <PlusIcon className="size-3" />
+                    Attach
+                  </span>
+                </Link>
+              )}
+            </div>
           </div>
 
         </div>
+
+        {/* ================= FLOATING BOTTOM CONTROL TOOLBAR ================= */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
+          <div className="flex items-center gap-1 bg-card/95 backdrop-blur-md p-1 rounded-2xl border border-border/70 shadow-lg">
+            {/* Simple View Button */}
+            <button
+              type="button"
+              onClick={() => toggleMode(false)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition-all',
+                !isDetailed
+                  ? 'bg-muted text-foreground font-semibold shadow-xs border border-border/50'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Rows3Icon className="size-3.5" />
+              <span>Simple</span>
+            </button>
+
+            {/* Detailed View Button */}
+            <button
+              type="button"
+              onClick={() => toggleMode(true)}
+              className={cn(
+                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition-all',
+                isDetailed
+                  ? 'bg-muted text-foreground font-semibold shadow-xs border border-border/50'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <CreditCardIcon className="size-3.5" />
+              <span>Detailed</span>
+            </button>
+          </div>
+        </div>
+
       </CardContent>
 
       {selectedResource && (
@@ -584,8 +791,21 @@ export default function SiteResourceDiagram({
           resource={selectedResource}
         />
       )}
+
+      <EdgeNetworkDialog
+        open={isEdgeDialogOpen}
+        onOpenChange={setIsEdgeDialogOpen}
+        site={site}
+        server={server}
+        dnsProviders={dnsProviders}
+        hostedDomains={hostedDomains}
+        domainProxyStatus={domainProxyStatus}
+      />
     </Card>
   );
 }
+
+
+
 
 

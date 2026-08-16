@@ -24,9 +24,11 @@ use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
 use App\Http\Resources\SiteResourceResource;
 use App\Http\Resources\WorkerResource;
+use App\Actions\Domain\ToggleDomainProxy;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
 use App\Models\DNSProvider;
+use App\Models\DNSRecord;
 use App\Models\Server;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
@@ -68,6 +70,27 @@ class ApplicationController extends Controller
             ->where('connected', true)
             ->get();
 
+        $allDomainNames = collect([$site->domain])
+            ->merge($site->hostedDomains()->pluck('domain'))
+            ->unique()
+            ->values();
+
+        $dnsRecords = DNSRecord::where('type', 'A')
+            ->whereHas('domain.dnsProvider', function ($query) {
+                $query->where('connected', true);
+            })
+            ->get();
+
+        $domainProxyStatus = [];
+        foreach ($allDomainNames as $dName) {
+            $matched = $dnsRecords->first(function ($r) use ($dName) {
+                $rootDomain = strtolower($r->domain->domain ?? '');
+                $sub = $dName === $rootDomain ? '@' : str_replace('.' . $rootDomain, '', $dName);
+                return strtolower($r->name) === strtolower($dName) || strtolower($r->name) === strtolower($sub);
+            });
+            $domainProxyStatus[$dName] = $matched ? (bool) $matched->proxied : false;
+        }
+
         return Inertia::render('application/index', [
             'deployments' => DeploymentTable::make($site->deployments())->overview(),
             'deploymentScript' => new DeploymentScriptResource($deploymentScript),
@@ -82,7 +105,27 @@ class ApplicationController extends Controller
             'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'bucket'])->get()),
             'hostedDomains' => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()),
             'dnsProviders' => DNSProviderResource::collection($dnsProviders),
+            'domainProxyStatus' => $domainProxyStatus,
         ]);
+    }
+
+    #[Post('/toggle-domain-proxy', name: 'sites.toggle-domain-proxy')]
+    public function toggleDomainProxy(Request $request, Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        $request->validate([
+            'domain' => ['required', 'string'],
+            'proxied' => ['nullable', 'boolean'],
+        ]);
+
+        app(ToggleDomainProxy::class)->toggle(
+            $site,
+            $request->input('domain'),
+            $request->has('proxied') ? $request->boolean('proxied') : null
+        );
+
+        return back()->with('success', 'Domain Cloudflare proxy status updated.');
     }
 
     #[Get('/deployments', name: 'application.deployments.index')]
