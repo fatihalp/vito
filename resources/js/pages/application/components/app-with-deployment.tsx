@@ -99,10 +99,10 @@ export default function AppWithDeployment() {
             </div>
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2">
-                <h1 id="site-title" className="truncate text-xl font-semibold">{site.domain}</h1>
+                <h1 id="site-title" className="sr-only">Application</h1>
                 <Badge variant={site.status_color}>{site.status}</Badge>
               </div>
-              <div className="text-muted-foreground mt-1 flex min-w-0 items-center gap-2 text-sm">
+              <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
                 {site.repository ? (
                   <>
                     <GitBranchIcon className="size-4 shrink-0" />
@@ -116,6 +116,7 @@ export default function AppWithDeployment() {
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
+            {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
             <Button variant="outline" asChild>
               <a href={site.url} target="_blank" rel="noopener noreferrer">
                 <ExternalLinkIcon />
@@ -173,7 +174,7 @@ export default function AppWithDeployment() {
           </div>
         </section>
 
-        <SiteBanners site={site} />
+        {site.status === 'installation_failed' && <SiteBanners site={site} />}
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="flex min-w-0 flex-col gap-6">

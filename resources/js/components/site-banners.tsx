@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { humanizeStep } from '@/lib/utils';
 import { Site, SiteWarning } from '@/types/site';
 import { useState } from 'react';
-import { BannerItem, WarningsBlock } from '@/components/banners';
+import { BannerItem, WarningsBlock, WarningsPopover } from '@/components/banners';
 
 function InstallationFailedBanner({ site }: { site: Site }) {
   const [open, setOpen] = useState(false);
@@ -99,7 +99,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   );
 }
 
-export default function SiteBanners({ site }: { site: Site }) {
+export default function SiteBanners({ site, compact = false }: { site: Site; compact?: boolean }) {
   const installing = site.status === 'installing';
   const installationFailed = site.status === 'installation_failed';
   const warnings: SiteWarning[] = installing ? [] : (site.warnings ?? []);
@@ -283,7 +283,7 @@ export default function SiteBanners({ site }: { site: Site }) {
   return (
     <div className="flex flex-col gap-3">
       {installationFailed && <InstallationFailedBanner site={site} />}
-      <WarningsBlock items={items} />
+      {compact ? <WarningsPopover items={items} /> : <WarningsBlock items={items} />}
     </div>
   );
 }

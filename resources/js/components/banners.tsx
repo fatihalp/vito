@@ -1,6 +1,8 @@
 import { ReactNode, useState } from 'react';
 import { ChevronDownIcon, TriangleAlertIcon } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface BannerItem {
   key: string;
@@ -57,5 +59,32 @@ export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; su
         </CollapsibleContent>
       </div>
     </Collapsible>
+  );
+}
+
+export function WarningsPopover({ items }: { items: BannerItem[] }) {
+  if (items.length === 0) return null;
+
+  const label = `${items.length} site ${items.length === 1 ? 'warning' : 'warnings'}`;
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="icon" aria-label={label}>
+          <TriangleAlertIcon className="text-warning" />
+          <span className="sr-only">{label}</span>
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-96 max-w-[calc(100vw-2rem)] p-0">
+        <div className="flex items-center justify-between border-b px-4 py-3">
+          <p className="text-sm font-medium">{label}</p>
+        </div>
+        <div className="divide-y">
+          {items.map((item) => (
+            <BannerRow key={item.key} item={item} />
+          ))}
+        </div>
+      </PopoverContent>
+    </Popover>
   );
 }
