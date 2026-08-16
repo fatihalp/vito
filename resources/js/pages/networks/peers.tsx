@@ -29,12 +29,6 @@ export default function NetworkPeers() {
         <HeaderContainer>
           <Heading title="Peers" description="Devices that connect to this network, such as laptops or CI runners" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/networks/peers" target="_blank" rel="noreferrer">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Button onClick={() => dialog.networkAddPeer.open({ networkId: network.id })}>
               <PlusIcon />
               <span className="hidden lg:block">Add peer</span>

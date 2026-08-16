@@ -34,12 +34,6 @@ export default function ServerLogs() {
         <HeaderContainer>
           <Heading title={page.props.title} description="Here you can see all logs" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/logs" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             {page.props.remote && (
               <LogForm>
                 <Button>

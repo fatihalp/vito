@@ -87,14 +87,19 @@ export default function UserForm({ user, children }: { user?: User; children: Re
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem key="role-user" value="user">
-                      user
+                      User
                     </SelectItem>
                     <SelectItem key="role-admin" value="admin">
-                      admin
+                      Admin
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground">
+                {form.data.role === 'admin'
+                  ? 'Admins have full access across the entire instance, including the admin area and all system settings.'
+                  : 'Standard users can only manage servers and sites in the projects they belong to.'}
+              </p>
               <InputError message={form.errors.role} />
             </FormField>
           </FormFields>

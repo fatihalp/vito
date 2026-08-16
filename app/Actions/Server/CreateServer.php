@@ -40,6 +40,7 @@ class CreateServer
             'user_id' => $creator->id,
             'name' => $input['name'],
             'role' => $input['role'] ?? ServerRole::APP->value,
+            'stage' => $input['stage'] ?? 'prod',
             'ssh_user' => data_get(config('server-provider.providers'), $input['provider'].'.default_user') ?? 'root',
             'ip' => $input['ip'] ?? '',
             'port' => $input['port'] ?? 22,
@@ -99,6 +100,10 @@ class CreateServer
             'role' => [
                 'sometimes',
                 Rule::enum(ServerRole::class),
+            ],
+            'stage' => [
+                'sometimes',
+                Rule::in(['prod', 'beta', 'alfa']),
             ],
             'os' => [
                 'required',

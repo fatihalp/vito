@@ -66,12 +66,6 @@ export default function NetworkOverview() {
               )}
             </div>
           </div>
-          <a href="https://vitodeploy.com/docs/networks/overview" target="_blank" rel="noreferrer">
-            <Button variant="outline">
-              <BookOpenIcon />
-              <span className="hidden lg:block">Docs</span>
-            </Button>
-          </a>
         </HeaderContainer>
 
         <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">

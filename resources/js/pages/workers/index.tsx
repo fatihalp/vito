@@ -45,12 +45,6 @@ export default function WorkerIndex() {
             description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : "Here you can manage server's workers"}
           />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/workers" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

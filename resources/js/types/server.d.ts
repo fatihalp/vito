@@ -12,6 +12,7 @@ export interface Server {
   role: string;
   role_value: ServerRole;
   role_color: 'gray' | 'success' | 'info' | 'warning' | 'danger' | 'default';
+  stage: 'prod' | 'beta' | 'alfa';
   ssh_user: string;
   ssh_users: string[];
   ip: string;

@@ -31,14 +31,8 @@ export default function Firewall() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Firewall" description="Here you can manage server's firewall rules" />
+          <Heading title="Firewall" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/firewall" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Button onClick={() => dialog.firewallForm.open({ serverId: page.props.server.id })}>
               <PlusIcon />
               <span className="hidden lg:block">Create</span>

@@ -30,12 +30,6 @@ export default function ServerProviders() {
         <div className="flex items-start justify-between">
           <Heading title="Server Providers" description="Here you can manage all of the server provider connections" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/settings/server-providers" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <ConnectServerProvider>
               <Button>Connect</Button>
             </ConnectServerProvider>

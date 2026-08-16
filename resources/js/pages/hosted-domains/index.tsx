@@ -109,12 +109,6 @@ export default function HostedDomains() {
         <HeaderContainer>
           <Heading title="Domains" description="Manage domains and SSL assignments for this site" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/sites/domains" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">

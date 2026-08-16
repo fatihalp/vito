@@ -110,10 +110,6 @@ export default function Commands() {
         <div className="flex items-start justify-between gap-4">
           <Heading title="Commands" description={`Run a command in ${site.domain}'s working directory and follow its output live.`} />
           <Button variant="outline" size="sm" asChild>
-            <a href="https://vitodeploy.com/docs/sites/commands" target="_blank" rel="noopener noreferrer">
-              <BookOpenIcon />
-              <span className="hidden sm:inline">Docs</span>
-            </a>
           </Button>
         </div>
 

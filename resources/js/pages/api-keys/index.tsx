@@ -25,14 +25,8 @@ export default function ApiKeys() {
       <Head title="API Keys" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="API Keys" description="Here you can manage API keys" />
+          <Heading title="API Keys" />
           <div className="flex items-center gap-2">
-            <a href="/api/docs" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                Docs
-              </Button>
-            </a>
             <CreateApiKey projects={page.props.projects}>
               <Button>
                 <PlusIcon />

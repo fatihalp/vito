@@ -32,14 +32,8 @@ export default function DatabaseUsers() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Users" description="Here you can manage the database users and their permissions" />
+          <Heading title="Users" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/database" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <SyncUsers server={page.props.server} />
             <CreateDatabaseUser server={page.props.server.id} usesHost={usesHost}>
               <Button>

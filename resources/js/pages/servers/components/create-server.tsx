@@ -66,6 +66,7 @@ type CreateServerForm = {
   region: string;
   plan: string;
   services: Service[];
+  stage: 'prod' | 'beta' | 'alfa';
 };
 
 const baseServices: Service[] = [
@@ -282,6 +283,7 @@ export default function CreateServer({
     region: '',
     plan: '',
     services: servicesForRole('app'),
+    stage: 'prod',
   });
 
   const submit: FormEventHandler = (e) => {
@@ -625,6 +627,23 @@ export default function CreateServer({
                 <InputError message={form.errors.role} />
               </FormField>
               <FormField>
+                <Label htmlFor="stage">Stage</Label>
+                <Select
+                  value={form.data.stage}
+                  onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}
+                >
+                  <SelectTrigger id="stage">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prod">Prod</SelectItem>
+                    <SelectItem value="beta">Beta</SelectItem>
+                    <SelectItem value="alfa">Alfa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <InputError message={form.errors.stage} />
+              </FormField>
+              <FormField className="col-span-2">
                 <Label htmlFor="name">Server Name</Label>
                 <Input id="name" type="text" autoComplete="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                 <InputError message={form.errors.name} />

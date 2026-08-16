@@ -20,6 +20,7 @@ use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\DeploymentResource;
 use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
+use App\Http\Resources\SiteResourceResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
@@ -70,6 +71,7 @@ class ApplicationController extends Controller
             'overviewWorkersCount' => $overview['workers_count'],
             'overviewCronJobs' => CronJobResource::collection($overview['cron_jobs']),
             'overviewCronJobsCount' => $overview['cron_jobs_count'],
+            'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'bucket'])->get()),
         ]);
     }
 

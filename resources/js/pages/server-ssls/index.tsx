@@ -31,12 +31,6 @@ export default function ServerSsls() {
         <HeaderContainer>
           <Heading title="SSL" description="Global Server level SSL management for Custom or Wildcard certificates" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/ssl" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <CreateServerSsl server={page.props.server} domains={page.props.domains}>
               <Button>Add</Button>
             </CreateServerSsl>

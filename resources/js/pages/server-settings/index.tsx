@@ -34,12 +34,14 @@ export default function Databases() {
     port: string;
     local_ip?: string;
     role: ServerRole;
+    stage: 'prod' | 'beta' | 'alfa';
   }>({
     name: page.props.server.name,
     ip: page.props.server.ip,
     port: page.props.server.port.toString(),
     local_ip: page.props.server.local_ip,
     role: page.props.server.role_value,
+    stage: page.props.server.stage || 'prod',
   });
 
   const submit = () => {
@@ -63,15 +65,7 @@ export default function Databases() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Settings" description="Here you can manage your server's settings" />
-          <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/settings" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
-          </div>
+          <Heading title="Settings" />
         </HeaderContainer>
 
         <Card className="overflow-hidden">
@@ -122,6 +116,23 @@ export default function Databases() {
                   </SelectContent>
                 </Select>
                 <InputError message={form.errors.role} />
+              </div>
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between gap-4 p-4">
+              <span>Stage</span>
+              <div className="grid gap-2">
+                <Select value={form.data.stage} onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}>
+                  <SelectTrigger className="w-56">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="prod">Prod</SelectItem>
+                    <SelectItem value="beta">Beta</SelectItem>
+                    <SelectItem value="alfa">Alfa</SelectItem>
+                  </SelectContent>
+                </Select>
+                <InputError message={form.errors.stage} />
               </div>
             </div>
             <Separator />

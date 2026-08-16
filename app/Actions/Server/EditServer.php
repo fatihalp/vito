@@ -56,6 +56,9 @@ class EditServer
             }
             $server->port = $input['port'];
         }
+        if (isset($input['stage'])) {
+            $server->stage = $input['stage'];
+        }
         $server->save();
 
         if ($ipChanged) {
@@ -86,6 +89,11 @@ class EditServer
                 'sometimes',
                 'required',
                 Rule::enum(ServerRole::class),
+            ],
+            'stage' => [
+                'sometimes',
+                'required',
+                Rule::in(['prod', 'beta', 'alfa']),
             ],
             'ip' => [
                 'string',

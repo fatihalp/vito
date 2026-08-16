@@ -33,16 +33,15 @@ class ServerTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
+            Column::data('id'),
             LinkColumn::make('name', 'Name')->sortable()->route('servers.show', ['server' => ':id']),
             EnumColumn::make('role', 'Type')->sortable(),
+            TextColumn::make('stage', 'Stage')->sortable(),
             TextColumn::make('ip', 'IP')->sortable(),
             Column::make('performance_score', 'Performance')
                 ->value(fn (Server $server) => $server->latestMetric ? (float) $server->getAttribute('performance_score') : null)
                 ->accessor('performance_sort_score')
                 ->sortable(),
-            DateTimeColumn::make('created_at', 'Created at')->sortable(),
-            EnumColumn::make('status', 'Status')->sortable(),
             Column::data('updates'),
             Column::data('warnings', fn (Server $server) => $server->getWarnings()),
             Column::data('cpu_usage_percent', fn (Server $server) => $server->latestMetric?->cpu_usage_percent),
@@ -53,6 +52,7 @@ class ServerTable extends Table
                 ? round(($server->latestMetric->disk_used / $server->latestMetric->disk_total) * 100, 1)
                 : null),
             Column::data('performance', fn (Server $server) => $this->performance($server)),
+            Column::data('role_value', fn (Server $server) => $server->role->value),
             ActionsColumn::make(),
         ];
     }

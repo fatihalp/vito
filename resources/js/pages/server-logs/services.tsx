@@ -169,12 +169,6 @@ export default function ServiceLogs() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title="Service logs" description="View, search, refresh and download log files from installed services." />
-          <a href="https://vitodeploy.com/docs/servers/logs" target="_blank" rel="noreferrer">
-            <Button variant="outline">
-              <BookOpenIcon />
-              <span className="hidden lg:block">Docs</span>
-            </Button>
-          </a>
         </HeaderContainer>
 
         {catalogue.length === 0 ? (

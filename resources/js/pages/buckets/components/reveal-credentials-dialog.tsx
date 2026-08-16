@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Skeleton } from '@/components/ui/skeleton';
-import CopyableField from '@/components/copyable-field';
+import ResourceCredentialsView from '@/components/resource-credentials-view';
 import { Bucket } from '@/types/bucket';
 
 type BucketCredentials = {
@@ -40,23 +40,24 @@ export default function RevealCredentialsDialog({
           <DialogTitle>Bucket credentials</DialogTitle>
           <DialogDescription>Use these credentials to connect to [{bucket.name}] from other applications.</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-2 p-4">
+        <div className="space-y-4 p-4">
           {query.isSuccess ? (
-            Object.entries(query.data).map(([key, value]) => (
-              <CopyableField key={key} value={`${key}=${value}`} masked={key === 'AWS_SECRET_ACCESS_KEY'} />
-            ))
+            <ResourceCredentialsView
+              environment={query.data}
+              type="bucket"
+            />
           ) : query.isError ? (
             <p className="text-destructive text-sm">Failed to load credentials.</p>
           ) : (
-            Array.from({ length: 7 }).map((_, i) => <Skeleton key={i} className="h-8 w-full" />)
+            <div className="space-y-2">
+              <Skeleton className="h-36 w-full rounded-lg" />
+              <Skeleton className="h-8 w-full rounded-lg" />
+            </div>
           )}
-          <p className="text-muted-foreground text-sm">
-            Anyone with these credentials has full read/write access to every bucket in this Hetzner project.
-          </p>
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline" size="sm">Close</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

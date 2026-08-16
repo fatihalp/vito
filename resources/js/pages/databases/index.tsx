@@ -33,14 +33,8 @@ export default function Databases() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Databases" description="Here you can manage the databases" />
+          <Heading title="Databases" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/database" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <SyncDatabases server={page.props.server} />
             <CreateDatabase server={page.props.server.id} defaultCharset={defaultCharset} defaultCollation={defaultCollation}>
               <Button>

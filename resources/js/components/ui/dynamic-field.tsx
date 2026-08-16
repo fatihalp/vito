@@ -46,12 +46,14 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
         <Alert>
           {!Array.isArray(config.options) && config.options?.type === 'warning' && <TriangleAlertIcon className="text-warning!" />}
           {config.label && <AlertTitle>{config.label}</AlertTitle>}
-          <AlertDescription>
+          <AlertDescription className="whitespace-pre-line">
             {config.description}
             {config.link && (
-              <a href={config.link.url} target="_blank" className="text-primary underline">
-                {config.link.label}
-              </a>
+              <span className="block mt-2">
+                <a href={config.link.url} target="_blank" rel="noreferrer" className="text-primary font-medium underline inline-flex items-center gap-1">
+                  {config.link.label} &rarr;
+                </a>
+              </span>
             )}
           </AlertDescription>
         </Alert>

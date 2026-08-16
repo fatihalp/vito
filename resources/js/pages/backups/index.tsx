@@ -31,14 +31,8 @@ export default function Backups() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Backups" description="Here you can manage database and file backups" />
+          <Heading title="Backups" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/database#backup" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Button onClick={() => dialog.backupCreate.open({ server: page.props.server })}>
               <PlusIcon />
               <span className="hidden lg:block">Create</span>

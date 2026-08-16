@@ -71,7 +71,6 @@ export default function SiteStats() {
           <>
             <HeaderContainer>
               <Heading title="Stats" description="Web statistics for this site" />
-              <DocsButton />
             </HeaderContainer>
             <SiteBanners site={site} />
             <Card>
@@ -158,7 +157,6 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
             <RefreshCwIcon className={refreshing ? 'animate-spin' : ''} />
             <span className="hidden lg:block">Refresh</span>
           </Button>
-          <DocsButton />
         </div>
       </HeaderContainer>
 
@@ -289,17 +287,6 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
         </>
       )}
     </>
-  );
-}
-
-function DocsButton() {
-  return (
-    <a href="https://vitodeploy.com/docs/sites/stats" target="_blank">
-      <Button variant="outline">
-        <BookOpenIcon />
-        <span className="hidden lg:block">Docs</span>
-      </Button>
-    </a>
   );
 }
 

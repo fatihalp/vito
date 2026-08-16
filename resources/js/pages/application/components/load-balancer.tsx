@@ -74,12 +74,6 @@ export default function LoadBalancer() {
         <HeaderContainer>
           <Heading title="Load balancer" description="Here you can manage the load balancer configs" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/sites/load-balancer" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
           </div>
         </HeaderContainer>
 

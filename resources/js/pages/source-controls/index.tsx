@@ -27,12 +27,6 @@ export default function SourceControls() {
         <div className="flex items-start justify-between">
           <Heading title="Source Controls" description="Here you can manage all of the source control connections" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/settings/source-controls" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             {githubAppInstalled && (
               <a href={route('github-app.install')} title="Install GitHub App on an organization">
                 <Button variant="outline" size="icon">

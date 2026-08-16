@@ -2,6 +2,7 @@ import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import SiteBanners from '@/components/site-banners';
+import ResourceCredentialsView from '@/components/resource-credentials-view';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -17,15 +18,15 @@ import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
 import type { Bucket } from '@/types/bucket';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { BoxesIcon, DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import { DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
 type ResourceType = SiteResource['type_value'];
 
-const resourceTypes: Array<{ value: ResourceType; label: string; description: string }> = [
-  { value: 'database', label: 'Database server', description: 'Creates an isolated database and user, enables networking and writes DB_* variables.' },
-  { value: 'cache', label: 'Cache (Redis) server', description: 'Enables protected Redis networking and writes the cache and REDIS_* variables.' },
-  { value: 'bucket', label: 'Bucket', description: 'Writes the standard Laravel filesystem and AWS_* variables from an encrypted bucket connection.' },
+const resourceTypes: Array<{ value: ResourceType; label: string }> = [
+  { value: 'database', label: 'Database server' },
+  { value: 'cache', label: 'Cache (Redis) server' },
+  { value: 'bucket', label: 'Bucket' },
 ];
 
 const typeIcon = (type: ResourceType) => {
@@ -89,7 +90,7 @@ export default function SiteResources() {
       <Head title={`Resources - ${page.props.site.domain}`} />
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Resources" description="Attach dedicated infrastructure to this site and let Vito maintain its environment configuration." />
+          <Heading title="Resources" />
           <SiteBanners site={page.props.site} compact />
         </HeaderContainer>
 
@@ -98,7 +99,6 @@ export default function SiteResources() {
         <Card>
           <CardHeader>
             <CardTitle>Connect a resource</CardTitle>
-            <CardDescription>Only ready servers with the matching server type can be selected.</CardDescription>
           </CardHeader>
           <CardContent className="p-4">
             {availableTypes.length > 0 ? (
@@ -184,30 +184,23 @@ export default function SiteResources() {
                   Connect
                 </Button>
 
-                {selectedDefinition && (
-                  <p className="text-muted-foreground text-sm md:col-span-3">{selectedDefinition.description}</p>
-                )}
                 {form.data.type === 'bucket' && (isCreatingBucket || page.props.buckets.length === 0) && (
-                  page.props.credentialsConnected === false ? (
+                  page.props.credentialsConnected === false && (
                     <Alert className="md:col-span-3">
                       <KeyIcon className="size-4" />
                       <AlertDescription className="flex items-center justify-between gap-4">
-                        <span>Connect your Hetzner Object Storage credentials to create buckets.</span>
+                        <span>Connect Hetzner Object Storage credentials to create buckets.</span>
                         <Button size="sm" variant="outline" type="button" onClick={() => dialog.bucketCredentialsConnect.open({})}>
                           Connect credentials
                         </Button>
                       </AlertDescription>
                     </Alert>
-                  ) : (
-                    <p className="text-muted-foreground text-xs md:col-span-3">
-                      Bucket will be automatically provisioned on Hetzner (Falkenstein, private visibility) and configured for Laravel (AWS_*).
-                    </p>
                   )
                 )}
                 {form.data.type && form.data.type !== 'bucket' && matchingServers.length === 0 && (
                   <Alert className="md:col-span-3">
                     <InfoIcon />
-                    <AlertDescription>No ready {selectedDefinition?.label.toLowerCase()} is available in this project.</AlertDescription>
+                    <AlertDescription>No ready {selectedDefinition?.label.toLowerCase()} available.</AlertDescription>
                   </Alert>
                 )}
               </form>
@@ -217,7 +210,7 @@ export default function SiteResources() {
           </CardContent>
         </Card>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="flex w-full flex-col gap-6">
           {page.props.resources.map((resource) => {
             const ResourceIcon = typeIcon(resource.type_value);
             const target = resource.server?.name ?? resource.bucket?.name ?? 'Unavailable resource';
@@ -228,7 +221,7 @@ export default function SiteResources() {
                 : 'The connected resource is no longer available';
 
             return (
-              <Card key={resource.id}>
+              <Card key={resource.id} className="w-full min-w-0">
                 <CardHeader className="flex-row items-start justify-between gap-4">
                   <div className="flex min-w-0 items-start gap-3">
                     <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-md">
@@ -284,20 +277,19 @@ export default function SiteResources() {
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent className="grid gap-3 p-4">
-                  <div className="flex flex-wrap gap-1.5">
-                    {resource.environment_keys.map((key) => (
-                      <Badge key={key} variant="outline" className="font-mono">{key}</Badge>
-                    ))}
-                  </div>
-                  <p className="text-muted-foreground flex items-center gap-2 text-xs">
-                    <BoxesIcon className="size-3.5" />
-                    {resource.status === 'ready'
-                      ? "Managed automatically in the site's environment file"
-                      : resource.status === 'connecting'
-                        ? 'Networking is being configured before environment activation'
-                        : 'Connection failed before environment activation; disconnect it and try again'}
-                  </p>
+                <CardContent className="grid gap-4 p-5 pt-0">
+                  {resource.environment && Object.keys(resource.environment).length > 0 ? (
+                    <ResourceCredentialsView
+                      environment={resource.environment}
+                      type={resource.type_value}
+                    />
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {resource.environment_keys.map((key) => (
+                        <Badge key={key} variant="outline" className="font-mono">{key}</Badge>
+                      ))}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             );
@@ -306,7 +298,7 @@ export default function SiteResources() {
 
         {page.props.resources.length === 0 && (
           <Card>
-            <CardContent className="text-muted-foreground flex min-h-32 items-center justify-center p-6 text-sm">No resources connected to this site yet.</CardContent>
+            <CardContent className="text-muted-foreground flex min-h-32 items-center justify-center p-6 text-sm">No resources connected.</CardContent>
           </Card>
         )}
       </Container>

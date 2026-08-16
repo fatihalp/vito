@@ -27,14 +27,8 @@ export default function PHP() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="PHP" description="Here you can manage PHP" />
+          <Heading title="PHP" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/php" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <InstallService name="php">
               <Button>
                 <PlusIcon />

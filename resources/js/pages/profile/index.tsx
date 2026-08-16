@@ -20,12 +20,6 @@ export default function Profile() {
         <div className="flex items-start justify-between">
           <Heading title="Profile settings" description="Manage your profile settings." />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/settings/profile" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
           </div>
         </div>
         <Tabs defaultValue={tab} onValueChange={setTab}>

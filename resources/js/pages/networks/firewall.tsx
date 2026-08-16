@@ -32,12 +32,6 @@ export default function NetworkFirewall() {
             description="Rules allow traffic from the network. The default 'Allow all' rule permits everything - delete it to lock the network down"
           />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/networks/firewall" target="_blank" rel="noreferrer">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Button onClick={() => dialog.networkFirewallForm.open({ networkId: network.id })}>
               <PlusIcon />
               <span className="hidden lg:block">Rule</span>

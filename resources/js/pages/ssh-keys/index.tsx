@@ -26,12 +26,6 @@ export default function SshKeys() {
         <div className="flex items-start justify-between">
           <Heading title="SSH Keys" description="Here you can manage all of your ssh keys" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/ssh-keys" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <AddSshKey>
               <Button>
                 <PlusIcon />

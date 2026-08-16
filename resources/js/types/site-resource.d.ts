@@ -16,6 +16,7 @@ export interface SiteResource {
     role: string;
   } | null;
   bucket: Bucket | null;
+  environment?: Record<string, string>;
   environment_keys: string[];
   created_at: string;
   updated_at: string;

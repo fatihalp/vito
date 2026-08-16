@@ -1,5 +1,5 @@
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useMemo, FormEvent } from 'react';
+import { useMemo, FormEvent, useState, useEffect } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { useForm, usePage } from '@inertiajs/react';
@@ -13,6 +13,111 @@ import { SharedData } from '@/types';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { useConfigs } from '@/stores/bootstrap-store';
+import { cn } from '@/lib/utils';
+
+export interface CronJobTemplate {
+  id: string;
+  label: string;
+  name: string;
+  getCommand: (sitePath?: string) => string;
+  frequency: string;
+  custom?: string;
+  description: string;
+  isOfficial?: boolean;
+}
+
+export const CRONJOB_TEMPLATES: CronJobTemplate[] = [
+  {
+    id: 'laravel-scheduler',
+    label: 'Laravel Scheduler',
+    name: 'Laravel Scheduler',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan schedule:run >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan schedule:run >> /dev/null 2>&1',
+    frequency: '* * * * *',
+    description: 'Official Laravel Task Scheduler (runs every minute)',
+    isOfficial: true,
+  },
+  {
+    id: 'queue-prune-batches',
+    label: 'Prune Batches',
+    name: 'Prune Queue Batches',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan queue:prune-batches --hours=48 >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan queue:prune-batches --hours=48 >> /dev/null 2>&1',
+    frequency: '0 0 * * *',
+    description: 'Prune stale queue batches from database daily',
+  },
+  {
+    id: 'queue-prune-failed',
+    label: 'Prune Failed Jobs',
+    name: 'Prune Failed Queue Jobs',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan queue:prune-failed --hours=168 >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan queue:prune-failed --hours=168 >> /dev/null 2>&1',
+    frequency: '0 0 * * *',
+    description: 'Prune failed queue jobs older than 7 days daily',
+  },
+  {
+    id: 'model-prune',
+    label: 'Model Prune',
+    name: 'Prune Models',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan model:prune >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan model:prune >> /dev/null 2>&1',
+    frequency: '0 0 * * *',
+    description: 'Prune models with Prunable trait daily',
+  },
+  {
+    id: 'sanctum-prune',
+    label: 'Prune Sanctum Tokens',
+    name: 'Prune Sanctum Tokens',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan sanctum:prune-expired --hours=24 >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan sanctum:prune-expired --hours=24 >> /dev/null 2>&1',
+    frequency: '0 0 * * *',
+    description: 'Prune expired personal access tokens daily',
+  },
+  {
+    id: 'telescope-prune',
+    label: 'Prune Telescope',
+    name: 'Prune Telescope',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan telescope:prune --hours=48 >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan telescope:prune --hours=48 >> /dev/null 2>&1',
+    frequency: '0 0 * * *',
+    description: 'Prune entries older than 48 hours from Telescope database',
+  },
+  {
+    id: 'horizon-snapshot',
+    label: 'Horizon Snapshot',
+    name: 'Horizon Snapshot',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan horizon:snapshot >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan horizon:snapshot >> /dev/null 2>&1',
+    frequency: 'custom',
+    custom: '*/5 * * * *',
+    description: 'Record Horizon queue metrics every 5 minutes',
+  },
+  {
+    id: 'optimize-clear',
+    label: 'Optimize Clear',
+    name: 'Optimize Clear Cache',
+    getCommand: (sitePath) =>
+      sitePath
+        ? `cd ${sitePath} && php artisan optimize:clear >> /dev/null 2>&1`
+        : 'cd /path-to-your-project && php artisan optimize:clear >> /dev/null 2>&1',
+    frequency: '0 0 * * 0',
+    description: 'Clear cached configurations and views weekly',
+  },
+];
 
 export default function CronJobForm({
   open,
@@ -20,15 +125,18 @@ export default function CronJobForm({
   serverId,
   site,
   cronJob,
+  templateId,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   serverId: number;
   site?: Site;
   cronJob?: CronJob;
+  templateId?: string;
 }) {
   const page = usePage<SharedData & { server: Server; sites?: Array<{ id: number; domain: string }>; ssh_users?: string[] }>();
   const configs = useConfigs()!;
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
   const sshUsers = useMemo(() => {
     const base = site ? (page.props.ssh_users ?? []) : page.props.server.ssh_users;
@@ -37,6 +145,9 @@ export default function CronJobForm({
     }
     return base;
   }, [site, page.props.ssh_users, page.props.server.ssh_users, cronJob?.user]);
+
+  const defaultUser = cronJob?.user || site?.user || (sshUsers && sshUsers.length > 0 ? sshUsers[0] : '');
+
   const form = useForm<{
     name: string;
     command: string;
@@ -47,11 +158,65 @@ export default function CronJobForm({
   }>({
     name: cronJob?.name || '',
     command: cronJob?.command || '',
-    user: cronJob?.user || (site?.isolated_user_id ? site.user : ''),
-    frequency: cronJob ? (configs.cronjob_intervals[cronJob.frequency] ? cronJob.frequency : 'custom') : '',
+    user: cronJob?.user || defaultUser,
+    frequency: cronJob ? (configs.cronjob_intervals[cronJob.frequency] ? cronJob.frequency : 'custom') : '* * * * *',
     custom: cronJob?.frequency || '',
-    site_id: cronJob?.site_id?.toString() || '0',
+    site_id: cronJob?.site_id?.toString() || site?.id?.toString() || '0',
   });
+
+  useEffect(() => {
+    if (open) {
+      if (cronJob) {
+        form.setData({
+          name: cronJob.name || '',
+          command: cronJob.command || '',
+          user: cronJob.user || defaultUser,
+          frequency: configs.cronjob_intervals[cronJob.frequency] ? cronJob.frequency : 'custom',
+          custom: cronJob.frequency || '',
+          site_id: cronJob.site_id?.toString() || '0',
+        });
+        setSelectedTemplate('');
+      } else if (templateId) {
+        const initialTemplate = CRONJOB_TEMPLATES.find((t) => t.id === templateId);
+        if (initialTemplate) {
+          setSelectedTemplate(initialTemplate.id);
+          form.setData({
+            name: initialTemplate.name,
+            command: initialTemplate.getCommand(site?.path),
+            user: defaultUser,
+            frequency: initialTemplate.frequency,
+            custom: initialTemplate.custom || '',
+            site_id: site?.id?.toString() || '0',
+          });
+        }
+      } else {
+        form.setData({
+          name: '',
+          command: '',
+          user: defaultUser,
+          frequency: '* * * * *',
+          custom: '',
+          site_id: site?.id?.toString() || '0',
+        });
+        setSelectedTemplate('');
+      }
+    }
+  }, [open, cronJob, site, templateId]);
+
+  const applyTemplate = (tmplId: string) => {
+    const template = CRONJOB_TEMPLATES.find((t) => t.id === tmplId);
+    if (!template) return;
+    setSelectedTemplate(tmplId);
+
+    const command = template.getCommand(site?.path);
+    form.setData({
+      ...form.data,
+      name: !form.data.name || CRONJOB_TEMPLATES.some((t) => t.name === form.data.name) ? template.name : form.data.name,
+      command,
+      frequency: template.frequency,
+      custom: template.custom || (template.frequency === 'custom' ? form.data.custom : ''),
+    });
+  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -72,6 +237,7 @@ export default function CronJobForm({
       onSuccess: () => onOpenChange(false),
     });
   };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
@@ -81,6 +247,61 @@ export default function CronJobForm({
         </DialogHeader>
         <Form id="cronjob-form" onSubmit={submit} className="p-4">
           <FormFields>
+            {!cronJob && (
+              <div className="bg-muted/40 space-y-2 rounded-lg border p-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <Label className="text-foreground text-xs font-semibold">Preset Templates</Label>
+                    <span className="text-muted-foreground text-[11px]">(Laravel Recommendations)</span>
+                  </div>
+                  {selectedTemplate && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-muted-foreground hover:text-foreground h-6 px-1.5 text-xs"
+                      onClick={() => {
+                        setSelectedTemplate('');
+                        form.setData({
+                          ...form.data,
+                          name: '',
+                          command: '',
+                          frequency: '* * * * *',
+                          custom: '',
+                        });
+                      }}
+                    >
+                      Clear
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-1.5 sm:grid-cols-4">
+                  {CRONJOB_TEMPLATES.map((t) => {
+                    const isSelected = selectedTemplate === t.id;
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => applyTemplate(t.id)}
+                        className={cn(
+                          'hover:bg-accent/50 relative flex flex-col items-start rounded-md border p-2 text-left transition-colors',
+                          isSelected ? 'border-primary bg-primary/10 text-primary' : 'border-border/60 bg-background text-foreground',
+                        )}
+                      >
+                        <div className="flex w-full items-center justify-between gap-1">
+                          <span className="truncate text-xs font-semibold">{t.label}</span>
+                          {t.isOfficial && <span className="bg-primary/20 text-primary rounded px-1 py-0.5 text-[9px] font-medium">Official</span>}
+                        </div>
+                        <span className="text-muted-foreground line-clamp-1 font-mono text-[10px]">
+                          {t.frequency === 'custom' ? t.custom : configs.cronjob_intervals[t.frequency] || t.frequency}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <FormField>
               <Label htmlFor="name">Name</Label>
               <Input
@@ -95,7 +316,16 @@ export default function CronJobForm({
 
             <FormField>
               <Label htmlFor="command">Command</Label>
-              <Input type="text" id="command" value={form.data.command} onChange={(e) => form.setData('command', e.target.value)} />
+              <Input
+                type="text"
+                id="command"
+                value={form.data.command}
+                onChange={(e) => {
+                  setSelectedTemplate('');
+                  form.setData('command', e.target.value);
+                }}
+                placeholder={site ? `cd ${site.path} && php artisan schedule:run >> /dev/null 2>&1` : 'php artisan schedule:run'}
+              />
               <InputError message={form.errors.command} />
             </FormField>
 

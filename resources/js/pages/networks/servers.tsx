@@ -34,12 +34,6 @@ export default function NetworkServers() {
         <HeaderContainer>
           <Heading title="Servers" description="Servers connected to this network" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/networks/servers" target="_blank" rel="noreferrer">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Button
               variant="outline"
               onClick={() =>

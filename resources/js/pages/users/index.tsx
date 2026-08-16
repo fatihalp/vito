@@ -5,20 +5,22 @@ import Heading from '@/components/heading';
 import UsersList from '@/pages/users/components/list';
 import { Button } from '@/components/ui/button';
 import UserForm from '@/pages/users/components/user-form';
+import RolePermissionsTable from '@/pages/users/components/role-permissions-table';
 
 export default function Users() {
   return (
     <AdminLayout>
       <Head title="Users" />
 
-      <Container className="max-w-5xl">
+      <Container className="max-w-5xl space-y-6">
         <div className="flex items-start justify-between">
-          <Heading title="Users" description="Here you can manage all users" />
+          <Heading title="Users" description="Here you can manage all users and review role permissions" />
           <UserForm>
             <Button>Create user</Button>
           </UserForm>
         </div>
         <UsersList />
+        <RolePermissionsTable />
       </Container>
     </AdminLayout>
   );

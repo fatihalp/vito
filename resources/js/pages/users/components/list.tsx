@@ -5,6 +5,7 @@ import { usePage } from '@inertiajs/react';
 import UserActions from '@/pages/users/components/actions';
 import DateTime from '@/components/date-time';
 import { PaginatedData } from '@/types';
+import { Badge } from '@/components/ui/badge';
 
 const columns: ColumnDef<User>[] = [
   {
@@ -16,6 +17,17 @@ const columns: ColumnDef<User>[] = [
     accessorKey: 'email',
     header: 'Email',
     enableColumnFilter: true,
+  },
+  {
+    id: 'role',
+    header: 'Role',
+    enableColumnFilter: false,
+    enableSorting: false,
+    cell: ({ row }) => (
+      <Badge variant={row.original.is_admin ? 'default' : 'outline'}>
+        {row.original.is_admin ? 'Admin' : 'User'}
+      </Badge>
+    ),
   },
   {
     accessorKey: 'created_at',

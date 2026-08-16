@@ -64,12 +64,6 @@ export default function NetworkSettings() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title="Settings" description="Manage this network's settings" />
-          <a href="https://vitodeploy.com/docs/networks/overview" target="_blank" rel="noreferrer">
-            <Button variant="outline">
-              <BookOpenIcon />
-              <span className="hidden lg:block">Docs</span>
-            </Button>
-          </a>
         </HeaderContainer>
 
         <Card className="overflow-hidden">

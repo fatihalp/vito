@@ -24,12 +24,6 @@ export default function NetworkLogs() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title="Logs" description="Activity recorded against this network and the servers it runs on" />
-          <a href="https://vitodeploy.com/docs/networks/overview" target="_blank" rel="noreferrer">
-            <Button variant="outline">
-              <BookOpenIcon />
-              <span className="hidden lg:block">Docs</span>
-            </Button>
-          </a>
         </HeaderContainer>
 
         <DataTable columns={networkLogColumns} paginatedData={logs} searchable sortable />

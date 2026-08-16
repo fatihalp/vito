@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
@@ -8,6 +9,8 @@ import { Badge } from '@/components/ui/badge';
 import {
   BookOpenIcon,
   CalendarClockIcon,
+  ChevronDownIcon,
+  ChevronUpIcon,
   CodeXmlIcon,
   GitBranchIcon,
   Globe2Icon,
@@ -21,6 +24,7 @@ import {
   ZapIcon,
   type LucideIcon,
 } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DeploymentScript from '@/pages/application/components/deployment-script';
 import Env from '@/pages/application/components/env';
@@ -34,6 +38,8 @@ import SiteBanners from '@/components/site-banners';
 import ProxiedAppCard from '@/pages/application/components/proxied-app-card';
 import { Worker } from '@/types/worker';
 import { CronJob } from '@/types/cronjob';
+import { SiteResource } from '@/types/site-resource';
+import SiteResourceDiagram from '@/pages/application/components/site-resource-diagram';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
 
@@ -83,8 +89,10 @@ export default function AppWithDeployment() {
     overviewWorkersCount: number;
     overviewCronJobs: CronJob[];
     overviewCronJobsCount: number;
+    resources?: SiteResource[];
   }>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
+  const [showDetails, setShowDetails] = useState(false);
 
   return (
     <ServerLayout>
@@ -98,6 +106,14 @@ export default function AppWithDeployment() {
             {site.is_proxied_site_type && (
               <ProxiedAppCard site={site} initialWorker={page.props.worker} />
             )}
+
+            <SiteResourceDiagram
+              server={page.props.server}
+              site={site}
+              resources={page.props.resources || []}
+              workersCount={page.props.overviewWorkersCount}
+              cronJobsCount={page.props.overviewCronJobsCount}
+            />
 
             <section aria-labelledby="deployments-heading">
               <Card>
@@ -137,12 +153,6 @@ export default function AppWithDeployment() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <a href="https://vitodeploy.com/docs/sites/application" target="_blank" rel="noopener noreferrer">
-                              <BookOpenIcon />
-                              Documentation
-                            </a>
-                          </DropdownMenuItem>
                           <AutoDeployment site={site}>
                             <DropdownMenuItem onSelect={(e) => e.preventDefault()} disabled={!site.source_control_id}>
                               {site.auto_deploy ? 'Disable' : 'Enable'} auto deploy
@@ -274,39 +284,66 @@ export default function AppWithDeployment() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div>
-                <div className="flex flex-col gap-3 p-4">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Connection</p>
-                  <Detail icon={ServerIcon} label="Server">
-                    {page.props.server.name}
-                  </Detail>
-                  <Detail icon={NetworkIcon} label="Public IP">
-                    <span className="font-mono">{page.props.server.ip}</span>
-                  </Detail>
-                </div>
-
-                <div className="flex flex-col gap-3 border-t p-4">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Runtime</p>
-                  <Detail icon={CodeXmlIcon} label="Site type">
-                    {formatSiteType(site.type)}
-                  </Detail>
-                  {site.php_version && <Detail icon={CodeXmlIcon} label="PHP">{site.php_version}</Detail>}
-                  <Detail icon={UserRoundIcon} label="Site user">
-                    {site.user}
-                  </Detail>
-                  <Detail icon={Globe2Icon} label="Webserver">
-                    {site.webserver}
-                  </Detail>
-                  {site.branch && <Detail icon={GitBranchIcon} label="Branch">{site.branch}</Detail>}
-                </div>
+              <div className="flex flex-col gap-3 p-4">
+                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Connection</p>
+                <Detail icon={ServerIcon} label="Server">
+                  {page.props.server.name}
+                </Detail>
+                <Detail icon={NetworkIcon} label="Public IP">
+                  <span className="font-mono">{page.props.server.ip}</span>
+                </Detail>
               </div>
-              <div className="grid grid-cols-2 divide-x border-y">
+
+              <div className="flex flex-col gap-3 border-t p-4">
+                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Runtime</p>
+                <Detail icon={CodeXmlIcon} label="Site type">
+                  {formatSiteType(site.type)}
+                </Detail>
+                {site.php_version && <Detail icon={CodeXmlIcon} label="PHP">{site.php_version}</Detail>}
+              </div>
+
+              <Collapsible open={showDetails} onOpenChange={setShowDetails}>
+                <CollapsibleContent>
+                  <div className="flex flex-col gap-3 border-t p-4">
+                    <Detail icon={UserRoundIcon} label="Site user">
+                      {site.user}
+                    </Detail>
+                    <Detail icon={Globe2Icon} label="Webserver">
+                      {site.webserver}
+                    </Detail>
+                    {site.branch && <Detail icon={GitBranchIcon} label="Branch">{site.branch}</Detail>}
+                  </div>
+                  <div className="bg-muted/30 text-muted-foreground flex items-center justify-between gap-3 border-t px-4 py-3 text-xs">
+                    <span>Server ID: {page.props.server.id}</span>
+                    <span>Site ID: {site.id}</span>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+
+              <div className="grid grid-cols-2 divide-x border-t">
                 <StatusDetail icon={LockKeyholeIcon} label="SSL" enabled={site.ssl_enabled} />
                 <StatusDetail icon={ZapIcon} label="Auto deploy" enabled={site.auto_deploy} />
               </div>
-              <div className="bg-muted/30 text-muted-foreground flex items-center justify-between gap-3 px-4 py-3 text-xs">
-                <span>Server ID: {page.props.server.id}</span>
-                <span>Site ID: {site.id}</span>
+
+              <div className="border-t p-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-muted-foreground hover:text-foreground w-full justify-center text-xs"
+                  onClick={() => setShowDetails(!showDetails)}
+                >
+                  {showDetails ? (
+                    <>
+                      Hide details
+                      <ChevronUpIcon className="ml-1.5 size-3.5" />
+                    </>
+                  ) : (
+                    <>
+                      More details
+                      <ChevronDownIcon className="ml-1.5 size-3.5" />
+                    </>
+                  )}
+                </Button>
               </div>
             </CardContent>
           </Card>

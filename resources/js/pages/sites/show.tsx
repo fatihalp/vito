@@ -33,12 +33,6 @@ export default function ShowSite() {
         <HeaderContainer>
           <Heading title="Application" description="Here you can manage the deployed application" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/sites/application" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
           </div>
         </HeaderContainer>
 

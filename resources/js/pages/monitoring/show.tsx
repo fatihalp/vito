@@ -36,12 +36,6 @@ export default function Show() {
         <HeaderContainer>
           <Heading title={meta.title} description={meta.description} />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/monitoring" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Filter onValueChange={setFilter} />
           </div>
         </HeaderContainer>

@@ -24,6 +24,7 @@ class ServerResource extends JsonResource
             'role' => $this->role->getText(),
             'role_value' => $this->role->value,
             'role_color' => $this->role->getColor(),
+            'stage' => $this->stage,
             'ssh_user' => $this->ssh_user,
             'ssh_users' => $this->getSshUsers(),
             'ip' => $this->ip,

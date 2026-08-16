@@ -66,12 +66,6 @@ export default function Sites() {
       <Container className="max-w-5xl">
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/sites/site-types" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <CreateSite server={page.props.server}>
               <Button>
                 <PlusIcon />

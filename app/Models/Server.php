@@ -91,6 +91,7 @@ class Server extends AbstractModel
         'user_id',
         'name',
         'role',
+        'stage',
         'ssh_user',
         'ip',
         'local_ip',

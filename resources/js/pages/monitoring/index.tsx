@@ -31,12 +31,6 @@ export default function Monitoring() {
         <HeaderContainer>
           <Heading title="Monitoring" description="Here you can see your server's metrics" />
           <div className="flex items-center gap-2">
-            <a href="https://vitodeploy.com/docs/servers/monitoring" target="_blank">
-              <Button variant="outline">
-                <BookOpenIcon />
-                <span className="hidden lg:block">Docs</span>
-              </Button>
-            </a>
             <Filter onValueChange={setFilter} />
             <Actions server={page.props.server} />
           </div>
