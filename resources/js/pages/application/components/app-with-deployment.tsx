@@ -92,17 +92,17 @@ export default function AppWithDeployment() {
       <Head title={`${site.domain} - ${page.props.server.name}`} />
 
       <Container className="max-w-7xl gap-6">
-        <div className="flex flex-col gap-4 border-b pb-5 sm:flex-row sm:items-center sm:justify-between">
+        <section className="bg-card flex flex-col gap-5 rounded-2xl border p-4 shadow-xs sm:flex-row sm:items-center sm:justify-between sm:p-5" aria-labelledby="site-title">
           <div className="flex min-w-0 items-center gap-3">
-            <div className="bg-primary/10 text-primary flex size-12 shrink-0 items-center justify-center rounded-xl text-xl font-semibold">
+            <div className="bg-primary/10 text-primary flex size-11 shrink-0 items-center justify-center rounded-xl text-lg font-semibold">
               {site.domain.charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
               <div className="flex min-w-0 items-center gap-2">
-                <h1 className="truncate text-xl font-semibold">{site.domain}</h1>
+                <h1 id="site-title" className="truncate text-xl font-semibold">{site.domain}</h1>
                 <Badge variant={site.status_color}>{site.status}</Badge>
               </div>
-              <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
+              <div className="text-muted-foreground mt-1 flex min-w-0 items-center gap-2 text-sm">
                 {site.repository ? (
                   <>
                     <GitBranchIcon className="size-4 shrink-0" />
@@ -171,37 +171,46 @@ export default function AppWithDeployment() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
+        </section>
 
         <SiteBanners site={site} />
 
-        <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_19rem]">
+        <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="flex min-w-0 flex-col gap-6">
             {site.is_proxied_site_type && (
               <ProxiedAppCard site={site} initialWorker={page.props.worker} />
             )}
 
-            <section className="flex flex-col gap-3" aria-labelledby="deployments-heading">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 id="deployments-heading" className="font-semibold">Deployments</h2>
-                  <p className="text-muted-foreground text-sm">Your three most recent deployments.</p>
-                </div>
-                <Button variant="outline" size="sm" asChild>
-                  <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>View all</Link>
-                </Button>
-              </div>
-              <DeploymentsTable deployments={page.props.deployments} showPagination={false} />
+            <section aria-labelledby="deployments-heading">
+              <Card>
+                <CardHeader className="flex-row items-center justify-between gap-3">
+                  <div className="flex min-w-0 flex-col gap-1">
+                    <CardTitle id="deployments-heading">Deployments</CardTitle>
+                    <p className="text-muted-foreground text-sm">Your three most recent deployments.</p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>View all</Link>
+                  </Button>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <DeploymentsTable deployments={page.props.deployments} showPagination={false} />
+                </CardContent>
+              </Card>
             </section>
 
-            <div className="grid gap-6 xl:grid-cols-2">
+            <section className="grid gap-4 md:grid-cols-2" aria-label="Site automation">
               <Card>
                 <CardHeader className="flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <ListEndIcon className="text-muted-foreground size-4" />
-                    <CardTitle>Background processes</CardTitle>
+                    <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
+                      <ListEndIcon className="size-4" />
+                    </div>
+                    <div>
+                      <CardTitle>Background processes</CardTitle>
+                      <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewWorkersCount} configured</p>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild>
                     <Link href={route('workers.site', { server: site.server_id, site: site.id })}>Manage</Link>
                   </Button>
                 </CardHeader>
@@ -217,7 +226,7 @@ export default function AppWithDeployment() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-muted-foreground px-4 py-8 text-center text-sm">No background processes yet.</p>
+                    <p className="text-muted-foreground px-4 py-6 text-center text-sm">No background processes yet.</p>
                   )}
                   {page.props.overviewWorkersCount > page.props.overviewWorkers.length && (
                     <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewWorkersCount}</p>
@@ -228,10 +237,15 @@ export default function AppWithDeployment() {
               <Card>
                 <CardHeader className="flex-row items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <CalendarClockIcon className="text-muted-foreground size-4" />
-                    <CardTitle>Scheduled jobs</CardTitle>
+                    <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
+                      <CalendarClockIcon className="size-4" />
+                    </div>
+                    <div>
+                      <CardTitle>Scheduled jobs</CardTitle>
+                      <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewCronJobsCount} configured</p>
+                    </div>
                   </div>
-                  <Button variant="outline" size="sm" asChild>
+                  <Button variant="ghost" size="sm" asChild>
                     <Link href={route('cronjobs.site', { server: site.server_id, site: site.id })}>Manage</Link>
                   </Button>
                 </CardHeader>
@@ -247,14 +261,14 @@ export default function AppWithDeployment() {
                       </div>
                     ))
                   ) : (
-                    <p className="text-muted-foreground px-4 py-8 text-center text-sm">No scheduled jobs yet.</p>
+                    <p className="text-muted-foreground px-4 py-6 text-center text-sm">No scheduled jobs yet.</p>
                   )}
                   {page.props.overviewCronJobsCount > page.props.overviewCronJobs.length && (
                     <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewCronJobsCount}</p>
                   )}
                 </CardContent>
               </Card>
-            </div>
+            </section>
           </div>
 
           <Card className="overflow-hidden lg:sticky lg:top-4">
