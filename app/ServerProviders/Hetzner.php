@@ -345,6 +345,10 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
      */
     public function isRunning(): bool
     {
+        if (empty($this->server->provider_data['hetzner_id'])) {
+            return false;
+        }
+
         $status = Http::withToken($this->server->serverProvider->credentials['token'])
             ->get($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id']);
 
@@ -353,6 +357,41 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         }
 
         return $status->json()['server']['status'] == 'running';
+    }
+
+    public function canPowerManage(): bool
+    {
+        return ! empty($this->server->provider_data['hetzner_id']) && ! empty($this->server->serverProvider?->credentials['token']);
+    }
+
+    /**
+     * @throws ServerProviderError
+     */
+    public function stop(): void
+    {
+        if (isset($this->server->provider_data['hetzner_id'])) {
+            $response = Http::withToken($this->server->serverProvider->credentials['token'])
+                ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweroff');
+
+            if (! $response->ok() && $response->status() !== 404) {
+                $this->providerError($response);
+            }
+        }
+    }
+
+    /**
+     * @throws ServerProviderError
+     */
+    public function start(): void
+    {
+        if (isset($this->server->provider_data['hetzner_id'])) {
+            $response = Http::withToken($this->server->serverProvider->credentials['token'])
+                ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweron');
+
+            if (! $response->ok() && $response->status() !== 404) {
+                $this->providerError($response);
+            }
+        }
     }
 
     /**

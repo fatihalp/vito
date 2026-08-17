@@ -6,6 +6,8 @@ use App\Actions\Server\CreateServer;
 use App\Actions\Server\DeleteServer;
 use App\Actions\Server\GetServers;
 use App\Actions\Server\RebootServer;
+use App\Actions\Server\StartServer;
+use App\Actions\Server\StopServer;
 use App\Actions\Server\TransferServer;
 use App\Actions\Server\Update;
 use App\Actions\Server\UpdateKernel;
@@ -113,6 +115,26 @@ class ServerController extends Controller
         app(RebootServer::class)->reboot($server);
 
         return back()->with('success', 'Server is being rebooted.');
+    }
+
+    #[Post('/{server}/stop', name: 'servers.stop')]
+    public function stop(Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        app(StopServer::class)->stop($server);
+
+        return back()->with('success', 'Server stop command sent to '.$server->provider.'.');
+    }
+
+    #[Post('/{server}/start', name: 'servers.start')]
+    public function start(Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        app(StartServer::class)->start($server);
+
+        return back()->with('success', 'Server start command sent to '.$server->provider.'.');
     }
 
     /**

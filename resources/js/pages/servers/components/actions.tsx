@@ -1,7 +1,7 @@
 import { Server } from '@/types/server';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { LoaderCircleIcon, MoreVerticalIcon } from 'lucide-react';
+import { LoaderCircleIcon, MoreVerticalIcon, PowerOffIcon, PlayIcon, RefreshCwIcon } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import { useDialog } from '@/hooks/use-dialog';
 
@@ -14,7 +14,7 @@ function CheckForUpdates({ server }: { server: Server }) {
 
   return (
     <DropdownMenuItem
-      className="w-40"
+      className="w-48"
       onSelect={(e) => {
         e.preventDefault();
         submit();
@@ -35,7 +35,7 @@ function CheckConnection({ server }: { server: Server }) {
 
   return (
     <DropdownMenuItem
-      className="w-40"
+      className="w-48"
       onSelect={(e) => {
         e.preventDefault();
         submit();
@@ -49,6 +49,8 @@ function CheckConnection({ server }: { server: Server }) {
 
 export default function ServerActions({ server }: { server: Server }) {
   const dialog = useDialog();
+  const canPowerManage = server.can_power_manage ?? (Boolean(server.provider) && server.provider.toLowerCase() !== 'custom');
+  const isDisconnected = server.status === 'disconnected';
 
   return (
     <DropdownMenu modal={false}>
@@ -58,8 +60,28 @@ export default function ServerActions({ server }: { server: Server }) {
           <MoreVerticalIcon />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="w-52">
         <CheckConnection server={server} />
+
+        {canPowerManage && isDisconnected && (
+          <DropdownMenuItem
+            className="text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10 font-medium"
+            onSelect={() =>
+              dialog.confirm.open({
+                title: `Start ${server.name}?`,
+                description: `Power on this server via ${server.provider}? The server will boot up and reconnect.`,
+                variant: 'default',
+                confirmLabel: 'Start Server',
+                method: 'post',
+                url: route('servers.start', server.id),
+              })
+            }
+          >
+            <PlayIcon className="size-4 mr-2 text-emerald-500" />
+            Start server ({server.provider})
+          </DropdownMenuItem>
+        )}
+
         <DropdownMenuItem
           onSelect={() =>
             dialog.confirm.open({
@@ -73,8 +95,31 @@ export default function ServerActions({ server }: { server: Server }) {
             })
           }
         >
+          <RefreshCwIcon className="size-4 mr-2" />
           Restart
         </DropdownMenuItem>
+
+        {canPowerManage && !isDisconnected && (
+          <DropdownMenuItem
+            className="text-destructive focus:text-destructive focus:bg-destructive/10 font-medium"
+            onSelect={() =>
+              dialog.confirm.open({
+                title: `Stop ${server.name}?`,
+                description: `Are you sure you want to stop (power off) this server via ${server.provider}? All services, databases, and sites hosted on this server will become offline immediately until you start it again.`,
+                variant: 'destructive',
+                confirmLabel: 'Stop Server',
+                method: 'post',
+                url: route('servers.stop', server.id),
+              })
+            }
+          >
+            <PowerOffIcon className="size-4 mr-2 text-destructive" />
+            Stop server ({server.provider})
+          </DropdownMenuItem>
+        )}
+
+        <DropdownMenuSeparator />
+
         <CheckForUpdates server={server} />
         <DropdownMenuItem
           disabled={server.updates == 0}
@@ -89,7 +134,7 @@ export default function ServerActions({ server }: { server: Server }) {
             })
           }
         >
-          Update
+          Update packages
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={server.kernel_updates == 0}

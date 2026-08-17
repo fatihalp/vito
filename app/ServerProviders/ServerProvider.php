@@ -58,5 +58,11 @@ interface ServerProvider
 
     public function isRunning(): bool;
 
+    public function canPowerManage(): bool;
+
+    public function stop(): void;
+
+    public function start(): void;
+
     public function delete(): void;
 }

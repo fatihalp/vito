@@ -53,4 +53,13 @@ abstract class AbstractProvider implements ServerProvider
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
         generate_key_pair($storageDisk->path((string) $this->server->id));
     }
+
+    public function canPowerManage(): bool
+    {
+        return false;
+    }
+
+    public function stop(): void {}
+
+    public function start(): void {}
 }

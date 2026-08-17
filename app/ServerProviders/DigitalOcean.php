@@ -339,6 +339,31 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         return $status->json()['droplet']['status'] == 'active';
     }
 
+    public function canPowerManage(): bool
+    {
+        return ! empty($this->server->provider_data['droplet_id']) && ! empty($this->server->serverProvider?->credentials['token']);
+    }
+
+    public function stop(): void
+    {
+        if (isset($this->server->provider_data['droplet_id'])) {
+            Http::withToken($this->server->serverProvider->credentials['token'])
+                ->post($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id'].'/actions', [
+                    'type' => 'power_off',
+                ]);
+        }
+    }
+
+    public function start(): void
+    {
+        if (isset($this->server->provider_data['droplet_id'])) {
+            Http::withToken($this->server->serverProvider->credentials['token'])
+                ->post($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id'].'/actions', [
+                    'type' => 'power_on',
+                ]);
+        }
+    }
+
     /**
      * @throws Exception
      */

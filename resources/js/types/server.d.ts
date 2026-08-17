@@ -38,6 +38,7 @@ export interface Server {
   created_at: string;
   updated_at: string;
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
+  can_power_manage?: boolean;
   warnings?: ServerWarning[];
   [key: string]: unknown;
 }

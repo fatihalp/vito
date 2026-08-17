@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\Site\CreateSite;
 use App\Actions\Site\DisableSsl;
 use App\Actions\Site\EnableSsl;
-use App\Actions\Site\GetIsolatedUsers;
 use App\Actions\Site\GetAccessibleSites;
+use App\Actions\Site\GetIsolatedUsers;
 use App\Actions\Site\GetSites;
 use App\Actions\Site\RetrySite;
 use App\Helpers\QueryBuilder;
@@ -52,8 +52,19 @@ class SiteController extends Controller
         ]);
     }
 
-    #[Get('/servers/{server}/sites-json', name: 'sites.json')]
-    public function json(Request $request, Server $server): ResourceCollection
+    #[Get('/sites/json', name: 'sites.json')]
+    public function json(Request $request): ResourceCollection
+    {
+        $this->authorize('viewAny', user()->currentProject);
+
+        $currentServerId = $request->integer('current_server_id') ?: null;
+        $sites = app(GetSites::class)->getGlobal(user(), $request->input(), $currentServerId, 10);
+
+        return SiteResource::collection($sites);
+    }
+
+    #[Get('/servers/{server}/sites-json', name: 'sites.server.json')]
+    public function serverJson(Request $request, Server $server): ResourceCollection
     {
         $this->authorize('viewAny', [Site::class, $server]);
 

@@ -512,6 +512,15 @@ class Server extends AbstractModel
         return $provider;
     }
 
+    public function canPowerManage(): bool
+    {
+        try {
+            return $this->provider()->canPowerManage();
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
     public function webserver(?string $version = null): ?Service
     {
         if ($version === null || $version === '' || $version === '0') {

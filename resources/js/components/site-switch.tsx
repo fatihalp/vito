@@ -122,7 +122,7 @@ export function SiteSwitch() {
     page.props.server && (
       <div className="flex items-center">
         <SiteSelect
-          serverId={page.props.server.id}
+          currentServerId={page.props.server.id}
           value={selected}
           onValueChangeAdvanced={handleSiteChange}
           trigger={trigger}

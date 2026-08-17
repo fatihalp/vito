@@ -91,6 +91,32 @@ export default function ServerBanners({ server }: { server: Server }) {
     });
   }
 
+  const canPowerManage = server.can_power_manage ?? (Boolean(server.provider) && server.provider.toLowerCase() !== 'custom');
+  if (server.status === 'disconnected' && canPowerManage) {
+    items.push({
+      key: 'server-offline',
+      title: 'Server is offline / powered off',
+      description: `This server is currently disconnected or stopped on ${server.provider}. Start it to bring hosted sites and services back online.`,
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() =>
+            dialog.confirm.open({
+              title: `Start ${server.name}?`,
+              description: `Power on this server via ${server.provider}? The server will boot up and reconnect.`,
+              confirmLabel: 'Start server',
+              method: 'post',
+              url: route('servers.start', server.id),
+            })
+          }
+        >
+          Start server
+        </Button>
+      ),
+    });
+  }
+
   if (items.length === 0) return null;
 
   return (

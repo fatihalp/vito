@@ -13,7 +13,19 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { Script } from '@/types/script';
 import { useInputFocus } from '@/stores/useInputFocus';
 
-export default function ScriptForm({ open, onOpenChange, script }: { open: boolean; onOpenChange: (open: boolean) => void; script?: Script }) {
+export default function ScriptForm({
+  open,
+  onOpenChange,
+  script,
+  initialName,
+  initialContent,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  script?: Script;
+  initialName?: string;
+  initialContent?: string;
+}) {
   const { getActualAppearance } = useAppearance();
   const setFocused = useInputFocus((state) => state.setFocused);
 
@@ -21,14 +33,30 @@ export default function ScriptForm({ open, onOpenChange, script }: { open: boole
     name: string;
     content: string;
   }>({
-    name: script?.name ?? '',
-    content: script?.content ?? '',
+    name: script?.name ?? initialName ?? '',
+    content: script?.content ?? initialContent ?? '',
   });
 
   useEffect(() => {
     setFocused(open);
     return () => setFocused(false);
   }, [open, setFocused]);
+
+  useEffect(() => {
+    if (open) {
+      if (script) {
+        form.setData({
+          name: script.name ?? '',
+          content: script.content ?? '',
+        });
+      } else {
+        form.setData({
+          name: initialName ?? '',
+          content: initialContent ?? '',
+        });
+      }
+    }
+  }, [open, script, initialName, initialContent]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -48,16 +76,22 @@ export default function ScriptForm({ open, onOpenChange, script }: { open: boole
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-5xl" onCloseAutoFocus={(e) => e.preventDefault()}>
+      <SheetContent className="overflow-y-auto sm:max-w-5xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>{script ? 'Edit' : 'Create'} script</SheetTitle>
+          <SheetTitle>{script ? 'Edit script' : 'Create script'}</SheetTitle>
           <SheetDescription className="sr-only">{script ? 'Edit' : 'Create'} script</SheetDescription>
         </SheetHeader>
         <Form id="script-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
               <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+              <Input
+                id="name"
+                name="name"
+                placeholder="e.g. Deploy Application, Clear Caches..."
+                value={form.data.name}
+                onChange={(e) => form.setData('name', e.target.value)}
+              />
               <InputError message={form.errors.name} />
             </FormField>
 
@@ -66,16 +100,16 @@ export default function ScriptForm({ open, onOpenChange, script }: { open: boole
               <div className="overflow-hidden rounded-md border">
                 <Editor
                   defaultLanguage="bash"
-                  defaultValue={form.data.content}
+                  value={form.data.content}
                   theme={getActualAppearance() === 'dark' ? 'vs-dark' : 'vs'}
                   className="h-[500px]"
                   onChange={(value) => form.setData('content', value ?? '')}
                   options={{
-                    fontSize: 15,
+                    fontSize: 14,
                     minimap: {
                       enabled: false,
                     },
-                    lineNumbers: 'off',
+                    lineNumbers: 'on',
                     padding: {
                       top: 10,
                       bottom: 10,
@@ -84,7 +118,7 @@ export default function ScriptForm({ open, onOpenChange, script }: { open: boole
                 />
               </div>
               <p className="text-muted-foreground text-sm">
-                You can use variables like {'${VARIABLE_NAME}'} in the script. The variables will be asked when executing the script
+                You can use variables like {'${VARIABLE_NAME}'} in the script. The variables will be prompted when executing the script.
               </p>
               <InputError message={form.errors.content} />
             </FormField>
@@ -94,7 +128,7 @@ export default function ScriptForm({ open, onOpenChange, script }: { open: boole
           <div className="flex items-center gap-2">
             <Button form="script-form" type="button" onClick={submit} disabled={form.processing}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              {script ? 'Save' : 'Create'}
+              {script ? 'Save Changes' : 'Create Script'}
             </Button>
             <SheetClose asChild>
               <Button variant="outline">Cancel</Button>

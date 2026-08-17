@@ -5,11 +5,13 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
 
 interface SiteSelectProps {
-  serverId: number;
+  serverId?: number;
+  currentServerId?: number;
   value: string;
   valueBy?: keyof Site;
   onValueChange?: (selectedSite?: Site) => void;
@@ -27,6 +29,7 @@ interface SiteSelectProps {
 
 export default function SiteSelect({
   serverId,
+  currentServerId,
   value,
   valueBy = 'id',
   onValueChange,
@@ -46,26 +49,14 @@ export default function SiteSelect({
   const [selected, setSelected] = useState<string>(value);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const refetchRef = useRef<(() => void) | null>(null);
-  const prevServerIdRef = useRef<number>(serverId);
 
+  const activeCurrentServerId = currentServerId ?? serverId;
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
 
   useEffect(() => {
-    if (prevServerIdRef.current !== serverId) {
-      prevServerIdRef.current = serverId;
-      setSelected('');
-      if (onValueChange) {
-        onValueChange(undefined);
-      }
-    }
-  }, [serverId]);
-
-  useEffect(() => {
-    if (prevServerIdRef.current === serverId) {
-      setSelected(value);
-    }
-  }, [value, serverId]);
+    setSelected(value);
+  }, [value]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -76,12 +67,18 @@ export default function SiteSelect({
   }, [query]);
 
   const { data, isFetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Site[]>({
-    queryKey: ['sites', serverId, debouncedQuery],
+    queryKey: ['sites', activeCurrentServerId, debouncedQuery],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await axios.get(route('sites.json', { server: serverId, query: debouncedQuery || '', page: pageParam }));
+      const response = await axios.get(
+        route('sites.json', {
+          current_server_id: activeCurrentServerId,
+          query: debouncedQuery || '',
+          page: pageParam,
+        }),
+      );
       return response.data;
     },
-    enabled: !!serverId && (open || prefetch === true),
+    enabled: open || prefetch === true,
     staleTime: Infinity,
     gcTime: 1000 * 60 * 5,
     refetchOnMount: false,
@@ -170,7 +167,7 @@ export default function SiteSelect({
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>{trigger || defaultTrigger}</PopoverTrigger>
-      <PopoverContent className="flex max-h-[400px] w-(--radix-popover-trigger-width) min-w-56 flex-col p-0" align="start">
+      <PopoverContent className="flex max-h-[400px] w-(--radix-popover-trigger-width) min-w-64 flex-col p-0" align="start">
         <Command shouldFilter={false} className="flex flex-col overflow-hidden">
           <CommandInput placeholder="Search site..." value={query} onValueChange={setQuery} />
           <CommandList data-slot="command-list" className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
@@ -182,10 +179,25 @@ export default function SiteSelect({
               <CommandGroup>
                 {sites.map((site: Site) => {
                   const siteValue = String(site[valueBy] as Site[keyof Site]);
+                  const isOtherServer = Boolean(activeCurrentServerId && site.server_id !== activeCurrentServerId);
+                  const showServerName = (isOtherServer || !activeCurrentServerId) && Boolean(site.server?.name);
+
                   return (
-                    <CommandItem key={`site-select-${site.id}`} value={siteValue} onSelect={() => handleSelect(site, siteValue)} className="truncate">
-                      {site.domain}
-                      <CheckIcon className={cn('ml-auto', selected === siteValue ? 'opacity-100' : 'opacity-0')} />
+                    <CommandItem
+                      key={`site-select-${site.id}`}
+                      value={siteValue}
+                      onSelect={() => handleSelect(site, siteValue)}
+                      className="flex items-center justify-between gap-2"
+                    >
+                      <div className="flex min-w-0 items-center gap-2">
+                        <span className="truncate">{site.domain}</span>
+                        {showServerName && (
+                          <Badge variant="outline" className="text-muted-foreground h-4 shrink-0 px-1.5 py-0 text-[10px] font-normal">
+                            {site.server?.name}
+                          </Badge>
+                        )}
+                      </div>
+                      <CheckIcon className={cn('ml-auto size-4 shrink-0', selected === siteValue ? 'opacity-100' : 'opacity-0')} />
                     </CommandItem>
                   );
                 })}

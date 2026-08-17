@@ -43,6 +43,7 @@ class ServerResource extends JsonResource
             'kernel_updates' => $this->kernel_updates,
             'last_update_check' => $this->last_update_check,
             'status_color' => $this->status->getColor(),
+            'can_power_manage' => $this->canPowerManage(),
             'features' => $this->features(),
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,

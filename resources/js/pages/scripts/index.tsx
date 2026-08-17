@@ -4,7 +4,7 @@ import Layout from '@/layouts/app/layout';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { BookOpenIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon, SparklesIcon, TerminalIcon } from 'lucide-react';
 import Container from '@/components/container';
 import { DataTable } from '@/components/data-table';
 import { Script } from '@/types/script';
@@ -23,14 +23,58 @@ export default function Scripts() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Scripts" description="These are the scripts that you can run on your site's location" />
+          <Heading title="Scripts" description="These are the bash scripts that you can execute on your servers and sites" />
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => dialog.scriptTemplates.open({})}>
+              <SparklesIcon className="text-primary size-4" />
+              <span>From Template</span>
+            </Button>
             <Button onClick={() => dialog.scriptForm.open({})}>
-              <PlusIcon />
-              <span className="hidden lg:block">Create</span>
+              <PlusIcon className="size-4" />
+              <span>Create Script</span>
             </Button>
           </div>
         </HeaderContainer>
+
+        {page.props.scripts.data.length === 0 && (
+          <div className="mb-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="bg-card flex flex-col justify-between rounded-xl border p-5 shadow-xs transition-shadow hover:shadow-md">
+              <div className="space-y-2">
+                <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
+                  <SparklesIcon className="size-5" />
+                </div>
+                <h4 className="text-sm font-semibold">Start with a Template</h4>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Choose from curated, battle-tested Laravel script templates for zero-downtime deployment, cache warmup, database migrations, queue management, and maintenance.
+                </p>
+              </div>
+              <div className="pt-4">
+                <Button variant="outline" size="sm" onClick={() => dialog.scriptTemplates.open({})}>
+                  <SparklesIcon className="mr-1.5 size-3.5" />
+                  Browse Templates
+                </Button>
+              </div>
+            </div>
+
+            <div className="bg-card flex flex-col justify-between rounded-xl border p-5 shadow-xs transition-shadow hover:shadow-md">
+              <div className="space-y-2">
+                <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg">
+                  <TerminalIcon className="size-5" />
+                </div>
+                <h4 className="text-sm font-semibold">Create Custom Script</h4>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Write your own custom bash script from scratch. Use dynamic variable placeholders like <code className="font-mono text-[11px]">${'{SITE_PATH}'}</code> that will be prompted on execution.
+                </p>
+              </div>
+              <div className="pt-4">
+                <Button size="sm" onClick={() => dialog.scriptForm.open({})}>
+                  <PlusIcon className="mr-1.5 size-3.5" />
+                  Blank Script
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         <DataTable columns={columns} paginatedData={page.props.scripts} />
       </Container>
