@@ -44,6 +44,7 @@ import NetworkFirewallRuleForm from '@/pages/networks/components/firewall-rule-f
 import AddNetworkPeer from '@/pages/networks/components/add-peer';
 import PeerConfigDialog from '@/pages/networks/components/peer-config';
 import ImportWorkflow from '@/pages/workflows/components/import-workflow';
+import WorkflowTemplatesDialog from '@/pages/workflows/components/templates-dialog';
 import ConnectBucketCredentialsDialog from '@/pages/buckets/components/connect-credentials-dialog';
 import CreateBucketDialog from '@/pages/buckets/components/create-bucket-dialog';
 import RevealBucketCredentialsDialog from '@/pages/buckets/components/reveal-credentials-dialog';
@@ -111,6 +112,7 @@ export const dialogs = {
   networkAddPeer: AddNetworkPeer,
   networkPeerConfig: PeerConfigDialog,
   workflowImport: ImportWorkflow,
+  workflowTemplates: WorkflowTemplatesDialog,
   projectInvite: InviteProjectUser,
   projectUsers: ProjectUsers,
   bucketCredentialsConnect: ConnectBucketCredentialsDialog,

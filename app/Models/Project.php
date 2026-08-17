@@ -113,12 +113,14 @@ class Project extends Model
             ->exists();
     }
 
-    public function role(User $user): UserRole
+    public function role(User $user): ?UserRole
     {
-        /** @var UserProject $user */
-        $user = $this->users()->where('user_id', $user->id)->firstOrFail();
+        /** @var ?UserProject $userProject */
+        $userProject = $this->relationLoaded('users')
+            ? $this->users->firstWhere('user_id', $user->id)
+            : $this->users()->where('user_id', $user->id)->first();
 
-        return $user->role;
+        return $userProject?->role;
     }
 
     public function workflows(): HasMany

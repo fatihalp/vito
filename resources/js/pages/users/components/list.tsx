@@ -30,6 +30,32 @@ const columns: ColumnDef<User>[] = [
     ),
   },
   {
+    id: 'projects',
+    header: 'Projects',
+    enableColumnFilter: false,
+    enableSorting: false,
+    cell: ({ row }) => {
+      const projects = row.original.projects || [];
+      if (projects.length === 0) {
+        return (
+          <span className="text-xs text-muted-foreground">
+            {row.original.is_admin ? 'All (Admin)' : 'No projects'}
+          </span>
+        );
+      }
+
+      return (
+        <div className="flex flex-wrap gap-1 max-w-xs">
+          {projects.map((project) => (
+            <Badge key={project.id} variant="secondary" className="text-xs font-normal">
+              {project.name}
+            </Badge>
+          ))}
+        </div>
+      );
+    },
+  },
+  {
     accessorKey: 'created_at',
     header: 'Created At',
     enableSorting: true,

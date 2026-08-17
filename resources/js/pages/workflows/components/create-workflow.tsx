@@ -17,12 +17,16 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 
+import { useDialog } from '@/hooks/use-dialog';
+import { SparklesIcon } from 'lucide-react';
+
 type CreateForm = {
   name: string;
 };
 
 export default function CreateWorkflow({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
+  const dialog = useDialog();
 
   const form = useForm<CreateForm>({
     name: '',
@@ -36,6 +40,11 @@ export default function CreateWorkflow({ children }: { children: ReactNode }) {
         setOpen(false);
       },
     });
+  };
+
+  const openTemplates = () => {
+    setOpen(false);
+    dialog.workflowTemplates.open({});
   };
 
   return (
@@ -53,6 +62,21 @@ export default function CreateWorkflow({ children }: { children: ReactNode }) {
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
+
+            <div className="bg-muted/30 rounded-lg border border-dashed p-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="space-y-0.5">
+                  <div className="text-foreground flex items-center gap-1.5 text-xs font-medium">
+                    <SparklesIcon className="text-primary size-3.5" />
+                    Standard Laravel Templates
+                  </div>
+                  <p className="text-muted-foreground text-[11px]">Create complete Single Server or Microservices workflows in one click.</p>
+                </div>
+                <Button type="button" variant="outline" size="sm" onClick={openTemplates} className="shrink-0 text-xs">
+                  Browse Templates
+                </Button>
+              </div>
+            </div>
           </FormFields>
         </Form>
         <DialogFooter>

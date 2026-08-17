@@ -2,8 +2,7 @@ import { Head, router, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { BookOpenIcon, DownloadIcon, MoreVerticalIcon, PlusIcon, UploadIcon } from 'lucide-react';
+import { BookOpenIcon, DownloadIcon, MoreVerticalIcon, PlusIcon, SparklesIcon, UploadIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
 import { Workflow } from '@/types/workflow';
 import Layout from '@/layouts/app/layout';
@@ -29,13 +28,17 @@ export default function Workflows() {
         <HeaderContainer>
           <Heading title="Workflows" description="Workflows are chained scripts that will run in the defined order" />
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => dialog.workflowTemplates.open({})}>
+              <SparklesIcon className="size-4" />
+              <span className="hidden lg:block">Templates</span>
+            </Button>
             <Button variant="outline" onClick={() => dialog.workflowImport.open({})}>
-              <UploadIcon />
+              <UploadIcon className="size-4" />
               <span className="hidden lg:block">Import</span>
             </Button>
             <CreateWorkflow>
               <Button>
-                <PlusIcon />
+                <PlusIcon className="size-4" />
                 <span className="hidden lg:block">Create</span>
               </Button>
             </CreateWorkflow>

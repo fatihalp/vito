@@ -30,7 +30,9 @@ class UserController extends Controller
 
         return Inertia::render('users/index', [
             'users' => UserResource::collection(
-                User::query()->simplePaginate(config('web.pagination_size'))
+                User::query()
+                    ->with('projects')
+                    ->simplePaginate(config('web.pagination_size'))
             ),
         ]);
     }
@@ -49,6 +51,7 @@ class UserController extends Controller
 
         $users = User::query()->where('name', 'like', "%{$request->input('query')}%")
             ->orWhere('email', 'like', "%{$request->input('query')}%")
+            ->with('projects')
             ->take(10)
             ->get();
 
