@@ -41,6 +41,13 @@ export interface WorkflowTemplate {
 
 const SUCCESS_COLOR = 'oklch(51.1% 0.262 276.966)';
 
+const PASSWORD_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
+
+export function generatePassword(length = 18): string {
+  const values = crypto.getRandomValues(new Uint32Array(length));
+  return Array.from(values, (value) => PASSWORD_CHARS[value % PASSWORD_CHARS.length]).join('');
+}
+
 function makeEdge(sourceId: string, targetId: string): Edge {
   return {
     id: `${sourceId}-${targetId}-${SUCCESS_COLOR}`,
@@ -49,6 +56,164 @@ function makeEdge(sourceId: string, targetId: string): Edge {
     data: { status: 'success' },
     style: { stroke: SUCCESS_COLOR, strokeWidth: 2 },
     markerEnd: { type: 'arrowclosed', color: SUCCESS_COLOR },
+  };
+}
+
+function chainEdges(nodeIds: string[]): Edge[] {
+  return nodeIds.slice(1).map((target, index) => makeEdge(nodeIds[index], target));
+}
+
+type ResolvedConfig = Required<Omit<WorkflowTemplateConfig, 'workflowName' | 'serverProviderId'>> & {
+  serverProviderId: number | string;
+};
+
+function resolveConfig(config: WorkflowTemplateConfig): ResolvedConfig {
+  return {
+    serverProviderId: config.serverProviderId || '__SERVER_PROVIDER_ID__',
+    plan: config.plan || 'cx22',
+    region: config.region || 'fsn1',
+    domain: config.domain || 'app.example.com',
+    repository: config.repository || 'laravel/laravel',
+    branch: config.branch || 'main',
+    dbName: config.dbName || 'laravel',
+    dbUser: config.dbUser || 'laravel',
+    dbPassword: config.dbPassword || generatePassword(),
+    phpVersion: config.phpVersion || '8.3',
+  };
+}
+
+interface NodeAction {
+  category: 'server' | 'database' | 'site' | 'general';
+  handler: string;
+  inputs: Record<string, unknown>;
+  outputs: Record<string, string>;
+}
+
+function makeNode(id: string, index: number, label: string, action: NodeAction): Node {
+  return {
+    id,
+    type: 'custom',
+    position: { x: 50 + index * 350, y: 150 },
+    sourcePosition: Position.Right,
+    targetPosition: Position.Left,
+    data: {
+      label,
+      action: { id, label, starting: index === 0, ...action },
+    },
+  };
+}
+
+const SERVER_OUTPUTS = {
+  server_id: 'The ID of the created server',
+  server_name: 'The name of the created server',
+  server_ip: 'The IP address of the created server',
+  server_public_key: 'The public key of the created server',
+  server_provider_id: 'The provider-specific ID of the created server',
+  server_provider: 'The provider of the created server',
+  server_status: 'The status of the created server',
+};
+
+const DATABASE_OUTPUTS = {
+  server_id: 'The ID of the server where the database was created',
+  database_name: 'The name of the created database',
+  database_id: 'The ID of the created database',
+  database_user_id: 'The ID of the created database user',
+  database_user_username: 'The name of the created database user',
+};
+
+const SITE_OUTPUTS = {
+  site_id: 'The ID of the created site',
+  site_domain: 'The domain of the created site',
+  site_path: 'The path of the created site on the server',
+  site_status: 'The status of the created site',
+};
+
+const DEPLOY_OUTPUTS = {
+  site_id: 'The ID of the site',
+  deployment_id: 'The ID of the deployment',
+  deployment_status: 'The status of the deployment',
+};
+
+const BASE_SERVICES = [
+  { type: 'firewall', name: 'ufw', version: 'latest' },
+  { type: 'fail2ban', name: 'fail2ban', version: 'latest' },
+  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
+];
+
+function createServerAction(cfg: ResolvedConfig, name: string, role: string, services: Array<{ type: string; name: string; version: string }>): NodeAction {
+  return {
+    category: 'server',
+    handler: 'App\\WorkflowActions\\Server\\CreateServer',
+    inputs: {
+      name,
+      provider: 'hetzner',
+      server_provider: cfg.serverProviderId,
+      plan: cfg.plan,
+      region: cfg.region,
+      os: 'ubuntu_24',
+      role,
+      stage: 'prod',
+      services,
+    },
+    outputs: SERVER_OUTPUTS,
+  };
+}
+
+function createDatabaseAction(cfg: ResolvedConfig): NodeAction {
+  return {
+    category: 'database',
+    handler: 'App\\WorkflowActions\\Database\\CreateDatabase',
+    inputs: {
+      server_id: '{server_id}',
+      name: cfg.dbName,
+      charset: 'utf8mb4',
+      collation: 'utf8mb4_unicode_ci',
+      username: cfg.dbUser,
+      password: cfg.dbPassword,
+    },
+    outputs: DATABASE_OUTPUTS,
+  };
+}
+
+function createSiteAction(cfg: ResolvedConfig): NodeAction {
+  return {
+    category: 'site',
+    handler: 'App\\WorkflowActions\\Site\\CreateLaravelSite',
+    inputs: {
+      server_id: '{server_id}',
+      domain: cfg.domain,
+      type: 'laravel',
+      php_version: cfg.phpVersion,
+      repository: cfg.repository,
+      branch: cfg.branch,
+      web_directory: 'public',
+      composer: 'true',
+    },
+    outputs: SITE_OUTPUTS,
+  };
+}
+
+function deploySiteAction(): NodeAction {
+  return {
+    category: 'site',
+    handler: 'App\\WorkflowActions\\Site\\DeploySite',
+    inputs: {
+      site_id: '{site_id}',
+    },
+    outputs: DEPLOY_OUTPUTS,
+  };
+}
+
+function migrateAndOptimizeAction(): NodeAction {
+  return {
+    category: 'general',
+    handler: 'App\\WorkflowActions\\General\\RunCommand',
+    inputs: {
+      server_id: '{server_id}',
+      command: 'cd /home/vito/{site_domain} && php artisan migrate --force && php artisan optimize',
+      user: 'vito',
+    },
+    outputs: {},
   };
 }
 
@@ -96,185 +261,32 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       },
     ],
     generateNodesAndEdges: (config) => {
-      const serverProviderId = config.serverProviderId || '__SERVER_PROVIDER_ID__';
-      const plan = config.plan || 'cx22';
-      const region = config.region || 'fsn1';
-      const domain = config.domain || 'app.example.com';
-      const repository = config.repository || 'laravel/laravel';
-      const branch = config.branch || 'main';
-      const dbName = config.dbName || 'laravel';
-      const dbUser = config.dbUser || 'laravel';
-      const dbPassword = config.dbPassword || 'secret_db_pass_' + Math.random().toString(36).substring(2, 10);
-      const phpVersion = config.phpVersion || '8.3';
+      const cfg = resolveConfig(config);
 
       const nodes: Node[] = [
-        {
-          id: 'node-1',
-          type: 'custom',
-          position: { x: 50, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: 'Create Server (Hetzner)',
-            action: {
-              id: 'node-1',
-              label: 'Create Server (Hetzner)',
-              starting: true,
-              category: 'server',
-              handler: 'App\\WorkflowActions\\Server\\CreateServer',
-              inputs: {
-                name: 'laravel-all-in-one',
-                provider: 'hetzner',
-                server_provider: serverProviderId,
-                plan: plan,
-                region: region,
-                os: 'ubuntu_24',
-                role: 'app',
-                stage: 'prod',
-                services: [
-                  { type: 'webserver', name: 'nginx', version: 'latest' },
-                  { type: 'php', name: 'php', version: phpVersion },
-                  { type: 'database', name: 'mysql', version: '8.4' },
-                  { type: 'memory_database', name: 'redis', version: 'latest' },
-                  { type: 'process_manager', name: 'supervisor', version: 'latest' },
-                  { type: 'firewall', name: 'ufw', version: 'latest' },
-                  { type: 'fail2ban', name: 'fail2ban', version: 'latest' },
-                  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
-                ],
-              },
-              outputs: {
-                server_id: 'The ID of the created server',
-                server_name: 'The name of the created server',
-                server_ip: 'The IP address of the created server',
-                server_public_key: 'The public key of the created server',
-                server_provider_id: 'The provider-specific ID of the created server',
-                server_provider: 'The provider of the created server',
-                server_status: 'The status of the created server',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-2',
-          type: 'custom',
-          position: { x: 400, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: 'Create Database & User',
-            action: {
-              id: 'node-2',
-              label: 'Create Database & User',
-              starting: false,
-              category: 'database',
-              handler: 'App\\WorkflowActions\\Database\\CreateDatabase',
-              inputs: {
-                server_id: '{server_id}',
-                name: dbName,
-                charset: 'utf8mb4',
-                collation: 'utf8mb4_unicode_ci',
-                username: dbUser,
-                password: dbPassword,
-              },
-              outputs: {
-                server_id: 'The ID of the server where the database was created',
-                database_name: 'The name of the created database',
-                database_id: 'The ID of the created database',
-                database_user_id: 'The ID of the created database user',
-                database_user_username: 'The name of the created database user',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-3',
-          type: 'custom',
-          position: { x: 750, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: 'Create Laravel Site',
-            action: {
-              id: 'node-3',
-              label: 'Create Laravel Site',
-              starting: false,
-              category: 'site',
-              handler: 'App\\WorkflowActions\\Site\\CreateLaravelSite',
-              inputs: {
-                server_id: '{server_id}',
-                domain: domain,
-                type: 'laravel',
-                php_version: phpVersion,
-                repository: repository,
-                branch: branch,
-                web_directory: 'public',
-                composer: 'true',
-              },
-              outputs: {
-                site_id: 'The ID of the created site',
-                site_domain: 'The domain of the created site',
-                site_path: 'The path of the created site on the server',
-                site_status: 'The status of the created site',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-4',
-          type: 'custom',
-          position: { x: 1100, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: 'Deploy Laravel Site',
-            action: {
-              id: 'node-4',
-              label: 'Deploy Laravel Site',
-              starting: false,
-              category: 'site',
-              handler: 'App\\WorkflowActions\\Site\\DeploySite',
-              inputs: {
-                site_id: '{site_id}',
-              },
-              outputs: {
-                site_id: 'The ID of the site',
-                deployment_id: 'The ID of the deployment',
-                deployment_status: 'The status of the deployment',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-5',
-          type: 'custom',
-          position: { x: 1450, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: 'Artisan Migrations & Optimize',
-            action: {
-              id: 'node-5',
-              label: 'Artisan Migrations & Optimize',
-              starting: false,
-              category: 'general',
-              handler: 'App\\WorkflowActions\\General\\RunCommand',
-              inputs: {
-                server_id: '{server_id}',
-                command: 'cd /home/vito/{site_domain} && php artisan migrate --force && php artisan optimize',
-                user: 'vito',
-              },
-              outputs: {},
-            },
-          },
-        },
+        makeNode(
+          'node-1',
+          0,
+          'Create Server (Hetzner)',
+          createServerAction(cfg, 'laravel-all-in-one', 'app', [
+            { type: 'webserver', name: 'nginx', version: 'latest' },
+            { type: 'php', name: 'php', version: cfg.phpVersion },
+            { type: 'database', name: 'mysql', version: '8.4' },
+            { type: 'memory_database', name: 'redis', version: 'latest' },
+            { type: 'process_manager', name: 'supervisor', version: 'latest' },
+            ...BASE_SERVICES,
+          ]),
+        ),
+        makeNode('node-2', 1, 'Create Database & User', createDatabaseAction(cfg)),
+        makeNode('node-3', 2, 'Create Laravel Site', createSiteAction(cfg)),
+        makeNode('node-4', 3, 'Deploy Laravel Site', deploySiteAction()),
+        makeNode('node-5', 4, 'Artisan Migrations & Optimize', migrateAndOptimizeAction()),
       ];
-
-      const edges: Edge[] = [makeEdge('node-1', 'node-2'), makeEdge('node-2', 'node-3'), makeEdge('node-3', 'node-4'), makeEdge('node-4', 'node-5')];
 
       return {
         name: config.workflowName || 'Laravel All-in-One Stack (Hetzner)',
         nodes,
-        edges,
+        edges: chainEdges(nodes.map((node) => node.id)),
       };
     },
   },
@@ -333,275 +345,46 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
       },
     ],
     generateNodesAndEdges: (config) => {
-      const serverProviderId = config.serverProviderId || '__SERVER_PROVIDER_ID__';
-      const plan = config.plan || 'cx22';
-      const region = config.region || 'fsn1';
-      const domain = config.domain || 'app.example.com';
-      const repository = config.repository || 'laravel/laravel';
-      const branch = config.branch || 'main';
-      const dbName = config.dbName || 'laravel';
-      const dbUser = config.dbUser || 'laravel';
-      const dbPassword = config.dbPassword || 'secret_db_pass_' + Math.random().toString(36).substring(2, 10);
-      const phpVersion = config.phpVersion || '8.3';
+      const cfg = resolveConfig(config);
 
       const nodes: Node[] = [
-        {
-          id: 'node-db-server',
-          type: 'custom',
-          position: { x: 50, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '1. Create Database Server (Hetzner)',
-            action: {
-              id: 'node-db-server',
-              label: '1. Create Database Server (Hetzner)',
-              starting: true,
-              category: 'server',
-              handler: 'App\\WorkflowActions\\Server\\CreateServer',
-              inputs: {
-                name: 'laravel-db-server',
-                provider: 'hetzner',
-                server_provider: serverProviderId,
-                plan: plan,
-                region: region,
-                os: 'ubuntu_24',
-                role: 'database',
-                stage: 'prod',
-                services: [
-                  { type: 'database', name: 'mysql', version: '8.4' },
-                  { type: 'firewall', name: 'ufw', version: 'latest' },
-                  { type: 'fail2ban', name: 'fail2ban', version: 'latest' },
-                  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
-                ],
-              },
-              outputs: {
-                server_id: 'The ID of the created server',
-                server_name: 'The name of the created server',
-                server_ip: 'The IP address of the created server',
-                server_public_key: 'The public key of the created server',
-                server_provider_id: 'The provider-specific ID of the created server',
-                server_provider: 'The provider of the created server',
-                server_status: 'The status of the created server',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-db-setup',
-          type: 'custom',
-          position: { x: 400, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '2. Setup MySQL Database & User',
-            action: {
-              id: 'node-db-setup',
-              label: '2. Setup MySQL Database & User',
-              starting: false,
-              category: 'database',
-              handler: 'App\\WorkflowActions\\Database\\CreateDatabase',
-              inputs: {
-                server_id: '{server_id}',
-                name: dbName,
-                charset: 'utf8mb4',
-                collation: 'utf8mb4_unicode_ci',
-                username: dbUser,
-                password: dbPassword,
-              },
-              outputs: {
-                server_id: 'The ID of the server where the database was created',
-                database_name: 'The name of the created database',
-                database_id: 'The ID of the created database',
-                database_user_id: 'The ID of the created database user',
-                database_user_username: 'The name of the created database user',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-queue-server',
-          type: 'custom',
-          position: { x: 750, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '3. Create Worker & Cache Server (Hetzner)',
-            action: {
-              id: 'node-queue-server',
-              label: '3. Create Worker & Cache Server (Hetzner)',
-              starting: false,
-              category: 'server',
-              handler: 'App\\WorkflowActions\\Server\\CreateServer',
-              inputs: {
-                name: 'laravel-worker-server',
-                provider: 'hetzner',
-                server_provider: serverProviderId,
-                plan: plan,
-                region: region,
-                os: 'ubuntu_24',
-                role: 'queue',
-                stage: 'prod',
-                services: [
-                  { type: 'php', name: 'php', version: phpVersion },
-                  { type: 'memory_database', name: 'redis', version: 'latest' },
-                  { type: 'process_manager', name: 'supervisor', version: 'latest' },
-                  { type: 'firewall', name: 'ufw', version: 'latest' },
-                  { type: 'fail2ban', name: 'fail2ban', version: 'latest' },
-                  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
-                ],
-              },
-              outputs: {
-                server_id: 'The ID of the created server',
-                server_name: 'The name of the created server',
-                server_ip: 'The IP address of the created server',
-                server_public_key: 'The public key of the created server',
-                server_provider_id: 'The provider-specific ID of the created server',
-                server_provider: 'The provider of the created server',
-                server_status: 'The status of the created server',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-app-server',
-          type: 'custom',
-          position: { x: 1100, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '4. Create Web / App Server (Hetzner)',
-            action: {
-              id: 'node-app-server',
-              label: '4. Create Web / App Server (Hetzner)',
-              starting: false,
-              category: 'server',
-              handler: 'App\\WorkflowActions\\Server\\CreateServer',
-              inputs: {
-                name: 'laravel-web-server',
-                provider: 'hetzner',
-                server_provider: serverProviderId,
-                plan: plan,
-                region: region,
-                os: 'ubuntu_24',
-                role: 'app',
-                stage: 'prod',
-                services: [
-                  { type: 'webserver', name: 'nginx', version: 'latest' },
-                  { type: 'php', name: 'php', version: phpVersion },
-                  { type: 'firewall', name: 'ufw', version: 'latest' },
-                  { type: 'fail2ban', name: 'fail2ban', version: 'latest' },
-                  { type: 'monitoring', name: 'remote-monitor', version: 'latest' },
-                ],
-              },
-              outputs: {
-                server_id: 'The ID of the created server',
-                server_name: 'The name of the created server',
-                server_ip: 'The IP address of the created server',
-                server_public_key: 'The public key of the created server',
-                server_provider_id: 'The provider-specific ID of the created server',
-                server_provider: 'The provider of the created server',
-                server_status: 'The status of the created server',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-site-create',
-          type: 'custom',
-          position: { x: 1450, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '5. Create Laravel Site',
-            action: {
-              id: 'node-site-create',
-              label: '5. Create Laravel Site',
-              starting: false,
-              category: 'site',
-              handler: 'App\\WorkflowActions\\Site\\CreateLaravelSite',
-              inputs: {
-                server_id: '{server_id}',
-                domain: domain,
-                type: 'laravel',
-                php_version: phpVersion,
-                repository: repository,
-                branch: branch,
-                web_directory: 'public',
-                composer: 'true',
-              },
-              outputs: {
-                site_id: 'The ID of the created site',
-                site_domain: 'The domain of the created site',
-                site_path: 'The path of the created site on the server',
-                site_status: 'The status of the created site',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-deploy',
-          type: 'custom',
-          position: { x: 1800, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '6. Deploy Laravel Site',
-            action: {
-              id: 'node-deploy',
-              label: '6. Deploy Laravel Site',
-              starting: false,
-              category: 'site',
-              handler: 'App\\WorkflowActions\\Site\\DeploySite',
-              inputs: {
-                site_id: '{site_id}',
-              },
-              outputs: {
-                site_id: 'The ID of the site',
-                deployment_id: 'The ID of the deployment',
-                deployment_status: 'The status of the deployment',
-              },
-            },
-          },
-        },
-        {
-          id: 'node-migrations',
-          type: 'custom',
-          position: { x: 2150, y: 150 },
-          sourcePosition: Position.Right,
-          targetPosition: Position.Left,
-          data: {
-            label: '7. Run Migrations & Optimize',
-            action: {
-              id: 'node-migrations',
-              label: '7. Run Migrations & Optimize',
-              starting: false,
-              category: 'general',
-              handler: 'App\\WorkflowActions\\General\\RunCommand',
-              inputs: {
-                server_id: '{server_id}',
-                command: 'cd /home/vito/{site_domain} && php artisan migrate --force && php artisan optimize',
-                user: 'vito',
-              },
-              outputs: {},
-            },
-          },
-        },
-      ];
-
-      const edges: Edge[] = [
-        makeEdge('node-db-server', 'node-db-setup'),
-        makeEdge('node-db-setup', 'node-queue-server'),
-        makeEdge('node-queue-server', 'node-app-server'),
-        makeEdge('node-app-server', 'node-site-create'),
-        makeEdge('node-site-create', 'node-deploy'),
-        makeEdge('node-deploy', 'node-migrations'),
+        makeNode(
+          'node-db-server',
+          0,
+          '1. Create Database Server (Hetzner)',
+          createServerAction(cfg, 'laravel-db-server', 'database', [{ type: 'database', name: 'mysql', version: '8.4' }, ...BASE_SERVICES]),
+        ),
+        makeNode('node-db-setup', 1, '2. Setup MySQL Database & User', createDatabaseAction(cfg)),
+        makeNode(
+          'node-queue-server',
+          2,
+          '3. Create Worker & Cache Server (Hetzner)',
+          createServerAction(cfg, 'laravel-worker-server', 'queue', [
+            { type: 'php', name: 'php', version: cfg.phpVersion },
+            { type: 'memory_database', name: 'redis', version: 'latest' },
+            { type: 'process_manager', name: 'supervisor', version: 'latest' },
+            ...BASE_SERVICES,
+          ]),
+        ),
+        makeNode(
+          'node-app-server',
+          3,
+          '4. Create Web / App Server (Hetzner)',
+          createServerAction(cfg, 'laravel-web-server', 'app', [
+            { type: 'webserver', name: 'nginx', version: 'latest' },
+            { type: 'php', name: 'php', version: cfg.phpVersion },
+            ...BASE_SERVICES,
+          ]),
+        ),
+        makeNode('node-site-create', 4, '5. Create Laravel Site', createSiteAction(cfg)),
+        makeNode('node-deploy', 5, '6. Deploy Laravel Site', deploySiteAction()),
+        makeNode('node-migrations', 6, '7. Run Migrations & Optimize', migrateAndOptimizeAction()),
       ];
 
       return {
         name: config.workflowName || 'Laravel Microservices Stack (Hetzner)',
         nodes,
-        edges,
+        edges: chainEdges(nodes.map((node) => node.id)),
       };
     },
   },

@@ -47,7 +47,7 @@ const columns: ColumnDef<User>[] = [
       return (
         <div className="flex flex-wrap gap-1 max-w-xs">
           {projects.map((project) => (
-            <Badge key={project.id} variant="secondary" className="text-xs font-normal">
+            <Badge key={project.id} variant="gray" className="text-xs font-normal">
               {project.name}
             </Badge>
           ))}

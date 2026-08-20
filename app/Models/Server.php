@@ -516,7 +516,7 @@ class Server extends AbstractModel
     {
         try {
             return $this->provider()->canPowerManage();
-        } catch (\Throwable) {
+        } catch (Throwable) {
             return false;
         }
     }

@@ -59,7 +59,7 @@ class SyncManagedEnvironment
 
         $secretKeys = array_values(array_diff(
             EnvParser::secretKeys($site->env_variables),
-            array_keys($removed?->environment ?? []),
+            array_keys($removed->environment ?? []),
         ));
         $secretKeys = array_merge(
             $secretKeys,

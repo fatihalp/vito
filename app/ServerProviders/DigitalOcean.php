@@ -344,23 +344,38 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         return ! empty($this->server->provider_data['droplet_id']) && ! empty($this->server->serverProvider?->credentials['token']);
     }
 
+    /**
+     * @throws ServerProviderError
+     */
     public function stop(): void
     {
-        if (isset($this->server->provider_data['droplet_id'])) {
-            Http::withToken($this->server->serverProvider->credentials['token'])
-                ->post($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id'].'/actions', [
-                    'type' => 'power_off',
-                ]);
-        }
+        $this->powerAction('power_off');
     }
 
+    /**
+     * @throws ServerProviderError
+     */
     public function start(): void
     {
-        if (isset($this->server->provider_data['droplet_id'])) {
-            Http::withToken($this->server->serverProvider->credentials['token'])
-                ->post($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id'].'/actions', [
-                    'type' => 'power_on',
-                ]);
+        $this->powerAction('power_on');
+    }
+
+    /**
+     * @throws ServerProviderError
+     */
+    private function powerAction(string $type): void
+    {
+        if (! isset($this->server->provider_data['droplet_id'])) {
+            return;
+        }
+
+        $response = Http::withToken($this->server->serverProvider->credentials['token'])
+            ->post($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id'].'/actions', [
+                'type' => $type,
+            ]);
+
+        if (! $response->successful() && $response->status() !== 404) {
+            throw new ServerProviderError($response->json('message') ?? __('DigitalOcean request failed with status :status', ['status' => $response->status()]));
         }
     }
 

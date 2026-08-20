@@ -63,7 +63,7 @@ export default function ScriptTemplatesDialog({
   const detectedVariables = useMemo(() => {
     const matches = selectedTemplate.content.match(/\${[A-Z0-9_:-]+}/g);
     if (!matches) return [];
-    const unique = Array.from(new Set(matches.map((m) => m.replace(/[\${}]/g, '').split(/[:-]/)[0])));
+    const unique = Array.from(new Set(matches.map((m) => m.replace(/[${}]/g, '').split(/[:-]/)[0])));
     return unique;
   }, [selectedTemplate]);
 
@@ -191,7 +191,7 @@ export default function ScriptTemplatesDialog({
                   <span className="text-muted-foreground text-[11px] font-medium">Configurable Variables</span>
                   <div className="flex flex-wrap gap-1">
                     {detectedVariables.map((v) => (
-                      <Badge key={v} variant="secondary" className="font-mono text-[10px]">
+                      <Badge key={v} variant="gray" className="font-mono text-[10px]">
                         ${`{${v}}`}
                       </Badge>
                     ))}

@@ -22,7 +22,7 @@ class ToggleDomainProxy
     public function toggle(Site $site, string $domainName, ?bool $proxied = null): bool
     {
         $domainName = strtolower(trim($domainName));
-        $serverIp = $site->server?->ip;
+        $serverIp = $site->server->ip;
 
         // Find existing DNSRecord in local DB
         $dnsRecord = DNSRecord::where('type', 'A')

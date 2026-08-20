@@ -91,8 +91,7 @@ export default function ServerBanners({ server }: { server: Server }) {
     });
   }
 
-  const canPowerManage = server.can_power_manage ?? (Boolean(server.provider) && server.provider.toLowerCase() !== 'custom');
-  if (server.status === 'disconnected' && canPowerManage) {
+  if (server.status === 'disconnected' && server.can_power_manage === true) {
     items.push({
       key: 'server-offline',
       title: 'Server is offline / powered off',

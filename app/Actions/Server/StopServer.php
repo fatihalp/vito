@@ -3,19 +3,21 @@
 namespace App\Actions\Server;
 
 use App\Enums\ServerStatus;
+use App\Exceptions\AppError;
 use App\Models\Server;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class StopServer
 {
+    /**
+     * @throws AppError
+     */
     public function stop(Server $server): Server
     {
-        try {
-            $server->provider()->stop();
-        } catch (Throwable $e) {
-            Log::error("Failed to stop server #{$server->id} ({$server->name}) via provider: " . $e->getMessage());
+        if (! $server->canPowerManage()) {
+            throw new AppError(__('The :provider provider does not support power management for this server.', ['provider' => $server->provider]));
         }
+
+        $server->provider()->stop();
 
         $server->status = ServerStatus::DISCONNECTED;
         $server->save();

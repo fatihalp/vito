@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { WORKFLOW_TEMPLATES, WorkflowTemplate, WorkflowTemplateConfig } from './templates';
+import { generatePassword, WORKFLOW_TEMPLATES, WorkflowTemplate, WorkflowTemplateConfig } from './templates';
 import { useForm } from '@inertiajs/react';
 import {
-  ArrowRightIcon,
   BoxesIcon,
   CheckCircle2Icon,
   CloudIcon,
@@ -27,15 +26,6 @@ import { useInputFocus } from '@/stores/useInputFocus';
 import { ServerProvider } from '@/types/server-provider';
 import axios from 'axios';
 import { toast } from 'sonner';
-
-function generatePassword(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+';
-  let pass = '';
-  for (let i = 0; i < 18; i++) {
-    pass += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return pass;
-}
 
 export default function WorkflowTemplatesDialog({
   open,
@@ -83,12 +73,8 @@ export default function WorkflowTemplatesDialog({
 
   const importForm = useForm<{
     name: string;
-    nodes: unknown[];
-    edges: unknown[];
   }>({
     name: '',
-    nodes: [],
-    edges: [],
   });
 
   useEffect(() => {
@@ -225,7 +211,7 @@ export default function WorkflowTemplatesDialog({
                           <span className={cn('truncate text-sm font-semibold', isSelected ? 'text-primary' : 'text-foreground')}>
                             {template.label}
                           </span>
-                          <Badge variant={isSelected ? 'default' : 'secondary'} className="shrink-0 px-1.5 py-0 text-[10px]">
+                          <Badge variant={isSelected ? 'default' : 'gray'} className="shrink-0 px-1.5 py-0 text-[10px]">
                             {template.badge}
                           </Badge>
                         </div>
@@ -356,7 +342,7 @@ export default function WorkflowTemplatesDialog({
                       disabled={loadingProviders}
                     >
                       <SelectTrigger id="tpl-server-provider" className="h-8 text-xs">
-                        <SelectValue placeholder={loadingProviders ? 'Loading...' : 'Select or placeholder'} />
+                        <SelectValue placeholder={loadingProviders ? 'Loading...' : 'Optional — fill in canvas'} />
                       </SelectTrigger>
                       <SelectContent>
                         {hetznerProviders.length > 0 ? (
@@ -366,8 +352,8 @@ export default function WorkflowTemplatesDialog({
                             </SelectItem>
                           ))
                         ) : (
-                          <SelectItem value="" className="text-xs">
-                            Default / Fill in Canvas
+                          <SelectItem value="none" disabled className="text-xs">
+                            No Hetzner account connected
                           </SelectItem>
                         )}
                       </SelectContent>
@@ -529,7 +515,7 @@ export default function WorkflowTemplatesDialog({
                         <div className="flex items-center justify-between gap-1">
                           <p className="text-foreground truncate text-xs font-semibold">{step.title}</p>
                           {step.badge && (
-                            <Badge variant="secondary" className="shrink-0 px-1 py-0 text-[9px]">
+                            <Badge variant="gray" className="shrink-0 px-1 py-0 text-[9px]">
                               {step.badge}
                             </Badge>
                           )}

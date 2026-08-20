@@ -2,9 +2,7 @@
 
 namespace App\Exceptions;
 
-use Exception;
-
-class ServerProviderError extends Exception
+class ServerProviderError extends AppError
 {
     //
 }

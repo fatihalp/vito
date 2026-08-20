@@ -373,7 +373,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
             $response = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweroff');
 
-            if (! $response->ok() && $response->status() !== 404) {
+            if (! $response->successful() && $response->status() !== 404) {
                 $this->providerError($response);
             }
         }
@@ -388,7 +388,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
             $response = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweron');
 
-            if (! $response->ok() && $response->status() !== 404) {
+            if (! $response->successful() && $response->status() !== 404) {
                 $this->providerError($response);
             }
         }
@@ -418,9 +418,9 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
     /**
      * @throws ServerProviderError
      */
-    private function providerError(Response $response): void
+    private function providerError(Response $response): never
     {
-        throw new ServerProviderError($response->json('error')['message']);
+        throw new ServerProviderError($response->json('error.message') ?? __('Hetzner request failed with status :status', ['status' => $response->status()]));
     }
 
     /**

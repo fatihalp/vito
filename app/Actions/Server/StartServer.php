@@ -3,19 +3,21 @@
 namespace App\Actions\Server;
 
 use App\Enums\ServerStatus;
+use App\Exceptions\AppError;
 use App\Models\Server;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class StartServer
 {
+    /**
+     * @throws AppError
+     */
     public function start(Server $server): Server
     {
-        try {
-            $server->provider()->start();
-        } catch (Throwable $e) {
-            Log::error("Failed to start server #{$server->id} ({$server->name}) via provider: " . $e->getMessage());
+        if (! $server->canPowerManage()) {
+            throw new AppError(__('The :provider provider does not support power management for this server.', ['provider' => $server->provider]));
         }
+
+        $server->provider()->start();
 
         $server->status = ServerStatus::READY;
         $server->save();

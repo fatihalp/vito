@@ -63,10 +63,8 @@ export default function ImportWorkflow({ open, onOpenChange }: { open: boolean; 
   const [jsonText, setJsonText] = useState(EXAMPLE);
   const [replacements, setReplacements] = useState<Record<string, string>>({});
 
-  const form = useForm<{ name: string; nodes: unknown[]; edges: unknown[] }>({
+  const form = useForm<{ name: string }>({
     name: '',
-    nodes: [],
-    edges: [],
   });
 
   useEffect(() => {

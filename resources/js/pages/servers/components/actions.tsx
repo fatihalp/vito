@@ -49,7 +49,7 @@ function CheckConnection({ server }: { server: Server }) {
 
 export default function ServerActions({ server }: { server: Server }) {
   const dialog = useDialog();
-  const canPowerManage = server.can_power_manage ?? (Boolean(server.provider) && server.provider.toLowerCase() !== 'custom');
+  const canPowerManage = server.can_power_manage === true;
   const isDisconnected = server.status === 'disconnected';
 
   return (
@@ -65,7 +65,7 @@ export default function ServerActions({ server }: { server: Server }) {
 
         {canPowerManage && isDisconnected && (
           <DropdownMenuItem
-            className="text-emerald-500 focus:text-emerald-500 focus:bg-emerald-500/10 font-medium"
+            className="text-success focus:text-success focus:bg-success/10 font-medium"
             onSelect={() =>
               dialog.confirm.open({
                 title: `Start ${server.name}?`,
@@ -77,7 +77,7 @@ export default function ServerActions({ server }: { server: Server }) {
               })
             }
           >
-            <PlayIcon className="size-4 mr-2 text-emerald-500" />
+            <PlayIcon className="size-4 mr-2 text-success" />
             Start server ({server.provider})
           </DropdownMenuItem>
         )}

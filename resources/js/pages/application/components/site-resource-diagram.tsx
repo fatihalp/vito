@@ -108,7 +108,7 @@ export default function SiteResourceDiagram({
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
   );
 
-  const regionLabel = server.region || server.provider || 'Host Infrastructure';
+  const regionLabel = server.provider || 'Host Infrastructure';
 
   return (
     <Card ref={containerRef} className="relative overflow-hidden border-border/60 shadow-xs transition-all duration-300">

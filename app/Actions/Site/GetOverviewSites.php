@@ -4,9 +4,10 @@ namespace App\Actions\Site;
 
 use App\Enums\DeploymentStatus;
 use App\Models\Project;
+use App\Models\Server;
 use App\Models\Site;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GetOverviewSites
 {
@@ -26,10 +27,10 @@ class GetOverviewSites
     }
 
     /**
-     * @param  Relation<Site, Project, mixed>  $sites
+     * @param  HasManyThrough<Site, Server, covariant Project>  $sites
      * @return Collection<int, Site>
      */
-    private function get(Relation $sites): Collection
+    private function get(HasManyThrough $sites): Collection
     {
         return $sites
             ->with(['server', 'hostedDomains.ssl', 'workers'])

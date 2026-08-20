@@ -62,7 +62,7 @@ class CreateHostedDomain
             ]);
         }
 
-        $serverIp = $site->server?->ip;
+        $serverIp = $site->server->ip;
         if (empty($serverIp)) {
             return;
         }
