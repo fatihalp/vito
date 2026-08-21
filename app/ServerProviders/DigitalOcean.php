@@ -39,16 +39,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         );
     }
 
-    /**
-     * Droplet objects carry `vpc_uuid` and their private `networks.v4` entry, so membership
-     * and addresses come from one list call. `/vpcs/{id}/members` returns URNs with no IP and
-     * would need a fetch per droplet.
-     *
-     * @param  array<int, array<string, mixed>>  $vpcs
-     * @param  array<int, array<string, mixed>>  $droplets
-     * @param  array<int, string>  $instanceIds
-     * @return array<int, PrivateNetworkDTO>
-     */
+    
     private function mapPrivateNetworks(array $vpcs, array $droplets, array $instanceIds): array
     {
         $wanted = array_flip($instanceIds);
@@ -96,11 +87,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         return $result;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     *
-     * @throws PrivateNetworkSyncError
-     */
+    
     private function fetchAll(string $path, string $key): array
     {
         $token = $this->serverProvider->getCredentials()['token'];
@@ -127,7 +114,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 throw $this->syncError($response->status());
             }
 
-            /** @var array<int, array<string, mixed>> $batch */
+            
             $batch = $body[$key];
             $items = array_merge($items, $batch);
 
@@ -175,9 +162,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         ];
     }
 
-    /**
-     * @throws CouldNotConnectToProvider
-     */
+    
     public function connect(array $credentials): bool
     {
         try {
@@ -193,18 +178,16 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         return true;
     }
 
-    /**
-     * @return array<string, array{label: string, available: bool}>
-     */
+    
     public function plans(?string $region): array
     {
         try {
-            /** @var array<string, mixed> $plans */
+            
             $plans = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/sizes', ['per_page' => 200])
                 ->json();
 
-            /** @var array<int, array{slug: string, description: string, vcpus: int, memory: int, disk: int, price_monthly: int|float, regions: array<string>, available: bool}> $sizes */
+            
             $sizes = $plans['sizes'] ?? [];
 
             return collect($sizes)
@@ -244,12 +227,12 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
     public function regions(): array
     {
         try {
-            /** @var array{regions?: array<int, array{slug: string, name: string, available: bool}>} $regions */
+            
             $regions = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/regions', ['per_page' => 200])
                 ->json();
 
-            $regionsList = $regions['regions'] ?? []; // Ensure it's always an array
+            $regionsList = $regions['regions'] ?? []; 
 
             return collect($regionsList)
                 ->where('available', true)
@@ -260,9 +243,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function create(): void
     {
         $this->generateKeyPair();
@@ -344,25 +325,19 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         return ! empty($this->server->provider_data['droplet_id']) && ! empty($this->server->serverProvider?->credentials['token']);
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function stop(): void
     {
         $this->powerAction('power_off');
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function start(): void
     {
         $this->powerAction('power_on');
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     private function powerAction(string $type): void
     {
         if (! isset($this->server->provider_data['droplet_id'])) {
@@ -379,9 +354,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function delete(): void
     {
         if (isset($this->server->provider_data['droplet_id'])) {
@@ -394,9 +367,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     private function getImageId(OperatingSystem $os, string $region): int
     {
         $version = $os->getVersion();
@@ -409,8 +380,8 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 ])
                 ->json();
 
-            /** @var array<int, array{ id: int, name: string, distribution: string, status: string, regions: array<string> }> $images */
-            $images = $result['images'] ?? []; // Ensure $images is an array
+            
+            $images = $result['images'] ?? []; 
 
             $image = collect($images)
                 ->filter(fn (array $image): bool => in_array($region, $image['regions']) && str_contains($image['name'], $version)
@@ -419,7 +390,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 ->where('status', 'available')
                 ->first();
 
-            return $image['id'] ?? 0; // Handle the case where first() returns null
+            return $image['id'] ?? 0; 
         } catch (Exception) {
             throw new Exception('Could not find image ID');
         }

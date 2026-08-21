@@ -43,7 +43,7 @@ export function initializeTheme() {
 
   applyTheme(savedAppearance);
 
-  // Add the event listener for system theme changes...
+  
   mediaQuery()?.addEventListener('change', handleSystemThemeChange);
 }
 
@@ -53,16 +53,16 @@ export function useAppearance() {
   const updateAppearance = useCallback((mode: Appearance) => {
     setAppearance(mode);
 
-    // Store in localStorage for client-side persistence...
+    
     localStorage.setItem('appearance', mode);
 
-    // Store in cookie for SSR...
+    
     setCookie('appearance', mode);
 
     applyTheme(mode);
   }, []);
 
-  // create a method to return the actual appearance light or dark
+  
   const getActualAppearance = useCallback(() => {
     if (appearance === 'system') {
       return prefersDark() ? 'dark' : 'light';

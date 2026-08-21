@@ -7,9 +7,7 @@ use Illuminate\Validation\ValidationException;
 
 class RemoveDomain
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function remove(Domain $domain): void
     {
         $sslCount = $domain->ssls()->count();

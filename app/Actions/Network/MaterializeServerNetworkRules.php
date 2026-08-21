@@ -21,19 +21,16 @@ use Illuminate\Support\Facades\DB;
 
 class MaterializeServerNetworkRules
 {
-    /** @var array<int, Collection<int, NetworkServer>> */
+    
     private array $peerCache = [];
 
-    /** @var array<int, Collection<int, NetworkFirewallRule>> */
+    
     private array $ruleCache = [];
 
-    /** @var array<int, bool> */
+    
     private array $deviceCache = [];
 
-    /**
-     * Re-materialise every non-LEAVING member's server. A topology change on the
-     * network (membership, IP, keys) affects the handshake/source rows on all peers.
-     */
+    
     public function forNetwork(Network $network): void
     {
         $network->servers()
@@ -43,10 +40,7 @@ class MaterializeServerNetworkRules
             ->each(fn (NetworkServer $member) => $this->forServer($member->server));
     }
 
-    /**
-     * Reconcile the materialised network-rule rows for a single server against the
-     * desired set derived from its current memberships.
-     */
+    
     public function forServer(Server $server): void
     {
         $desired = $this->desiredFor($server);
@@ -64,7 +58,7 @@ class MaterializeServerNetworkRules
             $changed = false;
 
             foreach ($desired as $key => $spec) {
-                /** @var ?ServerNetworkRule $row */
+                
                 $row = $existing->get($key);
 
                 if (! $row instanceof ServerNetworkRule) {
@@ -122,9 +116,7 @@ class MaterializeServerNetworkRules
         }
     }
 
-    /**
-     * @return array<string, array<string, mixed>>
-     */
+    
     private function desiredFor(Server $server): array
     {
         $memberships = NetworkServer::query()
@@ -200,13 +192,7 @@ class MaterializeServerNetworkRules
         return $desired;
     }
 
-    /**
-     * Sources are interpolated unquoted into the `ufw` blade template, which is a shell
-     * script — Blade escapes HTML, not shell metacharacters. Every address is re-checked
-     * here so nothing but a literal IP can reach it, whatever wrote the column.
-     *
-     * @return array<int, array{ip: string, name: string}>
-     */
+    
     private function handshakes(Network $network, Server $server): array
     {
         return $this->peers($network, $server)
@@ -216,9 +202,7 @@ class MaterializeServerNetworkRules
             ->all();
     }
 
-    /**
-     * @return array<int, array{ip: string, mask: int}>
-     */
+    
     private function sources(Network $network, Server $server): array
     {
         if ($network->type !== NetworkType::PROVIDER && $network->cidr !== null && $network->cidr !== '') {
@@ -247,9 +231,7 @@ class MaterializeServerNetworkRules
         return $sources;
     }
 
-    /**
-     * @return Collection<int, NetworkServer>
-     */
+    
     private function peers(Network $network, Server $server): Collection
     {
         return $this->peerCache[$network->id] ??= NetworkServer::query()
@@ -260,9 +242,7 @@ class MaterializeServerNetworkRules
             ->get();
     }
 
-    /**
-     * @return Collection<int, NetworkFirewallRule>
-     */
+    
     private function firewallRules(Network $network): Collection
     {
         return $this->ruleCache[$network->id] ??= $network->firewallRules()

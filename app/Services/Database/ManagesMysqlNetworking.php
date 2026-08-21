@@ -19,9 +19,7 @@ trait ManagesMysqlNetworking
         return 'ssh.services.database.mysql-family.'.$script;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function writeNetworkingConfig(bool $enable): void
     {
         $this->service->server->ssh()->exec(
@@ -34,9 +32,7 @@ trait ManagesMysqlNetworking
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function runNetworkingRollback(): void
     {
         $this->service->server->ssh()->exec(
@@ -45,9 +41,7 @@ trait ManagesMysqlNetworking
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function verifyNetworking(bool $expectedOpen): void
     {
         $expected = $expectedOpen ? '0.0.0.0' : '127.0.0.1';
@@ -75,9 +69,7 @@ trait ManagesMysqlNetworking
 
     abstract protected function networkingManagesXPlugin(): bool;
 
-    /**
-     * @throws SSHError
-     */
+    
     private function verifyXPluginNetworking(string $expected): void
     {
         if (! $this->networkingManagesXPlugin()) {
@@ -97,17 +89,13 @@ trait ManagesMysqlNetworking
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function networkingBindAddress(): string
     {
         return $this->service->server->ssh()->clearLog()->exec($this->networkingProbeCommand());
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     private function networkingScriptData(): array
     {
         $directory = sprintf('/etc/mysql/%s.conf.d', static::id());

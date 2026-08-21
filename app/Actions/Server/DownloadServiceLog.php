@@ -15,12 +15,7 @@ use Throwable;
 
 class DownloadServiceLog
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws Throwable
-     * @throws ValidationException
-     */
+    
     public function run(Server $server, array $input): StreamedResponse
     {
         $data = Validator::make($input, [

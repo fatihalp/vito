@@ -6,5 +6,5 @@ use Exception;
 
 class ServerInstallationFailed extends Exception
 {
-    //
+    
 }

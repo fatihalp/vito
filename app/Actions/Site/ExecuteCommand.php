@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ExecuteCommand
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function execute(Command $command, User $user, array $input): CommandExecution
     {
         $this->validate($command, $input);

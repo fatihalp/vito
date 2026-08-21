@@ -7,9 +7,7 @@ use App\Support\HetznerObjectStorage;
 
 class RevealBucketCredentials
 {
-    /**
-     * @return array<string, string>
-     */
+    
     public function reveal(Bucket $bucket): array
     {
         $config = $bucket->configuration;

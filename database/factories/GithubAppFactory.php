@@ -5,9 +5,7 @@ namespace Database\Factories;
 use App\Models\GithubApp;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<GithubApp>
- */
+
 class GithubAppFactory extends Factory
 {
     protected $model = GithubApp::class;

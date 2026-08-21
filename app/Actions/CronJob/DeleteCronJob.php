@@ -9,12 +9,10 @@ use App\Models\Server;
 
 class DeleteCronJob
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function delete(Server $server, CronJob $cronJob): void
     {
-        // Sync before deleting to preserve any manual cronjobs
+        
         app(SyncCronJobs::class)->sync($server);
 
         $user = $cronJob->user;

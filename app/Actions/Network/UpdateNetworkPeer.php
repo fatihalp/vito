@@ -17,9 +17,7 @@ class UpdateNetworkPeer
         private RecomputeNetworkStatus $recompute,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(NetworkPeer $peer, array $input): void
     {
         $network = $peer->network;

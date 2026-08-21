@@ -15,30 +15,16 @@ class EventsHandler implements WebSocketHandler
 
     protected const SUBSCRIBE_RATE_WINDOW = 60;
 
-    /**
-     * @var array<string, array{
-     *     connection: WebSocketConnection,
-     *     user_id: int,
-     *     project_id: int,
-     * }>
-     */
+    
     protected array $connections = [];
 
-    /**
-     * @var array<int, array<int, float>>
-     */
+    
     protected array $userSubscribeTimestamps = [];
 
-    /**
-     * @var array<string, array{user_id: int, project_id: int}>
-     */
+    
     protected array $pendingAuth = [];
 
-    /**
-     * Map of project IDs to connection IDs subscribed to that project.
-     *
-     * @var array<int, array<string, true>>
-     */
+    
     protected array $projectSubscriptions = [];
 
     public function authenticate(RequestInterface $psrRequest): ?string
@@ -70,7 +56,7 @@ class EventsHandler implements WebSocketHandler
             return 'No active project';
         }
 
-        // Store validated data for retrieval in onOpen()
+        
         $this->pendingAuth[$token] = [
             'user_id' => $tokenData['user_id'],
             'project_id' => $projectId,
@@ -163,11 +149,7 @@ class EventsHandler implements WebSocketHandler
         return count($this->connections);
     }
 
-    /**
-     * Broadcast an event to all connections subscribed to a project.
-     *
-     * @param  array<string, mixed>  $eventData
-     */
+    
     public function broadcastToProject(int $projectId, array $eventData): void
     {
         $subscribers = $this->projectSubscriptions[$projectId] ?? [];
@@ -182,11 +164,7 @@ class EventsHandler implements WebSocketHandler
         }
     }
 
-    /**
-     * Broadcast an event to every connected client, regardless of project.
-     *
-     * @param  array<string, mixed>  $eventData
-     */
+    
     public function broadcastToAll(array $eventData): void
     {
         foreach ($this->connections as $entry) {
@@ -197,11 +175,7 @@ class EventsHandler implements WebSocketHandler
         }
     }
 
-    /**
-     * Get all project IDs that have active subscriptions.
-     *
-     * @return array<int>
-     */
+    
     public function getSubscribedProjectIds(): array
     {
         return array_keys($this->projectSubscriptions);
@@ -260,14 +234,14 @@ class EventsHandler implements WebSocketHandler
             return;
         }
 
-        // Remove from old project subscription
+        
         $oldProjectId = $entry['project_id'];
         unset($this->projectSubscriptions[$oldProjectId][$connId]);
         if (empty($this->projectSubscriptions[$oldProjectId])) {
             unset($this->projectSubscriptions[$oldProjectId]);
         }
 
-        // Add to new project subscription
+        
         $this->connections[$connId]['project_id'] = $newProjectId;
         $this->projectSubscriptions[$newProjectId][$connId] = true;
 

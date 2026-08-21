@@ -13,16 +13,12 @@ use Illuminate\Validation\Rule;
 
 class CreateCronJob
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function create(Server $server, array $input, ?Site $site = null): CronJob
     {
         $this->validate($input, $server, $site);
 
-        // Determine site_id: use provided site or from input
+        
         $siteId = $site?->id;
         if (! $site && isset($input['site_id']) && ! empty($input['site_id'])) {
             $siteId = (int) $input['site_id'];
@@ -67,7 +63,7 @@ class CreateCronJob
             ],
         ];
 
-        // Add site_id validation if provided in input
+        
         if (isset($input['site_id']) && ! empty($input['site_id'])) {
             $rules['site_id'] = [
                 'required',

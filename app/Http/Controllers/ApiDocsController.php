@@ -50,7 +50,7 @@ class ApiDocsController extends Controller
 
         $openApiDir = public_path('api-docs/openapi');
 
-        // Load API endpoint files
+        
         foreach ($apiOrder as $filename) {
             $filePath = $openApiDir.'/'.$filename;
 

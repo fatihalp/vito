@@ -22,10 +22,7 @@ class HetznerController extends Controller
         'sin' => 'sin-speed.hetzner.com',
     ];
 
-    /**
-     * Measure latency from this Vito server to each Hetzner datacenter
-     * by making small HTTP HEAD requests to their speedtest endpoints.
-     */
+    
     #[Get('/latency', name: 'hetzner.latency')]
     public function latency(): JsonResponse
     {

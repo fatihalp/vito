@@ -30,11 +30,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         return 'instance_id';
     }
 
-    /**
-     * A server deleted upstream leaves a stale instance id behind, so a 404 for one instance is
-     * skipped rather than allowed to abort the connection's whole sync — which would also
-     * suppress pruning for every other network on it.
-     */
+    
     public function privateNetworks(array $instanceIds, array $regions): array
     {
         $attachments = [];
@@ -71,17 +67,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         return $this->mapPrivateNetworks($this->fetchAll('/vpcs', 'vpcs'), $attachments);
     }
 
-    /**
-     * Only `/v2/vpcs` is used. `/v2/vpc2` is deprecated, and its metadata shape differs
-     * (`ip_block`/`prefix_length` rather than `v4_subnet`/`v4_subnet_mask`).
-     *
-     * The per-instance attachment lookup is bounded by the servers Vito manages rather than
-     * by the size of the account.
-     *
-     * @param  array<int, array<string, mixed>>  $vpcs
-     * @param  array<string, array<int, PrivateNetworkMemberDTO>>  $attachments
-     * @return array<int, PrivateNetworkDTO>
-     */
+    
     private function mapPrivateNetworks(array $vpcs, array $attachments): array
     {
         $result = [];
@@ -108,11 +94,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         return $result;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     *
-     * @throws PrivateNetworkSyncError
-     */
+    
     private function fetchAll(string $path, string $key): array
     {
         $token = $this->serverProvider->getCredentials()['token'];
@@ -139,7 +121,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
                 throw $this->syncError($response->status());
             }
 
-            /** @var array<int, array<string, mixed>> $batch */
+            
             $batch = $body[$key];
             $items = array_merge($items, $batch);
 
@@ -189,9 +171,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         ];
     }
 
-    /**
-     * @throws CouldNotConnectToProvider
-     */
+    
     public function connect(array $credentials): bool
     {
         try {
@@ -207,18 +187,16 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         return true;
     }
 
-    /**
-     * @return array<string, array{label: string, available: bool}>
-     */
+    
     public function plans(?string $region): array
     {
         try {
-            /** @var array<string, mixed> $response */
+            
             $response = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/plans', ['per_page' => 500])
                 ->json();
 
-            /** @var array<int, array{id: string, type: string, vcpu_count: int, ram: int, disk: int, monthly_cost: int|float, locations: array<string>}> $plans */
+            
             $plans = $response['plans'] ?? [];
 
             return collect($plans)
@@ -258,12 +236,12 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
     public function regions(): array
     {
         try {
-            /** @var array<string, mixed> $regions */
+            
             $regions = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/regions', ['per_page' => 500])
                 ->json();
 
-            /** @var array<string, mixed> $regions */
+            
             $regions = $regions['regions'] ?? [];
 
             return collect($regions)
@@ -274,13 +252,11 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function create(): void
     {
-        // generate key pair
-        /** @var FilesystemAdapter $storageDisk */
+        
+        
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
         generate_key_pair($storageDisk->path((string) $this->server->id));
 
@@ -347,9 +323,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         return $status->json()['instance']['status'] == 'active';
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function delete(): void
     {
         if (isset($this->server->provider_data['instance_id'])) {
@@ -368,20 +342,18 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     private function getImageId(OperatingSystem $os): int
     {
         $version = $os->getVersion();
 
         try {
-            /** @var array<string, mixed> $result */
+            
             $result = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/os', ['per_page' => 500])
                 ->json();
 
-            /** @var array<string, mixed> $os */
+            
             $os = $result['os'] ?? [];
 
             $image = collect($os)

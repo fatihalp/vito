@@ -26,7 +26,7 @@ class InstallExtensionJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->service->server_id}", function () {
-            /** @var PHP $handler */
+            
             $handler = $this->service->handler();
             $handler->installExtension($this->extension);
             $this->broadcastServiceUpdate();

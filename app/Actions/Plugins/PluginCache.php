@@ -13,11 +13,7 @@ final readonly class PluginCache
 
     private const string CACHE_KEY = 'active-plugins';
 
-    /**
-     * Retrieves active plugins
-     *
-     * @return Collection<int, Plugin>
-     */
+    
     public function get(): Collection
     {
         try {
@@ -44,17 +40,13 @@ final readonly class PluginCache
         Cache::forget(self::CACHE_KEY);
     }
 
-    /**
-     * @param  Collection<int, Plugin>  $plugins
-     */
+    
     public function set(Collection $plugins): void
     {
         Cache::forever(self::CACHE_KEY, $plugins->pluck('id')->all());
     }
 
-    /**
-     * @phpstan-assert-if-true array<int, int> $value
-     */
+    
     private function isValidIdList(mixed $value): bool
     {
         if (! is_array($value)) {

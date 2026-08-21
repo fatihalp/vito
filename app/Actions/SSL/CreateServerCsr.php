@@ -13,11 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateServerCsr
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input): Ssl
     {
         $this->validate($input);
@@ -50,11 +46,7 @@ class CreateServerCsr
         return $ssl;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(array $input): void
     {
         Validator::make($input, [
@@ -70,11 +62,7 @@ class CreateServerCsr
         ])->validate();
     }
 
-    /**
-     * Parse a comma-separated domain string into an array of unique domains.
-     *
-     * @return array<int, string>
-     */
+    
     public static function parseDomains(string $input): array
     {
         $parts = array_map('trim', explode(',', $input));

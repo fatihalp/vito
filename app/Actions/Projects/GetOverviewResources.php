@@ -11,10 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class GetOverviewResources
 {
-    /**
-     * @param  array{servers?: array<int, int>, sites?: array<int, int>, fallback_server_id?: int}  $input
-     * @return array{servers: Collection<int, Server>, sites: Collection<int, Site>}
-     */
+    
     public function get(Project $project, array $input): array
     {
         $validated = Validator::make($input, [

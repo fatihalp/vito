@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class EditChannel
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function edit(NotificationChannel $notificationChannel, User $user, array $input): void
     {
         $this->validate($input);

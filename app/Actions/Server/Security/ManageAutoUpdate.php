@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ManageAutoUpdate
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Server $server, array $input): void
     {
         $this->validate($input);
@@ -23,9 +21,7 @@ class ManageAutoUpdate
         $server->save();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(array $input): void
     {
         Validator::make($input, [

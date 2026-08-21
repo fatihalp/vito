@@ -15,9 +15,7 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateHostedDomain
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(HostedDomain $hostedDomain, Site $site, array $input): HostedDomain
     {
         if ($hostedDomain->status->isProcessing()) {
@@ -76,12 +74,7 @@ class UpdateHostedDomain
         $hostedDomain->site->webserver()->updateVHost($hostedDomain->site);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(HostedDomain $hostedDomain, Site $site, array $input): array
     {
         $isPrimary = $hostedDomain->type === HostedDomainType::PRIMARY;

@@ -152,9 +152,7 @@ class GithubAppController extends Controller
         return to_route('github-app')->with('success', __('GitHub App removed.'));
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     private function buildManifest(): array
     {
         $appUrl = rtrim((string) config('app.url'), '/');

@@ -63,9 +63,9 @@ export default function ConnectDNSProvider({
     const providerConfig = configs.dns_provider.providers[form.data.provider];
     if (providerConfig?.form) {
       providerConfig.form.forEach((field: DynamicFieldConfig) => {
-        /* @ts-expect-error dynamic types */
+        
         if (field.default !== undefined && (form.data[field.name] === '' || form.data[field.name] === undefined)) {
-          /* @ts-expect-error dynamic types */
+          
           form.setData(field.name, field.default);
         }
       });
@@ -117,12 +117,12 @@ export default function ConnectDNSProvider({
             {configs.dns_provider.providers[form.data.provider]?.form?.map((field: DynamicFieldConfig) => (
               <DynamicField
                 key={`field-${field.name}`}
-                /*@ts-expect-error dynamic types*/
+                
                 value={form.data[field.name]}
-                /*@ts-expect-error dynamic types*/
+                
                 onChange={(value) => form.setData(field.name, value)}
                 config={field}
-                /*@ts-expect-error dynamic types*/
+                
                 error={form.errors[field.name]}
               />
             ))}

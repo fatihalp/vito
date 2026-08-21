@@ -14,22 +14,10 @@ class TerminalHandler implements WebSocketHandler
 {
     protected const MAX_CONNECTIONS_PER_USER = 5;
 
-    /**
-     * @var array<string, array{
-     *     connection: WebSocketConnection,
-     *     session: ?TerminalSession,
-     *     server_id: int,
-     *     user_id: int,
-     *     ssh_user: string,
-     *     initial_cols: int,
-     *     initial_rows: int,
-     * }>
-     */
+    
     protected array $connections = [];
 
-    /**
-     * @var array<string, array{server_id: int, user_id: int, ssh_user: string}>
-     */
+    
     protected array $pendingAuth = [];
 
     public function __construct(
@@ -65,7 +53,7 @@ class TerminalHandler implements WebSocketHandler
             return 'Too many connections';
         }
 
-        // Store validated token data for retrieval in onOpen()
+        
         $this->pendingAuth[$token] = $tokenData;
 
         return null;

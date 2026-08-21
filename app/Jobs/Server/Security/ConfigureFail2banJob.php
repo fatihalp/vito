@@ -24,7 +24,7 @@ class ConfigureFail2banJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->service->server_id}", function (): void {
-            /** @var Fail2ban $handler */
+            
             $handler = $this->service->handler();
             $handler->configure();
 

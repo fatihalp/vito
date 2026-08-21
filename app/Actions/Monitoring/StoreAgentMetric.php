@@ -11,9 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class StoreAgentMetric
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function store(Server $server, array $input): Metric
     {
         $validated = Validator::make($input, [
@@ -42,7 +40,7 @@ class StoreAgentMetric
             'services.*.status' => 'required|string|max:32',
         ])->validate();
 
-        /** @var Metric $metric */
+        
         $metric = $server->metrics()->create(array_merge(Arr::except($validated, ['services']), ['server_id' => $server->id]));
 
         if (! empty($validated['services'])) {
@@ -52,9 +50,7 @@ class StoreAgentMetric
         return $metric;
     }
 
-    /**
-     * @param  array<int, array{id: int, status: string}>  $services
-     */
+    
     private function syncServiceStatuses(Server $server, array $services): void
     {
         $entries = [];
@@ -70,7 +66,7 @@ class StoreAgentMetric
             ->keyBy('id');
 
         foreach ($entries as $id => $entry) {
-            /** @var ?Service $service */
+            
             $service = $serverServices->get($id);
             if (! $service || ! $service->hasHandler() || ! $service->handler()->canBeManaged()) {
                 continue;

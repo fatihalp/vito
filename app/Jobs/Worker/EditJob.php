@@ -24,9 +24,9 @@ class EditJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->worker->server_id}", function () {
-            /** @var Service $service */
+            
             $service = $this->worker->server->processManager();
-            /** @var ProcessManager $processManager */
+            
             $processManager = $service->handler();
             $processManager->delete($this->worker->id, $this->worker->site_id);
 

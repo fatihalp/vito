@@ -5,9 +5,7 @@ namespace Database\Factories;
 use App\Models\DatabaseUser;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<DatabaseUser>
- */
+
 class DatabaseUserFactory extends Factory
 {
     protected $model = DatabaseUser::class;

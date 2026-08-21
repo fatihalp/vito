@@ -14,9 +14,7 @@ class FTP extends AbstractStorageProvider
         return 'ftp';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function validationRules(): array
     {
         return [
@@ -104,9 +102,7 @@ class FTP extends AbstractStorageProvider
         return new \App\SSH\Storage\FTP($server, $this->storageProvider);
     }
 
-    /**
-     * @param  array<string, mixed>  $credentials
-     */
+    
     private function connection(array $credentials): bool|Connection
     {
         return \App\Facades\FTP::connect(
@@ -116,9 +112,7 @@ class FTP extends AbstractStorageProvider
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $credentials
-     */
+    
     private function login(bool|Connection $connection, array $credentials): bool
     {
         return \App\Facades\FTP::login(

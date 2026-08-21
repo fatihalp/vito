@@ -9,10 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class GetProjectInvitees
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return Collection<int, User>
-     */
+    
     public function get(Project $project, array $input): Collection
     {
         $validated = Validator::make($input, [

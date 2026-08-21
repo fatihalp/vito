@@ -42,9 +42,9 @@ class RestoreDatabaseJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("database-{$this->database->id}", function () {
-            /** @var Service $service */
+            
             $service = $this->database->server->database();
-            /** @var \App\Services\Database\Database $databaseHandler */
+            
             $databaseHandler = $service->handler();
             $databaseHandler->restoreBackup($this->backupFile, $this->database->name);
             $this->backupFile->status = BackupFileStatus::RESTORED;

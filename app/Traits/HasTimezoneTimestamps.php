@@ -5,10 +5,7 @@ namespace App\Traits;
 use Carbon\Carbon;
 use Exception;
 
-/**
- * @property string $created_at_by_timezone
- * @property string $updated_at_by_timezone
- */
+
 trait HasTimezoneTimestamps
 {
     public function getCreatedAtByTimezoneAttribute(): string

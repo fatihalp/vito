@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdateSiteWorkerEnvironment
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): WorkerEnvironmentUpdateResult
     {
         $type = $site->type();

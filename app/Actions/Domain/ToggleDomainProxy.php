@@ -14,17 +14,13 @@ use Illuminate\Validation\ValidationException;
 
 class ToggleDomainProxy
 {
-    /**
-     * Toggle Cloudflare proxy (security, DDoS, CDN) for a given site domain.
-     *
-     * @throws ValidationException
-     */
+    
     public function toggle(Site $site, string $domainName, ?bool $proxied = null): bool
     {
         $domainName = strtolower(trim($domainName));
         $serverIp = $site->server->ip;
 
-        // Find existing DNSRecord in local DB
+        
         $dnsRecord = DNSRecord::where('type', 'A')
             ->where(function ($query) use ($domainName) {
                 $query->where('name', $domainName)
@@ -35,7 +31,7 @@ class ToggleDomainProxy
             })
             ->first();
 
-        // If not found by exact match, search matching domain suffix
+        
         if (! $dnsRecord) {
             $domains = Domain::whereHas('dnsProvider', function ($query) {
                 $query->where('connected', true);
@@ -54,7 +50,7 @@ class ToggleDomainProxy
                         ->first();
 
                     if (! $dnsRecord && $serverIp) {
-                        // Record does not exist in DB yet, create it on provider
+                        
                         $targetProxied = $proxied ?? true;
                         try {
                             $recordData = $d->dnsProvider->provider()->createRecord($d->provider_domain_id, [
@@ -101,7 +97,7 @@ class ToggleDomainProxy
             return $targetProxied;
         }
 
-        // If no DNS record could be found or created, check connected providers
+        
         $user = user();
         $cloudflareProvider = DNSProvider::getByProjectId($user->current_project_id, $user)
             ->where('connected', true)
@@ -109,7 +105,7 @@ class ToggleDomainProxy
             ->first();
 
         if ($cloudflareProvider && $serverIp) {
-            // Attempt to search zones directly from Cloudflare
+            
             try {
                 $zones = $cloudflareProvider->provider()->getDomains();
                 foreach ($zones as $zone) {
@@ -126,7 +122,7 @@ class ToggleDomainProxy
                             'proxied' => $targetProxied,
                         ]);
 
-                        // Ensure domain model exists
+                        
                         $domainModel = Domain::firstOrCreate(
                             [
                                 'dns_provider_id' => $cloudflareProvider->id,

@@ -24,9 +24,9 @@ class CreateJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->worker->server_id}", function () {
-            /** @var Service $service */
+            
             $service = $this->worker->server->processManager();
-            /** @var ProcessManager $processManager */
+            
             $processManager = $service->handler();
             $processManager->create($this->worker);
             $this->worker->status = WorkerStatus::RUNNING;

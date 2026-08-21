@@ -14,7 +14,7 @@ interface ServerSelectProps {
   value: string;
   valueBy?: keyof Server;
   onValueChange?: (selectedServer?: Server) => void;
-  // Advanced API for server-switch usage
+  
   onValueChangeAdvanced?: (value: string, server: Server) => void;
   id?: string;
   prefetch?: boolean;
@@ -59,7 +59,7 @@ export default function ServerSelect({
     setSelected(value);
   }, [value]);
 
-  // Debounce query input
+  
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       setDebouncedQuery(query);
@@ -145,7 +145,7 @@ export default function ServerSelect({
     setSelected(newSelected);
     setOpen(false);
 
-    // Support both API patterns
+    
     if (onValueChangeAdvanced) {
       onValueChangeAdvanced(newSelected, server);
     } else if (onValueChange) {

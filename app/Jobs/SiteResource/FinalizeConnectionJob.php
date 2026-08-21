@@ -27,7 +27,7 @@ class FinalizeConnectionJob implements ShouldQueue
         $this->tries = 30;
     }
 
-    /** @return array<int, int> */
+    
     public function backoff(): array
     {
         return [5, 10, 15, 30];

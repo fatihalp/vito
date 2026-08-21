@@ -53,9 +53,7 @@ class ApplyRootLoginJob implements ShouldQueue
         $this->broadcast();
     }
 
-    /**
-     * @param  array<string, mixed>  $values
-     */
+    
     private function writeState(array $values): void
     {
         $this->server->refresh();

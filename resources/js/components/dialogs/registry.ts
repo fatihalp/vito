@@ -54,18 +54,7 @@ import ProjectUsers from '@/pages/projects/components/users';
 
 export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) => void };
 
-/**
- * Registry of all app-level dialogs that can be opened via `useDialog()`.
- *
- * Authorization contract: every registered consumer is responsible for
- * ensuring its props come from server-authorised sources (Inertia page
- * props, API resources, etc.), not from URL parameters or other
- * user-controlled input. The registry pattern itself carries no authz.
- *
- * To register a new dialog: add one entry here, mapping a typed key to the
- * component. Consumers immediately gain `dialog.<key>.open(props)` with
- * full IntelliSense for the prop shape.
- */
+
 export const dialogs = {
   logViewer: LogViewerDialog,
   confirm: ConfirmationDialog,
@@ -119,7 +108,7 @@ export const dialogs = {
   bucketCreate: CreateBucketDialog,
   bucketCredentialsReveal: RevealBucketCredentialsDialog,
   siteResourceReveal: RevealSiteResourceDialog,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  
 } as const satisfies Record<string, ComponentType<any>>;
 
 export type DialogRegistry = typeof dialogs;

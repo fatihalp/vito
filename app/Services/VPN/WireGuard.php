@@ -31,9 +31,7 @@ class WireGuard extends AbstractService implements VPN
         return 'vpn';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function deletionRules(): array
     {
         return [
@@ -58,9 +56,7 @@ class WireGuard extends AbstractService implements VPN
         return '';
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -73,9 +69,7 @@ class WireGuard extends AbstractService implements VPN
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(
@@ -85,9 +79,7 @@ class WireGuard extends AbstractService implements VPN
         event('service.uninstalled', $this->service);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function version(): string
     {
         $version = $this->service->server->ssh()->exec(
@@ -97,9 +89,7 @@ class WireGuard extends AbstractService implements VPN
         return trim($version);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function configureNetwork(NetworkServer $membership): void
     {
         $network = $membership->network;
@@ -128,13 +118,7 @@ class WireGuard extends AbstractService implements VPN
         );
     }
 
-    /**
-     * Every WireGuard network this server still belongs to. Any other wg-vito interface on the
-     * box is a leftover — a teardown that could not complete while the server was unreachable,
-     * for instance — and the configure pass removes it.
-     *
-     * @return array<int, int>
-     */
+    
     private function managedNetworkIds(NetworkServer $membership): array
     {
         return NetworkServer::query()
@@ -148,9 +132,7 @@ class WireGuard extends AbstractService implements VPN
             ->all();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function removeNetwork(Network $network): void
     {
         $this->service->server->ssh()->exec(
@@ -169,9 +151,7 @@ class WireGuard extends AbstractService implements VPN
         return Cidr::prefix((string) $network->cidr);
     }
 
-    /**
-     * @return array<int, array{public_key: string, allowed_ips: string, endpoint: ?string}>
-     */
+    
     private function peers(NetworkServer $membership): array
     {
         $network = $membership->network;
@@ -202,11 +182,7 @@ class WireGuard extends AbstractService implements VPN
         return $servers->concat($devices)->values()->all();
     }
 
-    /**
-     * @return array<string, int>
-     *
-     * @throws SSHError
-     */
+    
     public function latestHandshakes(Network $network): array
     {
         $output = $this->service->server->ssh()->exec(

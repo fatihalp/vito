@@ -9,20 +9,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;
 
-/**
- * @property int $id
- * @property string $provider
- * @property array<string, mixed> $data
- * @property string $label
- * @property bool $connected
- * @property ?int $project_id
- * @property int $user_id
- * @property ?Project $project
- * @property User $user
- */
+
 class NotificationChannel extends AbstractModel
 {
-    /** @use HasFactory<NotificationChannelFactory> */
+    
     use HasFactory;
 
     use Notifiable;
@@ -49,7 +39,7 @@ class NotificationChannel extends AbstractModel
     {
         $class = config('notification-channel.providers.'.$this->provider.'.handler');
 
-        /** @var \App\NotificationChannels\NotificationChannel $provider */
+        
         $provider = new $class($this);
 
         return $provider;
@@ -63,28 +53,22 @@ class NotificationChannel extends AbstractModel
         }
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return Builder<NotificationChannel>
-     */
+    
     public static function getByProjectId(int $projectId, User $user): Builder
     {
-        /** @var Builder<NotificationChannel> $query */
+        
         $query = static::query();
 
         return $query

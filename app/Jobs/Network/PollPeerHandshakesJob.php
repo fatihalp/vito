@@ -37,7 +37,7 @@ class PollPeerHandshakesJob implements ShouldQueue
                     continue;
                 }
 
-                /** @var WireGuard $handler */
+                
                 $handler = $service->handler();
 
                 $this->apply($handler->latestHandshakes($this->network));
@@ -58,9 +58,7 @@ class PollPeerHandshakesJob implements ShouldQueue
         }
     }
 
-    /**
-     * @param  array<string, int>  $handshakes
-     */
+    
     private function apply(array $handshakes): void
     {
         foreach ($this->network->peers()->get() as $peer) {
@@ -85,9 +83,7 @@ class PollPeerHandshakesJob implements ShouldQueue
         }
     }
 
-    /**
-     * @return Collection<int, NetworkServer>
-     */
+    
     private function reachableMembers(): Collection
     {
         return $this->network->servers()

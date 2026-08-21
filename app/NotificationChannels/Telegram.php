@@ -57,7 +57,7 @@ class Telegram extends AbstractNotificationChannel
 
     public function send(object $notifiable, NotificationInterface $notification): void
     {
-        /** @var NotificationChannel $notifiable */
+        
         $this->notificationChannel = $notifiable;
         $this->sendToTelegram($notification->toTelegram($notifiable));
     }

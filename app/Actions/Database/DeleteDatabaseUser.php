@@ -18,9 +18,9 @@ class DeleteDatabaseUser
             $this->guard->user($databaseUser);
         }
 
-        /** @var Service $service */
+        
         $service = $server->database();
-        /** @var Database $handler */
+        
         $handler = $service->handler();
         $handler->deleteUser($databaseUser->username, $databaseUser->host);
         $databaseUser->delete();

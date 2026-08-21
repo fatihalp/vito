@@ -21,9 +21,7 @@ class ManageServerIp
 {
     private const MAX_RANGE = 256;
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Server $server, array $input): void
     {
         $this->validate($server, $input);
@@ -61,10 +59,7 @@ class ManageServerIp
         }
     }
 
-    /**
-     * Sets the address as the server's primary. The server must be saved before
-     * the bulk is_primary update so the latter reads the new ip/local_ip.
-     */
+    
     public function setPrimary(ServerIpAddress $address): void
     {
         $server = $address->server;
@@ -108,9 +103,7 @@ class ManageServerIp
         $this->queueApply($address->server);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Server $server, array $input): void
     {
         $isRange = $this->isRange($input);
@@ -146,9 +139,7 @@ class ManageServerIp
         Validator::make($input, $rules)->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function rangeRule(array $input): Closure
     {
         return function (string $attribute, mixed $value, Closure $fail) use ($input): void {
@@ -181,10 +172,7 @@ class ManageServerIp
         };
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<int, string>
-     */
+    
     private function expandIps(array $input): array
     {
         $first = (string) $input['ip'];
@@ -241,17 +229,13 @@ class ManageServerIp
         return $binary;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function isRange(array $input): bool
     {
         return isset($input['ip_last']) && is_string($input['ip_last']) && $input['ip_last'] !== '';
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function prefixLength(array $input, IpAddressFamily $family): int
     {
         $value = $input['prefix_length'] ?? null;

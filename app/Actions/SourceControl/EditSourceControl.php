@@ -8,11 +8,7 @@ use Illuminate\Validation\ValidationException;
 
 class EditSourceControl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function edit(SourceControl $sourceControl, array $input): SourceControl
     {
         Validator::make($input, array_merge(

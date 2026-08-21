@@ -23,9 +23,7 @@ function generate_key_pair(string $path): void
     chmod($path, 0400);
 }
 
-/**
- * @throws Exception
- */
+
 function date_with_timezone(mixed $date, string $timezone): string
 {
     $dt = new DateTime('now', new DateTimeZone($timezone));
@@ -83,64 +81,62 @@ function get_public_key_content(): string
     return $content;
 }
 
-/**
- * Credit: https://gist.github.com/lorenzos/1711e81a9162320fde20
- */
+
 function tail(string $filepath, int $lines = 1, bool $adaptive = true): string
 {
-    // Open file
+    
     $f = @fopen($filepath, 'rb');
     if ($f === false) {
         return '';
     }
 
-    // Sets buffer size, according to the number of lines to retrieve.
-    // This gives a performance boost when reading a few lines from the file.
+    
+    
     if (! $adaptive) {
         $buffer = 4096;
     } else {
         $buffer = ($lines < 2 ? 64 : ($lines < 10 ? 512 : 4096));
     }
 
-    // Jump to last character
+    
     fseek($f, -1, SEEK_END);
 
-    // Read it and adjust line number if necessary
-    // (Otherwise the result would be wrong if file doesn't end with a blank line)
+    
+    
     if (fread($f, 1) != "\n") {
         $lines -= 1;
     }
 
-    // Start reading
+    
     $output = '';
     $chunk = '';
 
-    // While we would like more
+    
     while (ftell($f) > 0 && $lines >= 0) {
-        // Figure out how far back we should jump
+        
         $seek = min(ftell($f), $buffer);
 
-        // Do the jump (backwards, relative to where we are)
+        
         fseek($f, -$seek, SEEK_CUR);
 
-        // Read a chunk and prepend it to our output
+        
         $output = ($chunk = fread($f, $seek)).$output;
 
-        // Jump back to where we started reading
+        
         fseek($f, -mb_strlen($chunk !== false ? $chunk : '', '8bit'), SEEK_CUR);
 
-        // Decrease our line counter
+        
         $lines -= substr_count($chunk !== false ? $chunk : '', "\n");
     }
 
-    // While we have too many lines
-    // (Because of buffer size we might have read too many)
+    
+    
     while ($lines++ < 0) {
-        // Find first newline and remove all text before that
+        
         $output = substr($output, strpos($output, "\n") + 1);
     }
 
-    // Close file and return
+    
     fclose($f);
 
     return trim($output);
@@ -172,12 +168,12 @@ function absolute_path(string $path): string
 
     foreach ($parts as $part) {
         if ($part === '' || $part === '.') {
-            continue; // Skip empty and current directory parts
+            continue; 
         }
         if ($part === '..') {
-            array_pop($absoluteParts); // Move up one directory
+            array_pop($absoluteParts); 
         } else {
-            $absoluteParts[] = $part; // Add valid directory parts
+            $absoluteParts[] = $part; 
         }
     }
 
@@ -240,7 +236,7 @@ function format_webserver_config(string $config): string
 
 function user(): User
 {
-    /** @var User $user */
+    
     $user = Auth::user();
 
     return $user;
@@ -297,15 +293,15 @@ function git_path(): ?string
 
 function move_directory(string $from, string $to): void
 {
-    // Remove any stale destination
+    
     if (File::exists($to)) {
         File::deleteDirectory($to);
     }
 
-    // Ensure parent of $to exists
+    
     File::ensureDirectoryExists(dirname($to));
 
-    // Copy + delete (works across mounts / volumes)
+    
     if (! File::copyDirectory($from, $to)) {
         throw new RuntimeException("Could not copy [$from] to [$to]");
     }

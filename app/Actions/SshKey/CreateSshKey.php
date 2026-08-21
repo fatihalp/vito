@@ -10,11 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateSshKey
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(User $user, array $input): SshKey
     {
         Validator::make($input, [

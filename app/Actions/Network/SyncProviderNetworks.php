@@ -29,17 +29,7 @@ class SyncProviderNetworks
         private DeleteNetwork $delete,
     ) {}
 
-    /**
-     * A discovered network is recorded as seen before it is reconciled, so that a network the
-     * provider reported is never pruned just because persisting it failed.
-     *
-     * One connection's failure must not suppress pruning for the others, so failures are
-     * collected and rethrown once every healthy connection has been processed — the caller
-     * still sees the error instead of a silent success. A network that could not be written
-     * is counted the same way, so a partial sweep never reports success either.
-     *
-     * @throws PrivateNetworkSyncError|PrivateNetworkPersistError
-     */
+    
     public function forProject(Project $project, ?Network $only = null): void
     {
         if ($only instanceof Network && $only->project_id !== $project->id) {
@@ -95,14 +85,7 @@ class SyncProviderNetworks
         }
     }
 
-    /**
-     * Discovered networks are upserted on (project, connection, external id). A per-network DB
-     * failure is logged and skipped rather than propagated, so it never counts as a connection
-     * failure — that would wrongly suppress pruning for every other network on the connection.
-     *
-     * @param  array<string, Server>  $servers
-     * @return bool whether the network was persisted; the caller fails the sweep at the end
-     */
+    
     private function reconcile(Project $project, ServerProvider $connection, PrivateNetworkDTO $dto, array $servers): bool
     {
         try {
@@ -132,7 +115,7 @@ class SyncProviderNetworks
 
     private function upsert(Project $project, ServerProvider $connection, PrivateNetworkDTO $dto): Network
     {
-        /** @var ?Network $network */
+        
         $network = $project->networks()
             ->where('server_provider_id', $connection->id)
             ->where('external_id', $dto->externalId)
@@ -176,13 +159,7 @@ class SyncProviderNetworks
         return $network;
     }
 
-    /**
-     * A network pruned on an earlier run can legitimately reappear — a transient omission
-     * from the provider, or a region that failed and then recovered. `RecomputeNetworkStatus`
-     * returns early for DELETING networks without recomputing, and only hard-deletes at zero
-     * members, so a resurrected network would otherwise stay DELETING forever with members
-     * that never converge, and D2 blocks the user from deleting it.
-     */
+    
     private function resurrect(Network $network): void
     {
         if ($network->status !== NetworkStatus::DELETING) {
@@ -197,19 +174,10 @@ class SyncProviderNetworks
             ->update(['status' => NetworkServerStatus::PENDING, 'sync_attempts' => 0]);
     }
 
-    /**
-     * Membership is a fact reported by the provider, so members start ACTIVE — there is no
-     * on-server provisioning beyond firewall rules. `ApplyNetworkFirewall` downgrades a member
-     * to PENDING when its server is unreachable, and the reconciler drives it back up.
-     *
-     * Departure is keyed on array_key_exists rather than isset, because a member the provider
-     * reports without an address is present with a null value.
-     *
-     * @param  array<string, Server>  $servers
-     */
+    
     private function reconcileMembers(Network $network, PrivateNetworkDTO $dto, array $servers): void
     {
-        /** @var Collection<int, NetworkServer> $existing */
+        
         $existing = $network->servers()->lockForUpdate()->get()->keyBy('server_id');
 
         $desired = [];
@@ -225,7 +193,7 @@ class SyncProviderNetworks
         $this->releaseChangedIps($existing, $desired);
 
         foreach ($desired as $serverId => $ip) {
-            /** @var ?NetworkServer $member */
+            
             $member = $existing->get($serverId);
 
             if (! $member instanceof NetworkServer) {
@@ -261,14 +229,7 @@ class SyncProviderNetworks
         }
     }
 
-    /**
-     * `network_servers` carries unique(network_id, ip). When a provider recycles an address
-     * onto a different instance within one run, writing the new owner before clearing the old
-     * one violates it, so changed addresses are released first.
-     *
-     * @param  Collection<int, NetworkServer>  $existing
-     * @param  array<int, ?string>  $desired
-     */
+    
     private function releaseChangedIps(Collection $existing, array $desired): void
     {
         foreach ($existing as $member) {
@@ -281,15 +242,7 @@ class SyncProviderNetworks
         }
     }
 
-    /**
-     * `$asked` is false when the connection had no instance ids to query, or when the provider
-     * could not be queried at all (an EC2 connection whose servers carry no region), so `$seen`
-     * being empty carries no information about what still exists at the provider. Only a network
-     * with no members left may be reaped in that case — anything else has to wait for a run
-     * that could actually ask.
-     *
-     * @param  array<int, string>  $seen
-     */
+    
     private function prune(Project $project, ServerProvider $connection, array $seen, ?Network $only, bool $asked): void
     {
         $project->networks()
@@ -340,12 +293,10 @@ class SyncProviderNetworks
         return $candidate;
     }
 
-    /**
-     * @return array<int, array{connection: ServerProvider, provider: ProvidesPrivateNetworks, key: string, servers: array<string, Server>, regions: array<int, string>, serversWithoutRegion: int}>
-     */
+    
     private function connections(Project $project, ?Network $only): array
     {
-        /** @var Collection<int, Server> $servers */
+        
         $servers = $project->servers()
             ->whereNotNull('provider_id')
             ->when(
@@ -418,16 +369,7 @@ class SyncProviderNetworks
         return array_values($contexts);
     }
 
-    /**
-     * A connection whose last managed server has been deleted still needs a pass. Its provider
-     * networks have no members left, so nothing can reconcile them, and because they are
-     * provider-managed the policy also refuses a manual delete — without this they would be
-     * stranded permanently. There is nothing to ask the provider in that case, so the context
-     * carries no servers and `forProject()` goes straight to pruning.
-     *
-     * @param  array<int, int>  $known
-     * @return Collection<int, ServerProvider>
-     */
+    
     private function orphanedConnections(Project $project, ?Network $only, array $known): Collection
     {
         $ids = $project->networks()

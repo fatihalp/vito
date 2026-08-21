@@ -33,7 +33,7 @@ class ConnectSiteResource
 {
     public function __construct(private SyncManagedEnvironment $environment) {}
 
-    /** @param array<string, mixed> $input */
+    
     public function connect(Site $site, array $input): SiteResource
     {
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
@@ -230,7 +230,7 @@ class ConnectSiteResource
         ]);
     }
 
-    /** @param array<string, mixed> $configuration @param array<string, string> $environment */
+    
     private function persist(
         Site $site,
         SiteResourceType $type,

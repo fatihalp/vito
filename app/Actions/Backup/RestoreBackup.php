@@ -18,9 +18,7 @@ use Illuminate\Validation\Rule;
 
 class RestoreBackup
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function restore(BackupFile $backupFile, array $input): void
     {
         $this->validate($backupFile, $input, $backupFile->backup->type);
@@ -42,7 +40,7 @@ class RestoreBackup
 
     private function restoreDatabase(BackupFile $backupFile, array $input): void
     {
-        /** @var Database $database */
+        
         $database = Database::query()->with('server')->findOrFail($input['database']);
         $backupFile->restored_to = $database->server_id === $backupFile->backup->server_id
             ? $database->name
@@ -86,7 +84,7 @@ class RestoreBackup
                     ->whereNull('deleted_at')
                     ->whereIn('server_id', $backupFile->backup->server->project->servers()->pluck('id')->all()),
                 function (string $attribute, mixed $value, Closure $fail) use ($backupFile): void {
-                    /** @var ?Database $database */
+                    
                     $database = Database::query()->with('server')->find($value);
                     if (! $database) {
                         return;

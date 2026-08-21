@@ -53,9 +53,7 @@ class PHPMyAdmin extends PHPSite
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(0, 'isolating-user');

@@ -7,12 +7,10 @@ use App\SourceControlProviders\SourceControlProvider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin SourceControl */
+
 class SourceControlResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         $handler = config('source-control.providers.'.$this->provider.'.handler');

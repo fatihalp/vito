@@ -13,14 +13,7 @@ class CreateWireGuardMembers
 {
     public function __construct(private GenerateWireGuardKeys $keys) {}
 
-    /**
-     * Allocate the next free host address and a fresh key pair for each server,
-     * and create its membership row.
-     *
-     * @param  Collection<int, Server>  $servers
-     * @param  array<int, string>  $used
-     * @return array<int, int>
-     */
+    
     public function create(Network $network, Collection $servers, array $used = []): array
     {
         $ids = [];

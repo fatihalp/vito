@@ -76,9 +76,7 @@ class PHPController extends Controller
         return back()->with('info', 'PHP extension is being installed.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/{service}/default-cli', name: 'php.default-cli')]
     public function defaultCli(Request $request, Server $server, Service $service): RedirectResponse
     {

@@ -16,22 +16,13 @@ abstract class AbstractStorageProvider implements StorageProviderContract
 
     public function forgetCachedState(): void {}
 
-    /**
-     * Credential keys that are safe to send back to the client for editing.
-     *
-     * @return array<int, string>
-     */
+    
     protected function editableFields(): array
     {
         return [];
     }
 
-    /**
-     * Credential keys that are never sent back to the client and are only
-     * written when a non-empty value is submitted.
-     *
-     * @return array<int, string>
-     */
+    
     protected function secretFields(): array
     {
         return [];
@@ -109,9 +100,7 @@ abstract class AbstractStorageProvider implements StorageProviderContract
         return [$credentials, $needsReconnect];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     protected static function checkboxFields(): array
     {
         $fields = [];

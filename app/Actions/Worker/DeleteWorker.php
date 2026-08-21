@@ -7,9 +7,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeleteWorker
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function delete(Worker $worker): void
     {
         if ($worker->isSiteBootstrap()) {

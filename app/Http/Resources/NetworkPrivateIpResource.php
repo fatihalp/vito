@@ -6,12 +6,10 @@ use App\Models\ServerIpAddress;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin ServerIpAddress */
+
 class NetworkPrivateIpResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [

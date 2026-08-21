@@ -14,9 +14,7 @@ class SFTP extends AbstractStorageProvider
         return 'sftp';
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function validationRules(): array
     {
         return [

@@ -15,12 +15,7 @@ class LinkUser
 {
     public function __construct(private GuardProvisionedDatabase $guard) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return DatabaseUser $databaseUser
-     *
-     * @throws ValidationException
-     */
+    
     public function link(DatabaseUser $databaseUser, array $input): DatabaseUser
     {
         $this->guard->user($databaseUser);
@@ -38,10 +33,10 @@ class LinkUser
             throw ValidationException::withMessages(['databases' => __('Databases not found!')]);
         }
 
-        /** @var Service $service */
+        
         $service = $databaseUser->server->database();
 
-        /** @var \App\Services\Database\Database $handler */
+        
         $handler = $service->handler();
 
         $handler->unlink(

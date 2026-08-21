@@ -67,7 +67,7 @@ class Custom extends AbstractProvider
 
     public function create(): void
     {
-        /** @var FilesystemAdapter $storageDisk */
+        
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
         File::copy(
             storage_path(config('core.ssh_private_key_name')),
@@ -97,6 +97,6 @@ class Custom extends AbstractProvider
 
     public function delete(): void
     {
-        //
+        
     }
 }

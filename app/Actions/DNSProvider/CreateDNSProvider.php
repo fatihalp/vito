@@ -40,7 +40,7 @@ class CreateDNSProvider
     private static function getProvider(string $name): DNSProviderContract
     {
         $providerClass = config('dns-provider.providers.'.$name.'.handler');
-        /** @var DNSProviderContract $provider */
+        
         $provider = new $providerClass(new DNSProvider);
 
         return $provider;
@@ -58,7 +58,7 @@ class CreateDNSProvider
             ],
         ];
 
-        // Only get provider-specific rules if the provider exists
+        
         if (isset($input['provider']) && config('dns-provider.providers.'.$input['provider'])) {
             $rules = array_merge($rules, $this->providerRules($input));
         }

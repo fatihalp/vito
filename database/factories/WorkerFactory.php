@@ -6,9 +6,7 @@ use App\Enums\WorkerStatus;
 use App\Models\Worker;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Worker>
- */
+
 class WorkerFactory extends Factory
 {
     protected $model = Worker::class;
@@ -29,9 +27,7 @@ class WorkerFactory extends Factory
         ];
     }
 
-    /**
-     * @param  array<string, string>  $environment
-     */
+    
     public function withEnvironment(array $environment): static
     {
         return $this->state(fn (array $attributes) => [

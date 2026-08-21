@@ -15,7 +15,7 @@ class ServersSeeder extends Seeder
 {
     public function run(): void
     {
-        /** @var User $user */
+        
         $user = User::query()->first();
 
         $projects = Project::all();
@@ -29,7 +29,7 @@ class ServersSeeder extends Seeder
         $providers = ServerProvider::all();
 
         $provider = $providers->random();
-        /** @var Server $app */
+        
         $app = Server::factory()->create([
             'user_id' => $user->id,
             'project_id' => $project->id,

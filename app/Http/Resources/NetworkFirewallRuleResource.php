@@ -6,12 +6,10 @@ use App\Models\NetworkFirewallRule;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin NetworkFirewallRule */
+
 class NetworkFirewallRuleResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [

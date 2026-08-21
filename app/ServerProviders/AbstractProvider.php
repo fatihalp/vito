@@ -12,9 +12,7 @@ abstract class AbstractProvider implements ServerProvider
 {
     public function __construct(protected Provider $serverProvider, protected Server $server) {}
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function availablePlans(?string $region): array
     {
         return collect($this->plans($region))
@@ -23,19 +21,13 @@ abstract class AbstractProvider implements ServerProvider
             ->all();
     }
 
-    /**
-     * @param  array<int, string>  $regions
-     */
+    
     public function canDiscoverPrivateNetworks(array $regions, int $serversWithoutRegion): bool
     {
         return true;
     }
 
-    /**
-     * Convert any upstream failure into a credential-free exception. Upstream
-     * HTTP/SDK exceptions can carry tokens in their message or trace arguments,
-     * which the queue would persist into `failed_jobs.exception`.
-     */
+    
     protected function syncError(?int $status = null, ?string $region = null): PrivateNetworkSyncError
     {
         return new PrivateNetworkSyncError(
@@ -49,7 +41,7 @@ abstract class AbstractProvider implements ServerProvider
 
     public function generateKeyPair(): void
     {
-        /** @var FilesystemAdapter $storageDisk */
+        
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
         generate_key_pair($storageDisk->path((string) $this->server->id));
     }

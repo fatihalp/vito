@@ -29,7 +29,7 @@ class ApplyNetworkFirewallJob implements ShouldQueue
                     return;
                 }
 
-                /** @var Firewall $handler */
+                
                 $handler = $service->handler();
                 $handler->applyRules();
             });

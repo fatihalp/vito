@@ -11,9 +11,7 @@ use Illuminate\Validation\Rule;
 
 class CreateRedirect
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Site $site, array $input): Redirect
     {
         $this->validate($site, $input);

@@ -4,15 +4,14 @@ namespace App\Http\Resources;
 
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
+use App\SSH\OS\Composer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Site */
+
 class SiteResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [
@@ -59,23 +58,20 @@ class SiteResource extends JsonResource
             'has_custom_vhost_template' => $this->vhost_template !== null,
             'modern_deployment' => $this->modernDeploymentEnabled(),
             'stats_enabled' => $this->statsEnabled(),
-            'is_proxied_site_type' => $this->type() instanceof AbstractProxiedSiteType,
+            'is_proxied_site_type' => $this->typeOrNull() instanceof AbstractProxiedSiteType,
             'available_tooling_commands' => $this->availableToolingCommands(),
             'start_command' => $this->type_data['start_command'] ?? null,
             'bootstrap_worker_id' => isset($this->type_data['bootstrap_worker_id'])
                 ? (int) $this->type_data['bootstrap_worker_id']
                 : null,
+            'default_composer_install_command' => $this->typeOrNull()?->language() === 'php' ? Composer::DEFAULT_INSTALL_COMMAND : null,
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
     }
 
-    /**
-     * Strip basic-auth password hashes from type_data before sending to the client.
-     *
-     * @return array<string, mixed>
-     */
+    
     private function sanitisedTypeData(): array
     {
         $typeData = $this->type_data ?? [];

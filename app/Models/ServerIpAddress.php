@@ -10,22 +10,10 @@ use Database\Factories\ServerIpAddressFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $server_id
- * @property string $ip
- * @property int $prefix_length
- * @property IpAddressFamily $family
- * @property ?string $interface
- * @property IpAddressType $type
- * @property IpAddressStatus $status
- * @property bool $is_managed
- * @property bool $is_primary
- * @property bool $is_dynamic
- * @property Server $server
- */
+
 class ServerIpAddress extends AbstractModel
 {
-    /** @use HasFactory<ServerIpAddressFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -46,12 +34,7 @@ class ServerIpAddress extends AbstractModel
         'status' => IpAddressStatus::class,
     ];
 
-    /**
-     * Carried between the two events because the foreign key is nullOnDelete, so by the second
-     * nothing records which memberships this address backed.
-     *
-     * @var array<int, int>
-     */
+    
     protected array $reapplyNetworkIds = [];
 
     protected static function booted(): void
@@ -65,9 +48,7 @@ class ServerIpAddress extends AbstractModel
         });
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);

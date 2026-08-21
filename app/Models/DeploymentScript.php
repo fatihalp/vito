@@ -6,15 +6,10 @@ use Database\Factories\DeploymentScriptFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $site_id
- * @property string $name
- * @property string $content
- * @property Site $site
- */
+
 class DeploymentScript extends AbstractModel
 {
-    /** @use HasFactory<DeploymentScriptFactory> */
+    
     use HasFactory;
 
     protected static function boot(): void
@@ -38,9 +33,7 @@ class DeploymentScript extends AbstractModel
         'configs' => 'array',
     ];
 
-    /**
-     * @return BelongsTo<Site, covariant $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);

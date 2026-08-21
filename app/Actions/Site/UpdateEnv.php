@@ -13,12 +13,7 @@ class UpdateEnv
 {
     public function __construct(private SyncManagedEnvironment $managedEnvironment) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     * @throws ValidationException
-     */
+    
     public function update(Site $site, array $input): void
     {
         Validator::make($input, [
@@ -75,28 +70,7 @@ class UpdateEnv
         $site->save();
     }
 
-    /**
-     * Build the variables to write to the .env file. Values are taken from the
-     * incoming request, restoring masked secrets from the live server file so a
-     * secret left empty in the form is never wiped.
-     *
-     * A key already stored as secret cannot be wiped by submitting it as a
-     * non-secret with an empty value: while the submitted value is empty it
-     * stays secret so its live value is restored rather than blanked. To make a
-     * secret key non-secret the user drops it and re-adds it with a fresh value,
-     * which is honoured because a real value is supplied.
-     *
-     * The raw-text path has no per-field secret toggle, so existing secret
-     * classifications are carried over and newly introduced keys fall back to
-     * pattern auto-detection. No secret restoration is performed on that path,
-     * so callers must supply real values.
-     *
-     * @param  array<string, mixed>  $input
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     *
-     * @throws SSHError
-     * @throws ValidationException
-     */
+    
     private function resolveVariables(Site $site, array $input, string $path, bool $hasVariables): array
     {
         $secretKeys = array_flip(EnvParser::secretKeys($site->env_variables));
@@ -132,20 +106,7 @@ class UpdateEnv
         }, EnvParser::parse(trim((string) ($input['env'] ?? null))));
     }
 
-    /**
-     * Guard against silently wiping a previously stored secret. Such a secret
-     * submitted with an empty value relies on its value being restored from the
-     * live server file; if the file could not be read (an SSH failure is
-     * swallowed by getEnv() and yields an empty parse) we would write it out
-     * blank. Abort instead so the user can retry rather than lose the value.
-     *
-     * Only keys already stored as secret are guarded — a brand-new key submitted
-     * empty has no value to lose, so an empty live file is treated as legitimate.
-     *
-     * @param  array<int, array<string, mixed>>  $incoming
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $live
-     * @param  array<string, int>  $secretKeys
-     */
+    
     private function guardAgainstWipingSecrets(array $incoming, array $live, array $secretKeys): void
     {
         if ($live !== []) {
@@ -164,13 +125,7 @@ class UpdateEnv
         }
     }
 
-    /**
-     * Collect the list of keys marked as secret. Only this list is persisted to
-     * the database — env values themselves always live on the server.
-     *
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $variables
-     * @return array<int, string>
-     */
+    
     private function secretKeys(array $variables): array
     {
         $keys = [];

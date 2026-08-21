@@ -15,7 +15,7 @@ class SyncDatabases
         if (! $service instanceof Service) {
             return;
         }
-        /** @var Database $handler */
+        
         $handler = $service->handler();
 
         $this->updateCharsets($service, $handler);
@@ -36,7 +36,7 @@ class SyncDatabases
     {
         $databases = $handler->getDatabases();
         foreach ($databases as $database) {
-            /** @var ?\App\Models\Database $db */
+            
             $db = $server->databases()
                 ->where('name', $database[0])
                 ->first();

@@ -11,15 +11,11 @@ use Illuminate\Validation\ValidationException;
 
 class ChangeDefaultCli
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function change(Server $server, array $input): void
     {
         $this->validate($server, $input);
-        /** @var Service $service */
+        
         $service = $server->php($input['version']);
 
         if ($service->is_default) {
@@ -28,7 +24,7 @@ class ChangeDefaultCli
             );
         }
 
-        /** @var PHP $handler */
+        
         $handler = $service->handler();
         $handler->setDefaultCli();
         $server->defaultService('php')?->update(['is_default' => 0]);
@@ -36,11 +32,7 @@ class ChangeDefaultCli
         $service->update(['status' => ServiceStatus::READY]);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(Server $server, array $input): void
     {
         if (! isset($input['version']) || ! in_array($input['version'], $server->installedPHPVersions())) {

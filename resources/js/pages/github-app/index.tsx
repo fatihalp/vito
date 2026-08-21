@@ -210,7 +210,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
 
   return (
     <div className="space-y-8">
-      {/* Step 1 */}
+      {}
       <section className="space-y-4">
         <StepHeader
           number={1}
@@ -272,7 +272,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
 
       <Separator />
 
-      {/* Step 2 */}
+      {}
       <section className="space-y-4">
         <StepHeader number={2} title="Paste the credentials below" description="Fill in the values GitHub gave you in Step 1, then save." />
 

@@ -16,11 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateServerProvider
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(User $user, array $input): ServerProvider
     {
         $this->validate($input);
@@ -57,7 +53,7 @@ class CreateServerProvider
     private static function getProvider(string $name): ServerProviderContract
     {
         $providerClass = config('server-provider.providers.'.$name.'.handler');
-        /** @var ServerProviderContract $provider */
+        
         $provider = new $providerClass(new ServerProvider, new Server);
 
         return $provider;
@@ -79,10 +75,7 @@ class CreateServerProvider
         Validator::make($input, array_merge($rules, $this->providerRules($input)))->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     */
+    
     private function providerRules(array $input): array
     {
         if (! isset($input['provider'])) {

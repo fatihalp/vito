@@ -47,7 +47,7 @@ class ProjectUserController extends Controller
     {
         $this->authorize('update', $project);
 
-        /** @var ?UserProject $userProject */
+        
         $userProject = $project->users()->where('id', $id)->first();
 
         if ($userProject?->user && $project->role($userProject->user) === UserRole::OWNER) {

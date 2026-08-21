@@ -54,9 +54,7 @@ class Github extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getRepo(string $repo): mixed
     {
         $url = $repo !== '' && $repo !== '0'
@@ -75,9 +73,7 @@ class Github extends AbstractSourceControlProvider
         return sprintf('git@github.com-%s:%s.git', $key, $repo);
     }
 
-    /**
-     * @throws FailedToDeployGitHook
-     */
+    
     public function deployHook(string $repo, array $events, string $secret): array
     {
         try {
@@ -113,9 +109,7 @@ class Github extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws FailedToDestroyGitHook
-     */
+    
     public function destroyHook(string $repo, string $hookId): void
     {
         try {
@@ -137,9 +131,7 @@ class Github extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getLastCommit(string $repo, string $branch): ?array
     {
         $cacheKey = 'github_commit_'.md5($repo.$branch.$this->data()['token']);
@@ -166,7 +158,7 @@ class Github extends AbstractSourceControlProvider
                     ],
                 ];
 
-                Cache::put($cacheKey, $result, 60); // Cache for 1 minute
+                Cache::put($cacheKey, $result, 60); 
 
                 return $result;
             }
@@ -184,9 +176,7 @@ class Github extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     */
+    
     public function deployKey(string $title, string $repo, string $key): string
     {
         try {
@@ -291,10 +281,7 @@ class Github extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws RequestException
-     * @throws ConnectionException
-     */
+    
     private function fetchAllPages(string $endpoint, array $params = []): Collection
     {
         $allData = collect();

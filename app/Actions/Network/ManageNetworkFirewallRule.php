@@ -15,9 +15,7 @@ class ManageNetworkFirewallRule
 {
     public function __construct(private ApplyNetworkFirewall $apply) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Network $network, array $input): NetworkFirewallRule
     {
         $this->validate($input);
@@ -30,9 +28,7 @@ class ManageNetworkFirewallRule
         return $rule;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(NetworkFirewallRule $rule, array $input): NetworkFirewallRule
     {
         $this->validate($input);
@@ -55,9 +51,7 @@ class ManageNetworkFirewallRule
         $this->apply->handle($network);
     }
 
-    /**
-     * @param  array<string, mixed>|NetworkFirewallRuleResource  $data
-     */
+    
     private function broadcast(Network $network, string $type, array|NetworkFirewallRuleResource $data): void
     {
         SocketEvent::dispatch(new SocketEventDTO(
@@ -67,10 +61,7 @@ class ManageNetworkFirewallRule
         ));
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     private function attributes(array $input): array
     {
         $port = $input['port'] ?? null;
@@ -83,9 +74,7 @@ class ManageNetworkFirewallRule
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(array $input): void
     {
         $port = $input['port'] ?? null;

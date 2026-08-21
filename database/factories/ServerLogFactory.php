@@ -5,9 +5,7 @@ namespace Database\Factories;
 use App\Models\ServerLog;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<ServerLog>
- */
+
 class ServerLogFactory extends Factory
 {
     protected $model = ServerLog::class;

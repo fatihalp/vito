@@ -18,10 +18,7 @@ class Laravel extends PHPSite
         return new self(new Site(['type' => self::id()]));
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         parent::install();

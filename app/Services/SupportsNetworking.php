@@ -16,21 +16,15 @@ interface SupportsNetworking
 
     public function prepareNetworking(): void;
 
-    /**
-     * @throws SSHError
-     */
+    
     public function enableNetworking(): void;
 
-    /**
-     * @throws SSHError
-     */
+    
     public function disableNetworking(): void;
 
     public function networkingPort(): int;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function networkingDetails(): array;
 
     public function networkingProbeCommand(): string;

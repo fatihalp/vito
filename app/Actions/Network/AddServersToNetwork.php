@@ -24,10 +24,7 @@ class AddServersToNetwork
         private ApplyNetworkFirewall $firewall,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return ?int the port the network moved to, when an incoming server forced it off its own
-     */
+    
     public function add(Network $network, array $input): ?int
     {
         if ($network->type === NetworkType::PROVIDER) {
@@ -63,10 +60,7 @@ class AddServersToNetwork
         return $network->port !== $portBefore ? $network->port : null;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<int, int>
-     */
+    
     private function addWireGuard(Network $network, array $input): array
     {
         Project::query()->whereKey($network->project_id)->lockForUpdate()->first();
@@ -88,10 +82,7 @@ class AddServersToNetwork
         return $this->members->create($network, $servers, $used);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<int, int>
-     */
+    
     private function addCustom(Network $network, array $input): array
     {
         $ids = [];
@@ -107,9 +98,7 @@ class AddServersToNetwork
         return $ids;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Network $network, array $input): void
     {
         $rules = [
@@ -133,12 +122,7 @@ class AddServersToNetwork
         }
     }
 
-    /**
-     * Runs only once `servers` is known to be a list of integers — building these rules from
-     * unvalidated input would interpolate an array into a rule key and fail with a 500.
-     *
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validateMemberIps(Network $network, array $input): void
     {
         $rules = [];
@@ -157,16 +141,7 @@ class AddServersToNetwork
         Validator::make($input, $rules)->validate();
     }
 
-    /**
-     * An incoming server may already run this network's port for a different network, which the
-     * two would then fight over on that host. The network moves to a free port instead of
-     * refusing the server — every healthy member is resynced by the caller, so they follow it.
-     *
-     * Peers do not follow: their endpoint port is baked into the config at download time, so an
-     * already-imported config keeps the old port. The caller warns when peers exist.
-     *
-     * @param  array<int, int>  $serverIds
-     */
+    
     private function resolvePortConflict(Network $network, array $serverIds): void
     {
         $serverIds = array_merge($network->servers()->pluck('server_id')->all(), $serverIds);

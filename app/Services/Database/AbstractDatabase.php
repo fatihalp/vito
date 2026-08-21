@@ -16,14 +16,10 @@ use Throwable;
 
 abstract class AbstractDatabase extends AbstractService implements Database
 {
-    /**
-     * @var array<string>
-     */
+    
     protected array $systemDbs = [];
 
-    /**
-     * @var array<string>
-     */
+    
     protected array $systemUsers = [];
 
     protected string $defaultCharset;
@@ -68,10 +64,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         ];
     }
 
-    /**
-     * @throws ServiceInstallationFailed
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $version = str_replace('.', '', $this->service->version);
@@ -111,9 +104,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $version = $this->service->version;
@@ -123,9 +114,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function create(string $name, string $charset, string $collation): void
     {
         $this->service->server->ssh()->exec(
@@ -138,9 +127,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function delete(string $name): void
     {
         $this->service->server->ssh()->exec(
@@ -151,9 +138,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function createUser(string $username, string $password, string $host): void
     {
         $this->service->server->ssh()->exec(
@@ -166,9 +151,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function updateUser(string $username, string $host, ?string $newPassword = null, ?string $newHost = null): void
     {
         $this->service->server->ssh()->exec(
@@ -182,9 +165,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteUser(string $username, string $host): void
     {
         $this->service->server->ssh()->exec(
@@ -196,9 +177,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function link(string $username, string $host, array $databases, string $permission = 'admin'): void
     {
         $ssh = $this->service->server->ssh();
@@ -218,9 +197,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function unlink(string $username, string $host): void
     {
         $version = $this->service->version;
@@ -235,9 +212,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function runBackup(BackupFile $backupFile): void
     {
         $backupFile->database_engine = $this->service->name;
@@ -273,9 +248,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         $backupFile->save();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function restoreBackup(BackupFile $backupFile, string $database): void
     {
         $tempPath = $backupFile->tempPath($this->service->server);
@@ -294,9 +267,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getCharsets(): array
     {
         $data = $this->service->server->ssh()->exec(
@@ -338,9 +309,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getDatabases(): array
     {
         $data = $this->service->server->ssh()->exec(
@@ -353,9 +322,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         return array_values(array_filter($databases, fn ($database): bool => ! in_array($database[0], $this->systemDbs)));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getUsers(): array
     {
         $data = $this->service->server->ssh()->exec(
@@ -376,9 +343,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         return $users;
     }
 
-    /**
-     * @return array<array<string>>
-     */
+    
     protected function tableToArray(string $data, bool $keepHeader = false): array
     {
         $lines = explode("\n", trim($data));

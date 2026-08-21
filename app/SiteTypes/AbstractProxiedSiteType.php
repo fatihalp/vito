@@ -73,9 +73,7 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         ];
     }
 
-    /**
-     * @return array<int, DynamicField>
-     */
+    
     public static function sharedFormFields(): array
     {
         return [
@@ -98,9 +96,7 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         ];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     protected function deployCommands(): array
     {
         return [];
@@ -115,10 +111,7 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         return is_string($command) && $command !== '' ? $command : $this->defaultStartCommand();
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(0, 'isolating-user');
@@ -189,9 +182,7 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         return null;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     protected function knownDefaultStartCommands(): array
     {
         return [

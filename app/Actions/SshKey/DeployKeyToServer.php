@@ -11,11 +11,7 @@ use Illuminate\Validation\Rule;
 
 class DeployKeyToServer
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function deploy(Server $server, SshKey $sshKey, array $input): void
     {
         $this->validate($server, $input);

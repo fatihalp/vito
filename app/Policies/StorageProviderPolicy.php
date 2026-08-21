@@ -32,13 +32,10 @@ class StorageProviderPolicy
         return $user->id === $storageProvider->user_id;
     }
 
-    /**
-     * Non-secret credential values are only for callers who can already
-     * rewrite them. API tokens must additionally carry the write ability.
-     */
+    
     public function revealCredentials(User $user, StorageProvider $storageProvider): bool
     {
-        /** @var PersonalAccessToken|TransientToken|null $token */
+        
         $token = $user->currentAccessToken();
 
         if ($token !== null && ! $token->can('write')) {

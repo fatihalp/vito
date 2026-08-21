@@ -28,7 +28,7 @@ abstract class AbstractSourceControlProvider implements SourceControlProvider
 
     public function data(): array
     {
-        // support for older data
+        
         $token = $this->sourceControl->access_token ?? '';
 
         return [
@@ -36,11 +36,7 @@ abstract class AbstractSourceControlProvider implements SourceControlProvider
         ];
     }
 
-    /**
-     * @throws SourceControlIsNotConnected
-     * @throws RepositoryNotFound
-     * @throws RepositoryPermissionDenied
-     */
+    
     protected function handleResponseErrors(Response $res, string $repo): void
     {
         if ($res->status() == 401) {
@@ -66,40 +62,25 @@ abstract class AbstractSourceControlProvider implements SourceControlProvider
         return 22;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function editableFields(): array
     {
         return [];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<int, string>>
-     */
+    
     public function editRules(array $input): array
     {
         return [];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     *
-     * @note Subclasses that return a non-empty editableFields() MUST override
-     *       this method to whitelist exactly which keys are merged from $input.
-     *       Spreading $input here would let an attacker overwrite encrypted
-     *       fields like `token`.
-     */
+    
     public function editData(array $input): array
     {
         return $this->sourceControl->provider_data ?? [];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     protected function sshPortRules(): array
     {
         return ['sometimes', 'nullable', 'integer', 'min:1', 'max:65535'];

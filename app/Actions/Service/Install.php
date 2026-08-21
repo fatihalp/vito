@@ -12,11 +12,7 @@ use Illuminate\Validation\Rule;
 
 class Install
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function install(Server $server, array $input): Service
     {
         $this->validate($input);

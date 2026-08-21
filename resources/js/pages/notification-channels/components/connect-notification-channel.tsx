@@ -108,12 +108,12 @@ export default function ConnectNotificationChannel({
             {configs.notification_channel.providers[form.data.provider]?.form?.map((field: DynamicFieldConfig) => (
               <DynamicField
                 key={`field-${field.name}`}
-                /*@ts-expect-error dynamic types*/
+                
                 value={form.data[field.name]}
-                /*@ts-expect-error dynamic types*/
+                
                 onChange={(value) => form.setData(field.name, value)}
                 config={field}
-                /*@ts-expect-error dynamic types*/
+                
                 error={form.errors[field.name]}
               />
             ))}

@@ -19,9 +19,9 @@ class DeleteDatabase
             $this->guard->database($database);
         }
 
-        /** @var Service $service */
+        
         $service = $server->database();
-        /** @var \App\Services\Database\Database $handler */
+        
         $handler = $service->handler();
         $handler->delete($database->name);
         $database->delete();

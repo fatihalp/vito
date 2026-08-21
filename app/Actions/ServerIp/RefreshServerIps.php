@@ -15,16 +15,7 @@ class RefreshServerIps
 {
     private const MANAGED_SENTINEL = '===VITO-MANAGED===';
 
-    /**
-     * Read the server's configured addresses and reconcile the catalogue.
-     *
-     * An empty result is treated as a no-op (the existing catalogue is kept)
-     * rather than a reconcile, so a transient empty or garbled SSH read can
-     * never wipe the previously discovered rows.
-     *
-     * @throws SSHError
-     * @throws Throwable
-     */
+    
     public function handle(Server $server): void
     {
         $output = $server->ssh()->exec(
@@ -43,9 +34,7 @@ class RefreshServerIps
         $this->reconcile($server, $discovered, $this->parseManaged($managedOutput));
     }
 
-    /**
-     * @return array{0: string, 1: string}
-     */
+    
     private function split(string $output): array
     {
         $position = strpos($output, self::MANAGED_SENTINEL);
@@ -60,12 +49,7 @@ class RefreshServerIps
         ];
     }
 
-    /**
-     * Addresses Vito previously added are recorded in a `# vito-managed:` marker
-     * inside its netplan file so they keep their managed status on rediscovery.
-     *
-     * @return array<int, string>
-     */
+    
     private function parseManaged(string $output): array
     {
         if (preg_match('/#\s*vito-managed:\s*(.+)/', $output, $matches) !== 1) {
@@ -75,11 +59,7 @@ class RefreshServerIps
         return array_values(array_filter(array_map('trim', explode(',', $matches[1]))));
     }
 
-    /**
-     * @return array<int, array{ip: string, prefix_length: int, family: string, interface: string, dynamic: bool}>
-     *
-     * @throws SSHCommandError
-     */
+    
     private function parse(string $output): array
     {
         $interfaces = json_decode(trim($output), true);
@@ -120,12 +100,7 @@ class RefreshServerIps
         return $discovered;
     }
 
-    /**
-     * @param  array<int, array{ip: string, prefix_length: int, family: string, interface: string, dynamic: bool}>  $discovered
-     * @param  array<int, string>  $managedIps
-     *
-     * @throws Throwable
-     */
+    
     private function reconcile(Server $server, array $discovered, array $managedIps): void
     {
         DB::transaction(function () use ($server, $discovered, $managedIps): void {
@@ -138,7 +113,7 @@ class RefreshServerIps
                 $isPrimary = in_array($entry['ip'], $primaryIps, true);
                 $isManaged = in_array($entry['ip'], $managedIps, true);
 
-                /** @var ?ServerIpAddress $row */
+                
                 $row = $existing->get($entry['ip']);
 
                 if ($row instanceof ServerIpAddress) {

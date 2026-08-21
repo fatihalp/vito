@@ -9,10 +9,7 @@ use App\WorkflowActions\WorkflowActionInterface;
 
 class WorkflowActionDTO
 {
-    /**
-     * @param  array<int, string>  $outputs
-     * @param  array<string, mixed>  $inputs
-     */
+    
     public function __construct(
         public string $label,
         public string $handler,
@@ -34,9 +31,7 @@ class WorkflowActionDTO
         return new $handlerClass($user, $workflow);
     }
 
-    /**
-     * @param  array<string, mixed>  $actionData
-     */
+    
     public static function fromArray(array $actionData, string $nodeId): self
     {
         return new self(
@@ -48,9 +43,7 @@ class WorkflowActionDTO
         );
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(): array
     {
         return [

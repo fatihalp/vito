@@ -4,16 +4,10 @@ namespace App\Helpers;
 
 class EnvParser
 {
-    /**
-     * Secret key patterns - keys containing these words are considered secrets
-     *
-     * @var array<string>
-     */
+    
     private const SECRET_PATTERNS = ['PASSWORD', 'SECRET', 'TOKEN', 'KEY', 'PRIVATE'];
 
-    /**
-     * Check if an env key should be treated as a secret
-     */
+    
     public static function isSecretKey(string $key): bool
     {
         $upperKey = strtoupper($key);
@@ -27,11 +21,7 @@ class EnvParser
         return false;
     }
 
-    /**
-     * Parse a raw .env string into an array of variables
-     *
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     public static function parse(string $raw): array
     {
         $variables = [];
@@ -40,12 +30,12 @@ class EnvParser
         foreach ($lines as $line) {
             $trimmedLine = trim($line);
 
-            // Skip empty lines and comments
+            
             if ($trimmedLine === '' || str_starts_with($trimmedLine, '#')) {
                 continue;
             }
 
-            // Find the first equals sign (key can't contain =, but value can)
+            
             $equalsIndex = strpos($trimmedLine, '=');
             if ($equalsIndex === false) {
                 continue;
@@ -87,11 +77,7 @@ class EnvParser
         return $variables;
     }
 
-    /**
-     * Whether the variables form can hold this content without losing anything.
-     *
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $variables
-     */
+    
     public static function isRepresentable(string $content, array $variables): bool
     {
         $shapeOk = collect(explode("\n", $content))
@@ -121,12 +107,7 @@ class EnvParser
         return $shapeOk && self::parse(self::stringify($variables)) === $variables;
     }
 
-    /**
-     * Whether a value opening with the given quote also closes it on the same
-     * physical line. Anything after the closing quote (an inline comment, say)
-     * is irrelevant — only an unterminated quote means the value continues onto
-     * the next line. Backslash escapes apply to double quotes only.
-     */
+    
     private static function closesQuote(string $value, string $quote): bool
     {
         $escaped = false;
@@ -153,11 +134,7 @@ class EnvParser
         return false;
     }
 
-    /**
-     * Convert an array of variables back to a raw .env string
-     *
-     * @param  array<int, array{key: string, value: string}>  $variables
-     */
+    
     public static function stringify(array $variables): string
     {
         $lines = [];
@@ -200,9 +177,7 @@ class EnvParser
         return implode("\n", $lines);
     }
 
-    /**
-     * @param  array<string, string|null>  $values
-     */
+    
     public static function patch(string $raw, array $values): string
     {
         $newline = str_contains($raw, "\r\n") ? "\r\n" : "\n";
@@ -236,15 +211,7 @@ class EnvParser
         return implode($newline, $lines);
     }
 
-    /**
-     * Normalise the stored secret marker into a flat list of secret keys.
-     *
-     * Values are NEVER stored in the database; only the list of keys the user
-     * marked as secret is persisted (e.g. ['APP_KEY', 'JWT_SECRET']).
-     *
-     * @param  array<int, mixed>|null  $stored
-     * @return array<int, string>
-     */
+    
     public static function secretKeys(?array $stored): array
     {
         if ($stored === null) {
@@ -265,22 +232,7 @@ class EnvParser
         return array_values(array_unique($keys));
     }
 
-    /**
-     * Classify variables parsed from the live server .env file using the stored
-     * secret-key list. The live file is always the source of truth for values;
-     * the stored list only contributes the `is_secret` classification so manual
-     * secret toggles survive a reload.
-     *
-     * When no list has ever been stored (`null` — e.g. a site that has never
-     * been saved through Vito), there is no authoritative classification, so we
-     * fall back to pattern auto-detection from `parse()` to avoid exposing
-     * obvious secrets unmasked. Once a list exists (even empty), it is
-     * authoritative so deliberately un-secreted keys are not re-masked.
-     *
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $parsed
-     * @param  array<int, mixed>|null  $stored
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     public static function classify(array $parsed, ?array $stored): array
     {
         if ($stored === null) {
@@ -296,13 +248,7 @@ class EnvParser
         }, $parsed);
     }
 
-    /**
-     * Mask secret values for frontend display
-     * Secret values are completely hidden (not sent to frontend)
-     *
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $variables
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     public static function maskSecrets(array $variables): array
     {
         return array_map(function ($variable) {
@@ -314,18 +260,7 @@ class EnvParser
         }, $variables);
     }
 
-    /**
-     * Merge incoming variables with the live .env file on the server.
-     *
-     * A masked secret arrives with an empty value; its real value is restored
-     * from the live file so the secret is never lost when the form is saved
-     * without re-typing it. Non-secret variables and secrets with a new value
-     * are taken as-is from the incoming set.
-     *
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $incoming
-     * @param  array<int, array{key: string, value: string, is_secret: bool}>  $live
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     public static function mergeWithLive(array $incoming, array $live): array
     {
         $liveMap = [];

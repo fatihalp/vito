@@ -33,15 +33,13 @@ class ServerSshKeyController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/', name: 'server-ssh-keys.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {
         $this->authorize('update', $server);
 
-        /** @var ?SshKey $sshKey */
+        
         $sshKey = user()->sshKeys()->find($request->input('key'));
 
         if (! $sshKey) {
@@ -55,9 +53,7 @@ class ServerSshKeyController extends Controller
         return back()->with('success', 'SSH key deployed.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('/{sshKey}', name: 'server-ssh-keys.destroy')]
     public function destroy(Server $server, SshKey $sshKey): RedirectResponse
     {

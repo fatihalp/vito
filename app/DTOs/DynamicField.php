@@ -88,9 +88,7 @@ class DynamicField
         return $this;
     }
 
-    /**
-     * @param  class-string<ToolingInterface>  $toolClass
-     */
+    
     public function toolingPicker(string $toolClass): self
     {
         $this->type = 'tooling-picker';
@@ -108,11 +106,7 @@ class DynamicField
         return $this;
     }
 
-    /**
-     * @param  array<int, class-string<ToolingInterface>>  $toolClasses
-     * @param  array<class-string<ToolingInterface>, string>  $labelOverrides
-     * @param  class-string<ToolingInterface>|null  $default
-     */
+    
     public function toolingSelector(array $toolClasses, array $labelOverrides = [], ?string $default = null, bool $allowNone = false): self
     {
         $this->type = 'tooling-selector';
@@ -200,9 +194,7 @@ class DynamicField
         return $this;
     }
 
-    /**
-     * @param  array<string, mixed>  $props
-     */
+    
     public function componentProps(array $props): self
     {
         $this->componentProps = $props;
@@ -210,9 +202,7 @@ class DynamicField
         return $this;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(): array
     {
         return [

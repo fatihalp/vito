@@ -98,12 +98,12 @@ export default function SiteResourceDiagram({
 
   const resourcesUrl = route('site-resources', { server: server.id, site: site.id });
 
-  // Cloudflare and DNS state detection
+  
   const connectedCloudflare = dnsProviders.find((p) => p.connected && p.provider === 'cloudflare');
   const hasCloudflare = Boolean(connectedCloudflare);
   const anyConnectedDns = dnsProviders.some((p) => p.connected);
 
-  // Filter custom domains
+  
   const customDomains = hostedDomains.filter(
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
   );
@@ -122,7 +122,7 @@ export default function SiteResourceDiagram({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {/* Header View Switcher */}
+          {}
           <div className="flex items-center bg-muted/40 p-0.5 rounded-lg border border-border/60">
             <button
               type="button"
@@ -177,17 +177,17 @@ export default function SiteResourceDiagram({
 
       <CardContent className="relative p-5 md:p-8 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:16px_16px] pb-16 transition-all duration-300">
         
-        {/* Main 3-Column Diagram Grid */}
+        {}
         <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1.15fr_auto_1.25fr] items-start gap-4 lg:gap-0">
           
-          {/* ================= COLUMN 1: NETWORK ================= */}
+          {}
           <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3 relative z-10">
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
               <span>Network</span>
               <InfoIcon className="size-3.5 text-muted-foreground/60" />
             </div>
 
-            {/* Edge Network Card */}
+            {}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <button
@@ -267,7 +267,7 @@ export default function SiteResourceDiagram({
               )}
             </div>
 
-            {/* Domains Card */}
+            {}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -286,7 +286,7 @@ export default function SiteResourceDiagram({
 
               {isDetailed ? (
                 <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
-                  {/* Primary Domain */}
+                  {}
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 min-w-0">
                       <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -323,7 +323,7 @@ export default function SiteResourceDiagram({
                     )}
                   </div>
 
-                  {/* Custom Domains */}
+                  {}
                   {customDomains.length > 0 ? (
                     <div className="space-y-1.5 pt-1 border-t border-border/30">
                       {customDomains.map((hd) => {
@@ -403,7 +403,7 @@ export default function SiteResourceDiagram({
             </div>
           </div>
 
-          {/* ================= CONNECTOR 1: NETWORK -> COMPUTE ================= */}
+          {}
           <div className="hidden lg:flex items-center justify-center w-10 relative select-none">
             <svg className="w-full h-24 overflow-visible" viewBox="0 0 40 100" fill="none" preserveAspectRatio="none">
               <path
@@ -415,13 +415,13 @@ export default function SiteResourceDiagram({
             </svg>
           </div>
 
-          {/* ================= COLUMN 2: COMPUTE & HOST ================= */}
+          {}
           <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3 relative z-10">
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
               <span>{regionLabel}</span>
             </div>
 
-            {/* App Cluster Card */}
+            {}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -479,7 +479,7 @@ export default function SiteResourceDiagram({
               )}
             </div>
 
-            {/* Managed Queue Card */}
+            {}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -520,7 +520,7 @@ export default function SiteResourceDiagram({
             </div>
           </div>
 
-          {/* ================= CONNECTOR 2: COMPUTE -> RESOURCES ================= */}
+          {}
           <div className="hidden lg:flex items-center justify-center w-10 relative select-none">
             <svg className="w-full h-36 overflow-visible" viewBox="0 0 40 120" fill="none" preserveAspectRatio="none">
               <path
@@ -532,15 +532,15 @@ export default function SiteResourceDiagram({
             </svg>
           </div>
 
-          {/* ================= COLUMN 3: DATA & STORAGE RESOURCES ================= */}
+          {}
           <div className="flex flex-col gap-3 relative z-10">
-            {/* Regional Resources Group */}
+            {}
             <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
                 <span>{regionLabel}</span>
               </div>
 
-              {/* Database Card */}
+              {}
               {dbResource ? (
                 <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
@@ -604,7 +604,7 @@ export default function SiteResourceDiagram({
                 </Link>
               )}
 
-              {/* Cache Card */}
+              {}
               {cacheResource ? (
                 <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
@@ -669,13 +669,13 @@ export default function SiteResourceDiagram({
               )}
             </div>
 
-            {/* Global Storage Group */}
+            {}
             <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3">
               <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
                 <span>Global Storage</span>
               </div>
 
-              {/* Bucket Card */}
+              {}
               {bucketResource ? (
                 <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
@@ -743,10 +743,10 @@ export default function SiteResourceDiagram({
 
         </div>
 
-        {/* ================= FLOATING BOTTOM CONTROL TOOLBAR ================= */}
+        {}
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
           <div className="flex items-center gap-1 bg-card/95 backdrop-blur-md p-1 rounded-2xl border border-border/70 shadow-lg">
-            {/* Simple View Button */}
+            {}
             <button
               type="button"
               onClick={() => toggleMode(false)}
@@ -761,7 +761,7 @@ export default function SiteResourceDiagram({
               <span>Simple</span>
             </button>
 
-            {/* Detailed View Button */}
+            {}
             <button
               type="button"
               onClick={() => toggleMode(true)}

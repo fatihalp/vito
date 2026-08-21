@@ -8,8 +8,6 @@ interface SupportsNetworkingSecret extends SupportsNetworking
 {
     public function generateNetworkingSecret(): string;
 
-    /**
-     * @throws SSHError
-     */
+    
     public function writeNetworkingSecret(?string $secret): void;
 }

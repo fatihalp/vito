@@ -70,11 +70,7 @@ class VitoAgent extends AbstractService
         ];
     }
 
-    /**
-     * @throws SSHError
-     * @throws ServiceInstallationFailed
-     * @throws ConnectionException
-     */
+    
     public function install(): void
     {
         $tags = Http::get(self::TAGS_URL)->json();
@@ -107,10 +103,7 @@ class VitoAgent extends AbstractService
         $this->service->validateInstall($status);
     }
 
-    /**
-     * @throws SSHError
-     * @throws JsonException
-     */
+    
     public function updateConfig(): void
     {
         $config = [
@@ -134,9 +127,7 @@ class VitoAgent extends AbstractService
         $this->service->server->systemd()->restart($this->unit());
     }
 
-    /**
-     * @return array<int, array{id: int, unit: string}>
-     */
+    
     private function configServices(): array
     {
         $services = [];
@@ -154,9 +145,7 @@ class VitoAgent extends AbstractService
         return $services;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(

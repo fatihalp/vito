@@ -20,11 +20,7 @@ class ConnectDropbox
 
     private const string SESSION_KEY = 'dropbox_oauth';
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function redirectUrl(array $input): string
     {
         Validator::make($input, [
@@ -52,10 +48,7 @@ class ConnectDropbox
         ]);
     }
 
-    /**
-     * @throws ValidationException
-     * @throws RuntimeException
-     */
+    
     public function handleCallback(User $user, Request $request): StorageProvider
     {
         if ($request->filled('error')) {
@@ -66,7 +59,7 @@ class ConnectDropbox
             ]);
         }
 
-        /** @var array<string, mixed>|null $pending */
+        
         $pending = session()->pull(self::SESSION_KEY);
 
         if (! is_array($pending) || ! hash_equals((string) ($pending['state'] ?? ''), (string) $request->query('state'))) {

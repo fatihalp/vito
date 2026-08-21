@@ -7,9 +7,7 @@ use Exception;
 
 class RenderSiteStatsConf
 {
-    /**
-     * @throws Exception
-     */
+    
     public function render(Site $site, ?string $webserverId = null, ?int $retentionMonths = null): string
     {
         $domain = $this->safeDomain($site);

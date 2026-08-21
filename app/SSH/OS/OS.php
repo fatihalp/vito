@@ -24,9 +24,7 @@ class OS
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function waitForBoot(int $timeout = 300): void
     {
         $this->server->ssh()->exec(
@@ -37,9 +35,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function installDependencies(): void
     {
         $this->server->ssh()->exec(
@@ -51,11 +47,7 @@ class OS
         );
     }
 
-    /**
-     * @return array{upgraded: int, reboot_required: bool}
-     *
-     * @throws SSHError
-     */
+    
     public function upgrade(): array
     {
         $result = $this->server->ssh()->exec(
@@ -69,9 +61,7 @@ class OS
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function upgradeKernel(): void
     {
         $this->server->ssh()->exec(
@@ -80,11 +70,7 @@ class OS
         );
     }
 
-    /**
-     * @return array{updates: int, kernel: int}
-     *
-     * @throws SSHError
-     */
+    
     public function availableUpdates(): array
     {
         $result = $this->server->ssh()->exec(
@@ -98,9 +84,7 @@ class OS
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function createUser(string $user, string $password, string $key, bool $clearKeys = false): void
     {
         $this->server->ssh()->exec(
@@ -114,9 +98,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function createIsolatedUser(string $user, string $password, int $site_id): void
     {
         $this->server->ssh()->exec(
@@ -131,9 +113,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteIsolatedUser(string $user): void
     {
         $this->server->ssh()->exec(
@@ -145,9 +125,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getPublicKey(string $user): string
     {
         $key = $this->server->ssh()->exec(
@@ -164,9 +142,7 @@ class OS
         return $key;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deploySSHKey(string $key, string $user): void
     {
         $this->server->ssh($user)->exec(
@@ -177,9 +153,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteSSHKey(string $key, string $user): void
     {
         $this->server->ssh($user)->exec(
@@ -190,9 +164,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function generateSSHKey(string $name, ?Site $site = null): void
     {
         $this->server->ssh($site?->user)->exec(
@@ -204,9 +176,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function readSSHKey(string $name, ?Site $site = null): string
     {
         return $this->server->ssh($site?->user)->exec(
@@ -217,9 +187,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function reboot(): void
     {
         $this->server->ssh()->exec(
@@ -228,9 +196,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function readFile(string $path): string
     {
         return trim($this->server->ssh()->exec(
@@ -240,9 +206,7 @@ class OS
         ));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function tail(string $path, int $lines): string
     {
         return $this->server->ssh()->exec(
@@ -253,11 +217,7 @@ class OS
         );
     }
 
-    /**
-     * @param  array<string, mixed>  $variables
-     *
-     * @throws SSHError
-     */
+    
     public function runScript(
         string $path,
         string $script,
@@ -292,15 +252,13 @@ class OS
 
         $ssh->exec($command, 'run-script');
 
-        /** @var ServerLog $log */
+        
         $log = $ssh->log;
 
         return $log;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function download(string $url, string $path): string
     {
         return $this->server->ssh()->exec(
@@ -312,9 +270,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function extract(string $path, ?string $destination = null, ?string $user = null): void
     {
         $this->server->ssh($user)->exec(
@@ -326,9 +282,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function cleanup(): void
     {
         $this->server->ssh()->exec(
@@ -337,11 +291,7 @@ class OS
         );
     }
 
-    /**
-     * @return array<string, string|bool|null>
-     *
-     * @throws SSHError
-     */
+    
     public function resourceInfo(): array
     {
         $info = $this->server->ssh()->exec(
@@ -383,9 +333,7 @@ class OS
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteFile(string $path, ?string $user = null): void
     {
         $this->server->ssh($user)->exec(
@@ -396,17 +344,13 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function ls(string $path, ?string $user = null): string
     {
         return $this->server->ssh($user)->exec('ls -la '.$path);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function write(string $path, string $content, ?string $user = null): void
     {
         $this->server->ssh()->write(
@@ -417,17 +361,13 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function mkdir(string $path, ?string $user = null): string
     {
         return $this->server->ssh($user)->exec('mkdir -p '.$path);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function compress(string $sourcePath, string $zipPath): void
     {
         $this->server->ssh()->exec(
@@ -439,9 +379,7 @@ class OS
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function extractArchive(string $backupPath, string $restorePath, ?string $owner = null, ?string $permissions = null): void
     {
         $this->server->ssh()->exec(
@@ -455,11 +393,7 @@ class OS
         );
     }
 
-    /**
-     * Clear a remote log file while preserving permissions and ownership
-     *
-     * @throws SSHError
-     */
+    
     public function clearFile(string $path): void
     {
         $this->server->ssh()->exec(

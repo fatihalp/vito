@@ -16,12 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class ManageBackup
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws AuthorizationException
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input): Backup
     {
         $this->validate($server, $input);

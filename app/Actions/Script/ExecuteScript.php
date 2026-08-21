@@ -14,9 +14,7 @@ use Illuminate\Validation\Rule;
 
 class ExecuteScript
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function execute(Script $script, User $user, array $input): ScriptExecution
     {
         $this->validate($script, $input);
@@ -28,7 +26,7 @@ class ExecuteScript
             }
         }
 
-        /** @var Server $server */
+        
         $server = Server::query()->findOrFail($input['server']);
 
         if (! $user->can('update', $server)) {
@@ -59,7 +57,7 @@ class ExecuteScript
     {
         $users = ['root'];
         if (isset($input['server'])) {
-            /** @var Server $server */
+            
             $server = Server::query()->findOrFail($input['server']);
             $users = $server->getSshUsers();
         }

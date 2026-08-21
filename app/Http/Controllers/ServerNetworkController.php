@@ -37,9 +37,7 @@ class ServerNetworkController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/refresh', name: 'servers.network.refresh')]
     public function refresh(Server $server): RedirectResponse
     {

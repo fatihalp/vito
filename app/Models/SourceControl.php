@@ -11,23 +11,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 
-/**
- * @property string $provider
- * @property array<string, string> $provider_data
- * @property string $profile
- * @property ?string $url
- * @property string $access_token
- * @property ?int $project_id
- * @property int $user_id
- * @property ?string $external_identifier
- * @property ?Project $project
- * @property User $user
- */
+
 class SourceControl extends AbstractModel
 {
     public const string PROVIDER_GITHUB_APP = 'github-app';
 
-    /** @use HasFactory<SourceControlFactory> */
+    
     use HasFactory;
 
     use SoftDeletes;
@@ -55,12 +44,10 @@ class SourceControl extends AbstractModel
         return $this->provider === self::PROVIDER_GITHUB_APP;
     }
 
-    /**
-     * @return array<int, mixed>
-     */
+    
     public static function siteValidationRules(Server $server): array
     {
-        /** @var array<string, array<string, mixed>> $providers */
+        
         $providers = config('source-control.providers', []);
 
         $usableProviders = array_keys(array_filter(
@@ -85,7 +72,7 @@ class SourceControl extends AbstractModel
     {
         $providerClass = config('source-control.providers.'.$this->provider.'.handler');
 
-        /** @var SourceControlProvider $provider */
+        
         $provider = new $providerClass($this);
 
         return $provider;
@@ -96,36 +83,28 @@ class SourceControl extends AbstractModel
         return $this->provider()->getRepo($repo);
     }
 
-    /**
-     * @return HasMany<Site, covariant $this>
-     */
+    
     public function sites(): HasMany
     {
         return $this->hasMany(Site::class);
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return Builder<SourceControl>
-     */
+    
     public static function getByProjectId(int $projectId, User $user): Builder
     {
-        /** @var Builder<SourceControl> $query */
+        
         $query = static::query();
 
         return $query

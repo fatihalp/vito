@@ -26,9 +26,9 @@ class DeleteJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->site->server_id}", function () {
-            /** @var Service $service */
+            
             $service = $this->site->server->webserver();
-            /** @var Webserver $webserver */
+            
             $webserver = $service->handler();
             $webserver->updateVHost($this->site);
             $redirectId = $this->redirect->id;

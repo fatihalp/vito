@@ -19,21 +19,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * @property int $backup_id
- * @property string $name
- * @property ?int $size
- * @property ?string $database_engine
- * @property ?string $database_version
- * @property BackupFileStatus $status
- * @property ?string $message
- * @property ?string $restored_to
- * @property ?Carbon $restored_at
- * @property Backup $backup
- */
+
 class BackupFile extends AbstractModel
 {
-    /** @use HasFactory<BackupFileFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -56,13 +45,13 @@ class BackupFile extends AbstractModel
         static::created(function (BackupFile $backupFile): void {
             $keep = $backupFile->backup->keep_backups;
             if ($backupFile->backup->files()->count() > $keep) {
-                /** @var ?BackupFile $lastFileToKeep */
+                
                 $lastFileToKeep = $backupFile->backup->files()->orderByDesc('id')->skip($keep)->first();
                 if ($lastFileToKeep) {
                     $files = $backupFile->backup->files()
                         ->where('id', '<=', $lastFileToKeep->id)
                         ->get();
-                    /** @var BackupFile $file */
+                    
                     foreach ($files as $file) {
                         app(ManageBackupFile::class)->delete($file);
                     }
@@ -148,9 +137,7 @@ class BackupFile extends AbstractModel
         );
     }
 
-    /**
-     * @return BelongsTo<Backup, covariant $this>
-     */
+    
     public function backup(): BelongsTo
     {
         return $this->belongsTo(Backup::class);
@@ -167,7 +154,7 @@ class BackupFile extends AbstractModel
     {
         $storage = $this->backup->storage;
 
-        // For file backups, use the path field; for database backups, use database name
+        
         $backupName = $this->backup->type === BackupType::FILE
             ? basename($this->backup->path)
             : $this->backup->database->name;

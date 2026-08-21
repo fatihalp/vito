@@ -9,7 +9,7 @@ class UsersSeeder extends Seeder
 {
     public function run(): void
     {
-        /** @var User $user */
+        
         $user = User::factory()->create([
             'name' => 'Demo User',
             'email' => 'demo@vitodeploy.com',

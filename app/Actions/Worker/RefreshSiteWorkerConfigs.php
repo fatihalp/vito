@@ -41,7 +41,7 @@ final class RefreshSiteWorkerConfigs
             return;
         }
 
-        /** @var ProcessManager $processManager */
+        
         $processManager = $service->handler();
 
         foreach ($workers as $worker) {

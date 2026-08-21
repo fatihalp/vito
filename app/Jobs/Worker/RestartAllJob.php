@@ -30,9 +30,9 @@ class RestartAllJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->server->id}", function () {
-            /** @var Service $service */
+            
             $service = $this->server->processManager();
-            /** @var ProcessManager $handler */
+            
             $handler = $service->handler();
             $handler->restartAll($this->site?->id);
 

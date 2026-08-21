@@ -7,9 +7,7 @@ use App\Models\Site;
 
 class Git
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function clone(Site $site, ?string $path = null): void
     {
         $usesToken = $site->sourceControl?->isGithubApp() ?? false;
@@ -35,9 +33,7 @@ class Git
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function checkout(Site $site): void
     {
         $site->server->ssh($site->user)->exec(
@@ -50,9 +46,7 @@ class Git
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function fetchOrigin(Site $site): void
     {
         $ssh = $site->server->ssh($site->user);
@@ -70,9 +64,7 @@ class Git
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function setRemote(Site $site, string $newRepoUrl): void
     {
         $usesToken = $site->sourceControl?->isGithubApp() ?? false;

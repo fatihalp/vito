@@ -8,9 +8,7 @@ use App\Models\Site;
 
 class UpdateVhostTemplate
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Site $site, array $input): void
     {
         $validated = validator($input, [

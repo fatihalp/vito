@@ -77,10 +77,11 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
   const roleServices: Record<CreateServerForm['role'], Service[]> = {
     app: [
       { type: 'webserver', name: 'nginx', version: 'latest' },
+      { type: 'php', name: 'php', version: '8.5' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
     queue: [
-      { type: 'php', name: 'php', version: '8.4' },
+      { type: 'php', name: 'php', version: '8.5' },
       { type: 'process_manager', name: 'supervisor', version: 'latest' },
     ],
     database: [{ type: 'database', name: 'postgresql', version: '18' }],
@@ -131,7 +132,7 @@ function AddService() {
 
         <Form id="add-service-form" onSubmit={add} className="p-4">
           <FormFields>
-            {/*service*/}
+            {}
             <FormField>
               <Label htmlFor="name">Name</Label>
               <Select
@@ -158,7 +159,7 @@ function AddService() {
               <InputError message={form.errors.type || form.errors.name} />
             </FormField>
 
-            {/*version*/}
+            {}
             <FormField>
               <Label htmlFor="version">Version</Label>
               <Select value={form.data.version} onValueChange={(value) => form.setData('version', value)}>
@@ -312,7 +313,7 @@ export default function CreateServer({
     const providers = response.data;
     setServerProviders(providers);
 
-    // If default 'custom' provider is set, try auto-selecting the first hetzner connection
+    
     const hetznerConnection = providers.find((p) => p.provider === 'hetzner');
     if (hetznerConnection && form.data.provider === 'custom') {
       selectCombinedProvider(hetznerConnection.id.toString(), providers);
@@ -379,8 +380,8 @@ export default function CreateServer({
               await selectRegion(bestRegion, serverProvider);
             }
           }
-        } catch (e) {
-          // Fallback if latency test fails
+        } catch {
+          // best-effort latency check; keep the user's manual region choice on failure
         }
       }
     } finally {

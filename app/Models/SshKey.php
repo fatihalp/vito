@@ -8,16 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-/**
- * @property int $user_id
- * @property string $name
- * @property string $public_key
- * @property User $user
- * @property Server[] $servers
- */
+
 class SshKey extends AbstractModel
 {
-    /** @use HasFactory<SshKeyFactory> */
+    
     use HasFactory;
 
     use SoftDeletes;
@@ -33,17 +27,13 @@ class SshKey extends AbstractModel
         'public_key' => 'encrypted',
     ];
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsToMany<Server, covariant $this>
-     */
+    
     public function servers(): BelongsToMany
     {
         return $this->belongsToMany(Server::class, 'server_ssh_keys')

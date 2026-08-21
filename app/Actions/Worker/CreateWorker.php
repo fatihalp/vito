@@ -13,16 +13,12 @@ use Illuminate\Validation\ValidationException;
 
 class CreateWorker
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input, ?Site $site = null): Worker
     {
         $this->validate($server, $input, $site);
 
-        // Determine site_id: use provided site or from input
+        
         $siteId = $site?->id;
         if (! $site && isset($input['site_id']) && ! empty($input['site_id'])) {
             $siteId = (int) $input['site_id'];
@@ -94,7 +90,7 @@ class CreateWorker
             ...UpdateWorkerEnvironment::nestedRules('environment'),
         ];
 
-        // Add site_id validation if provided in input
+        
         if (isset($input['site_id']) && ! empty($input['site_id'])) {
             $rules['site_id'] = [
                 'required',

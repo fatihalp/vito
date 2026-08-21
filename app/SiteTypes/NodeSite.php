@@ -39,9 +39,7 @@ class NodeSite extends AbstractProxiedSiteType
         return ['node'];
     }
 
-    /**
-     * @return array<int, DynamicField>
-     */
+    
     public static function formFields(): array
     {
         return array_merge(

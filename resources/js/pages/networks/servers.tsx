@@ -65,7 +65,7 @@ export default function NetworkServers() {
           actions={(row: Row) => {
             const member = asRow<NetworkServer>(row, ['id', 'server_id']);
 
-            // Every action here is rejected server-side on a provider-managed network.
+            
             if (isManaged) {
               return null;
             }

@@ -19,7 +19,7 @@ class RestartSiteWorkers
 
     public function restart(Site $site, ?ServerLog $log = null): void
     {
-        /** @var ProcessManager $handler */
+        
         $handler = $site->server->processManager()->handler();
 
         $workers = $site->loadMissing('workers.site')->workers;
@@ -50,9 +50,7 @@ class RestartSiteWorkers
         }
     }
 
-    /**
-     * @param  array<string, string>  $processes  process token => last reported status
-     */
+    
     private function settle(Worker $worker, array $processes): bool
     {
         if ($processes === []) {
@@ -89,9 +87,7 @@ class RestartSiteWorkers
         $this->failWorker($worker, $error, self::LOG_TYPE, $error, $status);
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
+    
     private function parseStatuses(string $output): array
     {
         $statuses = [];
@@ -116,10 +112,7 @@ class RestartSiteWorkers
         return $statuses;
     }
 
-    /**
-     * @param  array<string, string>  $processes
-     * @return array<int, string>
-     */
+    
     private function errorLines(array $processes): array
     {
         $errors = [];
@@ -133,9 +126,7 @@ class RestartSiteWorkers
         return $errors;
     }
 
-    /**
-     * @param  array<string, string>  $processes
-     */
+    
     private function allStarted(array $processes): bool
     {
         $started = false;

@@ -10,11 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeleteServer
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function delete(Server $server, array $input): void
     {
         $this->validate($server, $input);
@@ -26,9 +22,7 @@ class DeleteServer
         $server->delete();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Server $server, array $input): void
     {
         $rules = [

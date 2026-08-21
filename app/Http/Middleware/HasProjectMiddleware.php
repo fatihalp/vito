@@ -10,7 +10,7 @@ class HasProjectMiddleware
 {
     public function handle(Request $request, Closure $next): mixed
     {
-        /** @var ?User $user */
+        
         $user = $request->user();
         if (! $user) {
             return $next($request);

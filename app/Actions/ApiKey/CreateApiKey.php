@@ -9,9 +9,7 @@ use Laravel\Sanctum\NewAccessToken;
 
 class CreateApiKey
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(User $user, array $input): NewAccessToken
     {
         $this->validate($user, $input);
@@ -30,9 +28,7 @@ class CreateApiKey
         return $user->createToken($input['name'], $abilities);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(User $user, array $input): void
     {
         $projectIds = $user->projects()->pluck('projects.id')->toArray();

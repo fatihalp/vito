@@ -11,12 +11,10 @@ use Illuminate\Validation\ValidationException;
 
 class InstallPHPExtension
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function install(Server $server, array $input): Service
     {
-        /** @var Service $service */
+        
         $service = $server->php($input['version']);
 
         $this->validate($server, $service, $input);

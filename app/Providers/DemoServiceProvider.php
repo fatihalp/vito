@@ -16,25 +16,19 @@ class DemoServiceProvider extends ServiceProvider
 {
     protected string $error = 'Cannot modify on Demo!';
 
-    /**
-     * @var string[]
-     */
+    
     protected array $canDelete = [
-        //
+        
     ];
 
-    /**
-     * @var string[]
-     */
+    
     protected array $canUpdate = [
         ServerLog::class,
         Script::class,
         ScriptExecution::class,
     ];
 
-    /**
-     * @var string[]
-     */
+    
     protected array $canCreate = [
         ServerLog::class,
         Script::class,
@@ -45,7 +39,7 @@ class DemoServiceProvider extends ServiceProvider
 
     public function register(): void
     {
-        //
+        
     }
 
     public function boot(): void
@@ -54,7 +48,7 @@ class DemoServiceProvider extends ServiceProvider
             return;
         }
 
-        // get all classes inside App\Models namespace
+        
         $files = scandir(app_path('Models')) ?: [];
         $models = collect($files)
             ->filter(fn ($file): bool => ! in_array($file, ['.', '..']))

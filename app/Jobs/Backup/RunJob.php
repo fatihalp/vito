@@ -46,9 +46,9 @@ class RunJob implements ShouldQueue
     {
         $this->run("backup-{$this->backup->id}", function () {
             if ($this->backup->type === BackupType::DATABASE) {
-                /** @var Service $service */
+                
                 $service = $this->backup->server->database();
-                /** @var Database $databaseHandler */
+                
                 $databaseHandler = $service->handler();
                 $databaseHandler->runBackup($this->file);
             }

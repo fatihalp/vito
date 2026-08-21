@@ -9,9 +9,7 @@ use App\Models\HostedDomain;
 use App\Models\Site;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<HostedDomain>
- */
+
 class HostedDomainFactory extends Factory
 {
     protected $model = HostedDomain::class;

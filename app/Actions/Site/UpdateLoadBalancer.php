@@ -10,16 +10,14 @@ use Illuminate\Validation\Rule;
 
 class UpdateLoadBalancer
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Site $site, array $input): void
     {
         $this->validate($site, $input);
 
         $site->loadBalancerServers()->delete();
 
-        // Update the load balancer method in type_data
+        
         $typeData = $site->type_data ?? [];
         $typeData['method'] = $input['method'];
         $site->update([

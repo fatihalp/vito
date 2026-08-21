@@ -6,9 +6,7 @@ use App\Models\ServerProvider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<ServerProvider>
- */
+
 class ServerProviderFactory extends Factory
 {
     protected $model = ServerProvider::class;

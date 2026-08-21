@@ -66,7 +66,7 @@ export function DataTable<TData, TValue>({
   sortable = false,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
-  // Use paginatedData.data if available, otherwise fall back to data prop
+  
   const tableData = paginatedData?.data || data || [];
   const orderedColumns = useMemo(
     () =>
@@ -84,7 +84,7 @@ export function DataTable<TData, TValue>({
 
   const extraClasses = modal && 'border-none shadow-none';
 
-  // Initialize search query from URL parameters on component mount
+  
   const [isInitialSearch, setIsInitialSearch] = useState(true);
   const [searchQuery, setSearchQuery] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -97,7 +97,7 @@ export function DataTable<TData, TValue>({
 
   const handlePageChange = (url: string) => {
     if (onPageChange) {
-      // Use custom page change handler (for axios/API calls)
+      
       const urlObj = new URL(url);
       const page = urlObj.searchParams.get('page');
       if (page) {
@@ -107,15 +107,15 @@ export function DataTable<TData, TValue>({
 
       onPageChange(1);
     } else {
-      // Use Inertia router for server-side rendered pages
+      
       const urlObj = new URL(url);
 
-      // Preserve the current search parameter when navigating between pages
+      
       if (searchQuery) {
         urlObj.searchParams.set('search', searchQuery);
       }
 
-      // Preserve the current sort parameters
+      
       const currentParams = new URLSearchParams(window.location.search);
       const sortBy = currentParams.get('sort_by');
       const sortDir = currentParams.get('sort_dir');
@@ -131,7 +131,7 @@ export function DataTable<TData, TValue>({
     }
   };
 
-  // handle search with debouncing
+  
   useEffect(() => {
     const handler = setTimeout(() => {
       if (!isInitialSearch) {
@@ -150,7 +150,7 @@ export function DataTable<TData, TValue>({
         url.searchParams.set('search', searchQuery);
       }
 
-      // Preserve the current sort parameters
+      
       const currentParams = new URLSearchParams(window.location.search);
       const sortBy = currentParams.get('sort_by');
       const sortDir = currentParams.get('sort_dir');
@@ -207,7 +207,7 @@ export function DataTable<TData, TValue>({
                 {headerGroup.headers.map((header) => {
                   const canSort = sortable && header.column.getCanSort();
 
-                  // determine unique key to use for sorting: use the column id provided by the table
+                  
                   const sortKey = header.id;
 
                   return (
@@ -217,7 +217,7 @@ export function DataTable<TData, TValue>({
                           type="button"
                           className="flex cursor-pointer items-center gap-2"
                           onClick={() => {
-                            // Build new URL preserving all existing params
+                            
                             const url = new URL(window.location.href);
                             const params = url.searchParams;
 

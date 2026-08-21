@@ -33,7 +33,7 @@ class SSH
 
     protected ?string $asUser = null;
 
-    /** @var array<string, string> */
+    
     protected array $variables = [];
 
     protected string $publicKey;
@@ -44,7 +44,7 @@ class SSH
 
     protected ?string $logPath = null;
 
-    /** @var ?\Closure(string): void */
+    
     protected ?\Closure $logOutputCallback = null;
 
     public function init(Server $server, ?string $asUser = null): self
@@ -65,9 +65,7 @@ class SSH
         return $this;
     }
 
-    /**
-     * Ensure a server log exists when a log message is provided.
-     */
+    
     private function ensureLog(?string $log, ?int $siteId = null): void
     {
         if (! $this->log instanceof ServerLog && $log && ! $this->logDisk && ! $this->logPath) {
@@ -79,9 +77,7 @@ class SSH
         }
     }
 
-    /**
-     * Ensure there is an active SFTP connection and return it.
-     */
+    
     private function ensureSftp(): SFTP
     {
         if (! $this->connection instanceof SFTP) {
@@ -95,9 +91,7 @@ class SSH
         return $this->connection;
     }
 
-    /**
-     * Write a chunk of output to either a file on a disk or the server log.
-     */
+    
     protected function writeOutput(string $chunk): void
     {
         if ($this->logDisk && $this->logPath) {
@@ -117,9 +111,7 @@ class SSH
         return $this;
     }
 
-    /**
-     * @param  ?\Closure(string): void  $outputCallback  Optional callback invoked with each output chunk
-     */
+    
     public function useLog(string $disk, string $path, ?\Closure $outputCallback = null): self
     {
         $this->logDisk = $disk;
@@ -145,9 +137,7 @@ class SSH
         return $this;
     }
 
-    /**
-     * @param  array<string, string>  $variables
-     */
+    
     public function variables(array $variables): self
     {
         $this->variables = $variables;
@@ -155,12 +145,10 @@ class SSH
         return $this;
     }
 
-    /**
-     * @throws SSHConnectionError
-     */
+    
     public function connect(bool $sftp = false): void
     {
-        // If the IP is an IPv6 address, we need to wrap it in square brackets
+        
         $ip = $this->server->ip;
         if (str($ip)->contains(':')) {
             $ip = '['.$ip.']';
@@ -185,9 +173,7 @@ class SSH
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null, int $timeout = 0): string
     {
         $this->ensureLog($log, $siteId);
@@ -218,7 +204,7 @@ class SSH
 
             $this->connection->setTimeout($timeout);
             if ($stream === true) {
-                /** @var callable $streamCallback */
+                
                 $this->connection->exec($command, function ($output) use ($streamCallback) {
                     $this->writeOutput($output);
 
@@ -254,9 +240,7 @@ class SSH
         }
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     public function upload(string $local, string $remote, ?string $owner = null, ?string $log = null, ?int $siteId = null, string $permission = '644'): void
     {
         $this->ensureLog($log, $siteId);
@@ -275,9 +259,7 @@ class SSH
         $this->exec(sprintf('sudo chmod %s %s', $permission, $remote));
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     public function download(string $local, string $remote, ?string $log = null, ?int $siteId = null): void
     {
         $this->ensureLog($log, $siteId);
@@ -286,15 +268,13 @@ class SSH
         $sftp->get($remote, $local);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function write(string $remotePath, string|View $content, ?string $owner = null, ?string $log = null, ?int $siteId = null): void
     {
         $tmpName = Str::random(10).strtotime('now');
 
         try {
-            /** @var FilesystemAdapter $storageDisk */
+            
             $storageDisk = Storage::disk('local');
             $storageDisk->put($tmpName, $content);
             $tmpRemotePath = '/tmp/'.$tmpName;
@@ -316,9 +296,7 @@ class SSH
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function disconnect(): void
     {
         if ($this->connection instanceof SSH2) {
@@ -327,9 +305,7 @@ class SSH
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function __destruct()
     {
         $this->disconnect();

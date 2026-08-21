@@ -79,8 +79,17 @@ class CreateJob implements ShouldQueue
 
     private function safeErrorSummary(Exception $e): string
     {
+        if ($e instanceof SSHCommandError) {
+            $tail = trim($this->redactPublicKeys((string) ($e->getLog()?->getContent(30) ?? '')));
+
+            if ($tail !== '') {
+                return $this->truncate($tail, 1000);
+            }
+
+            return 'An SSH command failed during installation. Check the site logs for the failing command.';
+        }
+
         $messages = [
-            SSHCommandError::class => 'An SSH command failed during installation. Check the site logs for the failing command.',
             SSHConnectionError::class => 'Could not connect to the server over SSH. Verify the server is reachable and try again.',
             RepositoryNotFound::class => 'Repository not found on the source control provider.',
             RepositoryPermissionDenied::class => 'Permission denied accessing the repository on the source control provider.',
@@ -105,12 +114,7 @@ class CreateJob implements ShouldQueue
         return 'Installation failed due to an unexpected error. See the site logs for full details.';
     }
 
-    /**
-     * Strip SSH public-key material from a string so provider responses can be
-     * surfaced safely. Provider error bodies sometimes echo back the submitted
-     * key — redact `ssh-rsa AAAA…`, `ssh-ed25519 AAAA…`, `ecdsa-sha2-… AAAA…`
-     * and similar patterns.
-     */
+    
     private function redactPublicKeys(string $message): string
     {
         if ($message === '') {

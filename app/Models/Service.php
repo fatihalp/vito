@@ -17,25 +17,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
-/**
- * @property int $server_id
- * @property ?int $log_id
- * @property string $type
- * @property ?array<string, mixed> $type_data
- * @property ?string $secret
- * @property string $name
- * @property string $version
- * @property string $installed_version
- * @property string $unit
- * @property string $logs
- * @property ServiceStatus $status
- * @property bool $is_default
- * @property Server $server
- * @property ?ServerLog $log
- */
+
 class Service extends AbstractModel
 {
-    /** @use HasFactory<ServiceFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -65,17 +50,13 @@ class Service extends AbstractModel
         'secret',
     ];
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<ServerLog, covariant $this>
-     */
+    
     public function log(): BelongsTo
     {
         return $this->belongsTo(ServerLog::class, 'log_id');
@@ -95,15 +76,13 @@ class Service extends AbstractModel
             throw new InvalidArgumentException("Service handler for $name is not defined.");
         }
 
-        /** @var ServiceInterface $service */
+        
         $service = new $handler($this);
 
         return $service;
     }
 
-    /**
-     * @throws ServiceInstallationFailed
-     */
+    
     public function validateInstall(string $result): void
     {
         if (! Str::contains($result, 'Active: active')) {

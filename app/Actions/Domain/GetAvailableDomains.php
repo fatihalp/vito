@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Cache;
 
 class GetAvailableDomains
 {
-    /**
-     * Get available domains from the DNS provider.
-     *
-     * @return array<int, array<string, mixed>>
-     */
+    
     public function execute(DNSProvider $dnsProvider, bool $useCache = true, bool $filterExisting = true): array
     {
         $cacheKey = "dns_provider_{$dnsProvider->id}_domains";

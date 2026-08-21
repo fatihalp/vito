@@ -6,11 +6,7 @@ use App\Traits\HasTimezoneTimestamps;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-/**
- * @property int $id
- * @property Carbon $created_at
- * @property Carbon $updated_at
- */
+
 abstract class AbstractModel extends Model
 {
     use HasTimezoneTimestamps;

@@ -13,28 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-/**
- * @property int $id
- * @property string $name
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property User $user
- * @property Collection<int, Server> $servers
- * @property Collection<int, Site> $sites
- * @property Collection<int, Backup> $backups
- * @property Collection<int, UserProject> $users
- * @property Collection<int, NotificationChannel> $notificationChannels
- * @property Collection<int, SourceControl> $sourceControls
- * @property Collection<int, User> $registeredUsers
- * @property Collection<int, Workflow> $workflows
- * @property Collection<int, Domain> $domains
- * @property Collection<int, Network> $networks
- * @property Collection<int, Bucket> $buckets
- * @property ?BucketCredential $bucketCredential
- */
+
 class Project extends Model
 {
-    /** @use HasFactory<ProjectFactory> */
+    
     use HasFactory;
 
     use HasTimezoneTimestamps;
@@ -49,39 +31,31 @@ class Project extends Model
 
         static::deleting(function (Project $project): void {
             $project->servers()->each(function ($server): void {
-                /** @var Server $server */
+                
                 $server->delete();
             });
         });
     }
 
-    /**
-     * @return HasMany<Server, covariant $this>
-     */
+    
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class);
     }
 
-    /**
-     * @return HasManyThrough<Site, Server, covariant $this>
-     */
+    
     public function sites(): HasManyThrough
     {
         return $this->hasManyThrough(Site::class, Server::class);
     }
 
-    /**
-     * @return HasManyThrough<Backup, Server, covariant $this>
-     */
+    
     public function backups(): HasManyThrough
     {
         return $this->hasManyThrough(Backup::class, Server::class);
     }
 
-    /**
-     * @return HasMany<NotificationChannel, covariant $this>
-     */
+    
     public function notificationChannels(): HasMany
     {
         return $this->hasMany(NotificationChannel::class);
@@ -92,9 +66,7 @@ class Project extends Model
         return $this->hasMany(UserProject::class, 'project_id');
     }
 
-    /**
-     * @return HasMany<SourceControl, covariant $this>
-     */
+    
     public function sourceControls(): HasMany
     {
         return $this->hasMany(SourceControl::class);
@@ -115,7 +87,7 @@ class Project extends Model
 
     public function role(User $user): ?UserRole
     {
-        /** @var ?UserProject $userProject */
+        
         $userProject = $this->relationLoaded('users')
             ? $this->users->firstWhere('user_id', $user->id)
             : $this->users()->where('user_id', $user->id)->first();
@@ -133,21 +105,19 @@ class Project extends Model
         return $this->hasMany(Domain::class);
     }
 
-    /**
-     * @return HasMany<Network, covariant $this>
-     */
+    
     public function networks(): HasMany
     {
         return $this->hasMany(Network::class);
     }
 
-    /** @return HasMany<Bucket, covariant $this> */
+    
     public function buckets(): HasMany
     {
         return $this->hasMany(Bucket::class);
     }
 
-    /** @return HasOne<BucketCredential, covariant $this> */
+    
     public function bucketCredential(): HasOne
     {
         return $this->hasOne(BucketCredential::class);

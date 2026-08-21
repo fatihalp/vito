@@ -8,20 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 
-/**
- * @property int $site_id
- * @property int $source_control_id
- * @property string $secret
- * @property array<string> $events
- * @property array<string, mixed> $actions
- * @property string $hook_id
- * @property array<string, mixed> $hook_response
- * @property ?Site $site
- * @property SourceControl $sourceControl
- */
+
 class GitHook extends AbstractModel
 {
-    /** @use HasFactory<GitHookFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -42,17 +32,13 @@ class GitHook extends AbstractModel
         'hook_response' => 'json',
     ];
 
-    /**
-     * @return BelongsTo<Site, covariant $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
-    /**
-     * @return BelongsTo<SourceControl, covariant $this>
-     */
+    
     public function sourceControl(): BelongsTo
     {
         return $this->belongsTo(SourceControl::class);

@@ -112,7 +112,7 @@ class DeployJob implements ShouldQueue
     {
         app(Git::class)->clone($site, $this->deployment->path());
 
-        // build
+        
         $site->server->os()->runScript(
             path: $this->deployment->path(),
             script: $site->buildScript->content ?? '',
@@ -125,7 +125,7 @@ class DeployJob implements ShouldQueue
             aliases: $site->environmentAliases(),
         );
 
-        // link resources
+        
         $site->server->ssh($site->user)
             ->variables($site->environmentVariables($this->deployment))
             ->exec(
@@ -137,7 +137,7 @@ class DeployJob implements ShouldQueue
                 $site->id
             );
 
-        // pre-flight
+        
         $site->server->os()->runScript(
             path: $this->deployment->path(),
             script: $site->preFlightScript->content ?? '',
@@ -150,7 +150,7 @@ class DeployJob implements ShouldQueue
             aliases: $site->environmentAliases(),
         );
 
-        // release
+        
         $site->server->ssh($site->user)->exec(
             view('ssh.modern-deployment.release', [
                 'site' => $site,

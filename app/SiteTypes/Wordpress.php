@@ -76,12 +76,12 @@ class Wordpress extends PHPSite
 
     public function data(array $input): array
     {
-        /** @var Database $database */
+        
         $database = $this->site->server->databases()
             ->where('id', $input['database'])
             ->firstOrFail();
 
-        /** @var DatabaseUser $databaseUser */
+        
         $databaseUser = $this->site->server->databaseUsers()
             ->where('id', $input['database_user'])
             ->firstOrFail();
@@ -98,9 +98,7 @@ class Wordpress extends PHPSite
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(0, 'isolating-user');

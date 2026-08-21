@@ -8,12 +8,10 @@ use Illuminate\Support\Facades\Log;
 
 class S3 extends AbstractStorage
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function upload(string $src, string $dest): array
     {
-        /** @var \App\StorageProviders\S3 $provider */
+        
         $provider = $this->storageProvider->provider();
 
         $uploadCommand = view('ssh.storage.s3.upload', [
@@ -34,16 +32,14 @@ class S3 extends AbstractStorage
         }
 
         return [
-            'size' => null, // You can parse the size from the output if needed
+            'size' => null, 
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function download(string $src, string $dest): void
     {
-        /** @var \App\StorageProviders\S3 $provider */
+        
         $provider = $this->storageProvider->provider();
 
         $downloadCommand = view('ssh.storage.s3.download', [
@@ -64,12 +60,10 @@ class S3 extends AbstractStorage
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function delete(string $src): void
     {
-        /** @var \App\StorageProviders\S3 $provider */
+        
         $provider = $this->storageProvider->provider();
 
         $delete = $this->server->ssh()->exec(
@@ -90,9 +84,7 @@ class S3 extends AbstractStorage
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function prepareS3Path(string $path, string $prefix = ''): string
     {
         $path = trim($path);

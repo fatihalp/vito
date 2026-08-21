@@ -31,12 +31,12 @@ abstract class AbstractService implements ServiceInterface
 
     public function install(): void
     {
-        //
+        
     }
 
     public function uninstall(): void
     {
-        //
+        
     }
 
     public function versionCommand(): ?string
@@ -51,9 +51,7 @@ abstract class AbstractService implements ServiceInterface
         return $version === '' ? null : $version;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function version(): string
     {
         $command = $this->versionCommand();

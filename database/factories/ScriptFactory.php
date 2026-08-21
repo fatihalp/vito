@@ -6,9 +6,7 @@ use App\Models\Script;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<Script>
- */
+
 class ScriptFactory extends Factory
 {
     protected $model = Script::class;

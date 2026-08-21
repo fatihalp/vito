@@ -8,9 +8,7 @@ use Throwable;
 
 class DeleteDNSRecord
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function delete(DNSRecord $dnsRecord): void
     {
         $provider = $dnsRecord->domain->dnsProvider->provider();

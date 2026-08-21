@@ -14,10 +14,7 @@ class TerminalSession
 
     protected bool $closed = false;
 
-    /**
-     * @param  callable(string): void  $onOutput
-     * @param  callable(): void  $onClose
-     */
+    
     public function __construct(
         protected Server $server,
         protected string $sshUser,
@@ -28,7 +25,7 @@ class TerminalSession
         protected int $initialRows = 24,
     ) {}
 
-    /** @throws \RuntimeException */
+    
     public function connect(): void
     {
         $ip = $this->server->ip;

@@ -6,9 +6,7 @@ use App\Enums\DeploymentStatus;
 use App\Models\Deployment;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Deployment>
- */
+
 class DeploymentFactory extends Factory
 {
     protected $model = Deployment::class;

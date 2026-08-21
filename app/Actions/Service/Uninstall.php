@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class Uninstall
 {
-    /*
-     * @TODO: Implement the uninstaller for all service handlers
-     */
+    
     public function uninstall(Service $service): void
     {
         Validator::make([

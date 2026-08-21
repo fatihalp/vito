@@ -8,19 +8,10 @@ use Database\Factories\DatabaseUserFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $server_id
- * @property string $username
- * @property string $password
- * @property array<string> $databases
- * @property DatabaseUserPermission $permission
- * @property string $host
- * @property DatabaseUserStatus $status
- * @property Server $server
- */
+
 class DatabaseUser extends AbstractModel
 {
-    /** @use HasFactory<DatabaseUserFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -45,9 +36,7 @@ class DatabaseUser extends AbstractModel
         'password',
     ];
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);

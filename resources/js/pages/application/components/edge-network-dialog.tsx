@@ -89,7 +89,7 @@ export default function EdgeNetworkDialog({
         </DialogHeader>
 
         <div className="space-y-3 py-1 text-xs">
-          {/* Provider Card */}
+          {}
           <div className="rounded-xl border border-border/70 bg-card p-3 flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <span className={cn('size-2 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
@@ -120,7 +120,7 @@ export default function EdgeNetworkDialog({
             )}
           </div>
 
-          {/* Domain Security / Proxy Management List */}
+          {}
           <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
             <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground pb-1 border-b border-border/40">
               <span>Domain Security (Cloudflare Proxy)</span>
@@ -178,7 +178,7 @@ export default function EdgeNetworkDialog({
             </div>
           </div>
 
-          {/* Quick Actions */}
+          {}
           <div className="grid grid-cols-2 gap-2 pt-0.5">
             <Button
               variant="outline"

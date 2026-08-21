@@ -78,9 +78,7 @@ class NetworkController extends Controller
         ]);
     }
 
-    /**
-     * @return Paginator<int, Model>
-     */
+    
     private function logsQuery(Network $network): Paginator
     {
         return QueryBuilder::for($network->serverLogs()->with('server'))
@@ -175,9 +173,7 @@ class NetworkController extends Controller
         return back()->with('info', 'Network is being synced.');
     }
 
-    /**
-     * @param  array<int, int>  $excludeServerIds
-     */
+    
     private function serversPayload(Project $project, array $excludeServerIds = []): AnonymousResourceCollection
     {
         return NetworkServerOptionResource::collection(

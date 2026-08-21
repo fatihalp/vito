@@ -10,11 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class ConnectSourceControl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function connect(User $user, array $input): SourceControl
     {
         $this->validate($input);
@@ -36,12 +32,12 @@ class ConnectSourceControl
                 ]);
             }
         } catch (\Exception $e) {
-            // Re-throw validation exceptions as-is
+            
             if ($e instanceof ValidationException) {
                 throw $e;
             }
 
-            // For all other exceptions, wrap in validation exception to show the error message in the frontend
+            
             throw ValidationException::withMessages([
                 'provider' => $e->getMessage(),
             ]);
@@ -72,12 +68,7 @@ class ConnectSourceControl
         Validator::make($input, array_merge($rules, $this->providerRules($input)))->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     *
-     * @throws ValidationException
-     */
+    
     private function providerRules(array $input): array
     {
         if (! isset($input['provider'])) {

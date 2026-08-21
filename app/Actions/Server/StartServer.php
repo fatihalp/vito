@@ -8,9 +8,7 @@ use App\Models\Server;
 
 class StartServer
 {
-    /**
-     * @throws AppError
-     */
+    
     public function start(Server $server): Server
     {
         if (! $server->canPowerManage()) {

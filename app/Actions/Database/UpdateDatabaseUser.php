@@ -15,11 +15,7 @@ class UpdateDatabaseUser
 {
     public function __construct(private GuardProvisionedDatabase $guard) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(DatabaseUser $databaseUser, array $input): DatabaseUser
     {
         $this->guard->user($databaseUser);
@@ -45,10 +41,10 @@ class UpdateDatabaseUser
         }
 
         if ($newPassword || $newHost) {
-            /** @var Service $service */
+            
             $service = $databaseUser->server->database();
 
-            /** @var Database $databaseHandler */
+            
             $databaseHandler = $service->handler();
             $databaseHandler->updateUser(
                 $databaseUser->username,
@@ -69,7 +65,7 @@ class UpdateDatabaseUser
 
     public function updateManagedHost(DatabaseUser $databaseUser, string $host): DatabaseUser
     {
-        /** @var Database $databaseHandler */
+        
         $databaseHandler = $databaseUser->server->database()->handler();
 
         if (! $databaseHandler->usesHost() || $databaseUser->host === $host) {
@@ -97,7 +93,7 @@ class UpdateDatabaseUser
             ];
         }
 
-        /** @var Database $handler */
+        
         $handler = $databaseUser->server->database()->handler();
 
         if ($handler->usesHost()) {
@@ -122,12 +118,7 @@ class UpdateDatabaseUser
         }
     }
 
-    /**
-     * Resolves the new host when it is being changed, or null when unchanged or
-     * the database engine does not use hosts (e.g. PostgreSQL).
-     *
-     * @param  array<string, mixed>  $input
-     */
+    
     private function changedHost(DatabaseUser $databaseUser, array $input): ?string
     {
         if (! isset($input['remote'])) {
@@ -150,10 +141,10 @@ class UpdateDatabaseUser
             return;
         }
 
-        /** @var Service $service */
+        
         $service = $databaseUser->server->database();
 
-        /** @var Database $databaseHandler */
+        
         $databaseHandler = $service->handler();
 
         $databaseHandler->unlink($databaseUser->username, $oldHost);

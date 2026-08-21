@@ -39,7 +39,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     }
   }, [initialValue, setInitialValue, onChange, value, config]);
 
-  // Handle alert
+  
   if (config?.type === 'alert') {
     return (
       <FormField>
@@ -61,7 +61,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle checkbox
+  
   if (config?.type === 'checkbox') {
     return (
       <FormField>
@@ -75,7 +75,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle select
+  
   if (config?.type === 'select' && config.options) {
     return (
       <FormField>
@@ -103,7 +103,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle textarea
+  
   if (config?.type === 'textarea') {
     return (
       <FormField>
@@ -124,7 +124,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle password
+  
   if (config?.type === 'password') {
     return (
       <FormField>
@@ -147,7 +147,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle password with visibility toggle
+  
   if (config?.type === 'password-with-toggle') {
     return (
       <FormField>
@@ -169,7 +169,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Handle server provider select
+  
   if (config?.type === 'component' && config?.name === 'server_provider') {
     return (
       <FormField>
@@ -183,7 +183,7 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  // Default to text input
+  
   const props: InputHTMLAttributes<HTMLInputElement> = {};
   if (config?.placeholder) {
     props.placeholder = config.placeholder;

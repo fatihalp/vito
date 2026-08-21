@@ -10,11 +10,7 @@ use Throwable;
 
 class CreateDNSRecord
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Domain $domain, array $input): DNSRecord
     {
         $this->validate($input);

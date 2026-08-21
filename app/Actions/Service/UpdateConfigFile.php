@@ -12,11 +12,7 @@ use Throwable;
 
 class UpdateConfigFile
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(Service $service, array $input): void
     {
         $this->validate($service, $input);
@@ -33,7 +29,7 @@ class UpdateConfigFile
         $tmpName = Str::random(10).strtotime('now');
 
         try {
-            /** @var FilesystemAdapter $storageDisk */
+            
             $storageDisk = Storage::disk('local');
 
             $storageDisk->put($tmpName, $input['content']);
@@ -69,9 +65,7 @@ class UpdateConfigFile
         }
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Service $service, array $input): void
     {
         $rules = [

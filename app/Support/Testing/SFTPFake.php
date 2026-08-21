@@ -6,9 +6,7 @@ use PHPUnit\Framework\Assert;
 
 class SFTPFake
 {
-    /**
-     * @var array<array{host: string, port: int, username: string}>
-     */
+    
     protected array $connections = [];
 
     public function connect(string $host, int $port, string $username, string $password): bool

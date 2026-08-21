@@ -25,7 +25,7 @@ class GetMetricsCommand extends Command
                 $query->where('type', 'monitoring')
                     ->where('name', 'remote-monitor');
             })->chunk(10, function ($servers) use (&$checkedMetrics): void {
-                /** @var Server $server */
+                
                 foreach ($servers as $server) {
                     try {
                         $info = $server->os()->resourceInfo();

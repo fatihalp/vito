@@ -11,11 +11,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdateStartCommand
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): WorkerStartCommandUpdateResult
     {
         $validated = Validator::make($input, [
@@ -35,7 +31,7 @@ class UpdateStartCommand
         $worker->command = $validated['start_command'];
         $worker->save();
 
-        /** @var ProcessManager $processManager */
+        
         $processManager = $site->server->processManager()->handler();
         $processManager->writeConfig($worker);
 

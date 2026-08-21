@@ -9,9 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ManagePasswordAuth
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Server $server, array $input): void
     {
         Validator::make($input, [

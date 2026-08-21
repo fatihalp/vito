@@ -8,21 +8,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\DB;
 
-/**
- * @property int $dns_provider_id
- * @property int $user_id
- * @property int $project_id
- * @property string $domain
- * @property string $provider_domain_id
- * @property array<string, mixed> $metadata
- * @property DNSProvider $dnsProvider
- * @property User $user
- * @property Project $project
- * @property DNSRecord[] $records
- */
+
 class Domain extends AbstractModel
 {
-    /** @use HasFactory<DomainFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -41,49 +30,37 @@ class Domain extends AbstractModel
         'metadata' => 'array',
     ];
 
-    /**
-     * @return BelongsTo<DNSProvider, covariant $this>
-     */
+    
     public function dnsProvider(): BelongsTo
     {
         return $this->belongsTo(DNSProvider::class);
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return HasMany<Ssl, covariant $this>
-     */
+    
     public function ssls(): HasMany
     {
         return $this->hasMany(Ssl::class);
     }
 
-    /**
-     * @return HasMany<DNSRecord, covariant $this>
-     */
+    
     public function records(): HasMany
     {
         return $this->hasMany(DNSRecord::class);
     }
 
-    /**
-     * @throws \Throwable
-     */
+    
     public function syncDnsRecords(): void
     {
         $records = $this->dnsProvider->provider()->getRecords($this->provider_domain_id);

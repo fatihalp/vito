@@ -109,7 +109,7 @@ export default function CreateDatabase({
         }
       },
       onError: () => {
-        // Handle error if needed
+        
       },
     });
   };

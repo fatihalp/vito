@@ -12,11 +12,7 @@ use Throwable;
 
 class CreateStorageProvider
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(User $user, array $input): StorageProvider
     {
         $this->validate($input);

@@ -9,9 +9,7 @@ use Illuminate\Validation\Rule;
 
 class UpdateUser
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(User $user, array $input): User
     {
         $this->validate($user, $input);
@@ -29,9 +27,7 @@ class UpdateUser
         return $user;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(User $user, array $input): void
     {
         Validator::make($input, [

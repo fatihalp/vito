@@ -19,9 +19,9 @@ class SyncWorkerStatuses
 
     public function sync(Server $server, ?Site $site = null): int
     {
-        /** @var Service $service */
+        
         $service = $server->processManager();
-        /** @var ProcessManager $handler */
+        
         $handler = $service->handler();
 
         $workers = $server->workers()
@@ -46,9 +46,7 @@ class SyncWorkerStatuses
         return $changed->count();
     }
 
-    /**
-     * @param  array<string, array{state: string, description: string}>  $processes
-     */
+    
     private function settle(Worker $worker, array $processes): bool
     {
         [$status, $error] = $this->target($processes);
@@ -72,10 +70,7 @@ class SyncWorkerStatuses
         return true;
     }
 
-    /**
-     * @param  array<string, array{state: string, description: string}>  $processes
-     * @return array{0: WorkerStatus, 1: ?string}
-     */
+    
     private function target(array $processes): array
     {
         if ($processes === []) {

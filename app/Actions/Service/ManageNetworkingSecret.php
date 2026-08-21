@@ -10,9 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class ManageNetworkingSecret
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function regenerate(Service $service): void
     {
         $this->validate($service);
@@ -20,9 +18,7 @@ class ManageNetworkingSecret
         $this->dispatch($service, remove: false);
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     public function remove(Service $service): void
     {
         $handler = $this->validate($service);
@@ -46,9 +42,7 @@ class ManageNetworkingSecret
         dispatch(new UpdateNetworkingSecretJob($service, $remove, $previousStatus))->onQueue('ssh');
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     private function validate(Service $service): SupportsNetworkingSecret
     {
         $handler = $service->hasHandler() ? $service->handler() : null;

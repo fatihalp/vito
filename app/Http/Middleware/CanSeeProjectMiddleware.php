@@ -12,10 +12,10 @@ class CanSeeProjectMiddleware
 {
     public function handle(Request $request, Closure $next): mixed
     {
-        /** @var User $user */
+        
         $user = $request->user();
 
-        /** @var Project $project */
+        
         $project = $request->route('project');
 
         if (! $user->can('view', $project)) {

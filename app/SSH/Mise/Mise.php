@@ -10,9 +10,7 @@ class Mise
 {
     public function __construct(protected Server $server) {}
 
-    /**
-     * @throws SSHError
-     */
+    
     public function ensureInstalled(): void
     {
         $this->server->ssh()->exec(
@@ -21,9 +19,7 @@ class Mise
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function isInstalled(): bool
     {
         $result = $this->server->ssh()->exec('which mise || echo "not-found"');
@@ -31,9 +27,7 @@ class Mise
         return ! str_contains($result, 'not-found');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function installRuntime(Site $site, string $runtime, string $version): void
     {
         $this->server->ssh($site->user)->exec(
@@ -46,9 +40,7 @@ class Mise
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstallRuntime(Site $site, string $runtime): void
     {
         $this->server->ssh($site->user)->exec(

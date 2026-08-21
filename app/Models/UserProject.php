@@ -6,14 +6,7 @@ use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $project_id
- * @property ?int $user_id
- * @property ?string $email
- * @property UserRole $role
- * @property ?User $user
- * @property Project $project
- */
+
 class UserProject extends Model
 {
     protected $table = 'user_project';

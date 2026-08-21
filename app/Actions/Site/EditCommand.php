@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Validator;
 
 class EditCommand
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function edit(Command $command, array $input): Command
     {
         Validator::make($input, [

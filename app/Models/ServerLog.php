@@ -19,21 +19,10 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
-/**
- * @property int $server_id
- * @property ?int $site_id
- * @property ?int $network_id
- * @property string $type
- * @property string $name
- * @property string $disk
- * @property bool $is_remote
- * @property Server $server
- * @property ?Site $site
- * @property ?Network $network
- */
+
 class ServerLog extends AbstractModel
 {
-    /** @use HasFactory<ServerLogFactory> */
+    
     use HasFactory;
 
     private static ?int $networkContext = null;
@@ -55,16 +44,7 @@ class ServerLog extends AbstractModel
         'is_remote' => 'boolean',
     ];
 
-    /**
-     * Associate every ServerLog created inside $callback with $networkId. Lets
-     * logs produced deep in the SSH/Service layers during a network sync be
-     * tagged without threading the network through every call site.
-     *
-     * @template TReturn
-     *
-     * @param  Closure(): TReturn  $callback
-     * @return TReturn
-     */
+    
     public static function withNetwork(?int $networkId, Closure $callback): mixed
     {
         $previous = self::$networkContext;
@@ -111,33 +91,25 @@ class ServerLog extends AbstractModel
         return 'log';
     }
 
-    /**
-     * @return BelongsTo<Server, $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<Site, $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
-    /**
-     * @return BelongsTo<Network, $this>
-     */
+    
     public function network(): BelongsTo
     {
         return $this->belongsTo(Network::class);
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     public function download(): StreamedResponse
     {
         if ($this->is_remote) {
@@ -164,10 +136,7 @@ class ServerLog extends AbstractModel
         return Storage::disk($this->disk)->download($this->name);
     }
 
-    /**
-     * @param  Builder<ServerLog>  $query
-     * @return Builder<ServerLog>
-     */
+    
     public static function getRemote(Builder $query, bool $active = true, ?Site $site = null): Builder
     {
         $query->where('is_remote', $active);
@@ -265,15 +234,11 @@ class ServerLog extends AbstractModel
         return $this;
     }
 
-    /**
-     * Clear the contents of a remote log file
-     *
-     * @throws Throwable
-     */
+    
     public function clear(): void
     {
         if ($this->is_remote) {
-            // For remote logs, use the dedicated script that preserves permissions and ownership
+            
             $this->server->os()->clearFile($this->name);
         }
     }

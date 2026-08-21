@@ -31,7 +31,7 @@ class DeploySite extends AbstractWorkflowAction
             'site_id' => ['required', 'integer', 'exists:sites,id'],
         ])->validate();
 
-        /** @var Site $site */
+        
         $site = Site::findOrFail($input['site_id']);
 
         $this->authorize('update', [$site, $site->server]);

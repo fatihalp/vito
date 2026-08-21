@@ -6,5 +6,5 @@ use Exception;
 
 class FailedToDeployGitKey extends Exception
 {
-    //
+    
 }

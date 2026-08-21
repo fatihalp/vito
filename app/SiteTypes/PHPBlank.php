@@ -51,9 +51,7 @@ class PHPBlank extends PHPSite
         return $data;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(0, 'isolating-user');

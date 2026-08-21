@@ -6,9 +6,7 @@ use App\Models\BucketCredential;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<BucketCredential>
- */
+
 class BucketCredentialFactory extends Factory
 {
     public function definition(): array

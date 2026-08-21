@@ -44,7 +44,7 @@ class UninstallJob implements ShouldQueue
 
     public function failed(Exception $e): void
     {
-        // force delete if retried.
+        
         if ($this->previousStatus === ServiceStatus::FAILED) {
             $this->service->delete();
 

@@ -8,9 +8,7 @@ use App\Services\SupportsNetworking;
 
 class GetNetworking
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function get(Service $service): array
     {
         if (! $service->hasHandler()) {

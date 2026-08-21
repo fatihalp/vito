@@ -25,9 +25,9 @@ class ApplyRulesJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->rule->server_id}", function () {
-            /** @var Service $service */
+            
             $service = $this->rule->server->firewall();
-            /** @var Firewall $handler */
+            
             $handler = $service->handler();
             $handler->applyRules();
 

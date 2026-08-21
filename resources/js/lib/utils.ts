@@ -5,17 +5,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// stable client-side id for repeated form rows; crypto.randomUUID needs a secure context
+
 export function rowId(): string {
   return typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : Math.random().toString(36).slice(2);
 }
 
-// current absolute URL without its query string or hash, for exact nav-active matching
+
 export function currentPath(): string {
   return window.location.href.split(/[?#]/)[0];
 }
 
-// convert kb to gb
+
 export function kbToGb(kb: number | string): number {
   if (typeof kb === 'string') {
     kb = parseFloat(kb);
@@ -23,7 +23,7 @@ export function kbToGb(kb: number | string): number {
   return Math.round((kb / 1024 / 1024) * 100) / 100;
 }
 
-// convert mb to gb
+
 export function mbToGb(mb: number | string): number {
   if (typeof mb === 'string') {
     mb = parseFloat(mb);
@@ -51,7 +51,7 @@ export function formatDateString(dateString: string | Date): string {
   const month = date.toLocaleString('default', { month: '2-digit' });
   const day = date.toLocaleString('default', { day: '2-digit' });
 
-  // Generate yyyy-mm-dd date string
+  
   return year + '-' + month + '-' + day;
 }
 
@@ -68,8 +68,23 @@ export function humanizeSeconds(seconds: number | null | undefined): string {
   return parts.join(' ');
 }
 
+const STEP_ACRONYMS = new Set(['ssl', 'ssh', 'os', 'php', 'ufw', 'db', 'ip', 'url', 'dns', 'id', 'api', 'sftp', 'cpu', 'ram']);
+
+// Kebab/underscore step identifiers like `install-nginx-latest` or `remove-os-default-site`
+// become "Install nginx latest" / "Remove OS default site" — sentence case, with known
+// technical acronyms kept upper-case instead of reading as ordinary words.
 export function humanizeStep(step: string | null | undefined): string {
   if (!step) return '';
-  const spaced = step.replace(/[-_]+/g, ' ').trim();
-  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+
+  const words = step
+    .replace(/[-_]+/g, ' ')
+    .trim()
+    .split(' ')
+    .map((word) => (STEP_ACRONYMS.has(word.toLowerCase()) ? word.toUpperCase() : word));
+
+  if (words.length === 0) return '';
+
+  words[0] = words[0].charAt(0).toUpperCase() + words[0].slice(1);
+
+  return words.join(' ');
 }

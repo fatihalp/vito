@@ -28,9 +28,9 @@ class ManageJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->worker->server_id}", function () {
-            /** @var Service $service */
+            
             $service = $this->worker->server->processManager();
-            /** @var ProcessManager $handler */
+            
             $handler = $service->handler();
             $handler->{$this->action}($this->worker->id, $this->worker->site_id);
             $this->worker->status = $this->successStatus;

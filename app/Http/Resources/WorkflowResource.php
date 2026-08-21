@@ -7,15 +7,13 @@ use App\Models\Workflow;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin Workflow */
+
 class WorkflowResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
-        /** @var WorkflowActionDTO|null $startingNode */
+        
         $startingNode = $this->getStartingNode();
 
         return [

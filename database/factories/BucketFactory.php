@@ -7,9 +7,7 @@ use App\Models\Project;
 use App\Support\HetznerObjectStorage;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Bucket>
- */
+
 class BucketFactory extends Factory
 {
     public function definition(): array

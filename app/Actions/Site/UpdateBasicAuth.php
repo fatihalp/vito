@@ -13,9 +13,7 @@ class UpdateBasicAuth
 {
     private const NGINX_AUTH_DIR = '/etc/nginx/auth';
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Site $site, array $input): void
     {
         $input = $this->normaliseInput($input);
@@ -73,10 +71,7 @@ class UpdateBasicAuth
         $this->writeAuthFile($site, []);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     private function normaliseInput(array $input): array
     {
         $input['enabled'] = filter_var($input['enabled'] ?? false, FILTER_VALIDATE_BOOLEAN);
@@ -85,9 +80,7 @@ class UpdateBasicAuth
         return $input;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Site $site, array $input): void
     {
         Validator::make($input, [
@@ -113,9 +106,7 @@ class UpdateBasicAuth
         }
     }
 
-    /**
-     * @param  array<int, array<string, string>>  $users
-     */
+    
     private function writeAuthFile(Site $site, array $users): void
     {
         if ($site->webserver()::id() !== Nginx::id()) {

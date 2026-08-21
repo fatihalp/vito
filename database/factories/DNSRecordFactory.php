@@ -6,16 +6,10 @@ use App\Models\DNSRecord;
 use App\Models\Domain;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<DNSRecord>
- */
+
 class DNSRecordFactory extends Factory
 {
-    /**
-     * Define the model's default state.
-     *
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         $types = ['A', 'AAAA', 'CNAME', 'TXT'];

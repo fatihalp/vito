@@ -17,7 +17,7 @@ class LeaveProjectController extends Controller
     #[Delete('/{project}/leave', name: 'projects.leave')]
     public function __invoke(Project $project): RedirectResponse
     {
-        /** @var ?UserProject $user */
+        
         $user = $project->users()
             ->where('user_id', user()->id)
             ->orWhere('email', user()->email)

@@ -27,17 +27,13 @@ abstract class AbstractSiteType implements SiteType
 
     abstract public static function make(): self;
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function createTimeTools(): array
     {
         return [];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function requiredTooling(): array
     {
         return [];
@@ -73,9 +69,7 @@ abstract class AbstractSiteType implements SiteType
         return [];
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function deploymentEnvironment(): array
     {
         return SiteShellEnvironment::collect($this->site);
@@ -83,12 +77,12 @@ abstract class AbstractSiteType implements SiteType
 
     public function afterDeploy(Deployment $deployment): void
     {
-        //
+        
     }
 
     public function assertReadyToDeploy(): void
     {
-        //
+        
     }
 
     public function defaultDeploymentScript(): string
@@ -113,9 +107,7 @@ abstract class AbstractSiteType implements SiteType
         return File::exists($path) ? File::get($path) : '';
     }
 
-    /**
-     * @return string[]|null
-     */
+    
     public function supportedWebservers(): ?array
     {
         return null;
@@ -139,10 +131,7 @@ abstract class AbstractSiteType implements SiteType
         ));
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     * @throws SSHError
-     */
+    
     protected function deployKey(): void
     {
         if (! $this->site->sourceControl) {
@@ -180,9 +169,7 @@ abstract class AbstractSiteType implements SiteType
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function isolate(): void
     {
         if (! $this->site->isIsolated()) {
@@ -210,7 +197,7 @@ abstract class AbstractSiteType implements SiteType
                     throw new RuntimeException('PHP service not found');
                 }
                 if (! $this->site->fpmPoolSharedWithSiblings() && ! $this->fpmPoolExists($this->site->user, $this->site->php_version)) {
-                    /** @var PHP $php */
+                    
                     $php = $service->handler();
                     $php->createFpmPool(
                         $this->site->user,
@@ -223,9 +210,7 @@ abstract class AbstractSiteType implements SiteType
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function cloneRepository(): void
     {
         if (! $this->site->repository) {
@@ -238,9 +223,7 @@ abstract class AbstractSiteType implements SiteType
         app(Git::class)->clone($this->site);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function repositoryAlreadyCloned(): bool
     {
         try {
@@ -254,9 +237,7 @@ abstract class AbstractSiteType implements SiteType
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function fpmPoolExists(string $user, string $version): bool
     {
         try {
@@ -271,9 +252,7 @@ abstract class AbstractSiteType implements SiteType
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function setupRequestedTooling(): void
     {
         $iuser = $this->site->isolatedUser;

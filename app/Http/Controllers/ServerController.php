@@ -137,9 +137,7 @@ class ServerController extends Controller
         return back()->with('success', 'Server start command sent to '.$server->provider.'.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/{server}/check-for-updates', name: 'servers.check-for-updates')]
     public function checkForUpdates(Server $server): RedirectResponse
     {

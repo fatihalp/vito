@@ -9,14 +9,7 @@ use Illuminate\Support\Collection;
 
 class GetSiteOverview
 {
-    /**
-     * @return array{
-     *     workers: Collection<int, Worker>,
-     *     workers_count: int,
-     *     cron_jobs: Collection<int, CronJob>,
-     *     cron_jobs_count: int
-     * }
-     */
+    
     public function get(Site $site): array
     {
         return [

@@ -35,51 +35,10 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
-/**
- * @property int $project_id
- * @property int $user_id
- * @property string $name
- * @property ServerRole $role
- * @property string $ssh_user
- * @property string $ip
- * @property ?string $local_ip
- * @property int $port
- * @property OperatingSystem $os
- * @property string $type
- * @property array<string, mixed> $type_data
- * @property string $provider
- * @property int $provider_id
- * @property array<string, mixed> $provider_data
- * @property array<string, mixed> $authentication
- * @property string $public_key
- * @property ServerStatus $status
- * @property bool $auto_update
- * @property ?string $auto_update_schedule
- * @property int|float $progress
- * @property ?string $progress_step
- * @property Project $project
- * @property User $creator
- * @property ServerProvider $serverProvider
- * @property Collection<int, ServerLog> $logs
- * @property Collection<int, Site> $sites
- * @property Collection<int, Service> $services
- * @property Collection<int, Database> $databases
- * @property Collection<int, DatabaseUser> $databaseUsers
- * @property Collection<int, FirewallRule> $firewallRules
- * @property Collection<int, ServerIpAddress> $ipAddresses
- * @property Collection<int, CronJob> $cronJobs
- * @property Collection<int, Worker> $queues
- * @property Collection<int, Backup> $backups
- * @property Collection<int, SshKey> $sshKeys
- * @property Collection<int, SiteResource> $siteResources
- * @property string $hostname
- * @property int $updates
- * @property int $kernel_updates
- * @property ?Carbon $last_update_check
- */
+
 class Server extends AbstractModel
 {
-    /** @use HasFactory<ServerFactory> */
+    
     use HasFactory;
 
     protected $attributes = [
@@ -136,11 +95,7 @@ class Server extends AbstractModel
 
     public bool $deleteFromProvider = true;
 
-    /**
-     * Carried between the two events because the membership rows are gone by the second.
-     *
-     * @var array{members: array<int, int>, networks: array<int, int>}
-     */
+    
     protected array $networkDeparture = ['members' => [], 'networks' => []];
 
     public static function boot(): void
@@ -169,7 +124,7 @@ class Server extends AbstractModel
                         );
                     });
                 $server->sites()->each(function ($site): void {
-                    /** @var Site $site */
+                    
                     app(CleanupSiteResources::class)->cleanup($site);
                     $site->workers()->delete();
                     $site->ssls()->delete();
@@ -178,11 +133,11 @@ class Server extends AbstractModel
                 });
                 $server->sites()->delete();
                 $server->logs()->each(function ($log): void {
-                    /** @var ServerLog $log */
+                    
                     $log->delete();
                 });
                 $server->backups()->each(function ($backup): void {
-                    /** @var Backup $backup */
+                    
                     $backup->delete();
                 });
                 $server->services()->delete();
@@ -215,7 +170,7 @@ class Server extends AbstractModel
         return in_array($this->status, [ServerStatus::READY, ServerStatus::UPDATING]);
     }
 
-    /** @return HasMany<SiteResource, covariant $this> */
+    
     public function siteResources(): HasMany
     {
         return $this->hasMany(SiteResource::class);
@@ -231,161 +186,121 @@ class Server extends AbstractModel
         return $this->status === ServerStatus::INSTALLATION_FAILED;
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class, 'project_id');
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
     }
 
-    /**
-     * @return BelongsTo<ServerProvider, covariant $this>
-     */
+    
     public function serverProvider(): BelongsTo
     {
         return $this->belongsTo(ServerProvider::class, 'provider_id');
     }
 
-    /**
-     * @return HasMany<ServerLog, covariant $this>
-     */
+    
     public function logs(): HasMany
     {
         return $this->hasMany(ServerLog::class);
     }
 
-    /**
-     * @return HasMany<Site, covariant $this>
-     */
+    
     public function sites(): HasMany
     {
         return $this->hasMany(Site::class);
     }
 
-    /**
-     * @return HasMany<IsolatedUser, covariant $this>
-     */
+    
     public function isolatedUsers(): HasMany
     {
         return $this->hasMany(IsolatedUser::class);
     }
 
-    /**
-     * @return HasMany<Service, covariant $this>
-     */
+    
     public function services(): HasMany
     {
         return $this->hasMany(Service::class);
     }
 
-    /**
-     * @return HasMany<Database, covariant $this>
-     */
+    
     public function databases(): HasMany
     {
         return $this->hasMany(Database::class);
     }
 
-    /**
-     * @return HasMany<DatabaseUser, covariant $this>
-     */
+    
     public function databaseUsers(): HasMany
     {
         return $this->hasMany(DatabaseUser::class);
     }
 
-    /**
-     * @return HasMany<Ssl, covariant $this>
-     */
+    
     public function ssls(): HasMany
     {
         return $this->hasMany(Ssl::class);
     }
 
-    /**
-     * @return HasMany<FirewallRule, covariant $this>
-     */
+    
     public function firewallRules(): HasMany
     {
         return $this->hasMany(FirewallRule::class);
     }
 
-    /**
-     * @return HasMany<ServerNetworkRule, covariant $this>
-     */
+    
     public function networkRules(): HasMany
     {
         return $this->hasMany(ServerNetworkRule::class);
     }
 
-    /**
-     * @return HasMany<ServerIpAddress, covariant $this>
-     */
+    
     public function ipAddresses(): HasMany
     {
         return $this->hasMany(ServerIpAddress::class);
     }
 
-    /**
-     * @return HasMany<CronJob, covariant $this>
-     */
+    
     public function cronJobs(): HasMany
     {
         return $this->hasMany(CronJob::class);
     }
 
-    /**
-     * @return HasMany<Worker, covariant $this>
-     */
+    
     public function workers(): HasMany
     {
         return $this->hasMany(Worker::class);
     }
 
-    /**
-     * @return HasMany<Backup, covariant $this>
-     */
+    
     public function backups(): HasMany
     {
         return $this->hasMany(Backup::class);
     }
 
-    /**
-     * @return HasMany<Worker, covariant $this>
-     */
+    
     public function daemons(): HasMany
     {
         return $this->workers()->whereNull('site_id');
     }
 
-    /**
-     * @return HasMany<Metric, covariant $this>
-     */
+    
     public function metrics(): HasMany
     {
         return $this->hasMany(Metric::class);
     }
 
-    /**
-     * @return HasOne<Metric, covariant $this>
-     */
+    
     public function latestMetric(): HasOne
     {
         return $this->hasOne(Metric::class)->latestOfMany();
     }
 
-    /**
-     * @return BelongsToMany<SshKey, covariant $this>
-     */
+    
     public function sshKeys(): BelongsToMany
     {
         return $this->belongsToMany(SshKey::class, 'server_ssh_keys')
@@ -402,9 +317,7 @@ class Server extends AbstractModel
         return config('core.ssh_user');
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public function getSshUsers(): array
     {
         $users = ['root', $this->getSshUser()];
@@ -414,9 +327,7 @@ class Server extends AbstractModel
         return array_values(array_unique($users));
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public function sshLoginUsers(): array
     {
         $users = $this->getSshUsers();
@@ -430,7 +341,7 @@ class Server extends AbstractModel
 
     public function service(string $type, mixed $version = null): ?Service
     {
-        /** @var ?Service $service */
+        
         $service = $this->services()
             ->where(function ($query) use ($type, $version): void {
                 $query->where('type', $type);
@@ -445,15 +356,15 @@ class Server extends AbstractModel
 
     public function defaultService(string $type): ?Service
     {
-        /** @var ?Service $service */
+        
         $service = $this->services()
             ->where('type', $type)
             ->where('is_default', 1)
             ->first();
 
-        // If no default service found, get the first service with status ready or stopped
+        
         if (! $service) {
-            /** @var ?Service $service */
+            
             $service = $this->services()
                 ->where('type', $type)
                 ->whereIn('status', [ServiceStatus::READY, ServiceStatus::STOPPED])
@@ -472,14 +383,12 @@ class Server extends AbstractModel
         return SSH::init($this, $user);
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public function installedPHPVersions(): array
     {
         $versions = [];
         $phps = $this->services()->where('type', 'php')->get(['version']);
-        /** @var Service $php */
+        
         foreach ($phps as $php) {
             $versions[] = $php->version;
         }
@@ -487,14 +396,12 @@ class Server extends AbstractModel
         return $versions;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public function installedNodejsVersions(): array
     {
         $versions = [];
         $nodes = $this->services()->where('type', 'nodejs')->get(['version']);
-        /** @var Service $node */
+        
         foreach ($nodes as $node) {
             $versions[] = $node->version;
         }
@@ -506,7 +413,7 @@ class Server extends AbstractModel
     {
         $providerClass = config('server-provider.providers.'.$this->provider.'.handler');
 
-        /** @var \App\ServerProviders\ServerProvider $provider */
+        
         $provider = new $providerClass($this->serverProvider ?? new ServerProvider, $this);
 
         return $provider;
@@ -598,12 +505,10 @@ class Server extends AbstractModel
         return $this->service('monitoring', $version);
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function sshKey(): array
     {
-        /** @var FilesystemAdapter $storageDisk */
+        
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
 
         return [
@@ -643,11 +548,7 @@ class Server extends AbstractModel
         return new Security($this);
     }
 
-    /**
-     * Normalised security-hardening state stored in feature_data['security'].
-     *
-     * @return array{password_authentication: array{enabled: bool, detected: ?bool, status: string}, root_login: array{enabled: bool, detected: ?bool, status: string}}
-     */
+    
     public function securityState(): array
     {
         $security = $this->feature_data['security'] ?? [];
@@ -666,9 +567,7 @@ class Server extends AbstractModel
         ];
     }
 
-    /**
-     * @return array{score: int, passed: int, total: int, checks: array<int, array{key: string, label: string, passed: bool}>}
-     */
+    
     public function securityScore(): array
     {
         $state = $this->securityState();
@@ -697,9 +596,7 @@ class Server extends AbstractModel
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function checkForUpdates(): void
     {
         $result = $this->os()->availableUpdates();
@@ -709,9 +606,7 @@ class Server extends AbstractModel
         $this->save();
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     public function download(string $path, string $disk = 'tmp'): void
     {
         $this->ssh()->download(
@@ -720,9 +615,7 @@ class Server extends AbstractModel
         );
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function features(): array
     {
         $features = config('server.features', []);
@@ -730,7 +623,7 @@ class Server extends AbstractModel
             foreach ($feature['actions'] ?? [] as $actionKey => $action) {
                 $handlerClass = $action['handler'] ?? null;
                 if ($handlerClass && class_exists($handlerClass)) {
-                    /** @var ActionInterface $handler */
+                    
                     $handler = new $handlerClass($this);
                     $action['active'] = $handler->active();
                     if (! isset($action['form']) || empty($action['form'])) {
@@ -749,9 +642,7 @@ class Server extends AbstractModel
         return in_array($feature, config('server.features', []));
     }
 
-    /**
-     * @return array<int, array{key: string, ...}>
-     */
+    
     public function getWarnings(): array
     {
         $warnings = [];

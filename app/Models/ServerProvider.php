@@ -9,20 +9,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Cache;
 
-/**
- * @property int $user_id
- * @property string $profile
- * @property string $provider
- * @property array<string, string> $credentials
- * @property bool $connected
- * @property User $user
- * @property ?int $project_id
- * @property Server[] $servers
- * @property ?Project $project
- */
+
 class ServerProvider extends AbstractModel
 {
-    /** @use HasFactory<ServerProviderFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -41,25 +31,19 @@ class ServerProvider extends AbstractModel
         'project_id' => 'integer',
     ];
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function getCredentials(): array
     {
         return $this->credentials;
     }
 
-    /**
-     * @return HasMany<Server, covariant $this>
-     */
+    
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class, 'provider_id');
@@ -69,26 +53,22 @@ class ServerProvider extends AbstractModel
     {
         $providerClass = config('server-provider.providers.'.$this->provider.'.handler');
 
-        /** @var \App\ServerProviders\ServerProvider $provider */
+        
         $provider = new $providerClass($this, new Server);
 
         return $provider;
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return Builder<ServerProvider>
-     */
+    
     public static function getByProjectId(int $projectId, User $user): Builder
     {
-        /** @var Builder<ServerProvider> $query */
+        
         $query = static::query();
 
         return $query
@@ -98,15 +78,13 @@ class ServerProvider extends AbstractModel
             });
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public static function regions(?int $id): array
     {
         if ($id === null || $id === 0) {
             return [];
         }
-        /** @var ?ServerProvider $profile */
+        
         $profile = self::find($id);
         if (! $profile) {
             return [];
@@ -122,9 +100,7 @@ class ServerProvider extends AbstractModel
         return $regions;
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public static function plans(?int $id, ?string $region): array
     {
         if ($id === null || $id === 0) {

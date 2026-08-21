@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         if (! Schema::hasColumn('sites', 'worker_environment')) {
@@ -42,9 +40,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::table('sites', function (Blueprint $table) {
@@ -79,10 +75,7 @@ return new class extends Migration
         });
     }
 
-    /**
-     * @param  array<string, mixed>  $map
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     private function convertMapToVariables(array $map): array
     {
         $variables = [];

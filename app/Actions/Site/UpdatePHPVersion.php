@@ -15,11 +15,7 @@ use Throwable;
 
 class UpdatePHPVersion
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): void
     {
         Validator::make($input, [
@@ -50,9 +46,9 @@ class UpdatePHPVersion
             }
 
             try {
-                /** @var Service $phpService */
+                
                 $phpService = $site->server->php();
-                /** @var PHP $php */
+                
                 $php = $phpService->handler();
 
                 $php->createFpmPool($site->user, $newVersion);

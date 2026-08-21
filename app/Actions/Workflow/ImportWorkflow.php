@@ -15,9 +15,7 @@ class ImportWorkflow
         private readonly UpdateWorkflow $updateWorkflow,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function import(User $user, Project $project, array $input): Workflow
     {
         Validator::make($input, [

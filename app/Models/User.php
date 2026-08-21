@@ -16,34 +16,7 @@ use Illuminate\Support\Collection;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
-/**
- * @property int $id
- * @property string $name
- * @property string $email
- * @property string $password
- * @property string $profile_photo_path
- * @property string $two_factor_recovery_codes
- * @property string $two_factor_secret
- * @property Collection<int, SshKey> $sshKeys
- * @property Collection<int, SourceControl> $sourceControls
- * @property Collection<int, ServerProvider> $serverProviders
- * @property Collection<int, Server> $servers
- * @property Collection<int, Script> $scripts
- * @property Collection<int, StorageProvider> $storageProviders
- * @property Collection<int, DNSProvider> $dnsProviders
- * @property Collection<int, Domain> $domains
- * @property Collection<int, StorageProvider> $connectedStorageProviders
- * @property Collection<int, PersonalAccessToken> $tokens
- * @property string $profile_photo_url
- * @property string $timezone
- * @property ?int $current_project_id
- * @property bool $is_admin
- * @property ?Project $currentProject
- * @property Collection<int, Project> $projects
- * @property UserRole $role
- * @property Carbon $created_at
- * @property Carbon $updated_at
- */
+
 class User extends Authenticatable
 {
     use HasApiTokens;
@@ -76,57 +49,43 @@ class User extends Authenticatable
 
     protected $appends = [];
 
-    /**
-     * @return HasMany<Server, covariant $this>
-     */
+    
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class);
     }
 
-    /**
-     * @return HasMany<SshKey, covariant $this>
-     */
+    
     public function sshKeys(): HasMany
     {
         return $this->hasMany(SshKey::class);
     }
 
-    /**
-     * @return HasMany<SourceControl, covariant $this>
-     */
+    
     public function sourceControls(): HasMany
     {
         return $this->hasMany(SourceControl::class);
     }
 
-    /**
-     * @return HasMany<ServerProvider, covariant $this>
-     */
+    
     public function serverProviders(): HasMany
     {
         return $this->hasMany(ServerProvider::class);
     }
 
-    /**
-     * @return HasOne<SourceControl, covariant $this>
-     */
+    
     public function sourceControl(string $provider): HasOne
     {
         return $this->hasOne(SourceControl::class)->where('provider', $provider);
     }
 
-    /**
-     * @return HasMany<StorageProvider, covariant $this>
-     */
+    
     public function storageProviders(): HasMany
     {
         return $this->hasMany(StorageProvider::class);
     }
 
-    /**
-     * @return HasOne<StorageProvider, covariant $this>
-     */
+    
     public function storageProvider(string $provider): HasOne
     {
         return $this->hasOne(StorageProvider::class)->where('provider', $provider);
@@ -153,9 +112,7 @@ class User extends Authenticatable
         return $this->hasManyThrough(Project::class, UserProject::class, 'user_id', 'id', 'id', 'project_id');
     }
 
-    /**
-     * @return HasOne<Project, covariant $this>
-     */
+    
     public function currentProject(): HasOne
     {
         return $this->HasOne(Project::class, 'id', 'current_project_id');
@@ -163,7 +120,7 @@ class User extends Authenticatable
 
     public function ensureHasDefaultProject(): Project
     {
-        /** @var ?Project $project */
+        
         $project = $this->projects()->first();
 
         if (! $project) {
@@ -196,20 +153,16 @@ class User extends Authenticatable
         return $this->is_admin;
     }
 
-    /**
-     * @return HasMany<Script, covariant $this>
-     */
+    
     public function scripts(): HasMany
     {
         return $this->hasMany(Script::class);
     }
 
-    /**
-     * @return Builder<Server>
-     */
+    
     public function allServers(): Builder
     {
-        /** @var Builder<Server> $query */
+        
         $query = Server::query();
 
         return $query->whereHas('project', function (Builder $query): void {
@@ -219,9 +172,7 @@ class User extends Authenticatable
         });
     }
 
-    /**
-     * @return HasMany<ServerTemplate, covariant $this>
-     */
+    
     public function serverTemplates(): HasMany
     {
         return $this->hasMany(ServerTemplate::class);

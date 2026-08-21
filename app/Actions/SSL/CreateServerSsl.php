@@ -11,11 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateServerSsl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input): Ssl
     {
         Validator::make($input, [

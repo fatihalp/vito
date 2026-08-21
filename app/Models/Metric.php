@@ -10,49 +10,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $id
- * @property int $server_id
- * @property ?float $load
- * @property ?float $memory_total
- * @property ?float $memory_used
- * @property ?float $memory_free
- * @property ?float $disk_total
- * @property ?float $disk_used
- * @property ?float $disk_free
- * @property ?int $cpu_cores
- * @property ?int $cpu_physical_cores
- * @property ?float $cpu_usage_percent
- * @property ?array<int, float> $cpu_per_core_usage_percent
- * @property ?float $cpu_steal_percent
- * @property ?float $swap_total
- * @property ?float $swap_used
- * @property ?float $swap_free
- * @property ?float $swap_used_percent
- * @property ?int $oom_kill_count
- * @property ?float $uptime_seconds
- * @property ?bool $reboot_required
- * @property-read float|int $memory_total_in_bytes
- * @property-read float|int $memory_used_in_bytes
- * @property-read float|int $memory_free_in_bytes
- * @property-read float|int $disk_total_in_bytes
- * @property-read float|int $disk_used_in_bytes
- * @property-read float|int $disk_free_in_bytes
- * @property-read float|int $swap_total_in_bytes
- * @property-read float|int $swap_used_in_bytes
- * @property-read float|int $swap_free_in_bytes
- * @property Server $server
- * @property Carbon $created_at
- * @property Carbon $updated_at
- *
- * NOTE: Metric intentionally extends Eloquent\Model rather than App\Models\AbstractModel.
- * This is a high-volume insert table (one row per server per minute) and the
- * HasTimezoneTimestamps overhead is not needed here. Do not "fix" this without
- * benchmarking insert throughput against the metrics:get loop.
- */
+
 class Metric extends Model
 {
-    /** @use HasFactory<MetricFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -121,9 +82,7 @@ class Metric extends Model
         });
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);

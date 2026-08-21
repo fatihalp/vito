@@ -75,7 +75,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
     }
   }, [monaco]);
 
-  // Find duplicate keys
+  
   const duplicateKeys = useMemo(() => {
     const keyCounts = new Map<string, number>();
     variables.forEach((v) => {
@@ -192,7 +192,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
         key: newKey,
         value: '',
         isSecret: false,
-        isNew: true, // Mark as new so user can toggle secret and see value
+        isNew: true, 
       },
     ]);
   };
@@ -303,7 +303,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
     };
     reader.readAsText(file);
 
-    // Reset the input so the same file can be selected again
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }

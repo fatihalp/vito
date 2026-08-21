@@ -15,10 +15,7 @@ use App\Models\Site;
 
 class Deploy
 {
-    /**
-     * @throws DeploymentScriptIsEmptyException
-     * @throws ReverseProxyNotConfiguredException
-     */
+    
     public function run(Site $site, bool $modern = true): Deployment
     {
         $site->type()->assertReadyToDeploy();

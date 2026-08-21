@@ -15,9 +15,7 @@ interface ProcessManager extends ServiceInterface
 
     public function restart(int $id, ?int $siteId = null): void;
 
-    /**
-     * @param  non-empty-array<int>  $ids
-     */
+    
     public function restartMany(array $ids, ?int $siteId = null): string;
 
     public function stop(int $id, ?int $siteId = null): void;
@@ -26,9 +24,7 @@ interface ProcessManager extends ServiceInterface
 
     public function restartAll(?int $siteId = null): void;
 
-    /**
-     * @return array<int, array<string, array{state: string, description: string}>>
-     */
+    
     public function statuses(): array;
 
     public function getLogs(string $user, string $logPath): string;

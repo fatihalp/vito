@@ -12,10 +12,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ManageRule
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return FirewallRule $rule
-     */
+    
     public function create(Server $server, array $input): FirewallRule
     {
         $input = $this->normalizePort($input);
@@ -30,10 +27,7 @@ class ManageRule
         return $rule;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return FirewallRule $rule
-     */
+    
     public function update(FirewallRule $rule, array $input): FirewallRule
     {
         $input = $this->normalizePort($input);
@@ -97,10 +91,7 @@ class ManageRule
         Validator::make($input, $rules)->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     private function normalizePort(array $input): array
     {
         $port = $input['port'] ?? null;
@@ -109,10 +100,7 @@ class ManageRule
         return $input;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     private function attributesFromInput(array $input, FirewallRuleStatus $status): array
     {
         $sourceAny = $input['source_any'] ?? empty($input['source'] ?? null);

@@ -11,9 +11,7 @@ abstract class AbstractTooling implements ToolingInterface
         return static::id().'_version';
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function supportedVersionsWithNone(): array
     {
         return array_merge(['none'], static::supportedVersions());

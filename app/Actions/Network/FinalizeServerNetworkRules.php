@@ -11,13 +11,7 @@ use Illuminate\Support\Facades\DB;
 
 class FinalizeServerNetworkRules
 {
-    /**
-     * The full ruleset was pushed successfully: the emitted rows are now live,
-     * and the rows that were dropped from the emit set are gone from the box.
-     *
-     * @param  array<int, int>  $emittedIds
-     * @param  array<int, int>  $deletingIds
-     */
+    
     public function success(Server $server, array $emittedIds, array $deletingIds): void
     {
         DB::transaction(function () use ($emittedIds, $deletingIds): void {
@@ -36,9 +30,7 @@ class FinalizeServerNetworkRules
         $this->broadcast($server);
     }
 
-    /**
-     * @param  array<int, int>  $emittedIds
-     */
+    
     public function failure(Server $server, array $emittedIds): void
     {
         if ($emittedIds !== []) {

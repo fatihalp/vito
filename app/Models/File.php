@@ -6,25 +6,10 @@ use Database\Factories\FileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $user_id
- * @property int $server_id
- * @property string $path
- * @property string $type
- * @property string $server_user
- * @property string $name
- * @property int $size
- * @property int $links
- * @property string $owner
- * @property string $group
- * @property string $date
- * @property string $permissions
- * @property User $user
- * @property Server $server
- */
+
 class File extends AbstractModel
 {
-    /** @use HasFactory<FileFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -66,17 +51,13 @@ class File extends AbstractModel
         });
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -104,10 +85,10 @@ class File extends AbstractModel
             ->where('server_id', $server->id)
             ->delete();
 
-        // Split output by line
+        
         $lines = explode("\n", trim($listOutput));
 
-        // Skip the first two lines (total count and . & .. directories)
+        
         array_shift($lines);
 
         foreach ($lines as $line) {

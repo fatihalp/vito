@@ -11,11 +11,7 @@ use Throwable;
 
 class EditStorageProvider
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function edit(StorageProvider $storageProvider, array $input): StorageProvider
     {
         if (! $storageProvider->hasProviderHandler()) {
@@ -53,11 +49,7 @@ class EditStorageProvider
         return $storageProvider;
     }
 
-    /**
-     * @param  array<string, mixed>  $credentials
-     *
-     * @throws ValidationException
-     */
+    
     private function verify(StorageProvider $storageProvider, StorageProviderContract $provider, array $credentials): void
     {
         try {

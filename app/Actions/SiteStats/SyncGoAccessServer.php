@@ -11,9 +11,7 @@ use App\Services\LogAnalysis\GoAccess\GoAccess;
 
 class SyncGoAccessServer
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function sync(Server $server, ?ServerLog $log = null): void
     {
         $service = $server->service('log_analysis');

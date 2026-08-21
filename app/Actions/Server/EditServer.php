@@ -18,12 +18,7 @@ class EditServer
         private RefreshServerResourceConnections $resources,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return Server $server
-     *
-     * @throws ValidationException
-     */
+    
     public function edit(Server $server, array $input): Server
     {
         $this->validate($server, $input);

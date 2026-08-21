@@ -55,12 +55,12 @@ export default function DnsProviderEditDialog({
             {editFields.map((field) => (
               <DynamicField
                 key={`field-${field.name}`}
-                /*@ts-expect-error dynamic types*/
+                
                 value={form.data[field.name] ?? dnsProvider.editable_data?.[field.name]}
-                /*@ts-expect-error dynamic types*/
+                
                 onChange={(value) => form.setData(field.name, value)}
                 config={field}
-                /*@ts-expect-error dynamic types*/
+                
                 error={form.errors[field.name]}
               />
             ))}

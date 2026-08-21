@@ -6,7 +6,7 @@ use App\Actions\Site\CreateSite;
 use App\Actions\Site\DisableSsl;
 use App\Actions\Site\EnableSsl;
 use App\Actions\Site\GetAccessibleSites;
-use App\Actions\Site\GetIsolatedUsers;
+use App\Actions\Site\GetSiteCreationDefaults;
 use App\Actions\Site\GetSites;
 use App\Actions\Site\RetrySite;
 use App\Helpers\QueryBuilder;
@@ -73,17 +73,15 @@ class SiteController extends Controller
         return SiteResource::collection($sites);
     }
 
-    #[Get('/servers/{server}/isolated-users', name: 'sites.isolated-users')]
-    public function isolatedUsers(Server $server): JsonResponse
+    #[Get('/servers/{server}/site-creation-defaults', name: 'sites.creation-defaults')]
+    public function creationDefaults(Server $server): JsonResponse
     {
         $this->authorize('viewAny', [Site::class, $server]);
 
-        return response()->json(app(GetIsolatedUsers::class)->get($server));
+        return response()->json(app(GetSiteCreationDefaults::class)->get($server));
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     #[Post('/servers/{server}/sites/', name: 'sites.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {
@@ -116,11 +114,11 @@ class SiteController extends Controller
     }
 
     #[Post('/servers/{server}/sites/{site}/retry', name: 'sites.retry')]
-    public function retry(Server $server, Site $site): RedirectResponse
+    public function retry(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
-        app(RetrySite::class)->retry($site);
+        app(RetrySite::class)->retry($site, $request->all());
 
         return back()
             ->with('info', 'Retrying site installation...');

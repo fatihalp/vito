@@ -13,11 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class AddDomain
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function add(User $user, Project $project, array $input): Domain
     {
         $this->validate($input);

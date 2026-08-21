@@ -133,9 +133,7 @@ class ServerLogController extends Controller
         return $log->getContent();
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     #[Get('/{log}/download', name: 'logs.download')]
     public function download(Server $server, ServerLog $log): StreamedResponse
     {

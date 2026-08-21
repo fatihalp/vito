@@ -13,11 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateBucket
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Project $project, array $input): Bucket
     {
         $data = Validator::make($input, [

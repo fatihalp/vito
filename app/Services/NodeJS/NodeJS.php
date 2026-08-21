@@ -61,9 +61,7 @@ class NodeJS extends AbstractService
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $server = $this->service->server;
@@ -77,13 +75,11 @@ class NodeJS extends AbstractService
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
-        // skip uninstalling if there are other NodeJS services installed
-        // to keep it compatible with the previous approach with nvm
+        
+        
         if ($this->service->server->services()->where('type', 'nodejs')->count() > 1) {
             return;
         }

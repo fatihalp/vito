@@ -19,7 +19,7 @@ class VitoCommand extends Command
 
     protected $description = 'Start all required Vito background services (Horizon, Schedule, WebSocket, and optional Web Server)';
 
-    /** @var array<string, Process> */
+    
     protected array $processes = [];
 
     public function handle(): int

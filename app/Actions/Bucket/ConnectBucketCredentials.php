@@ -12,11 +12,7 @@ use Throwable;
 
 class ConnectBucketCredentials
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function connect(Project $project, array $input): BucketCredential
     {
         $data = Validator::make($input, [

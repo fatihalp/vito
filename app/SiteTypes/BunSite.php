@@ -34,9 +34,7 @@ class BunSite extends AbstractProxiedSiteType
         return ['bun'];
     }
 
-    /**
-     * @return array<int, DynamicField>
-     */
+    
     public static function formFields(): array
     {
         return array_merge(

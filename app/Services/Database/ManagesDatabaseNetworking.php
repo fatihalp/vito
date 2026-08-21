@@ -8,9 +8,7 @@ trait ManagesDatabaseNetworking
 {
     use ManagesNetworking;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     protected function networkingExtraDetails(): array
     {
         return [

@@ -20,39 +20,23 @@ use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
-    /**
-     * The root template that's loaded on the first page visit.
-     *
-     * @see https://inertiajs.com/server-side-setup#root-template
-     *
-     * @var string
-     */
+    
     protected $rootView = 'app';
 
-    /**
-     * Determines the current asset version.
-     *
-     * @see https://inertiajs.com/asset-versioning
-     */
+    
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    /**
-     * Define the props that are shared by default.
-     *
-     * @see https://inertiajs.com/shared-data
-     *
-     * @return array<string, mixed>
-     */
+    
     public function share(Request $request): array
     {
         [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
 
         $ssrEnabled = (bool) config('inertia.ssr.enabled');
 
-        /** @var ?User $user */
+        
         $user = $request->user();
         $currentProject = $user?->currentProject;
         $canSeeCurrentProject = $user && $currentProject && $user->can('view', $currentProject);
@@ -64,7 +48,7 @@ class HandleInertiaRequests extends Middleware
 
         $data = [];
         if ($request->route('server')) {
-            /** @var Server $server */
+            
             $server = $request->route('server');
             if ($user && $user->can('view', $server) && $user->current_project_id !== $server->project_id) {
                 $user->current_project_id = $server->project_id;
@@ -74,7 +58,7 @@ class HandleInertiaRequests extends Middleware
             $data['server'] = ServerResource::make($server);
 
             if ($request->route('site')) {
-                /** @var Site $site */
+                
                 $site = $request->route('site');
                 $site->load('hostedDomains.ssl', 'workers');
                 $data['site'] = SiteResource::make($site);
@@ -82,7 +66,7 @@ class HandleInertiaRequests extends Middleware
         }
 
         if ($request->route('network')) {
-            /** @var Network $network */
+            
             $network = $request->route('network');
             if ($user && $user->can('view', $network)) {
                 if ($user->current_project_id !== $network->project_id) {

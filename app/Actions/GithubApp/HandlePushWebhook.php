@@ -8,9 +8,7 @@ use App\Models\SourceControl;
 
 class HandlePushWebhook
 {
-    /**
-     * @param  array<string, mixed>  $payload
-     */
+    
     public function handle(array $payload): void
     {
         $installationId = (int) ($payload['installation']['id'] ?? 0);

@@ -53,9 +53,7 @@ class GithubAppWebhookController extends Controller
         return response()->json(['ok' => true]);
     }
 
-    /**
-     * @param  array<string, mixed>  $payload
-     */
+    
     private function handleInstallation(string $action, array $payload): void
     {
         $installationId = (int) ($payload['installation']['id'] ?? 0);

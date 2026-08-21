@@ -10,9 +10,7 @@ use Illuminate\Support\Str;
 
 class RunQuickCommand
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function run(Site $site, User $user, array $input): CommandExecution
     {
         $validated = Validator::make($input, [

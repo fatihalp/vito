@@ -11,9 +11,7 @@ final readonly class UpdateGithubPlugin
         private InstallGithubPlugin $installPlugin,
     ) {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function handle(Plugin $plugin): void
     {
         $this->installPlugin->handle($plugin->repo, $plugin);

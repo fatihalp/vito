@@ -15,7 +15,7 @@ class SSHFake extends SSH
 {
     use ReflectsClosures;
 
-    /** @var array<string> */
+    
     protected array $commands = [];
 
     protected bool $connectionWillFail = false;
@@ -101,9 +101,7 @@ class SSHFake extends SSH
 
     public function download(string $local, string $remote, ?string $log = null, ?int $siteId = null): void {}
 
-    /**
-     * @param  array<string>|string  $commands
-     */
+    
     public function assertExecuted(array|string $commands): void
     {
         if ($this->commands === []) {
@@ -168,9 +166,7 @@ class SSHFake extends SSH
         }
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public function getExecutedCommands(): array
     {
         return array_map(fn (string|View $command): string => (string) $command, $this->commands);

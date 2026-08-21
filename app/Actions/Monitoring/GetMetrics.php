@@ -14,10 +14,7 @@ use stdClass;
 
 class GetMetrics
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{current: ?array<string, mixed>, history: Collection<int, stdClass>}
-     */
+    
     public function filter(Server $server, array $input): array
     {
         $input = array_merge(['period' => '10m'], $input);
@@ -43,12 +40,10 @@ class GetMetrics
         ];
     }
 
-    /**
-     * @return ?array<string, mixed>
-     */
+    
     private function current(Server $server): ?array
     {
-        /** @var ?Metric $latest */
+        
         $latest = $server->metrics()->latest('id')->first();
 
         if (! $latest) {
@@ -76,9 +71,7 @@ class GetMetrics
         ];
     }
 
-    /**
-     * @return Collection<int, stdClass>
-     */
+    
     private function metrics(
         Server $server,
         Carbon $fromDate,
@@ -135,9 +128,7 @@ class GetMetrics
             });
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function getFromDate(array $input): Carbon
     {
         if ($input['period'] === 'custom') {
@@ -147,9 +138,7 @@ class GetMetrics
         return Carbon::parse('-'.convert_time_format($input['period']));
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function getToDate(array $input): Carbon
     {
         if ($input['period'] === 'custom') {
@@ -159,9 +148,7 @@ class GetMetrics
         return Carbon::now();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function getInterval(array $input): Expression
     {
         if ($input['period'] === 'custom') {

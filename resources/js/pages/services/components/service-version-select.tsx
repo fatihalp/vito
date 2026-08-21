@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { SelectTriggerProps } from '@radix-ui/react-select';
 import { Link } from '@inertiajs/react';
 
@@ -10,15 +10,18 @@ export default function ServiceVersionSelect({
   service,
   value,
   onValueChange,
+  autoSelectSingle,
   ...props
 }: {
   serverId: number;
   service: string;
   value: string;
   onValueChange: (value: string) => void;
+  
+  autoSelectSingle?: boolean;
 } & SelectTriggerProps) {
   const query = useQuery<string[]>({
-    queryKey: ['service'],
+    queryKey: ['service', serverId, service],
     queryFn: async () => {
       return (await axios.get(route('services.versions', { server: serverId, service: service }))).data;
     },
@@ -26,6 +29,12 @@ export default function ServiceVersionSelect({
 
   const hasVersions = query.isSuccess && query.data.length > 0;
   const isEmpty = query.isSuccess && query.data.length === 0;
+
+  useEffect(() => {
+    if (autoSelectSingle && !value && query.isSuccess && query.data.length === 1) {
+      onValueChange(query.data[0]);
+    }
+  }, [autoSelectSingle, value, query.isSuccess, query.data, onValueChange]);
 
   return (
     <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>

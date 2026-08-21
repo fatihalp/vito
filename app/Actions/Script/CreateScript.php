@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CreateScript
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(User $user, array $input): Script
     {
         $this->validate($input);

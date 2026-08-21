@@ -9,9 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateGithubAppManually
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(array $input): GithubApp
     {
         if (GithubApp::query()->exists()) {

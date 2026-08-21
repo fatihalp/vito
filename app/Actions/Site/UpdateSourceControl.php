@@ -17,12 +17,7 @@ use Throwable;
 
 class UpdateSourceControl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): void
     {
         Validator::make($input, [

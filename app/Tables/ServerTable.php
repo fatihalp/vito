@@ -88,9 +88,7 @@ class ServerTable extends Table
             ->limit(1);
     }
 
-    /**
-     * @return array{label: string, color: string, stale: bool}
-     */
+    
     private function performance(Server $server): array
     {
         if (! $server->latestMetric) {

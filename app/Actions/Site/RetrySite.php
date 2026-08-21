@@ -9,11 +9,15 @@ use App\Http\Resources\SiteResource;
 use App\Jobs\Site\CreateJob;
 use App\Models\Site;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class RetrySite
 {
-    public function retry(Site $site): Site
+    /**
+     * @param  array<string, mixed>  $input
+     */
+    public function retry(Site $site, array $input = []): Site
     {
         if (! $site->isInstallationFailed()) {
             throw ValidationException::withMessages([
@@ -21,7 +25,24 @@ class RetrySite
             ]);
         }
 
-        DB::transaction(function () use ($site): void {
+        $validated = Validator::make($input, [
+            'composer_install_command' => ['nullable', 'string', 'max:2000'],
+        ])->validate();
+
+        DB::transaction(function () use ($site, $validated): void {
+            if (array_key_exists('composer_install_command', $validated)) {
+                $command = $validated['composer_install_command'];
+                $typeData = $site->type_data ?? [];
+
+                if ($command === null || trim($command) === '') {
+                    unset($typeData['composer_install_command']);
+                } else {
+                    $typeData['composer_install_command'] = $command;
+                }
+
+                $site->type_data = $typeData;
+            }
+
             $site->status = SiteStatus::INSTALLING;
             $site->last_error = null;
             $site->progress_step = null;

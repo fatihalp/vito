@@ -9,25 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 
-/**
- * @property int $id
- * @property int $server_id
- * @property int $network_id
- * @property int $network_server_id
- * @property ?int $network_firewall_rule_id
- * @property ServerNetworkRuleKind $kind
- * @property string $name
- * @property string $type
- * @property ?string $protocol
- * @property ?string $port
- * @property ?string $source
- * @property ?int $mask
- * @property FirewallRuleStatus $status
- * @property Server $server
- * @property Network $network
- * @property NetworkServer $networkServer
- * @property ?NetworkFirewallRule $networkFirewallRule
- */
+
 class ServerNetworkRule extends AbstractModel
 {
     protected $fillable = [
@@ -55,11 +37,7 @@ class ServerNetworkRule extends AbstractModel
         'status' => FirewallRuleStatus::class,
     ];
 
-    /**
-     * Network rows first (handshakes, then rules by network), stable by id.
-     *
-     * @param  Builder<ServerNetworkRule>|QueryBuilder|Relation<ServerNetworkRule, covariant AbstractModel, *>  $query
-     */
+    
     public static function applyOrder(Builder|QueryBuilder|Relation $query): void
     {
         $query
@@ -68,41 +46,31 @@ class ServerNetworkRule extends AbstractModel
             ->orderBy('id');
     }
 
-    /**
-     * @param  Builder<ServerNetworkRule>  $query
-     */
+    
     public function scopeOrdered(Builder $query): void
     {
         self::applyOrder($query);
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<Network, covariant $this>
-     */
+    
     public function network(): BelongsTo
     {
         return $this->belongsTo(Network::class);
     }
 
-    /**
-     * @return BelongsTo<NetworkServer, covariant $this>
-     */
+    
     public function networkServer(): BelongsTo
     {
         return $this->belongsTo(NetworkServer::class);
     }
 
-    /**
-     * @return BelongsTo<NetworkFirewallRule, covariant $this>
-     */
+    
     public function networkFirewallRule(): BelongsTo
     {
         return $this->belongsTo(NetworkFirewallRule::class);

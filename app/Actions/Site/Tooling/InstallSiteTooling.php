@@ -13,9 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class InstallSiteTooling
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function install(Site $site, string $toolId, array $input): void
     {
         $tool = ToolingRegistry::find($toolId);

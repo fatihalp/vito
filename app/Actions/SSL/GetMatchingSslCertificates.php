@@ -8,11 +8,7 @@ use Illuminate\Support\Collection;
 
 class GetMatchingSslCertificates
 {
-    /**
-     * Get all server-level SSL certificates that match any of the site's hosted domains.
-     *
-     * @return Collection<int, array{id: int, label: non-falsy-string, domains: array<int, string>}>
-     */
+    
     public function get(Site $site): Collection
     {
         $siteDomains = $site->hostedDomains()->pluck('domain')->all();
@@ -20,20 +16,13 @@ class GetMatchingSslCertificates
         return $this->filterSsls($site, $siteDomains);
     }
 
-    /**
-     * Get all server-level SSL certificates that match a specific domain.
-     *
-     * @return Collection<int, array{id: int, label: non-falsy-string, domains: array<int, string>}>
-     */
+    
     public function forDomain(Site $site, string $domain): Collection
     {
         return $this->filterSsls($site, [$domain]);
     }
 
-    /**
-     * @param  array<int, string>  $domains
-     * @return Collection<int, array{id: int, label: non-falsy-string, domains: array<int, string>}>
-     */
+    
     private function filterSsls(Site $site, array $domains): Collection
     {
         $serverSsls = Ssl::activeServerLevel($site->server_id)

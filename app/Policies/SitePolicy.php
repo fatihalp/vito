@@ -53,13 +53,10 @@ class SitePolicy
             && $siteServer->webserver();
     }
 
-    /**
-     * Raw .env content and unmasked secret values are only for callers who can
-     * already rewrite them. API tokens must additionally carry the write ability.
-     */
+    
     public function revealEnv(User $user, Site $site, Server $server): bool
     {
-        /** @var PersonalAccessToken|TransientToken|null $token */
+        
         $token = $user->currentAccessToken();
 
         if ($token !== null && ! $token->can('write')) {

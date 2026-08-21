@@ -100,7 +100,7 @@ export default function ScriptTemplatesDialog({
         </DialogHeader>
 
         <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
-          {/* Left Column: Filter & Template List */}
+          {}
           <div className="flex w-full flex-col border-b md:w-5/12 md:border-r md:border-b-0">
             <div className="space-y-2 border-b p-3">
               <div className="relative">
@@ -170,7 +170,7 @@ export default function ScriptTemplatesDialog({
             </div>
           </div>
 
-          {/* Right Column: Selected Template Details & Preview */}
+          {}
           <div className="flex flex-1 flex-col overflow-y-auto bg-muted/10 p-4">
             <form id="template-create-form" onSubmit={submit} className="flex flex-1 flex-col space-y-3.5">
               <div className="space-y-1">

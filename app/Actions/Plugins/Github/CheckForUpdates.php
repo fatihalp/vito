@@ -16,7 +16,7 @@ final readonly class CheckForUpdates
     {
         $plugins = Plugin::whereNotNull('repo')->get();
 
-        /** @var Plugin $plugin */
+        
         foreach ($plugins as $plugin) {
             try {
                 [$username, $repo] = $this->parseGithubUrl($plugin->repo);
@@ -33,12 +33,10 @@ final readonly class CheckForUpdates
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     private function parseGithubUrl(string $url): array
     {
-        // TODO: Remove Duplication
+        
         $parsed = parse_url(rtrim($url, '.git'));
         if (($parsed['host'] ?? '') !== 'github.com') {
             throw new Exception('Invalid GitHub URL provided');

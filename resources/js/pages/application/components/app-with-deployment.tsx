@@ -106,7 +106,7 @@ export default function AppWithDeployment() {
       <Container className="max-w-7xl gap-6">
         {site.status === 'installation_failed' && <SiteBanners site={site} />}
 
-        {/* 100% Width Architecture Diagram */}
+        {}
         <SiteResourceDiagram
           server={page.props.server}
           site={site}

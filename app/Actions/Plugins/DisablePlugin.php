@@ -17,9 +17,7 @@ final readonly class DisablePlugin
         private PluginCache $cache,
     ) {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function handle(Plugin $plugin): void
     {
         if (! $plugin->is_enabled) {

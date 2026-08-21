@@ -15,21 +15,17 @@ use Throwable;
 
 class UpdatePHPIni
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(Server $server, array $input): void
     {
         $this->validate($server, $input);
 
-        /** @var Service $service */
+        
         $service = $server->php($input['version']);
 
         $tmpName = Str::random(10).strtotime('now');
         try {
-            /** @var FilesystemAdapter $storageDisk */
+            
             $storageDisk = Storage::disk('local');
 
             $storageDisk->put($tmpName, $input['ini']);

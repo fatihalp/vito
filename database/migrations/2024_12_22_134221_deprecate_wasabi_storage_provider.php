@@ -12,7 +12,7 @@ return new class extends Migration
             ->where('provider', 'wasabi')
             ->get();
 
-        /** @var StorageProvider $provider */
+        
         foreach ($wasabiProviders as $provider) {
             $provider->provider = S3::id();
             $credentials = $provider->credentials;
@@ -24,6 +24,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        //
+        
     }
 };

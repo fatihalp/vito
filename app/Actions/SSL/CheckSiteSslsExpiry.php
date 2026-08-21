@@ -9,12 +9,7 @@ use Throwable;
 
 class CheckSiteSslsExpiry
 {
-    /**
-     * Refresh the stored expiry date for every checkable SSL attached to the
-     * site's hosted domains.
-     *
-     * @return array{checked: int, failed: int}
-     */
+    
     public function handle(Site $site): array
     {
         $ssls = $site->hostedDomains()

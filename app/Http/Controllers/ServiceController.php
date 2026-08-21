@@ -49,7 +49,7 @@ class ServiceController extends Controller
 
         $versions = [];
         $services = $server->services()->where('type', $service)->latest('version')->get(['version']);
-        /** @var Service $service */
+        
         foreach ($services as $service) {
             $versions[] = $service->version;
         }

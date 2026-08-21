@@ -15,7 +15,7 @@ interface SiteSelectProps {
   value: string;
   valueBy?: keyof Site;
   onValueChange?: (selectedSite?: Site) => void;
-  // Advanced API for site-switch usage
+  
   onValueChangeAdvanced?: (value: string, site: Site) => void;
   id?: string;
   prefetch?: boolean;
@@ -149,7 +149,7 @@ export default function SiteSelect({
     setSelected(newSelected);
     setOpen(false);
 
-    // Support both API patterns
+    
     if (onValueChangeAdvanced) {
       onValueChangeAdvanced(newSelected, site);
     } else if (onValueChange) {

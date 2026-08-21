@@ -66,10 +66,6 @@ class SiteTypeServiceProvider extends ServiceProvider
                     ->label('Web Directory')
                     ->placeholder('e.g., public, www, dist (leave empty for root)')
                     ->description('The relative path of your website from /home/vito/your-domain/'),
-                DynamicField::make('composer')
-                    ->checkbox()
-                    ->label('Run `composer install --no-dev`')
-                    ->default(false),
                 DynamicField::make('package_manager')
                     ->toolingSelector(
                         [NodeTooling::class, PnpmTooling::class, YarnTooling::class],
@@ -136,10 +132,6 @@ class SiteTypeServiceProvider extends ServiceProvider
                     ->text()
                     ->label('Branch')
                     ->default('main'),
-                DynamicField::make('composer')
-                    ->checkbox()
-                    ->label('Run `composer install --no-dev`')
-                    ->default(false),
                 DynamicField::make('package_manager')
                     ->toolingSelector(
                         [NodeTooling::class, PnpmTooling::class, YarnTooling::class],

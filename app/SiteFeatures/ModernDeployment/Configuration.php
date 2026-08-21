@@ -37,9 +37,7 @@ class Configuration extends Action
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function handle(Request $request): void
     {
         $this->validate($request);

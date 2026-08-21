@@ -12,9 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class DeleteSsl
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function delete(Ssl $ssl): void
     {
         $this->ensureNotInUse($ssl);
@@ -28,9 +26,9 @@ class DeleteSsl
             return;
         }
 
-        /** @var Service $service */
+        
         $service = $ssl->site->server->webserver();
-        /** @var Webserver $webserver */
+        
         $webserver = $service->handler();
         $webserver->removeSSL($ssl);
         $ssl->delete();
@@ -53,9 +51,7 @@ class DeleteSsl
         dispatch(new DeleteServerSslJob($server, $ssl))->onQueue('ssh');
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     private function ensureNotInUse(Ssl $ssl): void
     {
         $hostedDomains = $ssl->hostedDomains()->with('site')->get();

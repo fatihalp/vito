@@ -35,11 +35,7 @@ class GoAccess extends AbstractService
         return 'log_analysis';
     }
 
-    /**
-     * GoAccess has no systemd unit — work runs from a cron job (see {@see self::CRON_COMMAND}).
-     * Returning `''` here means the default {@see AbstractService::canBeManaged()}
-     * resolves to false, so {@see self::canBeManaged()} must stay overridden to `true`.
-     */
+    
     public function unit(): string
     {
         return '';
@@ -76,9 +72,7 @@ class GoAccess extends AbstractService
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -96,9 +90,7 @@ class GoAccess extends AbstractService
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $cron = $this->service->server->cronJobs()
@@ -130,9 +122,7 @@ class GoAccess extends AbstractService
         return true;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function manage(string $action): bool
     {
         return match ($action) {
@@ -142,9 +132,7 @@ class GoAccess extends AbstractService
         };
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function setCronStatus(CronjobStatus $status): bool
     {
         $server = $this->service->server;
@@ -166,9 +154,7 @@ class GoAccess extends AbstractService
         return true;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function rebuildCrontab(): bool
     {
         if ($this->statsCron()) {

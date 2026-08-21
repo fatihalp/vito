@@ -8,9 +8,7 @@ use Illuminate\Validation\Rule;
 
 class UpdateNetwork
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Network $network, array $input): Network
     {
         $this->validate($network, $input);
@@ -22,9 +20,7 @@ class UpdateNetwork
         return $network->refresh();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Network $network, array $input): void
     {
         Validator::make($input, [

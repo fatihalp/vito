@@ -7,9 +7,7 @@ use App\Tooling\ToolingRegistry;
 
 final class SiteShellEnvironment
 {
-    /**
-     * @return array<string, string>
-     */
+    
     public static function collect(Site $site): array
     {
         if (! $site->isolatedUser || $site->user === '' || $site->user === null) {

@@ -14,12 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateDatabaseUser
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @param  array<string>  $links
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input, array $links = []): DatabaseUser
     {
         $this->validate($server, $input);
@@ -33,10 +28,10 @@ class CreateDatabaseUser
             'permission' => $input['permission'] ?? 'admin',
         ]);
 
-        /** @var Service $service */
+        
         $service = $server->database();
 
-        /** @var Database $databaseHandler */
+        
         $databaseHandler = $service->handler();
         $databaseHandler->createUser(
             $databaseUser->username,
@@ -57,7 +52,7 @@ class CreateDatabaseUser
 
     private function validate(Server $server, array $input): void
     {
-        /** @var Database $handler */
+        
         $handler = $server->database()->handler();
         $host = $this->resolveHost($input);
 
@@ -91,9 +86,7 @@ class CreateDatabaseUser
         Validator::make($input, $rules)->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function resolveHost(array $input): string
     {
         if (! empty($input['host'])) {

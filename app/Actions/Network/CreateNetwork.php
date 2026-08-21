@@ -32,9 +32,7 @@ class CreateNetwork
         private ApplyNetworkFirewall $firewall,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Project $project, array $input): Network
     {
         $this->validate($project, $input);
@@ -65,9 +63,7 @@ class CreateNetwork
         return $network->refresh();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function buildWireGuard(Project $project, array $input): Network
     {
         $pool = NetworkAddressingPool::from($input['addressing_pool'] ?? NetworkAddressingPool::CGNAT->value);
@@ -75,7 +71,7 @@ class CreateNetwork
 
         Project::query()->whereKey($project->id)->lockForUpdate()->first();
 
-        /** @var Collection<int, Server> $members */
+        
         $members = Server::query()
             ->where('project_id', $project->id)
             ->whereIn('id', $input['servers'])
@@ -101,9 +97,7 @@ class CreateNetwork
         return $network;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function buildCustom(Project $project, array $input): Network
     {
         Project::query()->whereKey($project->id)->lockForUpdate()->first();
@@ -152,9 +146,7 @@ class CreateNetwork
         ]);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Project $project, array $input): void
     {
         $rules = [
@@ -197,12 +189,7 @@ class CreateNetwork
         }
     }
 
-    /**
-     * Runs only once `servers` is known to be a list of integers — building these rules from
-     * unvalidated input would interpolate an array into a rule key and fail with a 500.
-     *
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validateMemberIps(array $input): void
     {
         $rules = [];

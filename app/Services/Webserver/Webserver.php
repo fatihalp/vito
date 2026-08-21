@@ -25,12 +25,12 @@ interface Webserver extends ServiceInterface
 
     public function createsSiteSSLs(): bool;
 
-    /** @return array<string, mixed> */
+    
     public function siteDefaults(): array;
 
     public function canConfigureSSL(): bool;
 
-    /** @return array<string>|null */
+    
     public function allowedSslMethods(): ?array;
 
     public function defaultSslMethod(): SslMethod;

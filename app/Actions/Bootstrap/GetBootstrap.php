@@ -11,18 +11,12 @@ final class GetBootstrap
 {
     public const string VERSION_CACHE_KEY = 'bootstrap.version';
 
-    /** @var array<string, mixed>|null */
+    
     private ?array $cachedConfigs = null;
 
     private ?string $cachedPublicKeyText = null;
 
-    /**
-     * @return array{
-     *     version: string,
-     *     configs: array<string, mixed>,
-     *     public_key_text: string,
-     * }
-     */
+    
     public function handle(): array
     {
         return [
@@ -44,12 +38,7 @@ final class GetBootstrap
         );
     }
 
-    /**
-     * Compute the version directly from current in-memory config without
-     * touching the cache. Used by plugin lifecycle Actions immediately after
-     * mutating the catalogue, so the broadcast payload reflects this request's
-     * fresh state instead of a value a concurrent request may have re-cached.
-     */
+    
     public function computeVersion(): string
     {
         return substr(md5(serialize($this->configs()).'|'.$this->publicKeyText()), 0, 16);
@@ -60,9 +49,7 @@ final class GetBootstrap
         Cache::forget(self::VERSION_CACHE_KEY);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     private function configs(): array
     {
         return $this->cachedConfigs ??= [
@@ -109,9 +96,7 @@ final class GetBootstrap
         ];
     }
 
-    /**
-     * @return array<int, array{id: string, label: string, description: string, supported_versions: array<int, string>, commands: array<int, string>}>
-     */
+    
     private function tooling(): array
     {
         $out = [];

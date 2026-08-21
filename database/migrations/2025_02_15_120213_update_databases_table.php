@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
+    
     public function up(): void
     {
         Schema::table('databases', function (Blueprint $table): void {
@@ -22,7 +20,7 @@ return new class extends Migration
 
         $servers = Server::query()->where('status', ServerStatus::READY)->get();
 
-        /** @var Server $server */
+        
         foreach ($servers as $server) {
             try {
                 app(SyncDatabases::class)->sync($server);
@@ -32,9 +30,7 @@ return new class extends Migration
         }
     }
 
-    /**
-     * Reverse the migrations.
-     */
+    
     public function down(): void
     {
         Schema::table('databases', function (Blueprint $table): void {

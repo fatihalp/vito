@@ -49,9 +49,9 @@ class SetupHostedDomainSslJob implements ShouldQueue
                 }
             }
 
-            /** @var Service $service */
+            
             $service = $site->server->webserver();
-            /** @var Webserver $webserver */
+            
             $webserver = $service->handler();
 
             $leDomains = $site->hostedDomains()
@@ -214,7 +214,7 @@ class SetupHostedDomainSslJob implements ShouldQueue
             return $existingSsl->email;
         }
 
-        /** @var UserProject|null $userProject */
+        
         $userProject = $site->server->project->users()->with('user')->first();
         if ($userProject?->user?->email) {
             return $userProject->user->email;

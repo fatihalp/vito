@@ -6,26 +6,12 @@ use App\Traits\HasTimezoneTimestamps;
 use Carbon\Carbon;
 use Laravel\Sanctum\PersonalAccessToken as SanctumPersonalAccessToken;
 
-/**
- * @property int $id
- * @property string $tokenable_type
- * @property int $tokenable_id
- * @property string $name
- * @property string $token
- * @property array<string> $abilities
- * @property Carbon $last_used_at
- * @property Carbon $created_at
- * @property Carbon $updated_at
- */
+
 class PersonalAccessToken extends SanctumPersonalAccessToken
 {
     use HasTimezoneTimestamps;
 
-    /**
-     * Get the project IDs this token is scoped to.
-     *
-     * @return array<int>
-     */
+    
     public function getProjectIds(): array
     {
         return collect($this->abilities)
@@ -35,7 +21,7 @@ class PersonalAccessToken extends SanctumPersonalAccessToken
             ->all();
     }
 
-    /** Check if the token has access to the given project. */
+    
     public function hasProjectAccess(Project $project): bool
     {
         return in_array($project->id, $this->getProjectIds());

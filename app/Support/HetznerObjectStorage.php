@@ -31,9 +31,7 @@ class HetznerObjectStorage
         return new S3Client($this->buildClientConfig());
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function buildClientConfig(): array
     {
         return [
@@ -60,17 +58,13 @@ class HetznerObjectStorage
         }
     }
 
-    /**
-     * @throws S3Exception
-     */
+    
     public function createBucket(string $name): void
     {
         $this->getClient()->createBucket(['Bucket' => $name]);
     }
 
-    /**
-     * @throws S3Exception
-     */
+    
     public function putBucketAcl(string $name, string $visibility): void
     {
         $this->getClient()->putBucketAcl([
@@ -79,11 +73,7 @@ class HetznerObjectStorage
         ]);
     }
 
-    /**
-     * @param  array<int, string>  $allowedOrigins
-     *
-     * @throws S3Exception
-     */
+    
     public function putBucketCors(string $name, array $allowedOrigins): void
     {
         $this->getClient()->putBucketCors([

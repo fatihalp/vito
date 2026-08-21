@@ -38,14 +38,10 @@ class BucketPolicy
         return $this->hasWriteAccess($user, $project);
     }
 
-    /**
-     * Reveals a real, usable Hetzner secret key — gate at write level, and
-     * additionally require scoped API tokens to carry the write ability,
-     * mirroring StorageProviderPolicy::revealCredentials.
-     */
+    
     public function revealCredentials(User $user, Bucket $bucket): bool
     {
-        /** @var PersonalAccessToken|TransientToken|null $token */
+        
         $token = $user->currentAccessToken();
 
         if ($token !== null && ! $token->can('write')) {

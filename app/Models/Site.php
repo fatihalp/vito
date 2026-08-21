@@ -37,57 +37,10 @@ use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-/**
- * @property int $server_id
- * @property string $type
- * @property array<string, mixed> $type_data
- * @property ?array<int, string> $env_variables List of keys marked as secret; values live on the server, never in the database.
- * @property ?array<int, array{key: string, value: string, is_secret: bool}> $worker_environment
- * @property string $domain
- * @property array<int, string> $aliases
- * @property string $web_directory
- * @property string $path
- * @property string $php_version
- * @property string $source_control
- * @property int $source_control_id
- * @property string $repository
- * @property string $ssh_key
- * @property string $branch
- * @property SiteStatus $status
- * @property int $port
- * @property int $progress
- * @property ?string $progress_step
- * @property ?string $last_error
- * @property ?int $isolated_user_id
- * @property ?IsolatedUser $isolatedUser
- * @property ?string $user
- * @property bool $force_ssl
- * @property bool $ssl_enabled
- * @property ?string $vhost_template
- * @property bool $vhost_generation_enabled
- * @property ?string $verification_key
- * @property Server $server
- * @property Collection<int, ServerLog> $logs
- * @property Collection<int, Deployment> $deployments
- * @property Collection<int, Command> $commands
- * @property ?GitHook $gitHook
- * @property Collection<int, DeploymentScript> $deploymentScripts
- * @property ?DeploymentScript $deploymentScript
- * @property ?DeploymentScript $buildScript
- * @property ?DeploymentScript $preFlightScript
- * @property Collection<int, Worker> $workers
- * @property Collection<int, Ssl> $ssls
- * @property string $ssh_key_name
- * @property ?SourceControl $sourceControl
- * @property Collection<int, LoadBalancerServer> $loadBalancerServers
- * @property Project $project
- * @property Collection<int, Redirect> $redirects
- * @property Collection<int, Redirect> $activeRedirects
- * @property Collection<int, SiteResource> $resources
- */
+
 class Site extends AbstractModel
 {
-    /** @use HasFactory<SiteFactory> */
+    
     use HasFactory;
 
     use HasProjectThroughServer;
@@ -144,7 +97,7 @@ class Site extends AbstractModel
         static::deleting(function (Site $site): void {
             app(CleanupSiteResources::class)->cleanup($site);
             $site->workers()->each(function ($worker): void {
-                /** @var Worker $worker */
+                
                 $worker->delete();
             });
             $site->ssls()->each(function (Ssl $ssl) use ($site): void {
@@ -182,9 +135,7 @@ class Site extends AbstractModel
         return $this->status === SiteStatus::INSTALLATION_FAILED;
     }
 
-    /**
-     * @return array<int, array{key: string, ...}>
-     */
+    
     public function getWarnings(): array
     {
         $warnings = [];
@@ -232,7 +183,7 @@ class Site extends AbstractModel
             ];
         }
 
-        if ($this->type() instanceof AbstractProxiedSiteType
+        if ($this->typeOrNull() instanceof AbstractProxiedSiteType
             && ! ($this->getAttribute('has_finished_deployment') ?? $this->deployments()->where('status', DeploymentStatus::FINISHED)->exists())) {
             $warnings[] = ['key' => 'needs_first_deploy'];
         }
@@ -274,17 +225,13 @@ class Site extends AbstractModel
         return (is_string($storedId) && ctype_digit($storedId)) ? (int) $storedId : null;
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<IsolatedUser, covariant $this>
-     */
+    
     public function isolatedUser(): BelongsTo
     {
         return $this->belongsTo(IsolatedUser::class);
@@ -300,65 +247,49 @@ class Site extends AbstractModel
         return ($value !== null && $value !== '') ? $value : $this->isolatedUser?->ssh_key;
     }
 
-    /**
-     * @return HasMany<ServerLog, covariant $this>
-     */
+    
     public function logs(): HasMany
     {
         return $this->hasMany(ServerLog::class);
     }
 
-    /**
-     * @return HasMany<Deployment, covariant $this>
-     */
+    
     public function deployments(): HasMany
     {
         return $this->hasMany(Deployment::class);
     }
 
-    /**
-     * @return HasMany<Command, covariant $this>
-     */
+    
     public function commands(): HasMany
     {
         return $this->hasMany(Command::class);
     }
 
-    /**
-     * @return HasOne<GitHook, covariant $this>
-     */
+    
     public function gitHook(): HasOne
     {
         return $this->hasOne(GitHook::class);
     }
 
-    /**
-     * @return HasMany<DeploymentScript, covariant $this>
-     */
+    
     public function deploymentScripts(): HasMany
     {
         return $this->hasMany(DeploymentScript::class);
     }
 
-    /**
-     * @return HasOne<DeploymentScript, covariant $this>
-     */
+    
     public function deploymentScript(): HasOne
     {
         return $this->hasOne(DeploymentScript::class, 'site_id')->where('name', 'default');
     }
 
-    /**
-     * @return HasOne<DeploymentScript, covariant $this>
-     */
+    
     public function buildScript(): HasOne
     {
         return $this->hasOne(DeploymentScript::class, 'site_id')->where('name', 'build');
     }
 
-    /**
-     * @return HasOne<DeploymentScript, covariant $this>
-     */
+    
     public function preFlightScript(): HasOne
     {
         return $this->hasOne(DeploymentScript::class, 'site_id')->where('name', 'pre-flight');
@@ -406,10 +337,7 @@ class Site extends AbstractModel
         return (bool) ($this->type_data['modern_deployment'] ?? false);
     }
 
-    /**
-     * Resolve the deployment script that drives a deploy of the given mode.
-     * Modern deploys use the pre-flight script; classic deploys use the default script.
-     */
+    
     public function deploymentScriptFor(bool $modern): ?DeploymentScript
     {
         return $modern ? $this->preFlightScript : $this->deploymentScript;
@@ -425,55 +353,43 @@ class Site extends AbstractModel
         return ! (bool) ($this->type_data['stats_disabled'] ?? false);
     }
 
-    /**
-     * @return HasMany<Worker, covariant $this>
-     */
+    
     public function workers(): HasMany
     {
         return $this->hasMany(Worker::class);
     }
 
-    /** @return HasMany<SiteResource, covariant $this> */
+    
     public function resources(): HasMany
     {
         return $this->hasMany(SiteResource::class);
     }
 
-    /**
-     * @return HasMany<CronJob, covariant $this>
-     */
+    
     public function cronJobs(): HasMany
     {
         return $this->hasMany(CronJob::class);
     }
 
-    /**
-     * @return HasMany<Ssl, covariant $this>
-     */
+    
     public function ssls(): HasMany
     {
         return $this->hasMany(Ssl::class);
     }
 
-    /**
-     * @return HasMany<HostedDomain, covariant $this>
-     */
+    
     public function hostedDomains(): HasMany
     {
         return $this->hasMany(HostedDomain::class);
     }
 
-    /**
-     * @return HasOne<HostedDomain, covariant $this>
-     */
+    
     public function primaryHostedDomain(): HasOne
     {
         return $this->hasOne(HostedDomain::class)->where('type', HostedDomainType::PRIMARY);
     }
 
-    /**
-     * @return BelongsTo<SourceControl, covariant $this>
-     */
+    
     public function sourceControl(): BelongsTo
     {
         return $this->belongsTo(SourceControl::class)->withTrashed();
@@ -506,10 +422,20 @@ class Site extends AbstractModel
             throw new RuntimeException("Site type handler class {$handlerClass} does not exist.");
         }
 
-        /** @var SiteType $handler */
+        
         $handler = new $handlerClass($this);
 
         return $handler;
+    }
+
+    
+    public function typeOrNull(): ?SiteType
+    {
+        try {
+            return $this->type();
+        } catch (RuntimeException) {
+            return null;
+        }
     }
 
     public function php(): ?Service
@@ -527,7 +453,7 @@ class Site extends AbstractModel
             return false;
         }
 
-        $isPhp = (bool) ($this->type()->vhostData()['is_php'] ?? false);
+        $isPhp = (bool) ($this->typeOrNull()?->vhostData()['is_php'] ?? false);
         $isOctane = (bool) data_get($this->type_data, 'octane', false);
 
         return $isPhp
@@ -536,9 +462,7 @@ class Site extends AbstractModel
             && $this->vhost_template === null;
     }
 
-    /**
-     * @return array{max_upload_size: int|null, max_execution_time: int|null, memory_limit: int|null, max_input_vars: int|null}
-     */
+    
     public function phpSettings(): array
     {
         return [
@@ -574,9 +498,7 @@ class Site extends AbstractModel
         return $this->path;
     }
 
-    /**
-     * @throws SourceControlIsNotConnected
-     */
+    
     public function enableAutoDeployment(): void
     {
         if ($this->gitHook) {
@@ -598,9 +520,7 @@ class Site extends AbstractModel
         $gitHook->deployHook();
     }
 
-    /**
-     * @throws SourceControlIsNotConnected
-     */
+    
     public function disableAutoDeployment(): void
     {
         if (! $this->sourceControl?->getRepo($this->repository)) {
@@ -626,9 +546,7 @@ class Site extends AbstractModel
             : 'site_'.$this->id;
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     public function resolveEnvPath(?string $path = null): string
     {
         $stored = data_get($this->type_data, 'env_path');
@@ -654,9 +572,7 @@ class Site extends AbstractModel
         return $path;
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     public function getEnv(?string $path = null): string
     {
         try {
@@ -666,9 +582,7 @@ class Site extends AbstractModel
         }
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function environmentVariables(?Deployment $deployment = null): array
     {
         $variables = [
@@ -682,7 +596,7 @@ class Site extends AbstractModel
         ];
 
         if ($this->sourceControl?->isGithubApp()) {
-            /** @var GithubApp $provider */
+            
             $provider = $this->sourceControl->provider();
             $variables['GIT_HTTP_TOKEN'] = $provider->installationAccessToken();
         }
@@ -690,9 +604,7 @@ class Site extends AbstractModel
         return $variables;
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function environmentAliases(): array
     {
         return [
@@ -716,9 +628,7 @@ class Site extends AbstractModel
         return $this->siblingsSharingUser()->exists();
     }
 
-    /**
-     * @return Builder<Site>
-     */
+    
     public function siblingsSharingUser(bool $includeSelf = false): Builder
     {
         if (! $this->isolated_user_id) {
@@ -734,9 +644,7 @@ class Site extends AbstractModel
         return $query;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public function availableToolingCommands(): array
     {
         $commands = [];
@@ -754,9 +662,7 @@ class Site extends AbstractModel
         return array_values(array_unique($commands));
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function requiredToolingMap(): array
     {
         $required = [];
@@ -793,26 +699,22 @@ class Site extends AbstractModel
 
     public function webserver(): Webserver
     {
-        /** @var Service $webserver */
+        
         $webserver = $this->server->webserver();
 
-        /** @var Webserver $handler */
+        
         $handler = $webserver->handler();
 
         return $handler;
     }
 
-    /**
-     * @return HasMany<LoadBalancerServer, covariant $this>
-     */
+    
     public function loadBalancerServers(): HasMany
     {
         return $this->hasMany(LoadBalancerServer::class, 'load_balancer_id');
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public function getSshUsers(): array
     {
         $users = [
@@ -827,25 +729,19 @@ class Site extends AbstractModel
         return $users;
     }
 
-    /**
-     * @return HasMany<Redirect, covariant $this>
-     */
+    
     public function redirects(): HasMany
     {
         return $this->hasMany(Redirect::class);
     }
 
-    /**
-     * @return HasMany<Redirect, covariant $this>
-     */
+    
     public function activeRedirects(): HasMany
     {
         return $this->redirects()->whereIn('status', [RedirectStatus::CREATING, RedirectStatus::READY]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function features(): array
     {
         $features = config('site.types.'.$this->type.'.features', []);
@@ -853,7 +749,7 @@ class Site extends AbstractModel
             foreach ($feature['actions'] ?? [] as $actionKey => $action) {
                 $handlerClass = $action['handler'] ?? null;
                 if ($handlerClass && class_exists($handlerClass)) {
-                    /** @var ActionInterface $handler */
+                    
                     $handler = new $handlerClass($this);
                     $action['active'] = $handler->active();
                     if (! isset($action['form']) || empty($action['form'])) {
@@ -890,9 +786,7 @@ class Site extends AbstractModel
         $this->refresh();
     }
 
-    /**
-     * @param  callable(SiteType): string  $resolver
-     */
+    
     private function resolveDefaultScript(callable $resolver): string
     {
         try {

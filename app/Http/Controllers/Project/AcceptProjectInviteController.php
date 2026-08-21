@@ -17,7 +17,7 @@ class AcceptProjectInviteController extends Controller
     #[Get('/{project}/invitations/accept', name: 'projects.invitations.accept')]
     public function __invoke(Project $project): RedirectResponse
     {
-        /** @var ?UserProject $user */
+        
         $user = $project->users()->where('email', user()->email)->first();
         if (! $user) {
             abort(404);

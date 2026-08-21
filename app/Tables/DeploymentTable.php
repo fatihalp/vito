@@ -19,9 +19,7 @@ class DeploymentTable extends Table
 
     private bool $overview = false;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function overview(): array
     {
         $this->overview = true;

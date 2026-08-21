@@ -8,11 +8,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateLog
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input): void
     {
         $this->validate($input);

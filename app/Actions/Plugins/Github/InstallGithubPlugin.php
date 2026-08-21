@@ -16,9 +16,7 @@ final readonly class InstallGithubPlugin
         private InstallPlugin $installPlugin,
     ) {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function handle(string $url, ?Plugin $plugin = null): Plugin
     {
         if (str_contains($url, 'https://api.github.com/repos')) {
@@ -88,9 +86,7 @@ final readonly class InstallGithubPlugin
         return $plugin;
     }
 
-    /**
-     * @throws Exception
-     */
+    
     private function parseGithubUrl(string $url): array
     {
         $parsed = parse_url(rtrim($url, '.git'));

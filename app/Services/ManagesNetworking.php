@@ -31,25 +31,19 @@ trait ManagesNetworking
 
     public function prepareNetworking(): void {}
 
-    /**
-     * @throws SSHError
-     */
+    
     public function enableNetworking(): void
     {
         $this->applyNetworking(true);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function disableNetworking(): void
     {
         $this->applyNetworking(false);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function networkingDetails(): array
     {
         return [
@@ -77,9 +71,7 @@ trait ManagesNetworking
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function applyNetworking(bool $enable): void
     {
         try {
@@ -139,33 +131,23 @@ trait ManagesNetworking
 
     abstract public function networkingPort(): int;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     abstract protected function networkingExtraDetails(): array;
 
-    /**
-     * @throws SSHError
-     */
+    
     abstract protected function writeNetworkingConfig(bool $enable): void;
 
-    /**
-     * @throws SSHError
-     */
+    
     abstract protected function runNetworkingRollback(): void;
 
-    /**
-     * @throws SSHError
-     */
+    
     abstract protected function verifyNetworking(bool $expectedOpen): void;
 
     abstract public function networkingProbeCommand(): string;
 
     abstract public function parseNetworkingProbe(string $output): ?bool;
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function networkingIsOpen(): bool
     {
         $output = $this->service->server->ssh()->clearLog()->exec($this->networkingProbeCommand());

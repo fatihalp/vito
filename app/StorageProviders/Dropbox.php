@@ -107,9 +107,7 @@ class Dropbox extends AbstractStorageProvider
         return "dropbox_token_{$this->storageProvider->id}";
     }
 
-    /**
-     * @param  array<string, mixed>|null  $credentials
-     */
+    
     private function fetchAccessToken(?array $credentials = null): string
     {
         $credentials ??= $this->storageProvider->credentials;

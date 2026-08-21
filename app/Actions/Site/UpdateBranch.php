@@ -9,11 +9,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdateBranch
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): void
     {
         Validator::make($input, [

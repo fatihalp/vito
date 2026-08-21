@@ -57,9 +57,7 @@ class PHP extends AbstractService implements HasLogs
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $server = $this->service->server;
@@ -76,9 +74,7 @@ class PHP extends AbstractService implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(
@@ -91,9 +87,7 @@ class PHP extends AbstractService implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function setDefaultCli(): void
     {
         $this->service->server->ssh()->exec(
@@ -104,9 +98,7 @@ class PHP extends AbstractService implements HasLogs
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function installExtension(string $name): void
     {
         $result = $this->service->server->ssh()->exec(
@@ -126,9 +118,7 @@ class PHP extends AbstractService implements HasLogs
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getPHPIni(string $type): string
     {
         return $this->service->server->os()->readFile(
@@ -136,9 +126,7 @@ class PHP extends AbstractService implements HasLogs
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function createFpmPool(string $user, string $version): void
     {
         $this->service->server->ssh()->write(
@@ -153,9 +141,7 @@ class PHP extends AbstractService implements HasLogs
         $this->service->server->systemd()->restart($this->unit());
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function removeFpmPool(string $user, string $version, ?int $siteId): void
     {
         $this->service->server->ssh()->exec(
@@ -210,7 +196,7 @@ class PHP extends AbstractService implements HasLogs
                 ->orderBy('id')
                 ->get(['id', 'domain', 'user']);
 
-        /** @var array<string, array<int, string>> $domainsByUser */
+        
         $domainsByUser = [];
         foreach ($sites as $site) {
             $user = $site->user;

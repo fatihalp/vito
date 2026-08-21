@@ -69,7 +69,7 @@ class Discord extends AbstractNotificationChannel
 
     public function send(object $notifiable, NotificationInterface $notification): void
     {
-        /** @var NotificationChannel $notifiable */
+        
         $this->notificationChannel = $notifiable;
         $data = $this->notificationChannel->data;
         Http::post($data['webhook_url'], [

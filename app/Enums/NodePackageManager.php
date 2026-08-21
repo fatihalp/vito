@@ -73,9 +73,7 @@ enum NodePackageManager: string implements VitoEnum
         };
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function toolIds(): array
     {
         return array_map(fn (self $case) => $case->toolId(), self::cases());

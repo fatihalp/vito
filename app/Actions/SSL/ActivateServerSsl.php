@@ -13,11 +13,7 @@ use Illuminate\Validation\ValidationException;
 
 class ActivateServerSsl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function activate(Server $server, Ssl $ssl, array $input): void
     {
         if ($ssl->type !== SslType::CSR->value || $ssl->status !== SslStatus::CREATED) {
@@ -41,11 +37,7 @@ class ActivateServerSsl
         dispatch(new ActivateServerSslJob($server, $ssl))->onQueue('ssh');
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(array $input): void
     {
         Validator::make($input, [

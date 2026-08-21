@@ -10,9 +10,7 @@ use RuntimeException;
 
 class ImportGithubAppInstallation
 {
-    /**
-     * @param  array<string, mixed>|null  $installationData  Pre-fetched payload from GitHub
-     */
+    
     public function import(int $installationId, ?array $installationData = null): SourceControl
     {
         $app = GithubApp::current();
@@ -28,7 +26,7 @@ class ImportGithubAppInstallation
         $accountType = (string) ($account['type'] ?? '');
         $htmlUrl = (string) ($installationData['html_url'] ?? '');
 
-        /** @var SourceControl|null $existing */
+        
         $existing = SourceControl::withTrashed()
             ->where('provider', SourceControl::PROVIDER_GITHUB_APP)
             ->where('external_identifier', (string) $installationId)
@@ -66,9 +64,7 @@ class ImportGithubAppInstallation
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     private function fetchInstallation(GithubApp $app, int $installationId): array
     {
         $response = GithubAppProvider::appClient($app)

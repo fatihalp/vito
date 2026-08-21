@@ -18,9 +18,7 @@ final readonly class UninstallPlugin
         private PluginCache $cache,
     ) {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function handle(Plugin $plugin, bool $force = false): void
     {
         if ($plugin->is_enabled) {

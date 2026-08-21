@@ -9,11 +9,7 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateDNSRecord
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(DNSRecord $dnsRecord, array $input): DNSRecord
     {
         $this->validate($input);

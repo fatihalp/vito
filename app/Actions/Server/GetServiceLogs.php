@@ -9,9 +9,7 @@ use App\Services\HasLogs;
 
 class GetServiceLogs
 {
-    /**
-     * @return array<int, ServiceLog>
-     */
+    
     public function handle(Server $server): array
     {
         $logs = [];

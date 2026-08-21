@@ -37,14 +37,11 @@ class InviteToProject
         try {
             Mail::to($user->email)->send(new ProjectInvitation($project));
         } catch (Throwable) {
-            //
+            
         }
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{user_id: int, role: string}
-     */
+    
     protected function validateSelection(array $input): array
     {
         return Validator::make($input, [

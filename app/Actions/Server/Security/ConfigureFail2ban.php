@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ConfigureFail2ban
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function configure(Server $server, array $input): void
     {
         $service = $server->fail2ban();

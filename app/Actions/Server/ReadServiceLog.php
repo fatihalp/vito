@@ -11,13 +11,7 @@ use Illuminate\Validation\ValidationException;
 
 class ReadServiceLog
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{content: string, display_target: string, source: string}
-     *
-     * @throws SSHError
-     * @throws ValidationException
-     */
+    
     public function run(Server $server, array $input): array
     {
         $data = Validator::make($input, [

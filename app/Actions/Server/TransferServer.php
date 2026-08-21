@@ -10,11 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class TransferServer
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function transfer(User $user, Server $server, array $input): Server
     {
         $this->validate($user, $server, $input);

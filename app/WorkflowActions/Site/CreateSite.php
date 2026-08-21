@@ -39,7 +39,7 @@ abstract class CreateSite extends AbstractWorkflowAction
             'server_id' => ['required', 'integer', 'exists:servers,id'],
         ])->validate();
 
-        /** @var Server $server */
+        
         $server = Server::query()->findOrFail($input['server_id']);
 
         $this->authorize('create', [Site::class, $server]);

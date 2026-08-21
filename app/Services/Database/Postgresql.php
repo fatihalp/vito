@@ -17,9 +17,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
 
     protected array $systemDbs = ['template0', 'template1', 'postgres'];
 
-    /**
-     * @var string[]
-     */
+    
     protected array $systemUsers = ['postgres'];
 
     protected string $defaultCharset = 'UTF8';
@@ -75,9 +73,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         return 5432;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function writeNetworkingConfig(bool $enable): void
     {
         $this->service->server->ssh()->exec(
@@ -90,9 +86,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function runNetworkingRollback(): void
     {
         $this->service->server->ssh()->exec(
@@ -101,9 +95,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function verifyNetworking(bool $expectedOpen): void
     {
         $expected = $expectedOpen ? '0.0.0.0' : 'localhost';
@@ -127,17 +119,13 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         return $this->networkingValueMatches($output, '0.0.0.0', '*', '::');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     private function networkingListenAddresses(): string
     {
         return $this->service->server->ssh()->clearLog()->exec($this->networkingProbeCommand());
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     private function networkingScriptData(): array
     {
         $directory = sprintf('/etc/postgresql/%s/main', $this->service->version);
@@ -150,16 +138,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         ];
     }
 
-    /**
-     * Reconcile each linked database instead of rendering the per-user link
-     * script, so every role keeps the correct access to objects created by any
-     * other linked user (PostgreSQL default privileges are keyed by the
-     * creating role).
-     *
-     * @param  array<string>  $databases
-     *
-     * @throws SSHError
-     */
+    
     public function link(string $username, string $host, array $databases, string $permission = 'admin'): void
     {
         foreach ($databases as $database) {
@@ -167,9 +146,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function unlink(string $username, string $host): void
     {
         foreach ($this->userDatabases($username, $host) as $database) {
@@ -177,9 +154,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         }
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteUser(string $username, string $host): void
     {
         foreach ($this->userDatabases($username, $host) as $database) {
@@ -202,15 +177,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         ];
     }
 
-    /**
-     * Render the database-wide reconcile script for every user linked to a
-     * database, granting each their role's privileges and wiring up the
-     * cross-creator default privileges that keep multiple admins in sync.
-     *
-     * @param  array<int, string>  $revokeOnly  Usernames to scrub but not grant (e.g. a user being unlinked or deleted).
-     *
-     * @throws SSHError
-     */
+    
     private function reconcilePrivileges(string $database, array $revokeOnly = []): void
     {
         if (preg_match('/^[A-Za-z0-9_-]+$/', $database) !== 1) {
@@ -265,9 +232,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         );
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     private function userDatabases(string $username, string $host): array
     {
         $user = $this->service->server->databaseUsers()

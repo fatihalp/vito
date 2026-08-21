@@ -8,9 +8,7 @@ use App\SSH\Mise\Mise;
 
 abstract class AbstractMiseTooling extends AbstractTooling
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function install(Site $site, string $version): void
     {
         $mise = new Mise($site->server);
@@ -18,9 +16,7 @@ abstract class AbstractMiseTooling extends AbstractTooling
         $mise->installRuntime($site, static::id(), $version);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(Site $site): void
     {
         new Mise($site->server)->uninstallRuntime($site, static::id());

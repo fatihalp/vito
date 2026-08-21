@@ -149,9 +149,7 @@ class SiteController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Get('{site}/env', name: 'api.projects.servers.sites.env.show', middleware: 'ability:read')]
     public function showEnv(Request $request, Project $project, Server $server, Site $site): JsonResponse
     {

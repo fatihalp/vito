@@ -12,9 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class RenewSiteSsl
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function renew(Site $site): void
     {
         if (! $site->webserver()->createsSiteSSLs()) {

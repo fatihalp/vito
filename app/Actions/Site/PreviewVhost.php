@@ -6,9 +6,7 @@ use App\Models\Site;
 
 class PreviewVhost
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function preview(Site $site, array $input): string
     {
         $validated = validator($input, [

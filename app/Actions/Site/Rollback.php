@@ -12,7 +12,7 @@ class Rollback
     public function run(Deployment $deployment): void
     {
         $site = $deployment->site;
-        /** ?Deployment $current */
+        
         $current = $site->deployments()->where('active', 1)->whereNotNull('release')->first();
 
         if ($deployment->active) {

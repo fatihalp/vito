@@ -48,7 +48,7 @@ class UserStorageProviderController extends Controller
     {
         $this->authorize('view', $storageProvider);
 
-        // Ensure the storage provider belongs to the authenticated user
+        
         if ($storageProvider->user_id !== user()->id) {
             abort(404, 'Storage provider not found');
         }
@@ -61,7 +61,7 @@ class UserStorageProviderController extends Controller
     {
         $this->authorize('update', $storageProvider);
 
-        // Ensure the storage provider belongs to the authenticated user
+        
         if ($storageProvider->user_id !== user()->id) {
             abort(404, 'Storage provider not found');
         }
@@ -76,7 +76,7 @@ class UserStorageProviderController extends Controller
     {
         $this->authorize('delete', $storageProvider);
 
-        // Ensure the storage provider belongs to the authenticated user
+        
         if ($storageProvider->user_id !== user()->id) {
             abort(404, 'Storage provider not found');
         }

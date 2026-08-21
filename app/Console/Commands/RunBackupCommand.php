@@ -23,7 +23,7 @@ class RunBackupCommand extends Command
             ->whereHas('server')
             ->with('server')
             ->chunkById(100, function ($backups) use (&$total): void {
-                /** @var Backup $backup */
+                
                 foreach ($backups as $backup) {
                     if (! CronExpression::isValidExpression((string) $backup->interval)) {
                         continue;

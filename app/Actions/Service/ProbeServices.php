@@ -14,9 +14,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class ProbeServices
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function probe(Server $server): void
     {
         $descriptors = $this->descriptors($server);
@@ -67,9 +65,7 @@ class ProbeServices
         return max(60, min($budget, $ceiling));
     }
 
-    /**
-     * @return array<int, array{service: Service, handler: object, unit: string, versionCommand: ?string, networkingCommand: ?string, networkingRequiresRunning: bool}>
-     */
+    
     private function descriptors(Server $server): array
     {
         $descriptors = [];
@@ -114,17 +110,14 @@ class ProbeServices
         return $descriptors;
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>  $descriptors
-     * @return array<string, mixed>
-     */
+    
     private function viewData(array $descriptors): array
     {
         $units = [];
         $services = [];
 
         foreach ($descriptors as $descriptor) {
-            /** @var Service $service */
+            
             $service = $descriptor['service'];
             $unit = (string) $descriptor['unit'];
             $stateIndex = null;
@@ -154,9 +147,7 @@ class ProbeServices
         ];
     }
 
-    /**
-     * @return array<int, array<string, string>>
-     */
+    
     private function parseSections(string $output): array
     {
         $parts = preg_split(
@@ -187,17 +178,14 @@ class ProbeServices
         return $sections;
     }
 
-    /**
-     * @param  array<string, mixed>  $descriptor
-     * @param  array<string, string>  $sections
-     */
+    
     private function persist(Server $server, array $descriptor, array $sections): void
     {
         if ($sections === []) {
             return;
         }
 
-        /** @var Service $service */
+        
         $service = $descriptor['service'];
         $handler = $descriptor['handler'];
 

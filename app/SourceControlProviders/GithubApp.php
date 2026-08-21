@@ -17,7 +17,7 @@ class GithubApp extends AbstractSourceControlProvider
 {
     private const string API_BASE_URL = 'https://api.github.com';
 
-    private const int TOKEN_TTL = 50 * 60; // 50 minutes (GitHub installation tokens last ~60min)
+    private const int TOKEN_TTL = 50 * 60; 
 
     private const int CACHE_TTL = 60 * 15;
 
@@ -68,9 +68,7 @@ class GithubApp extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getRepo(string $repo): mixed
     {
         $res = $this->getClient()->get(self::API_BASE_URL.'/repos/'.$repo);
@@ -85,10 +83,7 @@ class GithubApp extends AbstractSourceControlProvider
         return sprintf('https://github.com/%s.git', $repo);
     }
 
-    /**
-     * @param  array<int, string>  $events
-     * @return array{hook_id: string, hook_response: array<string, string>}
-     */
+    
     public function deployHook(string $repo, array $events, string $secret): array
     {
         return [
@@ -101,9 +96,7 @@ class GithubApp extends AbstractSourceControlProvider
 
     public function destroyHook(string $repo, string $hookId): void {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function getLastCommit(string $repo, string $branch): ?array
     {
         $url = self::API_BASE_URL.'/repos/'.$repo.'/commits/'.$branch;
@@ -271,11 +264,7 @@ class GithubApp extends AbstractSourceControlProvider
         ]);
     }
 
-    /**
-     * @param  array<string, mixed>  $params
-     *
-     * @throws RequestException
-     */
+    
     private function fetchAllPages(string $endpoint, array $params = [], ?string $wrapKey = null): Collection
     {
         $allData = collect();

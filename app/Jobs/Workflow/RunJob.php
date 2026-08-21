@@ -34,7 +34,7 @@ class RunJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("workflow-{$this->workflow->id}", function () {
-            // set all queue drivers to sync for underlying actions
+            
             config()->set('queue.connections.ssh.driver', 'sync');
             config()->set('queue.connections.default.driver', 'sync');
 

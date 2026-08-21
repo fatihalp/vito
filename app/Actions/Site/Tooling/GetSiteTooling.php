@@ -8,16 +8,7 @@ use App\Tooling\ToolingRegistry;
 
 class GetSiteTooling
 {
-    /**
-     * @return array{
-     *     isolated_user: string,
-     *     sibling_sites: array<int, array{id: int, domain: string, url: string}>,
-     *     installed_versions: array<string, string|null>,
-     *     tool_statuses: array<string, string|null>,
-     *     required_tooling: array<string, string>,
-     *     watch_site_ids: array<int, int>,
-     * }
-     */
+    
     public function get(Site $site): array
     {
         $site->refresh();

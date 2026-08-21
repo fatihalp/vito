@@ -34,9 +34,7 @@ trait ManagesMemoryDatabaseNetworking
         return Str::random(32);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function writeNetworkingSecret(?string $secret): void
     {
         try {
@@ -88,9 +86,7 @@ trait ManagesMemoryDatabaseNetworking
         }
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     protected function networkingExtraDetails(): array
     {
         return [
@@ -98,9 +94,7 @@ trait ManagesMemoryDatabaseNetworking
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function writeNetworkingConfig(bool $enable): void
     {
         if (! $enable) {
@@ -126,9 +120,7 @@ trait ManagesMemoryDatabaseNetworking
             );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function runNetworkingRollback(): void
     {
         $this->service->server->ssh()->exec(
@@ -137,9 +129,7 @@ trait ManagesMemoryDatabaseNetworking
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function verifyNetworking(bool $expectedOpen): void
     {
         if ($this->networkingIsOpen() === $expectedOpen) {
@@ -170,9 +160,7 @@ trait ManagesMemoryDatabaseNetworking
         return preg_match('/^\s*bind\s+(0\.0\.0\.0|\*)/m', $output) === 1;
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     private function networkingScriptData(): array
     {
         return [

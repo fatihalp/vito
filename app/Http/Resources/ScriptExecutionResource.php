@@ -6,12 +6,10 @@ use App\Models\ScriptExecution;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin ScriptExecution */
+
 class ScriptExecutionResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [

@@ -109,14 +109,14 @@ class PHPSite extends AbstractSiteType
             'repository' => $input['repository'] ?? '',
             'branch' => $input['branch'] ?? '',
             'php_version' => $input['php_version'] ?? '',
-            'composer' => $input['composer'] ?? '',
         ];
     }
 
     public function data(array $input): array
     {
         $data = [
-            'composer' => isset($input['composer']) && $input['composer'],
+            
+            'composer' => ! isset($input['composer']) || (bool) $input['composer'],
         ];
 
         $packageManager = $input['package_manager'] ?? 'none';
@@ -140,10 +140,7 @@ class PHPSite extends AbstractSiteType
         return $data;
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(0, 'isolating-user');
@@ -160,7 +157,8 @@ class PHPSite extends AbstractSiteType
         $this->site->php()?->restart();
         $this->progress(75, 'installing-composer-dependencies');
         if ($this->site->type_data['composer']) {
-            app(Composer::class)->installDependencies($this->site);
+            $override = $this->site->type_data['composer_install_command'] ?? null;
+            app(Composer::class)->installDependencies($this->site, is_string($override) ? $override : null);
         }
         $this->progress(90, 'finishing');
     }

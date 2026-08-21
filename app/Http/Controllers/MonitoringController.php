@@ -61,7 +61,7 @@ class MonitoringController extends Controller
     #[Patch('/update', name: 'monitoring.update')]
     public function update(Request $request, Server $server): RedirectResponse
     {
-        /** @var ?Service $monitoring */
+        
         $monitoring = $server->monitoring();
 
         if (! $monitoring) {
@@ -78,7 +78,7 @@ class MonitoringController extends Controller
     #[Delete('/reset', name: 'monitoring.destroy')]
     public function destroy(Server $server): RedirectResponse
     {
-        /** @var ?Service $monitoring */
+        
         $monitoring = $server->monitoring();
 
         if (! $monitoring) {

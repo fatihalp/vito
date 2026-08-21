@@ -13,9 +13,7 @@ use Throwable;
 
 trait HandlesWorkerFailure
 {
-    /**
-     * @var list<string>
-     */
+    
     private static array $benignSupervisorPhrases = ['already started', 'not running'];
 
     protected function markWorkerFailed(Worker $worker, Throwable $e, string $logType): void

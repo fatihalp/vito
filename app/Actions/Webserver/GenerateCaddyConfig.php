@@ -97,10 +97,7 @@ class GenerateCaddyConfig extends AbstractGenerateConfig
         return $data;
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>  $serverBlocks
-     * @return array<int, array{address: string}>
-     */
+    
     private function httpVerificationDomains(array $serverBlocks, Site $site): array
     {
         if (! $site->verification_key) {

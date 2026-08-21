@@ -45,10 +45,7 @@ class Valkey extends AbstractService implements HasLogs, SupportsNetworkingSecre
         ];
     }
 
-    /**
-     * @throws ServiceInstallationFailed
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -63,9 +60,7 @@ class Valkey extends AbstractService implements HasLogs, SupportsNetworkingSecre
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(

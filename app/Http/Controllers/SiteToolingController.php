@@ -57,9 +57,7 @@ class SiteToolingController extends Controller
         return back()->with('info', "Uninstalling {$tool}, please wait…");
     }
 
-    /**
-     * @throws AuthorizationException
-     */
+    
     private function ensureReadyAndIsolated(Server $server, Site $site): void
     {
         if (! $site->isReady() || ! $site->isIsolated()) {

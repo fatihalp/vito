@@ -8,9 +8,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 
 abstract class AbstractWorkflowAction implements WorkflowActionInterface
 {
-    /**
-     * @param  User  $user  The user who runs the workflow.
-     */
+    
     public function __construct(
         protected readonly User $user,
         protected readonly Workflow $workflow

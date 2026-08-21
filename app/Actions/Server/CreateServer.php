@@ -21,9 +21,7 @@ class CreateServer
 {
     protected Server $server;
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(User $creator, Project $project, array $input): Server
     {
         $this->validate($project, $input);
@@ -62,19 +60,19 @@ class CreateServer
 
             $this->server->provider_data = $this->server->provider()->data($input);
 
-            // save
+            
             $this->server->save();
 
-            // create instance
+            
             $this->server->provider()->create();
 
-            // create services
+            
             $this->createServices($input);
 
-            // install server
+            
             dispatch(new InstallJob($this->server))->onQueue('ssh');
 
-            // Ensure we get the default db values in the model
+            
             $this->server->refresh();
 
             return $this->server;
@@ -175,10 +173,7 @@ class CreateServer
             ->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     */
+    
     private function providerRules(array $input): array
     {
         if (

@@ -15,9 +15,7 @@ abstract class AbstractGenerateConfig
 {
     protected const PHP_VALUE_TOKEN = '@@VITO_PHP_VALUE@@';
 
-    /**
-     * Generate the full vhost config for a site.
-     */
+    
     public function generate(Site $site, ?string $template = null): string
     {
         $site->load(['hostedDomains.ssl', 'activeRedirects', 'loadBalancerServers']);
@@ -34,67 +32,31 @@ abstract class AbstractGenerateConfig
         return str_replace(self::PHP_VALUE_TOKEN, $data['php_value_string'], $rendered);
     }
 
-    /**
-     * Get the default Mustache template contents.
-     */
+    
     abstract public function defaultTemplate(): string;
 
-    /**
-     * Build server block keys for a given SSL/HTTP state.
-     *
-     * @return array<string, mixed>
-     */
+    
     abstract protected function buildServerBlockKeys(bool $hasSsl, string $sslCertPath, string $sslKeyPath, Site $site): array;
 
-    /**
-     * Build the PHP socket path for the given site.
-     */
+    
     abstract protected function buildPhpSocket(Site $site): string;
 
-    /**
-     * Build load balancer data for the template context.
-     *
-     * @return array<string, mixed>
-     */
+    
     abstract protected function buildLoadBalancerData(Site $site): array;
 
-    /**
-     * Build a single redirect entry for Mustache.
-     *
-     * @return array<string, mixed>
-     */
+    
     abstract protected function buildRedirectEntry(object $redirect, bool $isProxy): array;
 
-    /**
-     * Enrich server block domains (e.g. Caddy adds http:// prefix).
-     *
-     * @param  array<int, array<string, string>>  $domains
-     * @return array<int, array<string, string>>
-     */
+    
     abstract protected function transformDomains(array $domains, bool $httpOnly): array;
 
-    /**
-     * Add webserver-specific keys to each server block.
-     *
-     * @param  array<string, mixed>  $block
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
+    
     abstract protected function enrichServerBlock(array $block, array $data): array;
 
-    /**
-     * Build a redirect-type HostedDomain server block.
-     *
-     * @return array<string, mixed>
-     */
+    
     abstract protected function buildRedirectBlock(HostedDomain $hd, string $primaryDomain, Site $site): array;
 
-    /**
-     * Add webserver-specific data after server blocks are built (e.g. force_ssl for Nginx).
-     *
-     * @param  array<string, mixed>  $data
-     * @return array<string, mixed>
-     */
+    
     protected function finalizeData(array $data, Site $site): array
     {
         return $data;
@@ -114,9 +76,7 @@ abstract class AbstractGenerateConfig
         return $this->defaultTemplate();
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     protected function buildData(Site $site): array
     {
         $primary = $site->hostedDomains
@@ -133,10 +93,7 @@ abstract class AbstractGenerateConfig
         return $this->buildFromHostedDomains($site, $domains);
     }
 
-    /**
-     * @param  Collection<int, HostedDomain>  $activeDomains
-     * @return array<string, mixed>
-     */
+    
     protected function buildFromHostedDomains(Site $site, Collection $activeDomains): array
     {
         $primaryAndAlias = $activeDomains->filter(
@@ -163,7 +120,7 @@ abstract class AbstractGenerateConfig
                         'domains' => $domainNames,
                     ];
                 } else {
-                    /** @var Ssl $ssl */
+                    
                     $ssl = $domains->first()->ssl;
                     $serverBlocks[] = [
                         ...$this->buildServerBlockKeys(true, $ssl->certificate_path, $ssl->pk_path, $site),
@@ -193,9 +150,7 @@ abstract class AbstractGenerateConfig
         return $this->finalizeData($data, $site);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     protected function buildCommonData(Site $site, string $primaryDomain): array
     {
         $siteTypeData = $site->type()->vhostData();
@@ -234,11 +189,7 @@ abstract class AbstractGenerateConfig
         ];
     }
 
-    /**
-     * @param  array<int, array<string, mixed>>  $blocks
-     * @param  array<string, mixed>  $data
-     * @return array<int, array<string, mixed>>
-     */
+    
     protected function enrichServerBlocks(array $blocks, array $data): array
     {
         foreach ($blocks as &$block) {
@@ -266,9 +217,7 @@ abstract class AbstractGenerateConfig
         return $blocks;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
+    
     protected function buildRedirects(Site $site): array
     {
         $redirects = [];
@@ -280,10 +229,7 @@ abstract class AbstractGenerateConfig
         return $redirects;
     }
 
-    /**
-     * Build the multi-line PHP_VALUE directive string from the site's
-     * per-site PHP settings (type_data['php']). Empty when nothing is set.
-     */
+    
     protected function phpValueDirectives(Site $site): string
     {
         $directives = [];

@@ -34,9 +34,7 @@ class ComposerTooling extends AbstractTooling
         return ['composer'];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(Site $site, string $version): void
     {
         $site->server->ssh($site->user)->exec(
@@ -50,9 +48,7 @@ class ComposerTooling extends AbstractTooling
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(Site $site): void
     {
         $site->server->ssh($site->user)->exec(

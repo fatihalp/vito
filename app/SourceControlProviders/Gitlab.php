@@ -18,11 +18,11 @@ class Gitlab extends AbstractSourceControlProvider
 
     protected string $apiVersion = 'api/v4';
 
-    private const int CACHE_TTL = 60 * 15; // 15 minutes
+    private const int CACHE_TTL = 60 * 15; 
 
-    private const int MAX_PER_PAGE = 100; // GitLab's max per_page
+    private const int MAX_PER_PAGE = 100; 
 
-    private const int MAX_PAGES = 25; // Safety limit
+    private const int MAX_PAGES = 25; 
 
     public static function id(): string
     {
@@ -65,9 +65,7 @@ class Gitlab extends AbstractSourceControlProvider
         return $this->data()['ssh_port'];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function editableFields(): array
     {
         return ['ssh_port'];
@@ -103,9 +101,7 @@ class Gitlab extends AbstractSourceControlProvider
         return $res->successful();
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getRepo(string $repo): mixed
     {
         $repository = $repo !== '' && $repo !== '0' ? urlencode($repo) : null;
@@ -124,9 +120,7 @@ class Gitlab extends AbstractSourceControlProvider
         return sprintf('git@%s-%s:%s.git', $host, $key, $repo);
     }
 
-    /**
-     * @throws FailedToDeployGitHook
-     */
+    
     public function deployHook(string $repo, array $events, string $secret): array
     {
         $repository = urlencode($repo);
@@ -163,9 +157,7 @@ class Gitlab extends AbstractSourceControlProvider
         ];
     }
 
-    /**
-     * @throws FailedToDestroyGitHook
-     */
+    
     public function destroyHook(string $repo, string $hookId): void
     {
         $repository = urlencode($repo);
@@ -182,9 +174,7 @@ class Gitlab extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getLastCommit(string $repo, string $branch): ?array
     {
         $repository = urlencode($repo);
@@ -209,9 +199,7 @@ class Gitlab extends AbstractSourceControlProvider
         return null;
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     */
+    
     public function deployKey(string $title, string $repo, string $key): string
     {
         $repository = urlencode($repo);
@@ -277,7 +265,7 @@ class Gitlab extends AbstractSourceControlProvider
 
         try {
             $repos = $this->fetchAllPages('/projects', [
-                'membership' => true, // Only repos where user is a member
+                'membership' => true, 
                 'per_page' => self::MAX_PER_PAGE,
             ]);
 
@@ -324,14 +312,7 @@ class Gitlab extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * Fetch all pages from GitLab API
-     * GitLab uses pagination with 'page' parameter and Link headers
-     *
-     * @param  string  $endpoint  API endpoint (without base URL)
-     * @param  array<string, mixed>  $params  Query parameters
-     * @return Collection<int, mixed>
-     */
+    
     private function fetchAllPages(string $endpoint, array $params = []): Collection
     {
         $allData = collect();
@@ -358,7 +339,7 @@ class Gitlab extends AbstractSourceControlProvider
             } else {
                 $allData = $allData->concat($pageData);
 
-                // GitLab pagination uses Link header or X-Total-Pages header
+                
                 $linkHeader = $response->header('Link');
                 $totalPages = (int) $response->header('X-Total-Pages');
 
@@ -367,7 +348,7 @@ class Gitlab extends AbstractSourceControlProvider
                 } elseif ($linkHeader && str_contains($linkHeader, 'rel="next"')) {
                     $hasMore = true;
                 } else {
-                    // If we got fewer items than per_page, we've reached the end
+                    
                     $perPage = $params['per_page'] ?? self::MAX_PER_PAGE;
                     $hasMore = count($pageData) >= $perPage;
                 }

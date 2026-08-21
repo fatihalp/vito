@@ -22,11 +22,7 @@ class ReconcileBackupsCommand extends Command
 
     protected $description = 'Fail backup files stuck in a transient state after an interrupted job';
 
-    /**
-     * Sweep records stuck in a transient state after an interrupted (e.g. SIGKILL'd)
-     * job. The window is intentionally 2x the longest backup timeout so an in-flight
-     * dump/restore/delete is never reaped mid-run.
-     */
+    
     public function handle(): void
     {
         $threshold = now()->subSeconds(2 * (int) config('core.backup_run_timeout'));
@@ -43,7 +39,7 @@ class ReconcileBackupsCommand extends Command
             ->whereHas('backup.server')
             ->with('backup.server', 'backup.storage')
             ->chunkById(100, function ($chunk) use (&$files): void {
-                /** @var BackupFile $file */
+                
                 foreach ($chunk as $file) {
                     $this->reconcile($file);
                     $files++;
@@ -56,7 +52,7 @@ class ReconcileBackupsCommand extends Command
             ->whereHas('server')
             ->with('server')
             ->chunkById(100, function ($chunk) use (&$backups): void {
-                /** @var Backup $backup */
+                
                 foreach ($chunk as $backup) {
                     $backup->status = null;
                     $backup->save();

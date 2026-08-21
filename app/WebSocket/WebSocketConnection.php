@@ -12,9 +12,7 @@ class WebSocketConnection
         protected ConnectionInterface $tcpConnection,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
+    
     public function send(array $data): void
     {
         try {

@@ -48,7 +48,7 @@ function CustomNode({ id, selected, data }: { id: string; selected: boolean; dat
   const makeStartingNode = () => {
     const node = getNode(id);
     if (node) {
-      /*@ts-expect-error dynamic types*/
+      
       node.data.action.starting = true;
       data.action.starting = true;
       setNodes((nodes) =>
@@ -62,7 +62,7 @@ function CustomNode({ id, selected, data }: { id: string; selected: boolean; dat
                 data: {
                   ...n.data,
                   action: {
-                    /*@ts-expect-error dynamic types*/
+                    
                     ...n.data.action,
                     starting: false,
                   },

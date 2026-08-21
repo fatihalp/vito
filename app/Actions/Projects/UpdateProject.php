@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdateProject
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Project $project, array $input): Project
     {
         if (isset($input['name'])) {

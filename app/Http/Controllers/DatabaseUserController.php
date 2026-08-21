@@ -35,7 +35,7 @@ class DatabaseUserController extends Controller
     {
         $this->authorize('viewAny', [DatabaseUser::class, $server]);
 
-        /** @var Database $handler */
+        
         $handler = $server->database()->handler();
 
         return Inertia::render('database-users/index', [

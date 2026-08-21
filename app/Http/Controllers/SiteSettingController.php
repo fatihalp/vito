@@ -53,9 +53,7 @@ class SiteSettingController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/branch', name: 'site-settings.update-branch')]
     public function updateBranch(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -76,9 +74,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'Source control updated successfully.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/php-version', name: 'site-settings.update-php-version')]
     public function updatePHPVersion(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -89,9 +85,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'PHP version updated successfully.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/php-settings', name: 'site-settings.update-php-settings')]
     public function updatePHPSettings(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -104,9 +98,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'PHP settings updated successfully.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/web-directory', name: 'site-settings.update-web-directory')]
     public function updateWebDirectory(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -117,9 +109,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'Web directory updated successfully.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/port', name: 'site-settings.update-port')]
     public function updatePort(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -130,9 +120,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'Port updated and VHost regenerated.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/start-command', name: 'site-settings.update-start-command')]
     public function updateStartCommand(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -173,9 +161,7 @@ class SiteSettingController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/worker-env', name: 'site-settings.update-worker-env')]
     public function updateWorkerEnv(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -267,9 +253,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'VHost template reset to default.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Patch('/basic-auth', name: 'site-settings.update-basic-auth')]
     public function updateBasicAuth(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -353,9 +337,7 @@ class SiteSettingController extends Controller
         return back()->with('success', 'Statistics disabled and historical data erased.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('/', name: 'site-settings.destroy')]
     public function destroy(Request $request, Server $server, Site $site): RedirectResponse
     {

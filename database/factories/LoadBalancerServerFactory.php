@@ -6,9 +6,7 @@ use App\Models\LoadBalancerServer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<LoadBalancerServer>
- */
+
 class LoadBalancerServerFactory extends Factory
 {
     protected $model = LoadBalancerServer::class;
@@ -16,7 +14,7 @@ class LoadBalancerServerFactory extends Factory
     public function definition(): array
     {
         return [
-            'load_balancer_id' => $this->faker->randomNumber(), //
+            'load_balancer_id' => $this->faker->randomNumber(), 
             'ip' => $this->faker->ipv4(),
             'port' => $this->faker->randomNumber(),
             'weight' => $this->faker->randomNumber(),

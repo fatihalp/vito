@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Actions\Domain\CreateDnsARecordForServer;
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
 use App\Enums\ServerRole;
@@ -28,17 +29,17 @@ class CreateSite
 {
     private const ISOLATED_USER_PATTERN = '/^[a-z_][a-z0-9_-]*[a-z0-9]$/';
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws Throwable
-     */
+    
     public function create(Server $server, array $input): Site
     {
         if ($server->role !== ServerRole::APP) {
             throw ValidationException::withMessages([
                 'server' => __('Sites can only be created on app servers.'),
             ]);
+        }
+
+        if (empty($input['user']) || ! is_string($input['user'])) {
+            $input['user'] = $this->generateIsolatedUsername($server, is_string($input['domain'] ?? null) ? $input['domain'] : '');
         }
 
         $input = $this->lockRuntimeVersionsToExistingUser($server, $input);
@@ -73,16 +74,16 @@ class CreateSite
                 }
             }
 
-            // fields based on the type
+            
             $site->fill($site->type()->createFields($input));
 
-            /** @var Service $webserver */
+            
             $webserver = $server->webserver();
-            /** @var Webserver $webserverHandler */
+            
             $webserverHandler = $webserver->handler();
             $site->fill($webserverHandler->siteDefaults());
 
-            // check has access to repository
+            
             try {
                 if ($site->sourceControl) {
                     $site->sourceControl->getRepo($site->repository);
@@ -101,13 +102,15 @@ class CreateSite
                 ]);
             }
 
-            // set type data
+            
             $site->type_data = $site->type()->data($input);
 
-            // save
+            
             $site->save();
 
             $defaultSslMethod = $webserverHandler->defaultSslMethod();
+
+            app(CreateDnsARecordForServer::class)->createIfRequested($server, $site->domain, $input);
 
             $site->hostedDomains()->create([
                 'domain' => $site->domain,
@@ -125,7 +128,7 @@ class CreateSite
                 ]);
             }
 
-            // create base commands if any
+            
             $site->commands()->createMany($site->type()->baseCommands());
 
             DB::commit();
@@ -166,15 +169,16 @@ class CreateSite
                     [$server->getSshUser()]
                 ))),
             ],
+            'dns_provider_id' => ['nullable', 'integer', 'exists:dns_providers,id'],
+            'provider_domain_id' => ['nullable', 'string'],
+            'create_dns_record' => ['nullable', 'boolean'],
+            'dns_record_proxied' => ['nullable', 'boolean'],
         ];
 
         Validator::make($input, array_merge($rules, $this->typeRules($server, $input)))->validate();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, array<string>>
-     */
+    
     private function typeRules(Server $server, array $input): array
     {
         if (! isset($input['type']) || ! config('site.types.'.$input['type'])) {
@@ -189,10 +193,44 @@ class CreateSite
         return $site->type()->createRules($input);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
+    private function generateIsolatedUsername(Server $server, string $domain): string
+    {
+        $slug = strtolower($domain);
+        $slug = preg_replace('/^https?:\/\//', '', $slug) ?? $slug;
+        $slug = preg_replace('/^www\./', '', $slug) ?? $slug;
+        $slug = preg_replace('/[^a-z0-9]/', '', $slug) ?? $slug;
+        $slug = preg_replace('/^\d+/', '', $slug) ?? $slug;
+
+        $base = substr($slug, 0, 6);
+
+        if ($base === '') {
+            $base = 'site';
+        }
+
+        $blocked = array_unique(array_merge(
+            config('core.reserved_user_names'),
+            [$server->getSshUser()],
+            $server->isolatedUsers()->pluck('username')->all(),
+        ));
+
+        for ($i = 0; $i < 1000; $i++) {
+            $candidate = $i === 0 ? $base : $base.$i;
+            $length = strlen($candidate);
+
+            if ($length < 3 || $length > 32 || in_array($candidate, $blocked, true)) {
+                continue;
+            }
+
+            return $candidate;
+        }
+
+        throw ValidationException::withMessages([
+            'domain' => __('Could not derive an available isolated username for this domain.'),
+        ]);
+    }
+
+    
     private function lockRuntimeVersionsToExistingUser(Server $server, array $input): array
     {
         $user = isset($input['user']) && is_string($input['user']) ? $input['user'] : '';

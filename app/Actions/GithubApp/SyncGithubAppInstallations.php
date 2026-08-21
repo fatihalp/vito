@@ -11,9 +11,7 @@ use RuntimeException;
 
 class SyncGithubAppInstallations
 {
-    /**
-     * @return array{added: int, removed: int, kept: int}
-     */
+    
     public function run(): array
     {
         $app = GithubApp::current();
@@ -71,9 +69,7 @@ class SyncGithubAppInstallations
         return ['added' => $added, 'removed' => $removed, 'kept' => $kept];
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     */
+    
     private function fetchAllInstallations(GithubApp $app): array
     {
         $installations = [];

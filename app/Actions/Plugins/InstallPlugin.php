@@ -17,9 +17,7 @@ final readonly class InstallPlugin
         private PluginCache $cache,
     ) {}
 
-    /**
-     * @throws Exception
-     */
+    
     public function handle(Plugin $plugin): void
     {
         $implementation = $this->getImplementation->handle($plugin);

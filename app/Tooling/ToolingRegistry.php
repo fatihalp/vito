@@ -4,12 +4,10 @@ namespace App\Tooling;
 
 final class ToolingRegistry
 {
-    /**
-     * @return array<string, ToolingInterface>
-     */
+    
     public static function all(): array
     {
-        /** @var array<int, class-string<ToolingInterface>> $providers */
+        
         $providers = config('tooling.providers', []);
 
         $out = [];
@@ -26,9 +24,7 @@ final class ToolingRegistry
         return self::all()[$id] ?? null;
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     public static function ids(): array
     {
         return array_keys(self::all());

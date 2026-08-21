@@ -102,9 +102,7 @@ class VerifyHostedDomain
         ]), (string) config('app.key'));
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     private function resolveIps(string $domain): array
     {
         $ips = [];
@@ -140,9 +138,7 @@ class VerifyHostedDomain
         return array_values(array_unique($ips));
     }
 
-    /**
-     * @return array{matched: bool, code: int}
-     */
+    
     private function fetchAndCompare(string $domain, string $ip, string $key, string $challengeId, string $expected): array
     {
         $url = sprintf('http://%s/.well-known/vito/%s/%s?_=%s', $domain, $key, $challengeId, Str::random(8));

@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdatePort
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): void
     {
         $validated = Validator::make($input, [

@@ -15,7 +15,7 @@ class AgentController extends Controller
     #[Post('api/servers/{server}/agent/{id}', name: 'api.servers.agent')]
     public function __invoke(Request $request, Server $server, int $id): JsonResponse
     {
-        /** @var ?Service $service */
+        
         $service = $server->services()->find($id);
 
         $expected = $service?->hasHandler() ? ($service->handler()->data()['secret'] ?? null) : null;

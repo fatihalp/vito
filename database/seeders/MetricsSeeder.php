@@ -17,7 +17,7 @@ class MetricsSeeder extends Seeder
             $query->where('type', 'monitoring');
         })->get();
 
-        /** @var Server $server */
+        
         foreach ($servers as $server) {
             $monitoring = $server->services()
                 ->where('type', 'monitoring')

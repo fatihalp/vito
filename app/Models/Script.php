@@ -11,22 +11,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
-/**
- * @property int $id
- * @property int $user_id
- * @property string $name
- * @property string $content
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Collection<int, ScriptExecution> $executions
- * @property ?ScriptExecution $lastExecution
- * @property User $user
- * @property ?int $project_id
- * @property ?Project $project
- */
+
 class Script extends AbstractModel
 {
-    /** @use HasFactory<ScriptFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -50,25 +38,19 @@ class Script extends AbstractModel
         });
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /**
-     * @return BelongsTo<Project, covariant $this>
-     */
+    
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public function getVariables(): array
     {
         $variables = [];
@@ -78,28 +60,22 @@ class Script extends AbstractModel
         return array_unique($variables);
     }
 
-    /**
-     * @return HasMany<ScriptExecution, covariant $this>
-     */
+    
     public function executions(): HasMany
     {
         return $this->hasMany(ScriptExecution::class);
     }
 
-    /**
-     * @return HasOne<ScriptExecution, covariant $this>
-     */
+    
     public function lastExecution(): HasOne
     {
         return $this->hasOne(ScriptExecution::class)->latest();
     }
 
-    /**
-     * @return Builder<Script>
-     */
+    
     public static function getByProjectId(int $projectId, int $userId): Builder
     {
-        /** @var Builder<Script> $query */
+        
         $query = static::query();
 
         return $query

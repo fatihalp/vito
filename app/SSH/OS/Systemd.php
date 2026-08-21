@@ -10,9 +10,7 @@ class Systemd
 {
     public function __construct(protected Server $server) {}
 
-    /**
-     * @throws SSHError
-     */
+    
     public function status(string $unit): string
     {
         $command = <<<EOD
@@ -22,12 +20,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('status-%s', $unit));
     }
 
-    /**
-     * @param  array<int, string>  $units
-     * @return array<int, string>
-     *
-     * @throws SSHError
-     */
+    
     public function activeStates(array $units): array
     {
         if ($units === []) {
@@ -53,9 +46,7 @@ class Systemd
         return $states;
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function start(string $unit): string
     {
         $command = <<<EOD
@@ -66,9 +57,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('start-%s', $unit));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function stop(string $unit): string
     {
         $command = <<<EOD
@@ -79,9 +68,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('stop-%s', $unit));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function restart(string $unit): string
     {
         $command = <<<EOD
@@ -92,9 +79,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('restart-%s', $unit));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function enable(string $unit): string
     {
         $command = <<<EOD
@@ -106,9 +91,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('enable-%s', $unit));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function disable(string $unit): string
     {
         $command = <<<EOD
@@ -120,9 +103,7 @@ class Systemd
         return $this->server->ssh()->exec($command, sprintf('disable-%s', $unit));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function reload(string $unit): string
     {
         $command = <<<EOD

@@ -23,9 +23,7 @@ use ZipArchive;
 #[Middleware(['auth', 'must-be-admin'])]
 class VitoSettingController extends Controller
 {
-    /**
-     * @var array<string, string>
-     */
+    
     protected array $paths = [
         'storage/database.sqlite' => 'file',
         '.env' => 'file',
@@ -41,9 +39,7 @@ class VitoSettingController extends Controller
         return Inertia::render('vito-settings/index');
     }
 
-    /**
-     * @throws Exception
-     */
+    
     #[Get('/export', name: 'vito-settings.export')]
     public function downloadExport(): BinaryFileResponse
     {
@@ -53,9 +49,7 @@ class VitoSettingController extends Controller
         return response()->download($export, $exportName)->deleteFileAfterSend();
     }
 
-    /**
-     * @throws Exception
-     */
+    
     private function export(string $zipFileName): string
     {
         $zipPath = Storage::disk('tmp')->path($zipFileName);
@@ -79,10 +73,7 @@ class VitoSettingController extends Controller
         return $zipPath;
     }
 
-    /**
-     * @throws ValidationException
-     * @throws Exception
-     */
+    
     #[Post('/import', name: 'vito-settings.import')]
     public function import(Request $request): RedirectResponse
     {
@@ -90,7 +81,7 @@ class VitoSettingController extends Controller
             return back()->with('error', 'Import is disabled in demo mode.');
         }
 
-        // set session driver to file
+        
         config(['session.driver' => 'file']);
 
         $request->validate([
@@ -101,7 +92,7 @@ class VitoSettingController extends Controller
         $extractName = 'vito-backup-import-'.time();
         $extractPath = Storage::disk('tmp')->path($extractName);
 
-        // Create extraction directory
+        
         File::makeDirectory($extractPath, 0755, true);
 
         $zip = new ZipArchive;
@@ -109,11 +100,11 @@ class VitoSettingController extends Controller
             throw ValidationException::withMessages(['file' => 'The uploaded file is not a valid zip archive.']);
         }
 
-        // Extract files
+        
         $zip->extractTo($extractPath);
         $zip->close();
 
-        // Replace files
+        
         File::move($extractPath.'/database.sqlite', storage_path('database.sqlite'));
         if (File::exists($extractPath.'/.env')) {
             File::move($extractPath.'/.env', base_path('.env'));

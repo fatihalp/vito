@@ -10,9 +10,7 @@ use App\StorageProviders\S3;
 use App\StorageProviders\SFTP;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<StorageProvider>
- */
+
 class StorageProviderFactory extends Factory
 {
     public function definition(): array
@@ -35,9 +33,7 @@ class StorageProviderFactory extends Factory
         ]);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     private function credentialsFor(string $provider): array
     {
         return match ($provider) {

@@ -18,9 +18,7 @@ class RegenerateNetworkPeerKeys
         private RecomputeNetworkStatus $recompute,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function regenerate(NetworkPeer $peer, array $input): void
     {
         $network = $peer->network;

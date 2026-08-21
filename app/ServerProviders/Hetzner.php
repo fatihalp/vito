@@ -38,15 +38,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         );
     }
 
-    /**
-     * `/networks` already carries `servers[]` (attached ids), so membership needs no
-     * extra call; `/servers` is read only for the per-network private IPs.
-     *
-     * @param  array<int, array<string, mixed>>  $networks
-     * @param  array<int, array<string, mixed>>  $servers
-     * @param  array<int, string>  $instanceIds
-     * @return array<int, PrivateNetworkDTO>
-     */
+    
     private function mapPrivateNetworks(array $networks, array $servers, array $instanceIds): array
     {
         $wanted = array_flip($instanceIds);
@@ -99,11 +91,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         return $result;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     *
-     * @throws PrivateNetworkSyncError
-     */
+    
     private function fetchAll(string $path, string $key): array
     {
         $token = $this->serverProvider->getCredentials()['token'];
@@ -130,7 +118,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
                 throw $this->syncError($response->status());
             }
 
-            /** @var array<int, array<string, mixed>> $batch */
+            
             $batch = $body[$key];
             $items = array_merge($items, $batch);
 
@@ -180,10 +168,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         ];
     }
 
-    /**
-     * @throws CouldNotConnectToProvider
-     * @throws ConnectionException
-     */
+    
     public function connect(array $credentials): bool
     {
         $connect = Http::withToken($credentials['token'])->get($this->apiUrl.'/servers');
@@ -194,23 +179,21 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         return true;
     }
 
-    /**
-     * @return array<string, array{label: string, available: bool}>
-     */
+    
     public function plans(?string $region): array
     {
         try {
-            /** @var array{server_types?: array<int, array{name: string, cores: int, memory: int, disk: int, prices: array<int, array{location: string, price_monthly: array{net: string}}>, locations: array<int, array{name: string, available: bool, deprecation: ?array}>}>} $plans */
+            
             $plans = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/server_types', ['per_page' => 50])
                 ->json();
 
-            /** @var array<int, array{name: string, cores: int, memory: int, disk: int, prices: array<int, array{location: string, price_monthly: array{net: string}}>, locations: array<int, array{name: string, available: bool, deprecation: ?array}>}> $serverTypes */
+            
             $serverTypes = $plans['server_types'] ?? [];
 
             return collect($serverTypes)
                 ->map(function (array $type) use ($region): ?array {
-                    /** @var array{name: string, available: bool, deprecation: ?array}|null $location */
+                    
                     $location = collect($type['locations'])->firstWhere('name', $region);
 
                     if (! $location) {
@@ -254,9 +237,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @param  array{available?: bool, deprecation?: ?array}  $location
-     */
+    
     private function planIsAvailable(array $location): bool
     {
         if (! ($location['available'] ?? false)) {
@@ -272,12 +253,10 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         return Carbon::parse($unavailableAfter)->isFuture();
     }
 
-    /**
-     * @param  array{prices: array<int, array{location: string, price_monthly: array{net: string}}>}  $type
-     */
+    
     private function planMonthlyPrice(array $type, ?string $region): ?float
     {
-        /** @var array{location: string, price_monthly: array{net: string}}|null $price */
+        
         $price = collect($type['prices'])->firstWhere('location', $region);
 
         if ($price === null) {
@@ -294,7 +273,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
                 ->get($this->apiUrl.'/locations', ['per_page' => 50])
                 ->json();
 
-            /** @var array<int, array{name: string, city: string, country: string}> $locations */
+            
             $locations = $regions['locations'];
 
             return collect($locations)
@@ -305,10 +284,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     * @throws ConnectionException
-     */
+    
     public function create(): void
     {
         $this->generateKeyPair();
@@ -324,7 +300,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
             ->post($this->apiUrl.'/servers', [
                 'automount' => false,
                 'image' => config('serverproviders.hetzner.images')[$this->server->os->value],
-                // 'root_password' => $this->server->authentication['root_pass'],
+                
                 'ssh_keys' => [
                     $keyId,
                 ],
@@ -340,9 +316,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         $this->server->save();
     }
 
-    /**
-     * @throws ConnectionException
-     */
+    
     public function isRunning(): bool
     {
         if (empty($this->server->provider_data['hetzner_id'])) {
@@ -364,9 +338,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         return ! empty($this->server->provider_data['hetzner_id']) && ! empty($this->server->serverProvider?->credentials['token']);
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function stop(): void
     {
         if (isset($this->server->provider_data['hetzner_id'])) {
@@ -379,9 +351,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function start(): void
     {
         if (isset($this->server->provider_data['hetzner_id'])) {
@@ -394,9 +364,7 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ConnectionException
-     */
+    
     public function delete(): void
     {
         if (isset($this->server->provider_data['hetzner_id'])) {
@@ -408,26 +376,20 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
             }
         }
 
-        // delete key
+        
         if (isset($this->server->provider_data['ssh_key_id'])) {
             Http::withToken($this->server->serverProvider->credentials['token'])
                 ->delete($this->apiUrl.'/ssh_keys/'.$this->server->provider_data['ssh_key_id']);
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     private function providerError(Response $response): never
     {
         throw new ServerProviderError($response->json('error.message') ?? __('Hetzner request failed with status :status', ['status' => $response->status()]));
     }
 
-    /**
-     * Get or create SSH key on Hetzner without throwing duplicate key errors.
-     *
-     * @throws ServerProviderError
-     */
+    
     private function getOrCreateSshKeyId(string $token, string $publicKey): int
     {
         $keyName = 'server-'.$this->server->id.'-key';

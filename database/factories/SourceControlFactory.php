@@ -9,9 +9,7 @@ use App\SourceControlProviders\Gitlab;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-/**
- * @extends Factory<SourceControl>
- */
+
 class SourceControlFactory extends Factory
 {
     protected $model = SourceControl::class;
@@ -26,9 +24,7 @@ class SourceControlFactory extends Factory
         ];
     }
 
-    /**
-     * @return Factory<SourceControl>
-     */
+    
     public function gitlab(): Factory
     {
         return $this->state(fn (array $attributes): array => [
@@ -36,9 +32,7 @@ class SourceControlFactory extends Factory
         ]);
     }
 
-    /**
-     * @return Factory<SourceControl>
-     */
+    
     public function github(): Factory
     {
         return $this->state(fn (array $attributes): array => [
@@ -46,9 +40,7 @@ class SourceControlFactory extends Factory
         ]);
     }
 
-    /**
-     * @return Factory<SourceControl>
-     */
+    
     public function githubApp(): Factory
     {
         return $this->state(function (array $attributes): array {

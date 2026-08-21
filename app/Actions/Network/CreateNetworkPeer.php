@@ -24,9 +24,7 @@ class CreateNetworkPeer
         private RecomputeNetworkStatus $recompute,
     ) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Network $network, array $input): NetworkPeer
     {
         abort_unless($network->type === NetworkType::WIREGUARD, 404);
@@ -60,10 +58,7 @@ class CreateNetworkPeer
         return $peer;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{public_key: string, private_key: ?string, byo: bool}
-     */
+    
     private function keyAttributes(array $input): array
     {
         $publicKey = $input['public_key'] ?? null;
@@ -77,9 +72,7 @@ class CreateNetworkPeer
         return ['public_key' => $keys['public_key'], 'private_key' => $keys['private_key'], 'byo' => false];
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     private function usedIps(Network $network): array
     {
         return $network->servers()->lockForUpdate()->pluck('ip')
@@ -89,9 +82,7 @@ class CreateNetworkPeer
             ->all();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Network $network, array $input): void
     {
         Validator::make($input, [

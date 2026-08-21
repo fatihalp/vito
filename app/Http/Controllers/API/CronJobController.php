@@ -34,9 +34,7 @@ class CronJobController extends Controller
         return CronJobResource::collection($server->cronJobs()->simplePaginate(25));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/', name: 'api.projects.servers.cron-jobs.create', middleware: 'ability:write')]
     public function create(Request $request, Project $project, Server $server): CronJobResource
     {
@@ -59,9 +57,7 @@ class CronJobController extends Controller
         return new CronJobResource($cronJob);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('{cronJob}', name: 'api.projects.servers.cron-jobs.delete', middleware: 'ability:write')]
     public function delete(Project $project, Server $server, CronJob $cronJob): Response
     {
@@ -84,9 +80,7 @@ class CronJobController extends Controller
         return CronJobResource::collection($site->cronJobs()->simplePaginate(25));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/sites/{site}/cron-jobs', name: 'api.projects.servers.sites.cron-jobs.create', middleware: 'ability:write')]
     public function siteCreate(Request $request, Project $project, Server $server, Site $site): CronJobResource
     {
@@ -109,9 +103,7 @@ class CronJobController extends Controller
         return new CronJobResource($cronJob);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('/sites/{site}/cron-jobs/{cronJob}', name: 'api.projects.servers.sites.cron-jobs.delete', middleware: 'ability:write')]
     public function siteDelete(Project $project, Server $server, Site $site, CronJob $cronJob): Response
     {

@@ -58,7 +58,7 @@ export default function InstallService({ name, children }: { name?: string; chil
         </DialogHeader>
         <Form id="install-service-form" onSubmit={submit} className="p-4">
           <FormFields>
-            {/*service*/}
+            {}
             {!name && (
               <FormField>
                 <Label htmlFor="name">Name</Label>
@@ -99,7 +99,7 @@ export default function InstallService({ name, children }: { name?: string; chil
               </FormField>
             )}
 
-            {/*version*/}
+            {}
             <FormField>
               <Label htmlFor="version">Version</Label>
               <Popover open={versionOpen} onOpenChange={setVersionOpen}>

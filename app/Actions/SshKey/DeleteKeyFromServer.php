@@ -9,9 +9,7 @@ use App\Models\SshKey;
 
 class DeleteKeyFromServer
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function delete(Server $server, SshKey $sshKey): void
     {
         $pivot = $server->sshKeys()->where('ssh_keys.id', $sshKey->id)->first();

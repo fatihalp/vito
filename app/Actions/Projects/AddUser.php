@@ -11,14 +11,12 @@ use Illuminate\Validation\ValidationException;
 
 class AddUser
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function add(Project $project, array $input): void
     {
         $this->validate($input);
 
-        /** @var User $user */
+        
         $user = User::query()->where('email', $input['email'])->firstOrFail();
 
         if ($project->users->contains($user->id)) {

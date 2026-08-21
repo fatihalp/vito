@@ -6,6 +6,7 @@ import DateTime from '@/components/date-time';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDialog } from '@/hooks/use-dialog';
+import { humanizeStep } from '@/lib/utils';
 
 export function View({ serverLog, label = 'View' }: { serverLog: ServerLog; label?: string }) {
   const dialog = useDialog();
@@ -72,13 +73,19 @@ export const columns: ColumnDef<ServerLog>[] = [
     accessorKey: 'name',
     header: 'Event',
     enableColumnFilter: true,
+    cell: ({ row }) => (
+      <div className="flex flex-col">
+        <span>{humanizeStep(row.original.type) || row.original.name}</span>
+        <span className="text-muted-foreground font-mono text-xs">{row.original.name}</span>
+      </div>
+    ),
   },
   {
     accessorKey: 'created_at',
     header: 'Created At',
     enableSorting: true,
     cell: ({ row }) => {
-      return <DateTime date={row.original.created_at} />;
+      return <DateTime date={row.original.created_at} relative />;
     },
   },
   {

@@ -72,16 +72,7 @@ class PersistServerIpsJob implements ShouldQueue
         ServerLog::log($this->server, 'apply-server-ips-failed', $e->getMessage());
     }
 
-    /**
-     * Build the per-interface address map for netplan. For every interface we
-     * manage, the interface's existing static (non-dynamic) addresses are
-     * re-included so that netplan's same-key override does not drop the
-     * provider's primary address (DHCP/SLAAC addresses are excluded — they are
-     * supplied by the provider config under a different key).
-     *
-     * @param  Collection<int, ServerIpAddress>  $managed
-     * @return array<string, array<int, string>>
-     */
+    
     private function buildInterfaces(Collection $managed): array
     {
         $interfaces = $managed->pluck('interface')->filter()->unique()->values();

@@ -13,22 +13,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
-/**
- * @property int $id
- * @property int|null $user_id
- * @property int|null $project_id
- * @property string $name
- * @property array|null $payload
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @property Carbon|null $deleted_at
- * @property-read User|null $user
- * @property-read Project|null $project
- * @property-read Collection<int, WorkflowRun> $runs
- */
+
 class Workflow extends Model
 {
-    /** @use HasFactory<WorkflowFactory> */
+    
     use HasFactory;
 
     use SoftDeletes;
@@ -61,16 +49,14 @@ class Workflow extends Model
         return $this->hasMany(WorkflowRun::class);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function getActions(): array
     {
         $actions = config('workflow.actions', []);
         foreach ($actions as $actionKey => $action) {
             $handlerClass = $action['handler'] ?? null;
             if ($handlerClass && class_exists($handlerClass)) {
-                /** @var WorkflowActionInterface $handler */
+                
                 $handler = new $handlerClass($this->user, $this);
                 $action['inputs'] = $handler->inputs();
                 $action['outputs'] = $handler->outputs();
@@ -117,7 +103,7 @@ class Workflow extends Model
             return null;
         }
 
-        // Find the starting node
+        
         $startingNode = null;
         foreach ($nodes as $node) {
             if (data_get($node, 'data.action.starting') === true) {
@@ -130,22 +116,20 @@ class Workflow extends Model
             return null;
         }
 
-        // Build the execution tree recursively
+        
         return $this->buildExecutionTree($startingNode, $nodes, $edges);
     }
 
-    /**
-     * Build the execution tree recursively starting from a given node
-     */
+    
     private function buildExecutionTree(array $currentNode, array $allNodes, array $allEdges): WorkflowActionDTO
     {
         $nodeId = $currentNode['id'];
         $actionData = $currentNode['data']['action'] ?? [];
 
-        // Create the base DTO for this node
+        
         $dto = WorkflowActionDTO::fromArray($actionData, $nodeId);
 
-        // Find all edges that start from this node
+        
         $outgoingEdges = array_filter($allEdges, function ($edge) use ($nodeId) {
             return $edge['source'] === $nodeId;
         });
@@ -157,7 +141,7 @@ class Workflow extends Model
             $targetNodeId = $edge['target'];
             $edgeStatus = $edge['data']['status'] ?? 'success';
 
-            // Find the target node
+            
             $targetNode = null;
             foreach ($allNodes as $node) {
                 if ($node['id'] === $targetNodeId) {
@@ -167,10 +151,10 @@ class Workflow extends Model
             }
 
             if ($targetNode) {
-                // Recursively build the subtree for the target node
+                
                 $subTree = $this->buildExecutionTree($targetNode, $allNodes, $allEdges);
 
-                // Assign to the appropriate branch based on edge status
+                
                 if ($edgeStatus === 'success') {
                     $successDto = $subTree;
                 } elseif ($edgeStatus === 'failure') {
@@ -179,7 +163,7 @@ class Workflow extends Model
             }
         }
 
-        // Return a new DTO with the success and failure branches
+        
         return new WorkflowActionDTO(
             label: $dto->label,
             handler: $dto->handler,

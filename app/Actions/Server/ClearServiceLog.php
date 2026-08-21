@@ -10,12 +10,7 @@ use Throwable;
 
 class ClearServiceLog
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws Throwable
-     * @throws ValidationException
-     */
+    
     public function run(Server $server, array $input): void
     {
         $data = Validator::make($input, [

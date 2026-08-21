@@ -235,9 +235,9 @@ export function AppSidebar({
         </SidebarFooter>
       </Sidebar>
 
-      {/* This is the second sidebar */}
-      {/* We enable collapsible and adjust width to icon. */}
-      {/* This will make the sidebar appear as icons. */}
+      {}
+      {}
+      {}
       {hasSecondNav && (
         <Sidebar
           id="context-navigation"

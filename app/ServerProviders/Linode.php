@@ -38,16 +38,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         );
     }
 
-    /**
-     * `/vpcs` carries `subnets[].linodes[]`, so membership needs no extra call; `/vpcs/ips`
-     * is the account-wide address list. A linode can hold several VPC addresses, and an entry
-     * may carry only `address_range`, so the first active entry with a plain address wins.
-     *
-     * @param  array<int, array<string, mixed>>  $vpcs
-     * @param  array<int, array<string, mixed>>  $addresses
-     * @param  array<int, string>  $instanceIds
-     * @return array<int, PrivateNetworkDTO>
-     */
+    
     private function mapPrivateNetworks(array $vpcs, array $addresses, array $instanceIds): array
     {
         $wanted = array_flip($instanceIds);
@@ -111,11 +102,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         return $result;
     }
 
-    /**
-     * @return array<int, array<string, mixed>>
-     *
-     * @throws PrivateNetworkSyncError
-     */
+    
     private function fetchAll(string $path): array
     {
         $token = $this->serverProvider->getCredentials()['token'];
@@ -142,7 +129,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
                 throw $this->syncError($response->status());
             }
 
-            /** @var array<int, array<string, mixed>> $batch */
+            
             $batch = $body['data'];
             $items = array_merge($items, $batch);
 
@@ -190,9 +177,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         ];
     }
 
-    /**
-     * @throws CouldNotConnectToProvider
-     */
+    
     public function connect(array $credentials): bool
     {
         try {
@@ -208,18 +193,16 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         return true;
     }
 
-    /**
-     * @return array<string, array{label: string, available: bool}>
-     */
+    
     public function plans(?string $region): array
     {
         try {
-            /** @var array<string, mixed> $response */
+            
             $response = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/linode/types')
                 ->json();
 
-            /** @var array<int, array{id: string, label: string, vcpus: int, memory: int, disk: int, class?: string, price?: array{monthly?: float}, region_prices?: array<int, array{id: string, monthly: float}>}> $types */
+            
             $types = $response['data'] ?? [];
 
             $capabilities = $this->regionCapabilities($region);
@@ -262,9 +245,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @param  array<int, string>  $capabilities
-     */
+    
     private function planIsAvailable(string $class, array $capabilities): bool
     {
         if ($capabilities === []) {
@@ -278,28 +259,24 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         };
     }
 
-    /**
-     * @return array<int, string>
-     */
+    
     private function regionCapabilities(?string $region): array
     {
-        /** @var array{data?: array<int, array{id: string, capabilities: array<int, string>}>} $response */
+        
         $response = Http::withToken($this->serverProvider->credentials['token'])
             ->get($this->apiUrl.'/regions')
             ->json();
 
-        /** @var array{id: string, capabilities: array<int, string>}|null $match */
+        
         $match = collect($response['data'] ?? [])->firstWhere('id', $region);
 
         return $match['capabilities'] ?? [];
     }
 
-    /**
-     * @param  array{price?: array{monthly?: float}, region_prices?: array<int, array{id: string, monthly: float}>}  $type
-     */
+    
     private function planMonthlyPrice(array $type, ?string $region): ?float
     {
-        /** @var array{id: string, monthly: float}|null $regionPrice */
+        
         $regionPrice = collect($type['region_prices'] ?? [])->firstWhere('id', $region);
 
         if ($regionPrice !== null) {
@@ -314,12 +291,12 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
     public function regions(): array
     {
         try {
-            /** @var array<string, mixed> $regions */
+            
             $regions = Http::withToken($this->serverProvider->credentials['token'])
                 ->get($this->apiUrl.'/regions')
                 ->json();
 
-            /** @var array<int, array<string, mixed>> $regionsData */
+            
             $regionsData = $regions['data'];
 
             return collect($regionsData)
@@ -330,9 +307,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         }
     }
 
-    /**
-     * @throws ServerProviderError
-     */
+    
     public function create(): void
     {
         $this->generateKeyPair();

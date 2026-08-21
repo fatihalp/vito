@@ -8,9 +8,7 @@ use App\Models\Server;
 
 class StopServer
 {
-    /**
-     * @throws AppError
-     */
+    
     public function stop(Server $server): Server
     {
         if (! $server->canPowerManage()) {

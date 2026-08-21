@@ -162,10 +162,7 @@ class ApplicationController extends Controller
         return back()->with('success', 'Deployment script updated successfully.');
     }
 
-    /**
-     * @throws DeploymentScriptIsEmptyException
-     * @throws ReverseProxyNotConfiguredException
-     */
+    
     #[Post('/deploy', name: 'application.deploy')]
     public function deploy(Server $server, Site $site): RedirectResponse
     {
@@ -204,10 +201,7 @@ class ApplicationController extends Controller
         return back()->with('success', 'Deployment removed successfully.');
     }
 
-    /**
-     * @throws SSHError
-     * @throws ValidationException
-     */
+    
     #[Get('/env', name: 'application.env')]
     public function env(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -226,9 +220,7 @@ class ApplicationController extends Controller
         return response()->json([...$data, 'can_edit' => $canReveal]);
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     #[Post('/env/parse', name: 'application.parse-env')]
     public function parseEnv(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -237,9 +229,7 @@ class ApplicationController extends Controller
         return response()->json(app(ParseEnv::class)->parse($request->all()));
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     #[Post('/env/stringify', name: 'application.stringify-env')]
     public function stringifyEnv(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -248,9 +238,7 @@ class ApplicationController extends Controller
         return response()->json(app(StringifyEnv::class)->stringify($request->all()));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Put('/env', name: 'application.update-env')]
     public function updateEnv(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -261,9 +249,7 @@ class ApplicationController extends Controller
         return back()->with('success', '.env file updated successfully.');
     }
 
-    /**
-     * @throws SourceControlIsNotConnected
-     */
+    
     #[Post('/enable-auto-deployment', name: 'application.enable-auto-deployment')]
     public function enableAutoDeployment(Server $server, Site $site): RedirectResponse
     {
@@ -278,10 +264,7 @@ class ApplicationController extends Controller
         return back()->with('success', 'Auto deployment enabled successfully.');
     }
 
-    /**
-     * @throws SourceControlIsNotConnected
-     * @throws FailedToDestroyGitHook
-     */
+    
     #[Post('/disable-auto-deployment', name: 'application.disable-auto-deployment')]
     public function disableAutoDeployment(Server $server, Site $site): RedirectResponse
     {

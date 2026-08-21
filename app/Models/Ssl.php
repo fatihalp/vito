@@ -12,35 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
-/**
- * @property ?int $site_id
- * @property ?int $server_id
- * @property ?int $domain_id
- * @property string $type
- * @property ?string $certificate
- * @property ?string $pk
- * @property ?string $ca
- * @property ?array $csr_data
- * @property ?string $csr_passphrase
- * @property ?Carbon $expires_at
- * @property ?Carbon $expiry_notified_at
- * @property SslStatus $status
- * @property ?Site $site
- * @property ?Server $server
- * @property ?Domain $domain
- * @property array<int, string>|string|null $domains
- * @property int $log_id
- * @property string $email
- * @property bool $is_wildcard
- * @property bool $has_csr
- * @property ?string $certificate_path
- * @property ?string $pk_path
- * @property ?string $ca_path
- * @property ?ServerLog $log
- */
+
 class Ssl extends AbstractModel
 {
-    /** @use HasFactory<SslFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -83,41 +58,31 @@ class Ssl extends AbstractModel
         'status' => SslStatus::class,
     ];
 
-    /**
-     * @return BelongsTo<Site, covariant $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<Domain, covariant $this>
-     */
+    
     public function domain(): BelongsTo
     {
         return $this->belongsTo(Domain::class);
     }
 
-    /**
-     * @return HasMany<HostedDomain, covariant $this>
-     */
+    
     public function hostedDomains(): HasMany
     {
         return $this->hasMany(HostedDomain::class);
     }
 
-    /**
-     * @return Builder<Ssl>
-     */
+    
     public static function activeServerLevel(int $serverId): Builder
     {
         return self::query()
@@ -144,9 +109,7 @@ class Ssl extends AbstractModel
         return true;
     }
 
-    /**
-     * @return array<string>
-     */
+    
     public function getDomains(): array
     {
         if (! empty($this->domains) && is_array($this->domains)) {
@@ -159,13 +122,7 @@ class Ssl extends AbstractModel
         return $this->domains;
     }
 
-    /**
-     * Check if a wildcard domain pattern matches the given domain.
-     *
-     * *.example.com matches sub.example.com
-     * *.example.com does NOT match example.com (bare domain)
-     * *.example.com does NOT match a.b.example.com (nested subdomain)
-     */
+    
     public static function wildcardMatches(string $pattern, string $domain): bool
     {
         if (! str_starts_with($pattern, '*.')) {
@@ -184,9 +141,7 @@ class Ssl extends AbstractModel
         return $prefix !== '' && ! str_contains($prefix, '.');
     }
 
-    /**
-     * Check if this SSL certificate covers the given domain.
-     */
+    
     public function coversDomain(string $domain): bool
     {
         foreach ($this->getDomains() as $sslDomain) {
@@ -201,9 +156,7 @@ class Ssl extends AbstractModel
         return false;
     }
 
-    /**
-     * @return BelongsTo<ServerLog, covariant $this>
-     */
+    
     public function log(): BelongsTo
     {
         return $this->belongsTo(ServerLog::class);

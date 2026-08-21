@@ -12,22 +12,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
-/**
- * @property int $id
- * @property int|null $workflow_id
- * @property int|null $user_id
- * @property string|null $log_disk
- * @property string|null $log_path
- * @property string|null $current_node_id
- * @property string|null $current_node_label
- * @property WorkflowRunStatus $status
- * @property Carbon|null $created_at
- * @property Carbon|null $updated_at
- * @property-read Workflow|null $workflow
- */
+
 class WorkflowRun extends Model
 {
-    /** @use HasFactory<WorkflowRunFactory> */
+    
     use HasFactory;
 
     protected $fillable = [

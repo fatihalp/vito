@@ -22,9 +22,9 @@ class DatabasesSeeder extends Seeder
 
         $storageProviders = StorageProvider::all();
 
-        /** @var Server $server */
+        
         foreach ($servers as $server) {
-            /** @var Database $database */
+            
             $database = Database::factory()->create([
                 'server_id' => $server->id,
                 'name' => 'main',
@@ -36,7 +36,7 @@ class DatabasesSeeder extends Seeder
                 'host' => '%',
                 'databases' => [$database->name],
             ]);
-            /** @var Backup $backup */
+            
             $backup = Backup::factory()->create([
                 'server_id' => $server->id,
                 'database_id' => $database->id,

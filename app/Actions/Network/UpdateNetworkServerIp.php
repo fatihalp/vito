@@ -12,9 +12,7 @@ class UpdateNetworkServerIp
 {
     public function __construct(private ApplyNetworkFirewall $firewall) {}
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(NetworkServer $member, array $input): NetworkServer
     {
         $this->validate($member, $input);
@@ -26,9 +24,7 @@ class UpdateNetworkServerIp
         return $member->refresh();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(NetworkServer $member, array $input): void
     {
         Validator::make($input, [

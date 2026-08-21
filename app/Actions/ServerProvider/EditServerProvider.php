@@ -10,9 +10,7 @@ use Illuminate\Support\Facades\Validator;
 
 class EditServerProvider
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function edit(ServerProvider $serverProvider, array $input): ServerProvider
     {
         Validator::make($input, [

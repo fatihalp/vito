@@ -8,23 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-/**
- * @property int $id
- * @property int $network_id
- * @property int $server_id
- * @property ?int $server_ip_address_id
- * @property ?string $ip
- * @property ?string $public_key
- * @property ?string $private_key
- * @property NetworkServerStatus $status
- * @property int $sync_attempts
- * @property Network $network
- * @property Server $server
- * @property ?ServerIpAddress $serverIpAddress
- */
+
 class NetworkServer extends AbstractModel
 {
-    /** @use HasFactory<NetworkServerFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -51,33 +38,25 @@ class NetworkServer extends AbstractModel
         'private_key',
     ];
 
-    /**
-     * @return BelongsTo<Network, covariant $this>
-     */
+    
     public function network(): BelongsTo
     {
         return $this->belongsTo(Network::class);
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<ServerIpAddress, covariant $this>
-     */
+    
     public function serverIpAddress(): BelongsTo
     {
         return $this->belongsTo(ServerIpAddress::class);
     }
 
-    /**
-     * @return HasMany<ServerNetworkRule, covariant $this>
-     */
+    
     public function rules(): HasMany
     {
         return $this->hasMany(ServerNetworkRule::class);

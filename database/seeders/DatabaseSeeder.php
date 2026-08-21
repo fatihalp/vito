@@ -9,9 +9,7 @@ class DatabaseSeeder extends Seeder
 {
     use WithFaker;
 
-    /**
-     * Seed the application's database.
-     */
+    
     public function run(): void
     {
         $seeders = [

@@ -29,9 +29,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         return 'nginx';
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -61,9 +59,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(
@@ -81,13 +77,11 @@ class Nginx extends AbstractWebserver implements HasLogs
         return app(GenerateNginxConfig::class)->generate($site, $template);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function createVHost(Site $site): void
     {
-        // We need to get the isolated user first, if the site is isolated
-        // otherwise, use the default ssh user
+        
+        
         $ssh = $this->service->server->ssh($site->user);
 
         $ssh->exec(
@@ -114,9 +108,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function updateVHost(Site $site, ?string $vhost = null, bool $restart = false): void
     {
         if (! $vhost && ! $site->vhost_generation_enabled) {
@@ -142,9 +134,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         $this->service->server->systemd()->reload('nginx');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function getVHost(Site $site): string
     {
         return $this->service->server->ssh()->exec(
@@ -154,9 +144,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         );
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deleteSite(Site $site): void
     {
         $this->service->server->ssh()->exec(
@@ -177,9 +165,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         $this->service->reload();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function setupSSL(Ssl $ssl): void
     {
         $domains = '';
@@ -213,9 +199,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         }
     }
 
-    /**
-     * @throws Throwable
-     */
+    
     public function removeSSL(Ssl $ssl): void
     {
         if ($ssl->certificate_path) {
@@ -229,9 +213,7 @@ class Nginx extends AbstractWebserver implements HasLogs
         $this->updateVHost($ssl->site);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function deploySplash(): void
     {
         $ssh = $this->service->server->ssh();

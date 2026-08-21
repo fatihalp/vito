@@ -34,7 +34,7 @@ class ServerFeatureController extends Controller
 
         $handler = config('server.features.'.$feature.'.actions.'.$action.'.handler');
         if ($handler && class_exists($handler)) {
-            /** @var ActionInterface $actionHandler */
+            
             $actionHandler = new $handler($server);
             $actionHandler->handle($request);
         }

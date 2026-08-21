@@ -8,11 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdatePHPSettings
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function update(Site $site, array $input): void
     {
         $validated = $this->validate($input);
@@ -26,10 +22,7 @@ class UpdatePHPSettings
         app(BroadcastSiteUpdate::class)->broadcast($site);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{max_upload_size: int|null, max_execution_time: int|null, memory_limit: int|null, max_input_vars: int|null}
-     */
+    
     private function validate(array $input): array
     {
         $validator = Validator::make($input, [

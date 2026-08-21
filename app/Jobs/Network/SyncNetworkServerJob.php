@@ -47,12 +47,7 @@ class SyncNetworkServerJob implements ShouldQueue
         });
     }
 
-    /**
-     * The membership is serialised at dispatch time, so a queued job can outlive the state
-     * it was queued for — a removal turns a pending sync stale, and a completed teardown
-     * leaves no row at all. Re-read under the per-server queue lock and only proceed while
-     * the membership still holds the status this job was dispatched to act on.
-     */
+    
     private function claim(): bool
     {
         $fresh = NetworkServer::query()->whereKey($this->member->id)->first();
@@ -106,7 +101,7 @@ class SyncNetworkServerJob implements ShouldQueue
         $network = $this->member->network;
 
         if ($network->type === NetworkType::WIREGUARD) {
-            /** @var WireGuard $handler */
+            
             $handler = $this->wireGuardService()->handler();
             $handler->configureNetwork($this->member);
         }
@@ -129,7 +124,7 @@ class SyncNetworkServerJob implements ShouldQueue
         if ($network->type === NetworkType::WIREGUARD) {
             $service = $server->service(WireGuard::type());
             if ($service instanceof Service) {
-                /** @var WireGuard $handler */
+                
                 $handler = $service->handler();
                 $handler->removeNetwork($network);
             }
@@ -161,7 +156,7 @@ class SyncNetworkServerJob implements ShouldQueue
             return;
         }
 
-        /** @var Firewall $handler */
+        
         $handler = $service->handler();
         $handler->applyRules();
     }
@@ -195,7 +190,7 @@ class SyncNetworkServerJob implements ShouldQueue
         }
 
         if (! $service instanceof Service) {
-            /** @var Service $service */
+            
             $service = $server->services()->create([
                 'type' => WireGuard::type(),
                 'name' => WireGuard::id(),

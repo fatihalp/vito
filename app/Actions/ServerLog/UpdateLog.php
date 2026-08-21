@@ -8,11 +8,7 @@ use Illuminate\Validation\ValidationException;
 
 class UpdateLog
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(ServerLog $serverLog, array $input): void
     {
         Validator::make($input, [

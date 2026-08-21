@@ -9,9 +9,7 @@ use App\Models\NetworkServer;
 use App\Models\Server;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<NetworkServer>
- */
+
 class NetworkServerFactory extends Factory
 {
     protected $model = NetworkServer::class;
@@ -32,10 +30,7 @@ class NetworkServerFactory extends Factory
         ];
     }
 
-    /**
-     * A two-digit host pattern gives faker's unique() only 100 values, which it can exhaust
-     * across a long-running process and then throw. This spans the whole 100.64.0.0/16.
-     */
+    
     private function hostAddress(): string
     {
         $host = $this->faker->unique()->numberBetween(1, 64516);

@@ -6,9 +6,7 @@ use Illuminate\Validation\Rule;
 
 class DNSRecordRules
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public static function rules(): array
     {
         return [

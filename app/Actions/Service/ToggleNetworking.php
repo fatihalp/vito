@@ -10,9 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class ToggleNetworking
 {
-    /**
-     * @throws ValidationException
-     */
+    
     public function enable(Service $service): void
     {
         $handler = $this->validate($service);
@@ -23,9 +21,7 @@ class ToggleNetworking
         $this->dispatch($service, true);
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     public function disable(Service $service): void
     {
         $this->validate($service);
@@ -49,9 +45,7 @@ class ToggleNetworking
         dispatch(new ToggleNetworkingJob($service, $enable, $previousStatus))->onQueue('ssh');
     }
 
-    /**
-     * @throws ValidationException
-     */
+    
     private function validate(Service $service): SupportsNetworking
     {
         $handler = $service->hasHandler() ? $service->handler() : null;

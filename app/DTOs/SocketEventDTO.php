@@ -7,12 +7,10 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 final readonly class SocketEventDTO
 {
-    /** @var array<string, mixed> */
+    
     public array $data;
 
-    /**
-     * @param  array<string, mixed>|JsonResource  $data
-     */
+    
     public function __construct(
         public int $projectId,
         public string $type,
@@ -23,9 +21,7 @@ final readonly class SocketEventDTO
             : $data;
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(): array
     {
         return [

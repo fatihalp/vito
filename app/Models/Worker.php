@@ -11,26 +11,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
-/**
- * @property int $server_id
- * @property int $site_id
- * @property string $command
- * @property string $user
- * @property bool $auto_start
- * @property bool $auto_restart
- * @property int $numprocs
- * @property ?array<int, array{key: string, value: string, is_secret: bool}> $environment
- * @property int $redirect_stderr
- * @property string $stdout_logfile
- * @property WorkerStatus $status
- * @property ?string $error
- * @property string $name
- * @property Server $server
- * @property ?Site $site
- */
+
 class Worker extends AbstractModel
 {
-    /** @use HasFactory<WorkerFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -65,9 +49,9 @@ class Worker extends AbstractModel
 
         static::deleting(function (Worker $worker): void {
             try {
-                /** @var Service $service */
+                
                 $service = $worker->server->processManager();
-                /** @var ProcessManager $handler */
+                
                 $handler = $service->handler();
 
                 $handler->delete($worker->id, $worker->site_id);
@@ -88,17 +72,13 @@ class Worker extends AbstractModel
         return $value;
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<Site, covariant $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
@@ -118,9 +98,7 @@ class Worker extends AbstractModel
         return $this->getLogDirectory().'/'.$this->id.'.log';
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function environmentMap(): array
     {
         $map = [];
@@ -132,9 +110,7 @@ class Worker extends AbstractModel
         return $map;
     }
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function effectiveEnvironment(): array
     {
         $base = $this->environmentMap();

@@ -40,7 +40,7 @@ class CreateDatabaseUser extends AbstractWorkflowAction
 
     public function run(array $input): array
     {
-        /** @var Server $server */
+        
         $server = Server::query()->findOrFail($input['server_id']);
 
         $this->authorize('create', [DatabaseUser::class, $server]);

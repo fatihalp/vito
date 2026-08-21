@@ -20,7 +20,7 @@ export default function Show() {
 
   const [workflowRun, setWorkflowRun] = useState<WorkflowRun>(page.props.workflowRun);
 
-  // Listen for realtime status updates
+  
   useSocketListener(
     useCallback(
       (event) => {

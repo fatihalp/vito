@@ -24,9 +24,9 @@ class SitesSeeder extends Seeder
 
         $sourceControls = SourceControl::all();
 
-        /** @var Server $server */
+        
         foreach ($servers as $server) {
-            /** @var Site $app */
+            
             $app = Site::factory()->create([
                 'server_id' => $server->id,
                 'domain' => $server->project->name.'.com',

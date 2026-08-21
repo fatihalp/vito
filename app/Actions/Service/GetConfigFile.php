@@ -9,11 +9,7 @@ use Throwable;
 
 class GetConfigFile
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function get(Service $service, array $input): string
     {
         $this->validate($service, $input);
@@ -41,11 +37,7 @@ class GetConfigFile
         }
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(Service $service, array $input): void
     {
         Validator::make($input, [

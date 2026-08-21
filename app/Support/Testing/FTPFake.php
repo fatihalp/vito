@@ -7,14 +7,10 @@ use PHPUnit\Framework\Assert;
 
 class FTPFake
 {
-    /**
-     * @var array<array{host: string, port: string, ssl: bool}>
-     */
+    
     protected array $connections = [];
 
-    /**
-     * @var array<array{username: string, password: string}>
-     */
+    
     protected array $logins = [];
 
     public function connect(string $host, string $port, bool $ssl = false): bool|Connection
@@ -33,17 +29,17 @@ class FTPFake
 
     public function close(bool|Connection $connection): void
     {
-        //
+        
     }
 
     public function passive(bool|Connection $connection, bool $passive): void
     {
-        //
+        
     }
 
     public function delete(bool|Connection $connection, string $path): void
     {
-        //
+        
     }
 
     public function assertConnected(string $host): void

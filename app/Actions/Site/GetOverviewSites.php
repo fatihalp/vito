@@ -11,10 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class GetOverviewSites
 {
-    /**
-     * @param  array<int, int>  $siteIds
-     * @return Collection<int, Site>
-     */
+    
     public function forProject(Project $project, array $siteIds, ?int $serverId = null): Collection
     {
         $sites = $project->sites()->whereKey($siteIds);
@@ -26,10 +23,7 @@ class GetOverviewSites
         return $this->get($sites);
     }
 
-    /**
-     * @param  HasManyThrough<Site, Server, covariant Project>  $sites
-     * @return Collection<int, Site>
-     */
+    
     private function get(HasManyThrough $sites): Collection
     {
         return $sites

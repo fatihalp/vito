@@ -15,16 +15,12 @@ use Illuminate\Validation\ValidationException;
 
 class CreateLetsEncryptWildcardSsl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function create(Server $server, array $input): Ssl
     {
         $this->validate($server, $input);
 
-        /** @var Domain $domain */
+        
         $domain = Domain::query()->findOrFail($input['domain_id']);
 
         $ssl = new Ssl([
@@ -44,11 +40,7 @@ class CreateLetsEncryptWildcardSsl
         return $ssl;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(Server $server, array $input): void
     {
         $rules = [

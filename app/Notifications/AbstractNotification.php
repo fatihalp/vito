@@ -15,7 +15,7 @@ abstract class AbstractNotification extends Notification implements Notification
 
     public function via(object $notifiable): string
     {
-        /** @var NotificationChannel $notifiable */
+        
         return $notifiable->provider()::class;
     }
 

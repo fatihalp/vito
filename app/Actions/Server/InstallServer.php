@@ -20,9 +20,7 @@ class InstallServer
 {
     protected Server $server;
 
-    /**
-     * @throws SSHError
-     */
+    
     public function run(Server $server): void
     {
         $this->server = $server;
@@ -34,7 +32,7 @@ class InstallServer
                     $this->server->ssh()->connect();
                     break;
                 } catch (SSHConnectionError) {
-                    // ignore
+                    
                 }
             }
             Sleep::sleep(10);
@@ -48,9 +46,7 @@ class InstallServer
         Notifier::send($this->server, new ServerInstallationSucceed($this->server));
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->progress(5, 'preparing-system');
@@ -75,12 +71,10 @@ class InstallServer
         $this->progress(100, 'finishing');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     protected function createUser(): void
     {
-        // For custom servers, clear all existing keys after deploying the unique key
+        
         $clearKeys = $this->server->provider === Custom::id();
 
         $this->server->os()->createUser(

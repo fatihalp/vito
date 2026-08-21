@@ -8,9 +8,7 @@ use Illuminate\Support\Facades\Validator;
 
 class CreateCommand
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(Site $site, array $input, bool $isRaw = false): Command
     {
         Validator::make($input, [

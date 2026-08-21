@@ -3,6 +3,8 @@ import { OctagonAlertIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { humanizeStep } from '@/lib/utils';
 import { Site, SiteWarning } from '@/types/site';
 import { useState } from 'react';
@@ -14,6 +16,15 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const step = humanizeStep(site.progress_step);
+
+  // The composer install step is the most common late-stage failure (a locked
+  // dependency that doesn't support the site's PHP version, a missing extension,
+  // etc.) and, unlike the deploy script, had no way to fix it short of SSH access.
+  // Let it be edited right where it failed, defaulting to whatever already ran.
+  const canEditComposerCommand = site.progress_step === 'installing-composer-dependencies' && !!site.default_composer_install_command;
+  const [composerCommand, setComposerCommand] = useState(
+    () => site.type_data.composer_install_command || site.default_composer_install_command || '',
+  );
 
   return (
     <div className="border-destructive/40 bg-destructive/5 flex flex-col gap-4 rounded-lg border p-5">
@@ -54,6 +65,23 @@ function InstallationFailedBanner({ site }: { site: Site }) {
                 repository, deployed key) will be detected and skipped.
               </DialogDescription>
             </DialogHeader>
+
+            {canEditComposerCommand && (
+              <div className="space-y-1.5">
+                <Label htmlFor="composer-install-command">Composer install command</Label>
+                <Textarea
+                  id="composer-install-command"
+                  value={composerCommand}
+                  onChange={(e) => setComposerCommand(e.target.value)}
+                  className="font-mono text-xs"
+                  rows={2}
+                />
+                <p className="text-muted-foreground text-xs">
+                  This is what failed above. Edit it (e.g. add a flag, drop a package) and retry, or leave it as-is.
+                </p>
+              </div>
+            )}
+
             {submitError && <p className="text-destructive text-sm">{submitError}</p>}
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
@@ -68,7 +96,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
                   setOpen(false);
                   router.post(
                     route('sites.retry', { server: site.server_id, site: site.id }),
-                    {},
+                    canEditComposerCommand ? { composer_install_command: composerCommand } : {},
                     {
                       preserveScroll: true,
                       onError: (errors) => {

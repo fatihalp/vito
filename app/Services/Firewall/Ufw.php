@@ -25,9 +25,7 @@ class Ufw extends AbstractFirewall implements HasLogs
         return 'ufw';
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->createBasicFirewallRules();
@@ -52,9 +50,7 @@ class Ufw extends AbstractFirewall implements HasLogs
         event('service.uninstalled', $this->service);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function applyRules(): void
     {
         $server = $this->service->server;

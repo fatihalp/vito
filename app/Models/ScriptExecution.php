@@ -8,23 +8,10 @@ use Database\Factories\ScriptExecutionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $id
- * @property int $script_id
- * @property int $server_log_id
- * @property ?int $server_id
- * @property string $user
- * @property array<mixed> $variables
- * @property ScriptExecutionStatus $status
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Script $script
- * @property ?ServerLog $serverLog
- * @property ?Server $server
- */
+
 class ScriptExecution extends AbstractModel
 {
-    /** @use HasFactory<ScriptExecutionFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -44,9 +31,7 @@ class ScriptExecution extends AbstractModel
         'status' => ScriptExecutionStatus::class,
     ];
 
-    /**
-     * @return BelongsTo<Script, covariant $this>
-     */
+    
     public function script(): BelongsTo
     {
         return $this->belongsTo(Script::class);
@@ -64,17 +49,13 @@ class ScriptExecution extends AbstractModel
         return $content;
     }
 
-    /**
-     * @return BelongsTo<ServerLog, covariant $this>
-     */
+    
     public function serverLog(): BelongsTo
     {
         return $this->belongsTo(ServerLog::class);
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);

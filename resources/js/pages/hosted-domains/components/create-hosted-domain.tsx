@@ -96,7 +96,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
     return `${cleanSubdomain}.${selectedZone.name.toLowerCase()}`;
   }, [mode, manualDomain, selectedZone, subdomain]);
 
-  // Keep form.data.domain in sync with computedDomain
+  
   useEffect(() => {
     form.setData('domain', computedDomain);
   }, [computedDomain]);

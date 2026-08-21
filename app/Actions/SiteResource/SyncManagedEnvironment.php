@@ -9,9 +9,7 @@ use App\Enums\SiteResourceStatus;
 
 class SyncManagedEnvironment
 {
-    /**
-     * @return array<string, array{value: string, resource: string}>
-     */
+    
     public function managed(Site $site): array
     {
         $managed = [];
@@ -75,10 +73,7 @@ class SyncManagedEnvironment
         $site->save();
     }
 
-    /**
-     * @param array<int, array{key: string, value: string, is_secret: bool}> $variables
-     * @return array<int, array{key: string, value: string, is_secret: bool}>
-     */
+    
     public function enforce(Site $site, array $variables): array
     {
         $managed = $this->managed($site->loadMissing('resources'));

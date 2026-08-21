@@ -5,19 +5,10 @@ namespace App\Models;
 use Database\Factories\GithubAppFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-/**
- * @property int $app_id
- * @property string $app_slug
- * @property string $name
- * @property string $client_id
- * @property string $client_secret
- * @property string $webhook_secret
- * @property string $private_key
- * @property ?string $html_url
- */
+
 class GithubApp extends AbstractModel
 {
-    /** @use HasFactory<GithubAppFactory> */
+    
     use HasFactory;
 
     protected $table = 'github_app';

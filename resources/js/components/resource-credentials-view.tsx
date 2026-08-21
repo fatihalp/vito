@@ -47,7 +47,7 @@ export default function ResourceCredentialsView({
       .catch(() => toast.error('Failed to copy to clipboard'));
   };
 
-  // Helper to build Deeplink or CLI command
+  
   let deeplinkLabel: string | null = null;
   let deeplinkValue: string | null = null;
   let maskedDeeplinkValue: string | null = null;
@@ -94,9 +94,9 @@ export default function ResourceCredentialsView({
           {defaultSubtitle && <p className="text-muted-foreground text-xs">{defaultSubtitle}</p>}
         </div>
 
-        {/* Credentials Box */}
+        {}
         <div className="relative w-full min-w-0 max-w-full overflow-hidden rounded-lg border bg-muted/40 p-4 font-mono text-xs md:text-sm">
-          {/* Top-Right Eye & Copy action buttons */}
+          {}
           <div className="absolute top-3 right-3 z-10 flex items-center rounded-md border bg-background/95 p-0.5 shadow-xs backdrop-blur-sm">
             <Button
               type="button"
@@ -142,7 +142,7 @@ export default function ResourceCredentialsView({
         </div>
       </div>
 
-      {/* Deeplink / CLI String */}
+      {}
       {deeplinkLabel && deeplinkValue && (
         <div className="w-full min-w-0 space-y-1.5">
           <h5 className="text-foreground text-xs font-semibold">{deeplinkLabel}</h5>

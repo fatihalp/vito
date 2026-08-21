@@ -9,9 +9,7 @@ use Illuminate\Validation\Rule;
 
 class CreateUser
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function create(array $input): User
     {
         Validator::make($input, [
@@ -24,7 +22,7 @@ class CreateUser
             ],
         ])->validate();
 
-        /** @var User $user */
+        
         $user = User::query()->create([
             'name' => $input['name'],
             'email' => $input['email'],

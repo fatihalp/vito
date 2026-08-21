@@ -7,10 +7,7 @@ use Illuminate\Support\Facades\Validator;
 
 class StringifyEnv
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{env: string}
-     */
+    
     public function stringify(array $input): array
     {
         Validator::make($input, [

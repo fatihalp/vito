@@ -39,9 +39,7 @@ class CronJobController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/cronjobs', name: 'cronjobs.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {
@@ -53,9 +51,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been created.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Put('/cronjobs/{cronJob}', name: 'cronjobs.update')]
     public function update(Request $request, Server $server, CronJob $cronJob): RedirectResponse
     {
@@ -67,9 +63,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been updated.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/cronjobs/{cronJob}/enable', name: 'cronjobs.enable')]
     public function enable(Server $server, CronJob $cronJob): RedirectResponse
     {
@@ -81,9 +75,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been enabled.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/cronjobs/{cronJob}/disable', name: 'cronjobs.disable')]
     public function disable(Server $server, CronJob $cronJob): RedirectResponse
     {
@@ -95,9 +87,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been disabled.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('/cronjobs/{cronJob}', name: 'cronjobs.destroy')]
     public function destroy(Server $server, CronJob $cronJob): RedirectResponse
     {
@@ -123,9 +113,7 @@ class CronJobController extends Controller
         ]);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/sites/{site}/cronjobs', name: 'cronjobs.site.store')]
     public function siteStore(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -137,9 +125,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been created.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Put('/sites/{site}/cronjobs/{cronJob}', name: 'cronjobs.site.update')]
     public function siteUpdate(Request $request, Server $server, Site $site, CronJob $cronJob): RedirectResponse
     {
@@ -151,9 +137,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been updated.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/sites/{site}/cronjobs/{cronJob}/enable', name: 'cronjobs.site.enable')]
     public function siteEnable(Server $server, Site $site, CronJob $cronJob): RedirectResponse
     {
@@ -165,9 +149,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been enabled.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/sites/{site}/cronjobs/{cronJob}/disable', name: 'cronjobs.site.disable')]
     public function siteDisable(Server $server, Site $site, CronJob $cronJob): RedirectResponse
     {
@@ -179,9 +161,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been disabled.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Delete('/sites/{site}/cronjobs/{cronJob}', name: 'cronjobs.site.destroy')]
     public function siteDestroy(Server $server, Site $site, CronJob $cronJob): RedirectResponse
     {
@@ -193,9 +173,7 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been deleted.');
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     #[Post('/cronjobs/sync', name: 'cronjobs.sync')]
     public function sync(Server $server): RedirectResponse
     {

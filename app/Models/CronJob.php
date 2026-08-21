@@ -7,22 +7,10 @@ use Database\Factories\CronJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $server_id
- * @property ?int $site_id
- * @property string $command
- * @property string $user
- * @property string $frequency
- * @property bool $hidden
- * @property string|null $name
- * @property CronjobStatus $status
- * @property string $crontab
- * @property Server $server
- * @property ?Site $site
- */
+
 class CronJob extends AbstractModel
 {
-    /** @use HasFactory<CronJobFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -42,17 +30,13 @@ class CronJob extends AbstractModel
         'status' => CronjobStatus::class,
     ];
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<Site, covariant $this>
-     */
+    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
@@ -81,7 +65,7 @@ class CronJob extends AbstractModel
                 CronjobStatus::ENABLING,
             ])
             ->get();
-        /** @var CronJob $cronJob */
+        
         foreach ($cronJobs as $key => $cronJob) {
             $command = $user === 'root' ? $cronJob->command : self::wrapCommand($cronJob->command);
             $data .= $cronJob->frequency.' '.$command;

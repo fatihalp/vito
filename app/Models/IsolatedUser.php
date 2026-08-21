@@ -12,17 +12,10 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Throwable;
 
-/**
- * @property int $server_id
- * @property string $username
- * @property ?string $ssh_key
- * @property ?array<string, array{version?: string, status?: ?string}> $installed_tooling
- * @property Server $server
- * @property Collection<int, Site> $sites
- */
+
 class IsolatedUser extends AbstractModel
 {
-    /** @use HasFactory<IsolatedUserFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -38,17 +31,13 @@ class IsolatedUser extends AbstractModel
         'installed_tooling' => 'array',
     ];
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return HasMany<Site, covariant $this>
-     */
+    
     public function sites(): HasMany
     {
         return $this->hasMany(Site::class);
@@ -86,7 +75,7 @@ class IsolatedUser extends AbstractModel
     public function clearTooling(string $toolId): void
     {
         DB::transaction(function () use ($toolId): void {
-            /** @var self $fresh */
+            
             $fresh = self::query()->lockForUpdate()->findOrFail($this->id);
             $data = $fresh->installed_tooling ?? [];
             unset($data[$toolId]);
@@ -96,15 +85,11 @@ class IsolatedUser extends AbstractModel
         });
     }
 
-    /**
-     * @param  array<string, mixed>  $patch
-     *
-     * @throws Throwable
-     */
+    
     private function mutateTooling(string $toolId, array $patch): void
     {
         DB::transaction(function () use ($toolId, $patch): void {
-            /** @var self $fresh */
+            
             $fresh = self::query()->lockForUpdate()->findOrFail($this->id);
             $data = $fresh->installed_tooling ?? [];
             $data[$toolId] = array_merge($data[$toolId] ?? [], $patch);

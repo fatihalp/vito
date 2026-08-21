@@ -9,9 +9,7 @@ use App\Models\Network;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Network>
- */
+
 class NetworkFactory extends Factory
 {
     protected $model = Network::class;
@@ -32,10 +30,7 @@ class NetworkFactory extends Factory
         ];
     }
 
-    /**
-     * One unique number feeds both variable octets, so the pool spans every /24 in
-     * 100.64.0.0/10 rather than the 256 a single-octet unique() would allow.
-     */
+    
     private function block(): string
     {
         $block = $this->faker->unique()->numberBetween(0, 16383);

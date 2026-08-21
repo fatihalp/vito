@@ -10,6 +10,7 @@ export interface Site {
   type_data: {
     method?: 'round-robin' | 'least-connections' | 'ip-hash';
     env_path?: string;
+    composer_install_command?: string;
     [key: string]: unknown;
   };
   domain: string;
@@ -51,6 +52,7 @@ export interface Site {
   available_tooling_commands: string[];
   start_command: string | null;
   bootstrap_worker_id: number | null;
+  default_composer_install_command: string | null;
   basic_auth: {
     enabled: boolean;
     users: { username: string }[];

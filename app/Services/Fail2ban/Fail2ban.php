@@ -26,9 +26,7 @@ class Fail2ban extends AbstractService implements HasLogs
         return 'fail2ban';
     }
 
-    /**
-     * @return array<string, array<int, mixed>>
-     */
+    
     public static function jailValidationRules(): array
     {
         return [
@@ -39,10 +37,7 @@ class Fail2ban extends AbstractService implements HasLogs
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     public function creationRules(array $input): array
     {
         return array_merge([
@@ -60,10 +55,7 @@ class Fail2ban extends AbstractService implements HasLogs
         ], self::jailValidationRules());
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     public function creationData(array $input): array
     {
         return [
@@ -74,9 +66,7 @@ class Fail2ban extends AbstractService implements HasLogs
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function data(): array
     {
         return [
@@ -87,9 +77,7 @@ class Fail2ban extends AbstractService implements HasLogs
         ];
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -102,9 +90,7 @@ class Fail2ban extends AbstractService implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(
@@ -114,9 +100,7 @@ class Fail2ban extends AbstractService implements HasLogs
         event('service.uninstalled', $this->service);
     }
 
-    /**
-     * @throws SSHError
-     */
+    
     public function configure(): void
     {
         $this->service->server->ssh()->exec(
@@ -130,9 +114,7 @@ class Fail2ban extends AbstractService implements HasLogs
         return 'fail2ban-client version 2>/dev/null | tr -d "\n"';
     }
 
-    /**
-     * @return array<int, ServiceLog>
-     */
+    
     public function logs(): array
     {
         return [
@@ -146,9 +128,7 @@ class Fail2ban extends AbstractService implements HasLogs
         ];
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     private function jailData(): array
     {
         return [

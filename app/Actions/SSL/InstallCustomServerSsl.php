@@ -12,11 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class InstallCustomServerSsl
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function install(Server $server, array $input): Ssl
     {
         $this->validate($input);
@@ -47,11 +43,7 @@ class InstallCustomServerSsl
         return $ssl;
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     private function validate(array $input): void
     {
         Validator::make($input, [

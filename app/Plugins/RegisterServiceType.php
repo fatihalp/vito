@@ -7,11 +7,7 @@ use InvalidArgumentException;
 
 class RegisterServiceType
 {
-    /**
-     * @param  array<string>  $versions
-     * @param  array<string, mixed>  $data
-     * @param  array<int, array{name: string, path: string, sudo: bool}>  $configPaths
-     */
+    
     public function __construct(
         private string $name,
         private string $type = '',
@@ -71,9 +67,7 @@ class RegisterServiceType
         return $this;
     }
 
-    /**
-     * @param  array<string>  $versions
-     */
+    
     public function versions(array $versions): self
     {
         $this->versions = $versions;
@@ -81,9 +75,7 @@ class RegisterServiceType
         return $this;
     }
 
-    /**
-     * @param  array<string, mixed>  $data
-     */
+    
     public function data(array $data): self
     {
         $this->data = $data;
@@ -91,9 +83,7 @@ class RegisterServiceType
         return $this;
     }
 
-    /**
-     * @param  array<int, array{name: string, path: string, sudo: bool}>  $configPaths
-     */
+    
     public function configPaths(array $configPaths): self
     {
         $this->configPaths = $configPaths;

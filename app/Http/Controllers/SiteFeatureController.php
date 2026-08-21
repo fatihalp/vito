@@ -35,7 +35,7 @@ class SiteFeatureController extends Controller
 
         $handler = config('site.types.'.$site->type.'.features.'.$feature.'.actions.'.$action.'.handler');
         if ($handler && class_exists($handler)) {
-            /** @var ActionInterface $actionHandler */
+            
             $actionHandler = new $handler($site);
             $actionHandler->handle($request);
         }

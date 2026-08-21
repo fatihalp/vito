@@ -10,10 +10,7 @@ use Illuminate\Validation\Rule;
 
 class GetAccessibleSites
 {
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array{query: Builder<Site>, scope: string}
-     */
+    
     public function get(User $user, array $input): array
     {
         $accessibleProjectIds = $user->allProjects()->pluck('id');

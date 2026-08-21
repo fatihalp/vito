@@ -12,52 +12,31 @@ interface SiteType
 
     public function requiredServices(): array;
 
-    /**
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     public function createRules(array $input): array;
 
-    /**
-     * The fields here will be replaced in the Site model
-     *
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     public function createFields(array $input): array;
 
-    /**
-     * The fields here will be replaced in the type_data column as json
-     *
-     * @param  array<string, mixed>  $input
-     * @return array<string, mixed>
-     */
+    
     public function data(array $input): array;
 
     public function install(): void;
 
     public function assertReadyToDeploy(): void;
 
-    /**
-     * @return array<array<string, string>>
-     */
+    
     public function baseCommands(): array;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function vhostData(): array;
 
-    /**
-     * @return string[]|null
-     */
+    
     public function supportedWebservers(): ?array;
 
     public function vhostTemplate(string $webserver): ?string;
 
-    /**
-     * @return array<string, string>
-     */
+    
     public function deploymentEnvironment(): array;
 
     public function afterDeploy(Deployment $deployment): void;

@@ -6,16 +6,12 @@ use App\Enums\RedirectStatus;
 use App\Models\Redirect;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Redirect>
- */
+
 class RedirectFactory extends Factory
 {
     protected $model = Redirect::class;
 
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function definition(): array
     {
         return [

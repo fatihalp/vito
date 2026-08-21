@@ -16,9 +16,7 @@ use Throwable;
 
 class GitHookController extends Controller
 {
-    /**
-     * @throws FailedToDestroyGitHook
-     */
+    
     #[Any('api/git-hooks', name: 'api.git-hooks')]
     public function __invoke(Request $request): JsonResponse
     {
@@ -26,7 +24,7 @@ class GitHookController extends Controller
             abort(404);
         }
 
-        /** @var GitHook $gitHook */
+        
         $gitHook = GitHook::query()
             ->where('secret', $request->input('secret'))
             ->firstOrFail();
@@ -40,7 +38,7 @@ class GitHookController extends Controller
         }
 
         foreach ($gitHook->actions as $action) {
-            /** @var SourceControl $sourceControl */
+            
             $sourceControl = $gitHook->site->sourceControl;
             $webhookBranch = $sourceControl->provider()->getWebhookBranch($request->array());
             if ($action == 'deploy' && $gitHook->site->branch === $webhookBranch) {

@@ -5,9 +5,7 @@ namespace Database\Factories;
 use App\Models\Metric;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<Metric>
- */
+
 class MetricFactory extends Factory
 {
     public function definition(): array

@@ -8,24 +8,10 @@ use Database\Factories\CommandExecutionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $id
- * @property int $command_id
- * @property int $server_id
- * @property int $user_id
- * @property ?int $server_log_id
- * @property array<mixed> $variables
- * @property CommandExecutionStatus $status
- * @property Carbon $created_at
- * @property Carbon $updated_at
- * @property Command $command
- * @property ServerLog $serverLog
- * @property Server $server
- * @property ?User $user
- */
+
 class CommandExecution extends AbstractModel
 {
-    /** @use HasFactory<CommandExecutionFactory> */
+    
     use HasFactory;
 
     protected $fillable = [
@@ -46,9 +32,7 @@ class CommandExecution extends AbstractModel
         'status' => CommandExecutionStatus::class,
     ];
 
-    /**
-     * @return BelongsTo<Command, covariant $this>
-     */
+    
     public function command(): BelongsTo
     {
         return $this->belongsTo(Command::class);
@@ -66,25 +50,19 @@ class CommandExecution extends AbstractModel
         return $content;
     }
 
-    /**
-     * @return BelongsTo<ServerLog, covariant $this>
-     */
+    
     public function serverLog(): BelongsTo
     {
         return $this->belongsTo(ServerLog::class);
     }
 
-    /**
-     * @return BelongsTo<Server, covariant $this>
-     */
+    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    /**
-     * @return BelongsTo<User, covariant $this>
-     */
+    
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

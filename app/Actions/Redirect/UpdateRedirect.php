@@ -11,9 +11,7 @@ use Illuminate\Validation\Rule;
 
 class UpdateRedirect
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(Site $site, Redirect $redirect, array $input): Redirect
     {
         $this->validate($site, $redirect, $input);
@@ -30,9 +28,7 @@ class UpdateRedirect
         return $redirect->refresh();
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Site $site, Redirect $redirect, array $input): void
     {
         $rules = [

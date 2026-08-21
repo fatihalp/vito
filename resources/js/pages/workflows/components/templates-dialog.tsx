@@ -96,7 +96,7 @@ export default function WorkflowTemplatesDialog({
           }
         })
         .catch(() => {
-          // Ignore failure, user can manually specify or add provider later
+          
         })
         .finally(() => {
           setLoadingProviders(false);
@@ -173,7 +173,7 @@ export default function WorkflowTemplatesDialog({
         </DialogHeader>
 
         <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
-          {/* Left Column: Template Selection Cards */}
+          {}
           <div className="bg-muted/20 flex w-full flex-col border-b md:w-5/12 md:border-r md:border-b-0">
             <div className="border-b p-3">
               <span className="text-muted-foreground text-xs font-medium tracking-wider uppercase">Architecture Archetypes</span>
@@ -247,10 +247,10 @@ export default function WorkflowTemplatesDialog({
             </div>
           </div>
 
-          {/* Right Column: Selected Template Configuration & Flow Preview */}
+          {}
           <div className="bg-background flex flex-1 flex-col overflow-y-auto p-4 sm:p-5">
             <form id="workflow-template-form" onSubmit={submit} className="space-y-4">
-              {/* Architecture Highlight Card */}
+              {}
               <div className="bg-muted/40 rounded-lg border p-3.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -262,7 +262,7 @@ export default function WorkflowTemplatesDialog({
                 </div>
               </div>
 
-              {/* General & Project Config */}
+              {}
               <div className="space-y-3">
                 <div className="text-foreground flex items-center gap-1.5 text-xs font-semibold tracking-wider uppercase">
                   <GlobeIcon className="text-primary size-3.5" /> Application & Workflow Settings
@@ -325,7 +325,7 @@ export default function WorkflowTemplatesDialog({
                 </div>
               </div>
 
-              {/* Hetzner Cloud Infrastructure */}
+              {}
               <div className="space-y-3 border-t pt-1">
                 <div className="text-foreground flex items-center gap-1.5 pt-2 text-xs font-semibold tracking-wider uppercase">
                   <CloudIcon className="text-primary size-3.5" /> Hetzner Cloud Infrastructure
@@ -418,7 +418,7 @@ export default function WorkflowTemplatesDialog({
                 </div>
               </div>
 
-              {/* Database & PHP Configuration */}
+              {}
               <div className="space-y-3 border-t pt-1">
                 <div className="text-foreground flex items-center gap-1.5 pt-2 text-xs font-semibold tracking-wider uppercase">
                   <DatabaseIcon className="text-primary size-3.5" /> Database & PHP Stack
@@ -499,7 +499,7 @@ export default function WorkflowTemplatesDialog({
                 </div>
               </div>
 
-              {/* Step Pipeline Flow Preview */}
+              {}
               <div className="space-y-2 border-t pt-1">
                 <span className="text-foreground flex items-center gap-1.5 pt-2 text-xs font-semibold tracking-wider uppercase">
                   <CheckCircle2Icon className="text-primary size-3.5" /> Orchestration Pipeline ({selectedTemplate.steps.length} Steps)

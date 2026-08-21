@@ -19,11 +19,11 @@ class BitbucketV2 extends AbstractSourceControlProvider
 
     protected string $oauthTokenUrl = 'https://bitbucket.org/site/oauth2/access_token';
 
-    private const int CACHE_TTL = 60 * 15; // 15 minutes
+    private const int CACHE_TTL = 60 * 15; 
 
-    private const int MAX_PAGELEN = 100; // Bitbucket's max pagelen
+    private const int MAX_PAGELEN = 100; 
 
-    private const int MAX_PAGES = 25; // Safety limit
+    private const int MAX_PAGES = 25; 
 
     public static function id(): string
     {
@@ -54,11 +54,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         ];
     }
 
-    /**
-     * Get access token for OAuth consumer
-     * Uses client credentials grant for private OAuth consumers
-     * Caches token for 10 minutes to avoid unnecessary API calls
-     */
+    
     private function getAccessToken(): ?string
     {
         $data = $this->data();
@@ -71,10 +67,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         });
     }
 
-    /**
-     * Get access token using client credentials grant
-     * This works for private OAuth consumers only
-     */
+    
     private function getAccessTokenWithClientCredentials(string $key, string $secret): ?string
     {
         try {
@@ -109,12 +102,10 @@ class BitbucketV2 extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function connect(): bool
     {
-        // Test the access token by making an API call
+        
         $res = Http::withHeaders($this->getAuthenticationHeaders())
             ->get($this->apiUrl.'/user');
 
@@ -134,9 +125,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         throw new Exception($errorMessage);
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getRepo(string $repo): mixed
     {
         $res = Http::withHeaders($this->getAuthenticationHeaders())
@@ -147,21 +136,13 @@ class BitbucketV2 extends AbstractSourceControlProvider
         return $res->json();
     }
 
-    /**
-     * Generate the full repository URL for Git operations
-     *
-     * @param  string  $repo  The repository identifier (e.g., workspace/repo)
-     * @param  string  $key  The SSH key identifier
-     * @return string The full Git URL
-     */
+    
     public function fullRepoUrl(string $repo, string $key): string
     {
         return sprintf('git@bitbucket.org-%s:%s.git', $key, $repo);
     }
 
-    /**
-     * @throws FailedToDeployGitHook
-     */
+    
     public function deployHook(string $repo, array $events, string $secret): array
     {
         try {
@@ -194,9 +175,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws FailedToDestroyGitHook
-     */
+    
     public function destroyHook(string $repo, string $hookId): void
     {
         $hookId = urlencode($hookId);
@@ -214,9 +193,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * @throws Exception
-     */
+    
     public function getLastCommit(string $repo, string $branch): ?array
     {
         $res = Http::withHeaders($this->getAuthenticationHeaders())
@@ -243,9 +220,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         return null;
     }
 
-    /**
-     * @throws FailedToDeployGitKey
-     */
+    
     public function deployKey(string $title, string $repo, string $key): string
     {
         try {
@@ -292,19 +267,14 @@ class BitbucketV2 extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * Parse committer information from raw author string
-     *
-     * @param  string  $raw  Raw author string in format "Name <email@example.com>"
-     * @return array<string, string> Array with 'name' and 'email' keys
-     */
+    
     protected function getCommitter(string $raw): array
     {
         $committer = explode(' <', $raw, 2);
 
         if (count($committer) < 2) {
-            // Malformed input, return empty values
-            // explode() always returns at least one element, so $committer[0] always exists
+            
+            
             return [
                 'name' => $committer[0],
                 'email' => '',
@@ -317,14 +287,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         ];
     }
 
-    /**
-     * Get authentication headers with access token
-     * Token is cached for 10 minutes to avoid unnecessary API calls
-     *
-     * @return array<string, string>
-     *
-     * @throws Exception
-     */
+    
     private function getAuthenticationHeaders(): array
     {
         $accessToken = $this->getAccessToken();
@@ -354,7 +317,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         try {
             $repos = $this->fetchAllPages('/repositories', [
                 'pagelen' => self::MAX_PAGELEN,
-                'role' => 'member', // Only repos where user is a member
+                'role' => 'member', 
             ]);
 
             $repoNames = $repos->pluck('full_name')->toArray();
@@ -399,14 +362,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
         }
     }
 
-    /**
-     * Fetch all pages from Bitbucket API
-     * Bitbucket uses pagination with 'next' field and 'values' array
-     *
-     * @param  string  $endpoint  API endpoint (without base URL)
-     * @param  array<string, mixed>  $params  Query parameters
-     * @return Collection<int, mixed>
-     */
+    
     private function fetchAllPages(string $endpoint, array $params = []): Collection
     {
         $allData = collect();
@@ -433,7 +389,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
                     $allData = $allData->concat($data['values']);
                 }
 
-                // Bitbucket pagination uses 'next' field in the response
+                
                 $nextUrl = $data['next'] ?? null;
                 $pageCount++;
 

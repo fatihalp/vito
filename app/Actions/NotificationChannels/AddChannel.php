@@ -12,11 +12,7 @@ use Illuminate\Validation\ValidationException;
 
 class AddChannel
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function add(User $user, array $input): void
     {
         $this->validate($input);

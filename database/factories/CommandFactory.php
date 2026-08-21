@@ -7,9 +7,7 @@ use App\Models\Site;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-/**
- * @extends Factory<Command>
- */
+
 class CommandFactory extends Factory
 {
     protected $model = Command::class;

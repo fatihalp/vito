@@ -7,9 +7,7 @@ use Illuminate\Support\Facades\Validator;
 
 class UpdateDeploymentScript
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function update(DeploymentScript $deploymentScript, array $input): void
     {
         Validator::make($input, [

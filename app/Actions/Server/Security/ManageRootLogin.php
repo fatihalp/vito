@@ -10,11 +10,7 @@ use Illuminate\Validation\ValidationException;
 
 class ManageRootLogin
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    
     public function update(Server $server, array $input): void
     {
         Validator::make($input, [

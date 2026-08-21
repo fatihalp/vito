@@ -16,11 +16,7 @@ use Throwable;
 
 class DeleteSite
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws SSHError
-     */
+    
     public function delete(Site $site, array $input): void
     {
         $this->validate($site, $input);
@@ -54,9 +50,9 @@ class DeleteSite
             $site->webserver()->deleteSite($site);
 
             if ($site->type()->language() === 'php' && ! $site->fpmPoolSharedWithSiblings()) {
-                /** @var Service $phpService */
+                
                 $phpService = $site->server->php();
-                /** @var PHP $php */
+                
                 $php = $phpService->handler();
                 $php->removeFpmPool($site->user, $site->php_version, $site->id);
             }
@@ -77,11 +73,7 @@ class DeleteSite
         }
     }
 
-    /**
-     * Delete the site row. If the row deletion fails after server-side teardown has
-     * already run, the server-side artefacts (pool, user) are already gone — log the
-     * orphan-row state so an operator can clean up, then rethrow.
-     */
+    
     private function deleteRow(Site $site): void
     {
         $server = $site->server;
@@ -104,9 +96,7 @@ class DeleteSite
         SiteDeletedEvent::dispatch($server, $siteId, $domain);
     }
 
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     private function validate(Site $site, array $input): void
     {
         Validator::make($input, [

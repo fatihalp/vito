@@ -7,9 +7,7 @@ use App\Models\Server;
 
 class CheckServiceStatuses
 {
-    /**
-     * @throws SSHError
-     */
+    
     public function check(Server $server): void
     {
         $services = $server->services()

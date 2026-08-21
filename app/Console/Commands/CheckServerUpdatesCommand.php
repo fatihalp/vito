@@ -18,7 +18,7 @@ class CheckServerUpdatesCommand extends Command
         Server::query()
             ->where('status', ServerStatus::READY)
             ->chunk(50, function ($servers) {
-                /** @var Server $server */
+                
                 foreach ($servers as $server) {
                     CheckForUpdatesJob::dispatch($server)->onQueue('ssh');
                 }

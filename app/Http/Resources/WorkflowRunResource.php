@@ -6,12 +6,10 @@ use App\Models\WorkflowRun;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-/** @mixin WorkflowRun */
+
 class WorkflowRunResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    
     public function toArray(Request $request): array
     {
         return [

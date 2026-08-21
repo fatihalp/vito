@@ -12,11 +12,7 @@ use Illuminate\Support\Facades\Cache;
 
 class GetSiteStats
 {
-    /**
-     * @return array{months: array<int, string>, month: string, summary: array<int, array<string, mixed>>, detail: ?array<string, mixed>}
-     *
-     * @throws SSHError
-     */
+    
     public function get(Site $site, ?string $month = null): array
     {
         $ssh = $site->server->ssh();
@@ -71,12 +67,7 @@ class GetSiteStats
         return $clean === '' ? null : mb_substr($clean, 0, 200);
     }
 
-    /**
-     * @param  ?array<string, mixed>  $status
-     * @return ?array<string, mixed>
-     *
-     * @throws SSHError
-     */
+    
     private function detail(SSH|SSHFake $ssh, Site $site, string $month, ?array $status): ?array
     {
         $report = $this->readMonth($ssh, $site, $month);
@@ -99,10 +90,7 @@ class GetSiteStats
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $report
-     * @return array<int, array<string, mixed>>
-     */
+    
     private function daily(array $report, string $month): array
     {
         $byDate = [];
@@ -132,10 +120,7 @@ class GetSiteStats
         return $days;
     }
 
-    /**
-     * @param  array<string, mixed>  $report
-     * @return array<int, array<string, mixed>>
-     */
+    
     private function panel(array $report, string $key, int $limit): array
     {
         return collect($report[$key]['data'] ?? [])
@@ -150,10 +135,7 @@ class GetSiteStats
             ->all();
     }
 
-    /**
-     * @param  array<string, mixed>  $report
-     * @return array<int, array<string, mixed>>
-     */
+    
     private function statusCodes(array $report): array
     {
         $codes = [];
@@ -170,21 +152,13 @@ class GetSiteStats
         return $codes;
     }
 
-    /**
-     * @return ?array<string, mixed>
-     *
-     * @throws SSHError
-     */
+    
     private function readJson(SSH|SSHFake $ssh, Site $site, string $file): ?array
     {
         return $this->cat($ssh, GoAccess::BASE_DIR."/data/{$site->id}/{$file}");
     }
 
-    /**
-     * @return ?array<string, mixed>
-     *
-     * @throws SSHError
-     */
+    
     private function readMonth(SSH|SSHFake $ssh, Site $site, string $month): ?array
     {
         if (preg_match('/^\d{4}-\d{2}$/', $month) !== 1) {
@@ -196,11 +170,7 @@ class GetSiteStats
         return ($report !== null && isset($report['general'])) ? $report : null;
     }
 
-    /**
-     * @return ?array<string, mixed>
-     *
-     * @throws SSHError
-     */
+    
     private function cat(SSH|SSHFake $ssh, string $path): ?array
     {
         $out = trim($ssh->exec('cat '.escapeshellarg($path).' 2>/dev/null || echo ""'));
