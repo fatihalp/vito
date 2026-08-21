@@ -44,6 +44,10 @@ class DeployJob implements ShouldQueue
 
             $site->type()->afterDeploy($this->deployment);
 
+            if ($site->type_data['composer_install_failed'] ?? false) {
+                $site->jsonForget('type_data', 'composer_install_failed');
+            }
+
             $this->deployment->status = DeploymentStatus::FINISHED;
             $this->deployment->save();
             $this->deployment->activate();

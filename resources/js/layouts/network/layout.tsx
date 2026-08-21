@@ -50,7 +50,7 @@ export default function NetworkLayout({ children }: { children: ReactNode }) {
   ];
 
   return (
-    <Layout secondNavItems={sidebarNavItems} secondNavTitle={network.name}>
+    <Layout secondNavItems={sidebarNavItems} secondNavTitle={network.name} secondNavSubtitle="Network">
       <div>{children}</div>
     </Layout>
   );

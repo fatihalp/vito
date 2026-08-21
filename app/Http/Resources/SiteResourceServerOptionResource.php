@@ -19,6 +19,8 @@ class SiteResourceServerOptionResource extends JsonResource
             'role' => $this->role->getText(),
             'role_value' => $this->role->value,
             'role_color' => $this->role->getColor(),
+            'has_database' => (bool) $this->database(),
+            'has_cache' => (bool) $this->memoryDatabase(),
         ];
     }
 }

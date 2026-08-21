@@ -205,6 +205,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
         { title: '', items: sidebarNavItems },
       ]}
       secondNavTitle={server.name}
+      secondNavSubtitle="Server"
     >
       <ServerHeader server={server} site={page.props.site} />
 

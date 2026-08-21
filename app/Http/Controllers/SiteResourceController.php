@@ -12,6 +12,7 @@ use App\Http\Resources\SiteResourceServerOptionResource;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\SiteResource;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -40,7 +41,10 @@ class SiteResourceController extends Controller
             ),
             'servers' => SiteResourceServerOptionResource::collection(
                 $project->servers()
-                    ->whereIn('role', [ServerRole::DATABASE->value, ServerRole::CACHE->value])
+                    ->where(function (Builder $query) use ($site): void {
+                        $query->whereIn('role', [ServerRole::DATABASE->value, ServerRole::CACHE->value])
+                            ->orWhere('id', $site->server_id);
+                    })
                     ->whereIn('status', ['ready', 'updating'])
                     ->orderBy('name')
                     ->get()

@@ -46,6 +46,7 @@ export function AppSidebar({
   secondNavItems,
   secondNavGroups,
   secondNavTitle,
+  secondNavSubtitle,
   secondNavOpen = true,
   onSecondNavOpenChange,
 }: {
@@ -247,7 +248,16 @@ export function AppSidebar({
         >
           <SidebarHeader className="min-h-12 justify-center border-b px-3 py-2">
             <div className="flex min-w-0 items-center justify-between gap-2">
-              {secondNavTitle && <span className="truncate text-sm font-semibold" title={secondNavTitle}>{secondNavTitle}</span>}
+              {secondNavTitle && (
+                <div className="min-w-0">
+                  {secondNavSubtitle && (
+                    <span className="text-muted-foreground block text-[10px] font-medium tracking-wider uppercase">{secondNavSubtitle}</span>
+                  )}
+                  <span className="truncate text-sm font-semibold" title={secondNavTitle}>
+                    {secondNavTitle}
+                  </span>
+                </div>
+              )}
               {onSecondNavOpenChange && (
                 <Button
                   variant="ghost"

@@ -14,9 +14,7 @@ use Illuminate\Validation\ValidationException;
 
 class RetrySite
 {
-    /**
-     * @param  array<string, mixed>  $input
-     */
+    
     public function retry(Site $site, array $input = []): Site
     {
         if (! $site->isInstallationFailed()) {

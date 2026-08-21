@@ -65,6 +65,12 @@ class SiteResource extends JsonResource
                 ? (int) $this->type_data['bootstrap_worker_id']
                 : null,
             'default_composer_install_command' => $this->typeOrNull()?->language() === 'php' ? Composer::DEFAULT_INSTALL_COMMAND : null,
+            'counts' => [
+                'domains' => $this->hostedDomains_count ?? null,
+                'workers' => $this->workers_count ?? null,
+                'resources' => $this->resources_count ?? null,
+                'commands' => $this->commands_count ?? null,
+            ],
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,

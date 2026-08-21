@@ -17,7 +17,7 @@ import type { Server } from '@/types/server';
 import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
 import type { Bucket } from '@/types/bucket';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
@@ -55,9 +55,14 @@ export default function SiteResources() {
     bucket_name: '',
   });
   const selectedDefinition = resourceTypes.find((type) => type.value === form.data.type);
-  const matchingServers = form.data.type === 'bucket' || form.data.type === ''
-    ? []
-    : page.props.servers.filter((server) => server.role_value === form.data.type);
+  const hasServiceForType = (server: (typeof page.props.servers)[number]) =>
+    form.data.type === 'database' ? server.has_database : form.data.type === 'cache' ? server.has_cache : false;
+  const currentServerOption = page.props.servers.find((server) => server.id === page.props.server.id);
+  const currentServerHasService = !!currentServerOption && hasServiceForType(currentServerOption);
+  const matchingServers =
+    form.data.type === 'bucket' || form.data.type === ''
+      ? []
+      : page.props.servers.filter((server) => server.role_value === form.data.type || (server.id === page.props.server.id && hasServiceForType(server)));
   const targetSelected = form.data.type === 'bucket'
     ? (isCreatingBucket || page.props.buckets.length === 0 ? form.data.bucket_name.trim().length >= 3 : form.data.bucket_id !== '')
     : form.data.server_id !== '';
@@ -171,7 +176,9 @@ export default function SiteResources() {
                       </SelectTrigger>
                       <SelectContent>
                         {matchingServers.map((server) => (
-                          <SelectItem key={server.id} value={server.id.toString()}>{server.name} · {server.ip}</SelectItem>
+                          <SelectItem key={server.id} value={server.id.toString()}>
+                            {server.id === page.props.server.id ? `This server (${server.name})` : server.name} · {server.ip}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
@@ -197,10 +204,21 @@ export default function SiteResources() {
                     </Alert>
                   )
                 )}
-                {form.data.type && form.data.type !== 'bucket' && matchingServers.length === 0 && (
+                {form.data.type && form.data.type !== 'bucket' && !currentServerHasService && (
                   <Alert className="md:col-span-3">
                     <InfoIcon />
-                    <AlertDescription>No ready {selectedDefinition?.label.toLowerCase()} available.</AlertDescription>
+                    <AlertDescription className="flex items-center justify-between gap-4">
+                      <span>
+                        {matchingServers.length > 0
+                          ? `${selectedDefinition?.label} isn't installed on this server yet — install it to use it locally, or pick from the list.`
+                          : `No ready ${selectedDefinition?.label.toLowerCase()} available. Install one on this server to use it locally.`}
+                      </span>
+                      <Link href={route('services', { server: page.props.server.id })}>
+                        <Button size="sm" variant="outline" type="button">
+                          Install
+                        </Button>
+                      </Link>
+                    </AlertDescription>
                   </Alert>
                 )}
               </form>

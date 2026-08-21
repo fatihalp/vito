@@ -70,9 +70,9 @@ export function humanizeSeconds(seconds: number | null | undefined): string {
 
 const STEP_ACRONYMS = new Set(['ssl', 'ssh', 'os', 'php', 'ufw', 'db', 'ip', 'url', 'dns', 'id', 'api', 'sftp', 'cpu', 'ram']);
 
-// Kebab/underscore step identifiers like `install-nginx-latest` or `remove-os-default-site`
-// become "Install nginx latest" / "Remove OS default site" — sentence case, with known
-// technical acronyms kept upper-case instead of reading as ordinary words.
+
+
+
 export function humanizeStep(step: string | null | undefined): string {
   if (!step) return '';
 

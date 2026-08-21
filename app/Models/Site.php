@@ -188,6 +188,10 @@ class Site extends AbstractModel
             $warnings[] = ['key' => 'needs_first_deploy'];
         }
 
+        if ($this->type_data['composer_install_failed'] ?? false) {
+            $warnings[] = ['key' => 'composer_install_failed'];
+        }
+
         if ($this->relationLoaded('workers')) {
             $bootstrapId = $this->bootstrapWorkerId();
 

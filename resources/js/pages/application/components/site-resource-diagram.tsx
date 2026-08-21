@@ -491,7 +491,10 @@ export default function SiteResourceDiagram({
 
               {isDetailed ? (
                 <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
-                  <div className="flex items-center justify-between">
+                  <Link
+                    href={route('workers.site', { server: server.id, site: site.id })}
+                    className="flex items-center justify-between rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors"
+                  >
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <CpuIcon className="size-3.5 text-muted-foreground/70" />
                       <span>Background workers</span>
@@ -499,9 +502,12 @@ export default function SiteResourceDiagram({
                     <span className="font-mono text-xs font-medium text-foreground">
                       {workersCount} {workersCount === 1 ? 'worker' : 'workers'}
                     </span>
-                  </div>
+                  </Link>
 
-                  <div className="flex items-center justify-between">
+                  <Link
+                    href={route('cronjobs.site', { server: server.id, site: site.id })}
+                    className="flex items-center justify-between rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors"
+                  >
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <Layers3Icon className="size-3.5 text-muted-foreground/70" />
                       <span>Scheduled crons</span>
@@ -509,12 +515,16 @@ export default function SiteResourceDiagram({
                     <span className="font-mono text-xs font-medium text-foreground">
                       {cronJobsCount} {cronJobsCount === 1 ? 'task' : 'tasks'}
                     </span>
-                  </div>
+                  </Link>
                 </div>
               ) : (
                 <div className="mt-2.5 flex items-center justify-between border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
-                  <span>{workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}</span>
-                  <span>{cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}</span>
+                  <Link href={route('workers.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                    {workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}
+                  </Link>
+                  <Link href={route('cronjobs.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                    {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}
+                  </Link>
                 </div>
               )}
             </div>

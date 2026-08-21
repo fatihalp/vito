@@ -44,9 +44,12 @@ class ConnectSiteResource
                 'exclude_if:type,bucket',
                 'required',
                 'integer',
-                Rule::exists('servers', 'id')->where(function (Builder $query) use ($projectId, $type): void {
+                Rule::exists('servers', 'id')->where(function (Builder $query) use ($projectId, $type, $site): void {
                     $query->where('project_id', $projectId)
-                        ->where('role', $type?->serverRole()?->value)
+                        ->where(function (Builder $query) use ($type, $site): void {
+                            $query->where('role', $type?->serverRole()?->value)
+                                ->orWhere('id', $site->server_id);
+                        })
                         ->whereIn('status', ['ready', 'updating']);
                 }),
             ],
@@ -101,7 +104,15 @@ class ConnectSiteResource
             ->where('project_id', $site->server->project_id)
             ->findOrFail((int) $data['server_id']);
 
-        if ($server->role !== $type->serverRole() || ! $server->isReady()) {
+        $isOwnServer = $server->id === $site->server_id;
+
+        if (! $isOwnServer && $server->role !== $type->serverRole()) {
+            throw ValidationException::withMessages([
+                'server_id' => __('Select a ready :role.', ['role' => $type->serverRole()?->getText()]),
+            ]);
+        }
+
+        if (! $server->isReady()) {
             throw ValidationException::withMessages([
                 'server_id' => __('Select a ready :role.', ['role' => $type->serverRole()?->getText()]),
             ]);
@@ -115,6 +126,8 @@ class ConnectSiteResource
 
     private function connectDatabase(Site $site, Server $server): SiteResource
     {
+        $isLocal = $server->id === $site->server_id;
+
         $service = $server->database();
         $handler = $service?->handler();
 
@@ -138,25 +151,48 @@ class ConnectSiteResource
         $firewallRule = null;
 
         try {
-            $this->enableNetworking($service, $handler);
+            if (! $isLocal) {
+                $this->enableNetworking($service, $handler);
+            }
             $database = app(CreateDatabase::class)->create($server, [
                 'name' => $name,
                 'charset' => $charset,
                 'collation' => $collation,
             ]);
-            $databaseUser = app(CreateDatabaseUser::class)->create($server, [
-                'username' => $username,
-                'password' => $password,
-                'permission' => 'admin',
-                'remote' => true,
-                'host' => $this->host($site->server),
-            ], [$database->name]);
-            $firewallRule = $this->allowApplicationServer($site, $server, $handler->networkingPort(), $this->firewallName($site, 'db'));
+            $databaseUser = $isLocal
+                ? app(CreateDatabaseUser::class)->create($server, [
+                    'username' => $username,
+                    'password' => $password,
+                    'permission' => 'admin',
+                ], [$database->name])
+                : app(CreateDatabaseUser::class)->create($server, [
+                    'username' => $username,
+                    'password' => $password,
+                    'permission' => 'admin',
+                    'remote' => true,
+                    'host' => $this->host($site->server),
+                ], [$database->name]);
 
             $connection = match ($service->name) {
                 'postgresql' => 'pgsql',
                 default => 'mysql',
             };
+
+            if ($isLocal) {
+                return $this->persist($site, SiteResourceType::DATABASE, $server, null, [
+                    'database_id' => $database->id,
+                    'database_user_id' => $databaseUser->id,
+                ], [
+                    'DB_CONNECTION' => $connection,
+                    'DB_HOST' => '127.0.0.1',
+                    'DB_PORT' => (string) $handler->networkingPort(),
+                    'DB_DATABASE' => $database->name,
+                    'DB_USERNAME' => $databaseUser->username,
+                    'DB_PASSWORD' => $password,
+                ]);
+            }
+
+            $firewallRule = $this->allowApplicationServer($site, $server, $handler->networkingPort(), $this->firewallName($site, 'db'));
 
             return $this->persist($site, SiteResourceType::DATABASE, $server, null, [
                 'database_id' => $database->id,
@@ -179,11 +215,24 @@ class ConnectSiteResource
 
     private function connectCache(Site $site, Server $server): SiteResource
     {
+        $isLocal = $server->id === $site->server_id;
+
         $service = $server->memoryDatabase();
         $handler = $service?->handler();
 
         if (! $service || ! $handler instanceof SupportsNetworkingSecret) {
             throw ValidationException::withMessages(['server_id' => __('The selected server has no network-capable Redis service.')]);
+        }
+
+        if ($isLocal) {
+            return $this->persist($site, SiteResourceType::CACHE, $server, null, [], [
+                'CACHE_STORE' => 'redis',
+                'QUEUE_CONNECTION' => 'redis',
+                'REDIS_CLIENT' => 'phpredis',
+                'REDIS_HOST' => '127.0.0.1',
+                'REDIS_PASSWORD' => (string) ($service->secret ?? ''),
+                'REDIS_PORT' => (string) $handler->networkingPort(),
+            ]);
         }
 
         $firewallRule = null;

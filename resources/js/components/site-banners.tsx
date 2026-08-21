@@ -17,10 +17,10 @@ function InstallationFailedBanner({ site }: { site: Site }) {
 
   const step = humanizeStep(site.progress_step);
 
-  // The composer install step is the most common late-stage failure (a locked
-  // dependency that doesn't support the site's PHP version, a missing extension,
-  // etc.) and, unlike the deploy script, had no way to fix it short of SSH access.
-  // Let it be edited right where it failed, defaulting to whatever already ran.
+  
+  
+  
+  
   const canEditComposerCommand = site.progress_step === 'installing-composer-dependencies' && !!site.default_composer_install_command;
   const [composerCommand, setComposerCommand] = useState(
     () => site.type_data.composer_install_command || site.default_composer_install_command || '',
@@ -137,6 +137,7 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
   const phpSettingsIgnoredWarning = warnings.find((w) => w.key === 'php_settings_ignored');
   const sslExpiringWarning = warnings.find((w) => w.key === 'ssl_expiring');
   const needsFirstDeployWarning = warnings.find((w) => w.key === 'needs_first_deploy');
+  const composerInstallFailedWarning = warnings.find((w) => w.key === 'composer_install_failed');
   const workerWarnings = warnings.filter((w): w is Extract<SiteWarning, { key: 'worker_not_running' }> => w.key === 'worker_not_running');
 
   const items: BannerItem[] = [];
@@ -261,6 +262,26 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
         <>
           Customise your deploy script if needed, then deploy this site to bring it online. The application worker is created on the first successful
           deploy.
+        </>
+      ),
+      action: (
+        <Link href={route('application', { server: site.server_id, site: site.id })}>
+          <Button variant="outline" size="sm">
+            Go to Application
+          </Button>
+        </Link>
+      ),
+    });
+  }
+
+  if (composerInstallFailedWarning) {
+    items.push({
+      key: 'composer-install-failed',
+      title: 'Composer dependencies were not installed',
+      description: (
+        <>
+          The site was set up, but installing Composer dependencies failed (often a PHP version mismatch with a locked package). Fix your deploy
+          script if needed, then deploy — this also installs dependencies.
         </>
       ),
       action: (

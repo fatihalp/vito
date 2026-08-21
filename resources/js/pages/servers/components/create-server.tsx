@@ -381,7 +381,7 @@ export default function CreateServer({
             }
           }
         } catch {
-          // best-effort latency check; keep the user's manual region choice on failure
+          
         }
       }
     } finally {

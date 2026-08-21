@@ -53,6 +53,12 @@ export interface Site {
   start_command: string | null;
   bootstrap_worker_id: number | null;
   default_composer_install_command: string | null;
+  counts: {
+    domains: number | null;
+    workers: number | null;
+    resources: number | null;
+    commands: number | null;
+  };
   basic_auth: {
     enabled: boolean;
     users: { username: string }[];
@@ -86,6 +92,7 @@ export type SiteWarning =
   | { key: 'php_settings_ignored' }
   | { key: 'ssl_expiring'; count: number; domains: string[]; earliest_expiry: string }
   | { key: 'needs_first_deploy' }
+  | { key: 'composer_install_failed' }
   | {
       key: 'worker_not_running';
       worker_id: number;

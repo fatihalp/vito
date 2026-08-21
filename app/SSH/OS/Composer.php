@@ -10,9 +10,7 @@ class Composer
 {
     public const DEFAULT_INSTALL_COMMAND = 'composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev';
 
-    /**
-     * @throws SSHError
-     */
+    
     public function installDependencies(Site $site, ?string $command = null): void
     {
         $site->server->ssh($site->user)

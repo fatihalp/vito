@@ -12,6 +12,7 @@ use App\Tooling\PnpmTooling;
 use App\Tooling\ToolingRegistry;
 use App\Tooling\YarnTooling;
 use App\Traits\NormalizesWebDirectory;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 
 class PHPSite extends AbstractSiteType
@@ -157,10 +158,22 @@ class PHPSite extends AbstractSiteType
         $this->site->php()?->restart();
         $this->progress(75, 'installing-composer-dependencies');
         if ($this->site->type_data['composer']) {
-            $override = $this->site->type_data['composer_install_command'] ?? null;
-            app(Composer::class)->installDependencies($this->site, is_string($override) ? $override : null);
+            $this->installComposerDependencies();
         }
         $this->progress(90, 'finishing');
+    }
+
+    
+    private function installComposerDependencies(): void
+    {
+        $override = $this->site->type_data['composer_install_command'] ?? null;
+
+        try {
+            app(Composer::class)->installDependencies($this->site, is_string($override) ? $override : null);
+        } catch (SSHError $e) {
+            Log::warning("Composer install failed during installation of site #{$this->site->id}: {$e->getMessage()}");
+            $this->site->jsonUpdate('type_data', 'composer_install_failed', true);
+        }
     }
 
     public function baseCommands(): array

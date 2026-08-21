@@ -3,13 +3,14 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { ChevronDownIcon } from 'lucide-react';
+import { ChevronDownIcon, GlobeIcon } from 'lucide-react';
 
 type SiteNavItem = {
   title: string;
   href: string;
   exact?: boolean;
   activePrefixes?: string[];
+  count?: number | null;
 };
 
 function isActive(currentPath: string, item: SiteNavItem): boolean {
@@ -37,10 +38,10 @@ export function SiteHeaderNav() {
   const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
   const primaryItems: SiteNavItem[] = [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Resources', href: route('site-resources', routeParams) },
-    { title: 'Domains', href: route('hosted-domains', routeParams) },
-    { title: 'Commands', href: route('commands', routeParams) },
-    { title: 'Workers', href: route('workers.site', routeParams) },
+    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts.resources },
+    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts.domains },
+    { title: 'Commands', href: route('commands', routeParams), count: site.counts.commands },
+    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts.workers },
     { title: 'Settings', href: route('site-settings', routeParams) },
   ];
   const otherItems: SiteNavItem[] = [
@@ -53,7 +54,12 @@ export function SiteHeaderNav() {
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
 
   return (
-    <nav aria-label="Site navigation" className="bg-background flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-4">
+    <nav aria-label="Site navigation" className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-4">
+      <div className="text-muted-foreground mr-2 flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-wider uppercase" title="This site's settings">
+        <GlobeIcon className="size-3.5" />
+        Site
+      </div>
+      <div className="bg-border mr-1 h-5 w-px shrink-0" />
       {primaryItems.map((item) => {
         const active = isActive(currentPath, item);
 
@@ -67,6 +73,7 @@ export function SiteHeaderNav() {
           >
             <Link href={item.href} aria-current={active ? 'page' : undefined}>
               {item.title}
+              {!!item.count && <span className="text-muted-foreground ml-1 text-xs">({item.count})</span>}
             </Link>
           </Button>
         );

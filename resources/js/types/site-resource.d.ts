@@ -27,6 +27,8 @@ export interface SiteResourceServerOption {
   name: string;
   ip: string;
   role: string;
-  role_value: 'database' | 'cache';
+  role_value: string;
   role_color: 'gray' | 'success' | 'info' | 'warning' | 'danger' | 'default';
+  has_database: boolean;
+  has_cache: boolean;
 }
