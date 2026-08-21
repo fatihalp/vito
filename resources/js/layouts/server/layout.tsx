@@ -199,13 +199,13 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     },
   ];
 
+  const viewingSite = !!page.props.site;
+
   return (
     <Layout
-      secondNavGroups={[
-        { title: '', items: sidebarNavItems },
-      ]}
-      secondNavTitle={server.name}
-      secondNavSubtitle="Server"
+      secondNavGroups={viewingSite ? [] : [{ title: '', items: sidebarNavItems }]}
+      secondNavTitle={viewingSite ? undefined : server.name}
+      secondNavSubtitle={viewingSite ? undefined : 'Server'}
     >
       <ServerHeader server={server} site={page.props.site} />
 

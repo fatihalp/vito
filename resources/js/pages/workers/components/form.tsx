@@ -14,6 +14,16 @@ import { Server } from '@/types/server';
 import { Switch } from '@/components/ui/switch';
 import { Site } from '@/types/site';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+
+type WorkerTargetServer = {
+  id: number;
+  name: string;
+  ip: string;
+  has_process_manager: boolean;
+};
 
 export interface WorkerTemplate {
   id: string;
@@ -93,6 +103,13 @@ export default function WorkerForm({
 
   const defaultUser = site?.user || (page.props.server?.ssh_users && page.props.server.ssh_users.length > 0 ? page.props.server.ssh_users[0] : '');
 
+  const targetServersQuery = useQuery<WorkerTargetServer[]>({
+    queryKey: ['worker-target-servers', serverId, site?.id],
+    queryFn: async () => (await axios.get(route('workers.target-servers', { server: serverId, site: site?.id }))).data,
+    enabled: open && !!site && !worker,
+  });
+  const targetServers = targetServersQuery.data ?? [];
+
   const form = useForm<{
     name: string;
     command: string;
@@ -101,6 +118,7 @@ export default function WorkerForm({
     auto_restart: boolean;
     numprocs: string;
     site_id: string;
+    target_server_id: string;
   }>({
     name: worker?.name || '',
     command: worker?.command || '',
@@ -109,7 +127,10 @@ export default function WorkerForm({
     auto_restart: worker?.auto_restart ?? true,
     numprocs: worker?.numprocs?.toString() || '1',
     site_id: worker?.site_id?.toString() || site?.id?.toString() || '0',
+    target_server_id: worker && worker.server_id !== serverId ? worker.server_id.toString() : '',
   });
+
+  const runningExternally = !!site && form.data.target_server_id !== '';
 
   useEffect(() => {
     if (open) {
@@ -122,6 +143,7 @@ export default function WorkerForm({
           auto_restart: worker.auto_restart ?? true,
           numprocs: worker.numprocs?.toString() || '1',
           site_id: worker.site_id?.toString() || '0',
+          target_server_id: worker.server_id !== serverId ? worker.server_id.toString() : '',
         });
         setSelectedTemplate('');
       } else {
@@ -133,11 +155,18 @@ export default function WorkerForm({
           auto_restart: true,
           numprocs: '1',
           site_id: site?.id?.toString() || '0',
+          target_server_id: '',
         });
         setSelectedTemplate('');
       }
     }
   }, [open, worker, site]);
+
+  useEffect(() => {
+    if (runningExternally && site && form.data.user !== site.user) {
+      form.setData('user', site.user);
+    }
+  }, [runningExternally, site]);
 
   const applyTemplate = (templateId: string) => {
     const template = WORKER_TEMPLATES.find((t) => t.id === templateId);
@@ -240,6 +269,46 @@ export default function WorkerForm({
               <InputError message={form.errors.command} />
             </FormField>
 
+            {site && !worker && (
+              <FormField>
+                <Label htmlFor="target_server_id">Run on</Label>
+                <Select
+                  value={form.data.target_server_id || '__home__'}
+                  onValueChange={(value) => form.setData('target_server_id', value === '__home__' ? '' : value)}
+                  disabled={targetServersQuery.isFetching}
+                >
+                  <SelectTrigger id="target_server_id">
+                    <SelectValue placeholder={targetServersQuery.isFetching ? 'Loading...' : 'Select where this worker runs'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectGroup>
+                      <SelectItem value="__home__">{page.props.server.name} (this site's server)</SelectItem>
+                      {targetServers.map((candidate) => (
+                        <SelectItem key={candidate.id} value={candidate.id.toString()} disabled={!candidate.has_process_manager}>
+                          {candidate.name} · {candidate.ip}
+                          {!candidate.has_process_manager ? ' (no process manager installed)' : ''}
+                        </SelectItem>
+                      ))}
+                    </SelectGroup>
+                  </SelectContent>
+                </Select>
+                <InputError message={form.errors.target_server_id} />
+                {runningExternally && (
+                  <Alert>
+                    <AlertDescription>
+                      The site's code will be synced to this server (cloned, dependencies installed) before the worker starts, and kept up to date
+                      on every deploy.
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {targetServers.length === 0 && !targetServersQuery.isFetching && (
+                  <p className="text-muted-foreground text-xs">
+                    No dedicated queue servers in this project yet. Create one with the "Queue" role to run workers elsewhere.
+                  </p>
+                )}
+              </FormField>
+            )}
+
             {page.props.sites && !site && (
               <FormField>
                 <Label htmlFor="site_id">Site</Label>
@@ -264,13 +333,13 @@ export default function WorkerForm({
 
             <FormField>
               <Label htmlFor="user">User</Label>
-              <Select value={form.data.user} onValueChange={(value) => form.setData('user', value)}>
+              <Select value={form.data.user} onValueChange={(value) => form.setData('user', value)} disabled={runningExternally}>
                 <SelectTrigger id="user">
                   <SelectValue placeholder="Select a user" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    {page.props.server.ssh_users.map((user) => (
+                    {(runningExternally && site ? [site.user] : page.props.server.ssh_users).map((user) => (
                       <SelectItem key={`user-${user}`} value={user}>
                         {user}
                       </SelectItem>

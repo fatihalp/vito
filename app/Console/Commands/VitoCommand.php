@@ -27,6 +27,14 @@ class VitoCommand extends Command
         $phpBinary = (new PhpExecutableFinder)->find(false) ?: 'php';
         $artisan = base_path('artisan');
 
+        $this->components->info('Clearing cached config, routes, views, and events...');
+        $this->call('optimize:clear');
+
+        if (! $this->option('no-horizon')) {
+            $this->components->info('Terminating any running Horizon master process...');
+            $this->call('horizon:terminate');
+        }
+
         $services = [];
 
         if (! $this->option('no-horizon')) {

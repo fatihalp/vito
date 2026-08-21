@@ -490,41 +490,89 @@ export default function SiteResourceDiagram({
               </div>
 
               {isDetailed ? (
-                <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
-                  <Link
-                    href={route('workers.site', { server: server.id, site: site.id })}
-                    className="flex items-center justify-between rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors"
-                  >
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <CpuIcon className="size-3.5 text-muted-foreground/70" />
-                      <span>Background workers</span>
-                    </span>
-                    <span className="font-mono text-xs font-medium text-foreground">
-                      {workersCount} {workersCount === 1 ? 'worker' : 'workers'}
-                    </span>
-                  </Link>
+                <div className="mt-3.5 space-y-1 border-t border-border/40 pt-3 text-xs">
+                  <div className="group flex items-center rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors">
+                    <Link
+                      href={route('workers.site', { server: server.id, site: site.id })}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-2"
+                    >
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <CpuIcon className="size-3.5 text-muted-foreground/70" />
+                        <span>Background workers</span>
+                      </span>
+                      <span className="font-mono text-xs font-medium text-foreground">
+                        {workersCount} {workersCount === 1 ? 'worker' : 'workers'}
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="Create worker"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dialog.workerForm.open({ serverId: server.id, site });
+                      }}
+                      className="text-muted-foreground hover:bg-accent hover:text-foreground ml-1.5 shrink-0 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <PlusIcon className="size-3.5" />
+                    </button>
+                  </div>
 
-                  <Link
-                    href={route('cronjobs.site', { server: server.id, site: site.id })}
-                    className="flex items-center justify-between rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors"
-                  >
-                    <span className="flex items-center gap-2 text-muted-foreground">
-                      <Layers3Icon className="size-3.5 text-muted-foreground/70" />
-                      <span>Scheduled crons</span>
-                    </span>
-                    <span className="font-mono text-xs font-medium text-foreground">
-                      {cronJobsCount} {cronJobsCount === 1 ? 'task' : 'tasks'}
-                    </span>
-                  </Link>
+                  <div className="group flex items-center rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors">
+                    <Link
+                      href={route('cronjobs.site', { server: server.id, site: site.id })}
+                      className="flex min-w-0 flex-1 items-center justify-between gap-2"
+                    >
+                      <span className="flex items-center gap-2 text-muted-foreground">
+                        <Layers3Icon className="size-3.5 text-muted-foreground/70" />
+                        <span>Scheduled crons</span>
+                      </span>
+                      <span className="font-mono text-xs font-medium text-foreground">
+                        {cronJobsCount} {cronJobsCount === 1 ? 'task' : 'tasks'}
+                      </span>
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="Create cron job"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dialog.cronjobForm.open({ serverId: server.id, site });
+                      }}
+                      className="text-muted-foreground hover:bg-accent hover:text-foreground ml-1.5 shrink-0 rounded p-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <PlusIcon className="size-3.5" />
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div className="mt-2.5 flex items-center justify-between border-t border-border/40 pt-2 text-[11px] text-muted-foreground">
-                  <Link href={route('workers.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
-                    {workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}
-                  </Link>
-                  <Link href={route('cronjobs.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
-                    {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}
-                  </Link>
+                  <span className="flex items-center gap-1">
+                    <Link href={route('workers.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                      {workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="Create worker"
+                      onClick={() => dialog.workerForm.open({ serverId: server.id, site })}
+                      className="hover:bg-accent hover:text-foreground rounded p-0.5"
+                    >
+                      <PlusIcon className="size-3" />
+                    </button>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Link href={route('cronjobs.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                      {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}
+                    </Link>
+                    <button
+                      type="button"
+                      aria-label="Create cron job"
+                      onClick={() => dialog.cronjobForm.open({ serverId: server.id, site })}
+                      className="hover:bg-accent hover:text-foreground rounded p-0.5"
+                    >
+                      <PlusIcon className="size-3" />
+                    </button>
+                  </span>
                 </div>
               )}
             </div>

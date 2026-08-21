@@ -9,6 +9,7 @@ use App\Enums\DeploymentStatus;
 use App\Events\SocketEvent;
 use App\Facades\Notifier;
 use App\Http\Resources\DeploymentResource;
+use App\Jobs\Worker\ResyncSiteToWorkerServersJob;
 use App\Models\Deployment;
 use App\Models\ServerLog;
 use App\Notifications\DeploymentCompleted;
@@ -54,6 +55,10 @@ class DeployJob implements ShouldQueue
             $this->broadcastDeploymentUpdate();
             app(BroadcastSiteUpdate::class)->broadcast($site);
             Notifier::send($site, new DeploymentCompleted($this->deployment, $site));
+
+            if ($site->workers()->whereNotNull('server_id')->where('server_id', '!=', $site->server_id)->exists()) {
+                dispatch(new ResyncSiteToWorkerServersJob($site));
+            }
         });
     }
 

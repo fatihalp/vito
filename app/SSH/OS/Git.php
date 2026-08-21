@@ -3,15 +3,16 @@
 namespace App\SSH\OS;
 
 use App\Exceptions\SSHError;
+use App\Models\Server;
 use App\Models\Site;
 
 class Git
 {
-    
-    public function clone(Site $site, ?string $path = null): void
+
+    public function clone(Site $site, ?string $path = null, ?Server $server = null): void
     {
         $usesToken = $site->sourceControl?->isGithubApp() ?? false;
-        $ssh = $site->server->ssh($site->user);
+        $ssh = ($server ?? $site->server)->ssh($site->user);
 
         if ($usesToken) {
             $ssh = $ssh->variables($site->environmentVariables());
@@ -33,10 +34,9 @@ class Git
         );
     }
 
-    
-    public function checkout(Site $site): void
+    public function checkout(Site $site, ?Server $server = null): void
     {
-        $site->server->ssh($site->user)->exec(
+        ($server ?? $site->server)->ssh($site->user)->exec(
             view('ssh.git.checkout', [
                 'path' => escapeshellarg((string) $site->path),
                 'branch' => escapeshellarg((string) $site->branch),
@@ -46,10 +46,9 @@ class Git
         );
     }
 
-    
-    public function fetchOrigin(Site $site): void
+    public function fetchOrigin(Site $site, ?Server $server = null): void
     {
-        $ssh = $site->server->ssh($site->user);
+        $ssh = ($server ?? $site->server)->ssh($site->user);
 
         if ($site->sourceControl?->isGithubApp()) {
             $ssh = $ssh->variables($site->environmentVariables());

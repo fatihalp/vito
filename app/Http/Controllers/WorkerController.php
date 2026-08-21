@@ -11,6 +11,7 @@ use App\Actions\Worker\RestartAllWorkers;
 use App\Actions\Worker\SyncWorkerStatuses;
 use App\Actions\Worker\UpdateWorkerEnvironment;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
+use App\Enums\ServerRole;
 use App\Helpers\EnvParser;
 use App\Http\Resources\WorkerResource;
 use App\Models\Server;
@@ -64,6 +65,32 @@ class WorkerController extends Controller
             ),
             'sites' => $server->sites()->select('id', 'domain')->get(),
         ]);
+    }
+
+    #[Get('/workers/target-servers/{site?}', name: 'workers.target-servers')]
+    #[WhereNumber('site')]
+    public function targetServers(Server $server, ?Site $site = null): JsonResponse
+    {
+        $this->authorize('viewAny', [Worker::class, $server, $site]);
+
+        if (! $site) {
+            return response()->json([]);
+        }
+
+        $servers = $server->project->servers()
+            ->where('id', '!=', $site->server_id)
+            ->where('role', ServerRole::QUEUE->value)
+            ->whereIn('status', ['ready', 'updating'])
+            ->orderBy('name')
+            ->get(['id', 'name', 'ip', 'services'])
+            ->map(fn (Server $candidate): array => [
+                'id' => $candidate->id,
+                'name' => $candidate->name,
+                'ip' => $candidate->ip,
+                'has_process_manager' => (bool) $candidate->processManager(),
+            ]);
+
+        return response()->json($servers);
     }
 
     #[Post('/workers/resync/{site?}', name: 'workers.resync')]
