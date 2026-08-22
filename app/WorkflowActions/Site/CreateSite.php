@@ -19,7 +19,11 @@ abstract class CreateSite extends AbstractWorkflowAction
                 'alias-2',
                 'send this field empty [] if you do not want to set any aliases',
             ],
-            'user' => 'Isolated user, remove this field to use the default user (vito)',
+            'user' => 'Isolated user, remove this field to auto-generate one from the domain',
+            'dns_provider_id' => 'Connected DNS provider ID, omit to skip automatic DNS record creation',
+            'provider_domain_id' => 'The zone ID for the domain on the DNS provider, required if dns_provider_id is set',
+            'create_dns_record' => 'Whether to automatically point the domain at the server (true/false, optional)',
+            'dns_record_proxied' => 'Whether the DNS record should be proxied (Cloudflare only, true/false, optional)',
         ];
     }
 

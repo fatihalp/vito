@@ -15,7 +15,8 @@ class VitoCommand extends Command
         {--ws-port=8085 : The port for the WebSocket server}
         {--no-horizon : Disable starting Laravel Horizon}
         {--no-schedule : Disable starting the schedule worker}
-        {--no-ws : Disable starting the WebSocket server}';
+        {--no-ws : Disable starting the WebSocket server}
+        {--no-build : Skip running npm run build before starting services}';
 
     protected $description = 'Start all required Vito background services (Horizon, Schedule, WebSocket, and optional Web Server)';
 
@@ -29,6 +30,10 @@ class VitoCommand extends Command
 
         $this->components->info('Clearing cached config, routes, views, and events...');
         $this->call('optimize:clear');
+
+        if (! $this->option('no-build')) {
+            $this->buildFrontendAssets();
+        }
 
         if (! $this->option('no-horizon')) {
             $this->components->info('Terminating any running Horizon master process...');
@@ -108,6 +113,21 @@ class VitoCommand extends Command
         }
 
         return 0;
+    }
+
+    protected function buildFrontendAssets(): void
+    {
+        $this->components->info('Building frontend assets (npm run build)...');
+
+        $process = new Process(['npm', 'run', 'build'], base_path());
+        $process->setTimeout(600);
+        $process->run(function (string $type, string $buffer): void {
+            $this->printFormattedOutput('Build', 'cyan', $buffer, isError: $type === Process::ERR);
+        });
+
+        if (! $process->isSuccessful()) {
+            $this->error('npm run build failed. Continuing with the existing build output.');
+        }
     }
 
     protected function anyProcessRunning(): bool

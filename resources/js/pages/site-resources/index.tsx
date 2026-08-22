@@ -13,11 +13,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDialog } from '@/hooks/use-dialog';
 import ServerLayout from '@/layouts/server/layout';
+import { useConfigs } from '@/stores/bootstrap-store';
 import type { Server } from '@/types/server';
 import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
 import type { Bucket } from '@/types/bucket';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import { DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
@@ -28,6 +29,11 @@ const resourceTypes: Array<{ value: ResourceType; label: string }> = [
   { value: 'cache', label: 'Cache (Redis) server' },
   { value: 'bucket', label: 'Bucket' },
 ];
+
+const defaultServiceName: Partial<Record<ResourceType, string>> = {
+  database: 'postgresql',
+  cache: 'redis',
+};
 
 const typeIcon = (type: ResourceType) => {
   if (type === 'database') return DatabaseIcon;
@@ -45,6 +51,8 @@ export default function SiteResources() {
     credentialsConnected?: boolean;
   }>();
   const dialog = useDialog();
+  const configs = useConfigs();
+  const installForm = useForm<{ name: string; version: string }>({ name: '', version: '' });
   const connectedTypes = new Set(page.props.resources.map((resource) => resource.type_value));
   const availableTypes = resourceTypes.filter((type) => !connectedTypes.has(type.value));
   const [isCreatingBucket, setIsCreatingBucket] = useState(page.props.buckets.length === 0);
@@ -88,6 +96,21 @@ export default function SiteResources() {
         setIsCreatingBucket(page.props.buckets.length === 0);
       },
     });
+  };
+
+  const installDefaultService = () => {
+    if (form.data.type !== 'database' && form.data.type !== 'cache') {
+      return;
+    }
+
+    const name = defaultServiceName[form.data.type];
+    if (!name || !configs) {
+      return;
+    }
+
+    const versions = configs.service.services[name]?.versions ?? [];
+    installForm.transform(() => ({ name, version: versions[0] ?? 'latest' }));
+    installForm.post(route('services.store', { server: page.props.server.id }), { preserveScroll: true });
   };
 
   return (
@@ -210,14 +233,13 @@ export default function SiteResources() {
                     <AlertDescription className="flex items-center justify-between gap-4">
                       <span>
                         {matchingServers.length > 0
-                          ? `${selectedDefinition?.label} isn't installed on this server yet — install it to use it locally, or pick from the list.`
-                          : `No ready ${selectedDefinition?.label.toLowerCase()} available. Install one on this server to use it locally.`}
+                          ? `${selectedDefinition?.label} isn't installed on this server yet — install ${defaultServiceName[form.data.type] ?? ''} to use it locally, or pick from the list.`
+                          : `No ready ${selectedDefinition?.label.toLowerCase()} available. Install ${defaultServiceName[form.data.type] ?? ''} on this server to use it locally.`}
                       </span>
-                      <Link href={route('services', { server: page.props.server.id })}>
-                        <Button size="sm" variant="outline" type="button">
-                          Install
-                        </Button>
-                      </Link>
+                      <Button size="sm" variant="outline" type="button" disabled={installForm.processing} onClick={installDefaultService}>
+                        {installForm.processing && <LoaderCircleIcon className="animate-spin" />}
+                        Install {defaultServiceName[form.data.type] ?? ''}
+                      </Button>
                     </AlertDescription>
                   </Alert>
                 )}

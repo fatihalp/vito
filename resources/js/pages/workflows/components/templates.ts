@@ -13,6 +13,10 @@ export interface WorkflowTemplateConfig {
   plan?: string;
   region?: string;
   domain?: string;
+  dnsProviderId?: number | string;
+  providerDomainId?: string;
+  createDnsRecord?: boolean;
+  dnsRecordProxied?: boolean;
   repository?: string;
   branch?: string;
   dbName?: string;
@@ -63,8 +67,12 @@ function chainEdges(nodeIds: string[]): Edge[] {
   return nodeIds.slice(1).map((target, index) => makeEdge(nodeIds[index], target));
 }
 
-type ResolvedConfig = Required<Omit<WorkflowTemplateConfig, 'workflowName' | 'serverProviderId'>> & {
+type ResolvedConfig = Required<
+  Omit<WorkflowTemplateConfig, 'workflowName' | 'serverProviderId' | 'dnsProviderId' | 'providerDomainId'>
+> & {
   serverProviderId: number | string;
+  dnsProviderId: number | string;
+  providerDomainId: string;
 };
 
 function resolveConfig(config: WorkflowTemplateConfig): ResolvedConfig {
@@ -73,6 +81,10 @@ function resolveConfig(config: WorkflowTemplateConfig): ResolvedConfig {
     plan: config.plan || 'cx22',
     region: config.region || 'fsn1',
     domain: config.domain || 'app.example.com',
+    dnsProviderId: config.dnsProviderId || '',
+    providerDomainId: config.providerDomainId || '',
+    createDnsRecord: config.createDnsRecord ?? false,
+    dnsRecordProxied: config.dnsRecordProxied ?? false,
     repository: config.repository || 'laravel/laravel',
     branch: config.branch || 'main',
     dbName: config.dbName || 'laravel',
@@ -188,6 +200,10 @@ function createSiteAction(cfg: ResolvedConfig): NodeAction {
       branch: cfg.branch,
       web_directory: 'public',
       composer: 'true',
+      dns_provider_id: cfg.dnsProviderId,
+      provider_domain_id: cfg.providerDomainId,
+      create_dns_record: cfg.createDnsRecord,
+      dns_record_proxied: cfg.dnsRecordProxied,
     },
     outputs: SITE_OUTPUTS,
   };
@@ -223,7 +239,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: 'Laravel All-in-One (Single Server)',
     label: 'Single Server (All-in-One)',
     badge: 'Monolith',
-    description: 'Provisions a single Hetzner server equipped with the entire Laravel stack: Nginx, PHP 8.3, MySQL 8.4, Redis, and Supervisor.',
+    description: 'Nginx, PHP 8.3, MySQL 8.4, Redis, Supervisor — one server.',
     architecture: 'Single Server: Web, PHP-FPM, MySQL, Redis, Queues & Cron on 1 instance.',
     icon: 'server',
     provider: 'hetzner',
@@ -295,7 +311,7 @@ export const WORKFLOW_TEMPLATES: WorkflowTemplate[] = [
     name: 'Laravel Microservices (Multi-Server)',
     label: 'Multi-Server (Microservices)',
     badge: 'Distributed',
-    description: 'Deploys a scalable multi-server architecture on Hetzner with isolated DB, Worker/Redis, and App/Web servers.',
+    description: 'Dedicated DB, Worker/Redis, and App/Web servers.',
     architecture: 'Multi-Server: Dedicated Database Server + Dedicated Queue/Cache Server + Dedicated Web/App Server.',
     icon: 'boxes',
     provider: 'hetzner',
