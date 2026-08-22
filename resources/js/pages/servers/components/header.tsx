@@ -1,17 +1,13 @@
 import { Server } from '@/types/server';
-import { CheckIcon, CloudIcon, LoaderCircleIcon, LogsIcon, MousePointerClickIcon, SlashIcon, TerminalSquareIcon } from 'lucide-react';
+import { CheckIcon, CloudIcon, LoaderCircleIcon, MousePointerClickIcon, SlashIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import ServerActions from '@/pages/servers/components/actions';
 import { cn, humanizeStep } from '@/lib/utils';
 import { Site } from '@/types/site';
 import { StatusRipple } from '@/components/status-ripple';
 import { Badge } from '@/components/ui/badge';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { Button } from '@/components/ui/button';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
-
-import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 
 export default function ServerHeader({ server: initialServer, site: initialSite }: { server: Server; site?: Site }) {
   const server = useRealtimeRecord<Server>(initialServer, 'server')!;
@@ -156,37 +152,6 @@ export default function ServerHeader({ server: initialServer, site: initialSite 
             </>
           )}
         </div>
-      </div>
-      <div className="flex items-center space-x-1">
-        <Tooltip>
-          <InstantLogs server={server}>
-            <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                <LogsIcon className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-          </InstantLogs>
-          <TooltipContent>Logs (Ctrl + Shift + L)</TooltipContent>
-        </Tooltip>
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 p-0"
-              onClick={() => {
-                const url = route('console', { server: server.id });
-                window.open(url, `terminal-${server.id}`, 'width=900,height=600,menubar=no,toolbar=no,location=no,status=no');
-              }}
-            >
-              <TerminalSquareIcon className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Terminal</TooltipContent>
-        </Tooltip>
-
-        <ServerActions server={server} />
       </div>
     </div>
   );

@@ -6,10 +6,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';
+import ServerActions from '@/pages/servers/components/actions';
+import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 import { SharedData } from '@/types';
 import type { Server } from '@/types/server';
 import { Link, usePage } from '@inertiajs/react';
-import { ArrowRightIcon, GlobeIcon } from 'lucide-react';
+import { ArrowRightIcon, GlobeIcon, LogsIcon, TerminalSquareIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type OverviewSite, useOverviewResources } from '@/hooks/use-overview-resources';
 
@@ -35,6 +37,27 @@ export default function ServerOverview() {
 
   return (
     <Container className="max-w-5xl">
+      <div className="flex flex-wrap items-center gap-2">
+        <InstantLogs server={server}>
+          <Button variant="outline" size="sm">
+            <LogsIcon className="size-4" />
+            Logs
+          </Button>
+        </InstantLogs>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            const url = route('console', { server: server.id });
+            window.open(url, `terminal-${server.id}`, 'width=900,height=600,menubar=no,toolbar=no,location=no,status=no');
+          }}
+        >
+          <TerminalSquareIcon className="size-4" />
+          Terminal
+        </Button>
+        <ServerActions server={server} />
+      </div>
+
       <ServerBanners server={server} />
       <MetricsCards server={server} />
 

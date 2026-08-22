@@ -55,9 +55,9 @@ export default function ServerActions({ server }: { server: Server }) {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 w-8 p-0">
-          <span className="sr-only">Open menu</span>
-          <MoreVerticalIcon />
+        <Button variant="outline" size="sm">
+          <MoreVerticalIcon className="size-4" />
+          Server actions
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
