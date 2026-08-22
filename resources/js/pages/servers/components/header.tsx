@@ -1,30 +1,21 @@
 import { Server } from '@/types/server';
-import { CheckIcon, CloudIcon, LoaderCircleIcon, MousePointerClickIcon, SlashIcon } from 'lucide-react';
+import { CheckIcon, CloudIcon, LoaderCircleIcon, SlashIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { cn, humanizeStep } from '@/lib/utils';
-import { Site } from '@/types/site';
+import { cn } from '@/lib/utils';
 import { StatusRipple } from '@/components/status-ripple';
 import { Badge } from '@/components/ui/badge';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 
-export default function ServerHeader({ server: initialServer, site: initialSite }: { server: Server; site?: Site }) {
+export default function ServerHeader({ server: initialServer }: { server: Server }) {
   const server = useRealtimeRecord<Server>(initialServer, 'server')!;
-  const site = useRealtimeRecord<Site>(initialSite, 'site');
 
-  
   useEffect(() => {
     if (initialServer.status === 'installing' && (server.status === 'ready' || server.status === 'installation_failed')) {
       router.reload();
     }
   }, [server.status, initialServer.status]);
-
-  useEffect(() => {
-    if (initialSite?.status === 'installing' && site && (site.status === 'ready' || site.status === 'installation_failed')) {
-      router.reload();
-    }
-  }, [site?.status, initialSite?.status]);
 
   const statusForm = useForm();
 
@@ -48,110 +39,68 @@ export default function ServerHeader({ server: initialServer, site: initialSite 
 
   return (
     <div className="flex items-center justify-between border-b px-4 py-2">
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2 text-xs">
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="flex items-center space-x-1">
-                <CloudIcon className="size-4" />
-                <div className="hidden lg:inline-flex">{server.provider}</div>
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
+      <div className="flex items-center space-x-2 text-xs">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="flex items-center space-x-1">
+              <CloudIcon className="size-4" />
+              <div className="hidden lg:inline-flex">{server.provider}</div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <div>
+              <span className="lg:hidden">{server.provider}</span>
+              <span className="hidden lg:inline-flex">Server Provider</span>
+            </div>
+          </TooltipContent>
+        </Tooltip>
+        <SlashIcon className="size-3" />
+        <Badge variant={server.role_color}>{server.role}</Badge>
+        <SlashIcon className="size-3" />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            {ipCopied ? (
+              <CheckIcon className="text-success size-3" />
+            ) : (
               <div>
-                <span className="lg:hidden">{server.provider}</span>
-                <span className="hidden lg:inline-flex">Server Provider</span>
+                {statusForm.processing && <LoaderCircleIcon className="size-3 animate-spin" />}
+                {!statusForm.processing && <StatusRipple className="cursor-pointer" onClick={checkStatus} variant={server.status_color} />}
               </div>
-            </TooltipContent>
-          </Tooltip>
-          <SlashIcon className="size-3" />
-          <Badge variant={server.role_color}>{server.role}</Badge>
-          <SlashIcon className="size-3" />
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {ipCopied ? (
-                <CheckIcon className="text-success size-3" />
-              ) : (
-                <div>
-                  {statusForm.processing && <LoaderCircleIcon className="size-3 animate-spin" />}
-                  {!statusForm.processing && <StatusRipple className="cursor-pointer" onClick={checkStatus} variant={server.status_color} />}
+            )}
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <span>{server.status}</span>
+          </TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="cursor-pointer lg:inline-flex" onClick={() => copyIp(server.ip)}>
+              {server.ip}
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <span>Server IP</span>
+          </TooltipContent>
+        </Tooltip>
+        {['installing', 'installation_failed'].includes(server.status) && (
+          <>
+            <SlashIcon className="size-3" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center space-x-1">
+                  <LoaderCircleIcon className={cn('size-4', server.status === 'installing' ? 'text-brand animate-spin' : '')} />
+                  <div>{parseInt(server.progress || '0')}%</div>
+                  {server.status === 'installation_failed' && (
+                    <Badge className="ml-1" variant={server.status_color}>
+                      {server.status}
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <span>{server.status}</span>
-            </TooltipContent>
-          </Tooltip>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div className="cursor-pointer lg:inline-flex" onClick={() => copyIp(server.ip)}>
-                {server.ip}
-              </div>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">
-              <span>Server IP</span>
-            </TooltipContent>
-          </Tooltip>
-          {['installing', 'installation_failed'].includes(server.status) && (
-            <>
-              <SlashIcon className="size-3" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center space-x-1">
-                    <LoaderCircleIcon className={cn('size-4', server.status === 'installing' ? 'text-brand animate-spin' : '')} />
-                    <div>{parseInt(server.progress || '0')}%</div>
-                    {server.status === 'installation_failed' && (
-                      <Badge className="ml-1" variant={server.status_color}>
-                        {server.status}
-                      </Badge>
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">Status</TooltipContent>
-              </Tooltip>
-            </>
-          )}
-          {site && (
-            <>
-              <SlashIcon className="size-3" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <a href={site.url} target="_blank" className="flex items-center space-x-1 truncate">
-                    <MousePointerClickIcon className="size-4" />
-                    <div className="hidden max-w-[150px] overflow-x-hidden overflow-ellipsis lg:block">{site.domain}</div>
-                  </a>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  <span>{site.domain}</span>
-                </TooltipContent>
-              </Tooltip>
-            </>
-          )}
-          {site && ['installing', 'installation_failed'].includes(site.status) && (
-            <>
-              <SlashIcon className="size-3" />
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center space-x-1">
-                    <LoaderCircleIcon className={cn('size-4', site.status === 'installing' ? 'text-brand animate-spin' : '')} />
-                    <div>{parseInt((site.progress ?? 0).toString())}%</div>
-                    {site.status === 'installing' && site.progress_step && (
-                      <div className="text-muted-foreground hidden text-xs lg:block">{humanizeStep(site.progress_step)}</div>
-                    )}
-                    {site.status === 'installation_failed' && (
-                      <Badge className="ml-1" variant={site.status_color}>
-                        {site.status}
-                      </Badge>
-                    )}
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="bottom">
-                  {site.status === 'installing' && site.progress_step ? humanizeStep(site.progress_step) : 'Status'}
-                </TooltipContent>
-              </Tooltip>
-            </>
-          )}
-        </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Status</TooltipContent>
+            </Tooltip>
+          </>
+        )}
       </div>
     </div>
   );

@@ -6,14 +6,14 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import SiteBanners from '@/components/site-banners';
-import { BookOpenIcon, TriangleAlertIcon } from 'lucide-react';
+import { TriangleAlertIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import DateTime from '@/components/date-time';
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import { Site } from '@/types/site';
 import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import ChangeBranch from '@/pages/site-settings/components/branch';
 import { SourceControl } from '@/types/source-control';
 import CopyableBadge from '@/components/copyable-badge';
@@ -26,6 +26,15 @@ import BasicAuth from '@/pages/site-settings/components/basic-auth';
 import StatsToggle from '@/pages/site-settings/components/stats-toggle';
 import WebDirectory from './components/web-directory';
 import { useDialog } from '@/hooks/use-dialog';
+
+function Field({ label, children, className }: { label: ReactNode; children: ReactNode; className?: string }) {
+  return (
+    <div className={cn('flex items-center justify-between gap-3 border-b p-3', className)}>
+      <span className="shrink-0">{label}</span>
+      <div className="flex min-w-0 items-center justify-end gap-2">{children}</div>
+    </div>
+  );
+}
 
 export default function Databases() {
   const dialog = useDialog();
@@ -55,160 +64,147 @@ export default function Databases() {
               <CardDescription>Update site details</CardDescription>
             </div>
           </CardHeader>
-          <CardContent className="bg-background">
-            <div className="flex items-center justify-between p-4">
-              <span>ID</span>
-              <span className="text-muted-foreground">{page.props.site.id}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Domain</span>
-              <a href={page.props.site.url} target="_blank" className="text-muted-foreground hover:underline">
-                {page.props.site.domain}
-              </a>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Type</span>
-              <span className="text-muted-foreground">{page.props.site.type}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Source control</span>
-              {page.props.site.source_control_id ? (
-                <ChangeSourceControl site={page.props.site}>
+          <CardContent className="bg-background p-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2">
+              <Field label="ID">
+                <span className="text-muted-foreground">{page.props.site.id}</span>
+              </Field>
+
+              <Field label="Status">
+                <Badge variant={page.props.site.status_color}>{page.props.site.status}</Badge>
+              </Field>
+
+              <Field label="Domain" className="sm:col-span-2">
+                <a href={page.props.site.url} target="_blank" className="text-muted-foreground truncate hover:underline">
+                  {page.props.site.domain}
+                </a>
+              </Field>
+
+              <Field label="Type">
+                <span className="text-muted-foreground">{page.props.site.type}</span>
+              </Field>
+
+              <Field label="Web directory">
+                <WebDirectory site={page.props.site}>
                   <Button variant="outline" className="h-6">
-                    {page.props.sourceControl?.provider}
+                    {page.props.site.web_directory || '/'}
                   </Button>
-                </ChangeSourceControl>
-              ) : (
-                <span className="text-muted-foreground">-</span>
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Repository</span>
-              <span className="text-muted-foreground">{page.props.site.repository || '-'}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Branch</span>
-              {page.props.site.source_control_id ? (
-                <ChangeBranch site={page.props.site}>
-                  <Button variant="outline" className="h-6">
-                    {page.props.site.branch}
-                  </Button>
-                </ChangeBranch>
-              ) : (
-                '-'
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>VHost</span>
-              <VHostPreview site={page.props.site}>
-                <Button variant="outline" className="h-6">
-                  View VHost
-                </Button>
-              </VHostPreview>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <div className="flex items-center gap-2">
-                <span>VHost Template</span>
-                {page.props.site.has_custom_vhost_template && (
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <TriangleAlertIcon className="text-destructive h-4 w-4" />
-                      </TooltipTrigger>
-                      <TooltipContent>You are using a custom vhost template</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                </WebDirectory>
+              </Field>
+
+              <Field label="Source control">
+                {page.props.site.source_control_id ? (
+                  <ChangeSourceControl site={page.props.site}>
+                    <Button variant="outline" className="h-6">
+                      {page.props.sourceControl?.provider}
+                    </Button>
+                  </ChangeSourceControl>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
                 )}
-              </div>
-              <VHost site={page.props.site}>
-                <Button variant="outline" className="h-6">
-                  Edit Template
-                </Button>
-              </VHost>
-            </div>
-            {(page.props.site.webserver === 'nginx' || page.props.site.webserver === 'caddy') && (
-              <>
-                <Separator />
-                <div className="flex items-center justify-between p-4">
-                  <span>Basic Auth</span>
+              </Field>
+
+              <Field label="Branch">
+                {page.props.site.source_control_id ? (
+                  <ChangeBranch site={page.props.site}>
+                    <Button variant="outline" className="h-6">
+                      {page.props.site.branch}
+                    </Button>
+                  </ChangeBranch>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </Field>
+
+              <Field label="Repository" className="sm:col-span-2">
+                <span className="text-muted-foreground truncate">{page.props.site.repository || '-'}</span>
+              </Field>
+
+              <Field label="Path" className="sm:col-span-2">
+                <CopyableBadge text={page.props.site.path} />
+              </Field>
+
+              <Field label="VHost">
+                <VHostPreview site={page.props.site}>
+                  <Button variant="outline" className="h-6">
+                    View VHost
+                  </Button>
+                </VHostPreview>
+              </Field>
+
+              <Field
+                label={
+                  <div className="flex items-center gap-2">
+                    <span>VHost Template</span>
+                    {page.props.site.has_custom_vhost_template && (
+                      <TooltipProvider delayDuration={0}>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <TriangleAlertIcon className="text-destructive h-4 w-4" />
+                          </TooltipTrigger>
+                          <TooltipContent>You are using a custom vhost template</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                  </div>
+                }
+              >
+                <VHost site={page.props.site}>
+                  <Button variant="outline" className="h-6">
+                    Edit Template
+                  </Button>
+                </VHost>
+              </Field>
+
+              {(page.props.site.webserver === 'nginx' || page.props.site.webserver === 'caddy') && (
+                <Field label="Basic Auth">
                   <BasicAuth site={page.props.site}>
                     <Button variant="outline" className="h-6">
                       {page.props.site.basic_auth?.enabled ? `Enabled (${page.props.site.basic_auth.users.length})` : 'Disabled'}
                     </Button>
                   </BasicAuth>
-                </div>
-              </>
-            )}
-            {page.props.server.services['log_analysis'] && (
-              <>
-                <Separator />
-                <div className="flex items-center justify-between p-4">
-                  <span>Statistics</span>
+                </Field>
+              )}
+
+              {page.props.server.services['log_analysis'] && (
+                <Field label="Statistics">
                   <StatsToggle site={page.props.site}>
                     <Button variant="outline" className="h-6">
                       {page.props.site.stats_enabled ? 'Enabled' : 'Disabled'}
                     </Button>
                   </StatsToggle>
-                </div>
-              </>
-            )}
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Web directory</span>
-              <WebDirectory site={page.props.site}>
-                <Button variant="outline" className="h-6">
-                  {page.props.site.web_directory || '/'}
-                </Button>
-              </WebDirectory>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Path</span>
-              <CopyableBadge text={page.props.site.path} />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>PHP version</span>
-              {page.props.site.php_version ? (
-                <div className="flex items-center gap-2">
-                  <ChangePHPVersion site={page.props.site}>
-                    <Button variant="outline" className="h-6">
-                      {page.props.site.php_version}
-                    </Button>
-                  </ChangePHPVersion>
-                  {page.props.site.supports_php_settings && (
-                    <Button
-                      variant="outline"
-                      className="h-6"
-                      aria-label="Configure PHP settings"
-                      onClick={() => dialog.phpSettings.open({ site: page.props.site })}
-                    >
-                      Configure
-                    </Button>
-                  )}
-                </div>
-              ) : (
-                <span className="text-muted-foreground">-</span>
+                </Field>
               )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Status</span>
-              <Badge variant={page.props.site.status_color}>{page.props.site.status}</Badge>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Created at</span>
-              <span className="text-muted-foreground">
-                <DateTime date={page.props.site.created_at} />
-              </span>
+
+              <Field label="PHP version">
+                {page.props.site.php_version ? (
+                  <div className="flex items-center gap-2">
+                    <ChangePHPVersion site={page.props.site}>
+                      <Button variant="outline" className="h-6">
+                        {page.props.site.php_version}
+                      </Button>
+                    </ChangePHPVersion>
+                    {page.props.site.supports_php_settings && (
+                      <Button
+                        variant="outline"
+                        className="h-6"
+                        aria-label="Configure PHP settings"
+                        onClick={() => dialog.phpSettings.open({ site: page.props.site })}
+                      >
+                        Configure
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">-</span>
+                )}
+              </Field>
+
+              <Field label="Created at" className="sm:col-span-2 sm:border-b-0">
+                <span className="text-muted-foreground">
+                  <DateTime date={page.props.site.created_at} />
+                </span>
+              </Field>
             </div>
           </CardContent>
         </Card>

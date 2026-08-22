@@ -1,4 +1,5 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DNSProvider } from '@/types/dns-provider';
 import { Site } from '@/types/site';
@@ -6,16 +7,7 @@ import { Server } from '@/types/server';
 import { HostedDomain } from '@/types/hosted-domain';
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import {
-  BoxesIcon,
-  GlobeIcon,
-  ExternalLinkIcon,
-  SettingsIcon,
-  PlusIcon,
-  ShieldCheckIcon,
-  ShieldAlertIcon,
-  LoaderCircleIcon,
-} from 'lucide-react';
+import { BoxesIcon, ExternalLinkIcon, GlobeIcon, LoaderCircleIcon, PlusIcon, SettingsIcon, ShieldAlertIcon, ShieldCheckIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDialog } from '@/hooks/use-dialog';
 
@@ -28,6 +20,8 @@ interface EdgeNetworkDialogProps {
   hostedDomains?: HostedDomain[];
   domainProxyStatus?: Record<string, boolean>;
 }
+
+type DomainRow = { domain: string; type: HostedDomain['type'] };
 
 export default function EdgeNetworkDialog({
   open,
@@ -44,23 +38,24 @@ export default function EdgeNetworkDialog({
   const connectedCloudflare = dnsProviders.find((p) => p.connected && p.provider === 'cloudflare');
   const hasCloudflare = Boolean(connectedCloudflare);
 
-  const allDomains = [
-    { domain: site.domain, isPrimary: true },
-    ...hostedDomains.map((hd) => ({ domain: hd.domain, isPrimary: false })),
-  ];
+  const domains = Object.values(
+    [{ domain: site.domain, type: 'primary' as const }, ...hostedDomains].reduce<Record<string, DomainRow>>((acc, item) => {
+      const existing = acc[item.domain];
+      if (!existing || item.type === 'primary') {
+        acc[item.domain] = { domain: item.domain, type: item.type };
+      }
+      return acc;
+    }, {}),
+  ).sort((a, b) => (a.type === 'primary' ? -1 : b.type === 'primary' ? 1 : a.domain.localeCompare(b.domain)));
+
+  const protectedCount = domains.filter((d) => domainProxyStatus[d.domain] ?? hasCloudflare).length;
 
   const handleToggleProxy = (domainName: string, currentStatus: boolean) => {
     setTogglingDomain(domainName);
     router.post(
       route('sites.toggle-domain-proxy', { server: server.id, site: site.id }),
-      {
-        domain: domainName,
-        proxied: !currentStatus,
-      },
-      {
-        preserveScroll: true,
-        onFinish: () => setTogglingDomain(null),
-      },
+      { domain: domainName, proxied: !currentStatus },
+      { preserveScroll: true, onFinish: () => setTogglingDomain(null) },
     );
   };
 
@@ -78,99 +73,87 @@ export default function EdgeNetworkDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <DialogHeader className="pb-1">
-          <div className="flex items-center gap-2.5">
-            <div className="flex size-8 items-center justify-center rounded-lg border border-border/60 bg-muted/30">
-              <BoxesIcon className="size-4 text-foreground" />
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl" onCloseAutoFocus={(e) => e.preventDefault()}>
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <div className="bg-muted flex size-10 shrink-0 items-center justify-center rounded-lg border">
+              <BoxesIcon className="size-5" />
             </div>
-            <DialogTitle className="text-sm font-semibold">Edge Network & Security</DialogTitle>
+            <div className="flex flex-col gap-1">
+              <DialogTitle>Edge Network & Security</DialogTitle>
+              <DialogDescription>Cloudflare proxy, DDoS protection and CDN for {site.domain}</DialogDescription>
+            </div>
           </div>
         </DialogHeader>
 
-        <div className="space-y-3 py-1 text-xs">
-          {}
-          <div className="rounded-xl border border-border/70 bg-card p-3 flex items-center justify-between">
-            <div className="flex items-center gap-2.5">
-              <span className={cn('size-2 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
-              <div>
-                <span className="font-semibold text-foreground text-xs">
-                  {hasCloudflare ? (connectedCloudflare?.name || 'Cloudflare') : 'DNS Direct'}
-                </span>
-                <span className="text-muted-foreground block text-[11px]">
-                  {hasCloudflare ? 'DDoS Protection & CDN active' : 'Origin connection without proxy'}
+        <div className="flex flex-col gap-4 p-4">
+          <div className="flex items-center justify-between gap-4 rounded-lg border p-4">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className={cn('size-2.5 shrink-0 rounded-full', hasCloudflare ? 'bg-success' : 'bg-muted-foreground/50')} />
+              <div className="flex min-w-0 flex-col gap-0.5">
+                <span className="truncate font-medium">{hasCloudflare ? connectedCloudflare?.name || 'Cloudflare' : 'No edge provider'}</span>
+                <span className="text-muted-foreground text-sm">
+                  {hasCloudflare ? 'DDoS protection & CDN available' : 'Traffic reaches the server directly without a proxy'}
                 </span>
               </div>
             </div>
-
             {hasCloudflare ? (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs gap-1"
-                onClick={openCloudflareEdit}
-              >
-                <SettingsIcon className="size-3" />
+              <Button variant="outline" size="sm" onClick={openCloudflareEdit}>
+                <SettingsIcon className="size-4" />
                 Edit
               </Button>
             ) : (
-              <Button variant="outline" size="sm" asChild className="h-7 text-xs">
-                <Link href={route('dns-providers')}>Connect</Link>
+              <Button variant="outline" size="sm" asChild>
+                <Link href={route('dns-providers')}>Connect Cloudflare</Link>
               </Button>
             )}
           </div>
 
-          {}
-          <div className="rounded-xl border border-border/70 bg-card p-3 space-y-2">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-muted-foreground pb-1 border-b border-border/40">
-              <span>Domain Security (Cloudflare Proxy)</span>
-              <span>Status</span>
+          <div className="rounded-lg border">
+            <div className="flex items-center justify-between border-b px-4 py-3">
+              <span className="font-medium">Domains</span>
+              <span className="text-muted-foreground text-sm">
+                {hasCloudflare ? `${protectedCount} of ${domains.length} protected` : `${domains.length} ${domains.length === 1 ? 'domain' : 'domains'}`}
+              </span>
             </div>
-
-            <div className="space-y-1.5 pt-0.5">
-              {allDomains.map((item) => {
+            <div className="divide-y">
+              {domains.map((item) => {
                 const isProxied = domainProxyStatus[item.domain] ?? hasCloudflare;
                 const isUpdating = togglingDomain === item.domain;
 
                 return (
-                  <div key={item.domain} className="flex items-center justify-between py-1">
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <GlobeIcon className="size-3.5 text-muted-foreground shrink-0" />
-                      <span className="font-mono text-xs text-foreground truncate max-w-[170px]" title={item.domain}>
+                  <div key={item.domain} className="flex items-center justify-between gap-4 px-4 py-3">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <GlobeIcon className="text-muted-foreground size-4 shrink-0" />
+                      <span className="truncate font-mono text-sm" title={item.domain}>
                         {item.domain}
                       </span>
-                      {item.isPrimary && (
-                        <span className="text-[10px] text-muted-foreground bg-muted px-1.5 py-0.2 rounded font-sans">
-                          primary
-                        </span>
-                      )}
+                      <Badge variant={item.type === 'primary' ? 'default' : 'outline'} className="shrink-0 capitalize">
+                        {item.type}
+                      </Badge>
                     </div>
 
                     {hasCloudflare ? (
-                      <button
+                      <Button
                         type="button"
+                        variant={isProxied ? 'secondary' : 'outline'}
+                        size="sm"
                         disabled={isUpdating}
                         onClick={() => handleToggleProxy(item.domain, isProxied)}
-                        className={cn(
-                          'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-medium transition-colors border',
-                          isProxied
-                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20'
-                            : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
-                          isUpdating && 'opacity-60 pointer-events-none',
-                        )}
-                        title={isProxied ? 'Disable Cloudflare Proxy & Security' : 'Enable Cloudflare Proxy & Security'}
+                        className={cn('w-32 justify-start', isProxied && 'text-success')}
+                        title={isProxied ? 'Disable Cloudflare proxy' : 'Enable Cloudflare proxy'}
                       >
                         {isUpdating ? (
-                          <LoaderCircleIcon className="size-3 animate-spin" />
+                          <LoaderCircleIcon className="size-4 animate-spin" />
                         ) : isProxied ? (
-                          <ShieldCheckIcon className="size-3 text-emerald-500" />
+                          <ShieldCheckIcon className="size-4" />
                         ) : (
-                          <ShieldAlertIcon className="size-3 text-muted-foreground" />
+                          <ShieldAlertIcon className="size-4" />
                         )}
-                        <span>{isProxied ? 'Protected' : 'DNS Only'}</span>
-                      </button>
+                        {isProxied ? 'Protected' : 'DNS only'}
+                      </Button>
                     ) : (
-                      <span className="text-[11px] font-mono text-muted-foreground">DNS Direct</span>
+                      <span className="text-muted-foreground text-sm">Direct</span>
                     )}
                   </div>
                 );
@@ -178,61 +161,37 @@ export default function EdgeNetworkDialog({
             </div>
           </div>
 
-          {}
-          <div className="grid grid-cols-2 gap-2 pt-0.5">
-            <Button
-              variant="outline"
-              size="sm"
-              className="justify-start gap-1.5 h-8 text-xs"
-              onClick={openAddDomain}
-            >
-              <PlusIcon className="size-3 text-primary" />
-              <span>Add Domain</span>
+          <div className="grid gap-2 sm:grid-cols-4">
+            <Button variant="outline" className="justify-start" onClick={openAddDomain}>
+              <PlusIcon className="size-4" />
+              Add domain
             </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="justify-start gap-1.5 h-8 text-xs"
-            >
+            <Button variant="outline" className="justify-start" asChild>
               <Link href={route('hosted-domains', { server: server.id, site: site.id })}>
-                <GlobeIcon className="size-3 text-primary" />
-                <span>Domains</span>
+                <GlobeIcon className="size-4" />
+                Manage domains
               </Link>
             </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="justify-start gap-1.5 h-8 text-xs"
-            >
+            <Button variant="outline" className="justify-start" asChild>
               <Link href={route('dns-providers')}>
-                <SettingsIcon className="size-3 text-primary" />
-                <span>DNS Providers</span>
+                <SettingsIcon className="size-4" />
+                DNS providers
               </Link>
             </Button>
-
-            <Button
-              variant="outline"
-              size="sm"
-              asChild
-              className="justify-start gap-1.5 h-8 text-xs"
-            >
+            <Button variant="outline" className="justify-start" asChild>
               <a href="https://dash.cloudflare.com" target="_blank" rel="noopener noreferrer">
-                <ExternalLinkIcon className="size-3 text-primary" />
-                <span>Cloudflare ↗</span>
+                <ExternalLinkIcon className="size-4" />
+                Cloudflare
               </a>
             </Button>
           </div>
         </div>
 
-        <div className="flex justify-end pt-1">
+        <DialogFooter>
           <DialogClose asChild>
-            <Button variant="ghost" size="sm" className="h-7 text-xs">Close</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

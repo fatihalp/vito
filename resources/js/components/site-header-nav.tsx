@@ -1,9 +1,16 @@
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { StatusRipple } from '@/components/status-ripple';
+import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { cn, humanizeStep } from '@/lib/utils';
 import { type SharedData } from '@/types';
-import { Link, usePage } from '@inertiajs/react';
-import { ChevronDownIcon, GlobeIcon } from 'lucide-react';
+import type { Server } from '@/types/server';
+import type { Site } from '@/types/site';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ChevronDownIcon, ChevronLeftIcon, ExternalLinkIcon, LoaderCircleIcon, ServerIcon } from 'lucide-react';
+import { useEffect } from 'react';
 
 type SiteNavItem = {
   title: string;
@@ -25,8 +32,16 @@ function isActive(currentPath: string, item: SiteNavItem): boolean {
 
 export function SiteHeaderNav() {
   const page = usePage<SharedData>();
-  const site = page.props.site;
-  const server = page.props.server;
+  const initialSite = page.props.site;
+  const initialServer = page.props.server;
+  const site = useRealtimeRecord<Site>(initialSite, 'site');
+  const server = useRealtimeRecord<Server>(initialServer, 'server');
+
+  useEffect(() => {
+    if (initialSite?.status === 'installing' && site && (site.status === 'ready' || site.status === 'installation_failed')) {
+      router.reload();
+    }
+  }, [site?.status, initialSite?.status]);
 
   if (!site || !server) {
     return null;
@@ -52,14 +67,29 @@ export function SiteHeaderNav() {
     { title: 'Logs', href: route('sites.logs', routeParams) },
   ];
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
+  const siteInstalling = ['installing', 'installation_failed'].includes(site.status);
 
   return (
-    <nav aria-label="Site navigation" className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-4">
-      <div className="text-muted-foreground mr-2 flex shrink-0 items-center gap-1.5 text-xs font-medium tracking-wider uppercase" title="This site's settings">
-        <GlobeIcon className="size-3.5" />
-        Site
-      </div>
-      <div className="bg-border mr-1 h-5 w-px shrink-0" />
+    <nav aria-label="Site navigation" className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-2">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Link
+            href={route('servers.show', { server: server.id })}
+            className="hover:bg-muted text-muted-foreground hover:text-foreground flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
+          >
+            <ChevronLeftIcon className="size-3.5" />
+            <ServerIcon className="size-3.5" />
+            <span className="max-w-[120px] truncate font-medium">{server.name}</span>
+            <StatusRipple variant={server.status_color} />
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          Back to server · {server.ip} · {server.status}
+        </TooltipContent>
+      </Tooltip>
+
+      <div className="bg-border mx-1 h-5 w-px shrink-0" />
+
       {primaryItems.map((item) => {
         const active = isActive(currentPath, item);
 
@@ -104,6 +134,23 @@ export function SiteHeaderNav() {
           ))}
         </DropdownMenuContent>
       </DropdownMenu>
+
+      <div className="ml-auto flex shrink-0 items-center gap-2 pl-2">
+        {siteInstalling && (
+          <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            <LoaderCircleIcon className={cn('size-4', site.status === 'installing' && 'text-brand animate-spin')} />
+            <span>{parseInt((site.progress ?? 0).toString())}%</span>
+            {site.status === 'installing' && site.progress_step && <span className="hidden lg:inline">{humanizeStep(site.progress_step)}</span>}
+            {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
+          </div>
+        )}
+        <Button variant="outline" size="sm" className="h-8" asChild>
+          <a href={site.url} target="_blank" rel="noopener noreferrer">
+            <ExternalLinkIcon className="size-3.5" />
+            <span className="hidden sm:inline">Open site</span>
+          </a>
+        </Button>
+      </div>
     </nav>
   );
 }

@@ -800,42 +800,6 @@ export default function SiteResourceDiagram({
           </div>
 
         </div>
-
-        {}
-        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto">
-          <div className="flex items-center gap-1 bg-card/95 backdrop-blur-md p-1 rounded-2xl border border-border/70 shadow-lg">
-            {}
-            <button
-              type="button"
-              onClick={() => toggleMode(false)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition-all',
-                !isDetailed
-                  ? 'bg-muted text-foreground font-semibold shadow-xs border border-border/50'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <Rows3Icon className="size-3.5" />
-              <span>Simple</span>
-            </button>
-
-            {}
-            <button
-              type="button"
-              onClick={() => toggleMode(true)}
-              className={cn(
-                'flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-xl transition-all',
-                isDetailed
-                  ? 'bg-muted text-foreground font-semibold shadow-xs border border-border/50'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <CreditCardIcon className="size-3.5" />
-              <span>Detailed</span>
-            </button>
-          </div>
-        </div>
-
       </CardContent>
 
       {selectedResource && (

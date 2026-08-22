@@ -41,160 +41,165 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     return null;
   }
 
+  const serverId = page.props.server.id;
+  const services = page.props.server.services;
+
   const sidebarNavItems: NavItem[] = [
     {
       title: 'Overview',
-      href: route('servers.show', { server: page.props.server.id }),
-      onlyActivePath: route('servers.show', { server: page.props.server.id }),
+      href: route('servers.show', { server: serverId }),
+      onlyActivePath: route('servers.show', { server: serverId }),
       icon: HomeIcon,
     },
     {
-      title: 'Database',
-      href: route('databases', { server: page.props.server.id }),
+      title: 'Sites',
+      href: route('sites', { server: serverId }),
+      onlyActivePath: route('sites', { server: serverId }),
+      icon: MousePointerClickIcon,
+      isDisabled: isMenuDisabled,
+      hidden: !services['webserver'],
+    },
+    {
+      title: 'Data',
+      href: route('databases', { server: serverId }),
       icon: DatabaseIcon,
       isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['database'],
       children: [
         {
           title: 'Databases',
-          href: route('databases', { server: page.props.server.id }),
-          onlyActivePath: route('databases', { server: page.props.server.id }),
+          href: route('databases', { server: serverId }),
+          onlyActivePath: route('databases', { server: serverId }),
           icon: DatabaseIcon,
+          hidden: !services['database'],
         },
         {
-          title: 'Users',
-          href: route('database-users', { server: page.props.server.id }),
+          title: 'Database users',
+          href: route('database-users', { server: serverId }),
           icon: UsersIcon,
+          hidden: !services['database'],
+        },
+        {
+          title: 'Backups',
+          href: route('backups', { server: serverId }),
+          icon: CloudUploadIcon,
         },
       ],
     },
     {
-      title: 'Backups',
-      href: route('backups', { server: page.props.server.id }),
-      icon: CloudUploadIcon,
+      title: 'Automation',
+      href: route('cronjobs', { server: serverId }),
+      icon: ClockIcon,
       isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'Sites',
-      href: route('sites', { server: page.props.server.id }),
-      onlyActivePath: route('sites', { server: page.props.server.id }),
-      icon: MousePointerClickIcon,
-      isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['webserver'],
+      children: [
+        {
+          title: 'CronJobs',
+          href: route('cronjobs', { server: serverId }),
+          icon: ClockIcon,
+        },
+        {
+          title: 'Workers',
+          href: route('workers', { server: serverId }),
+          icon: ListEndIcon,
+          hidden: !services['process_manager'],
+        },
+      ],
     },
     {
       title: 'Security',
-      href: route('security', { server: page.props.server.id }),
+      href: route('security', { server: serverId }),
       icon: ShieldIcon,
       isDisabled: isMenuDisabled,
       children: [
         {
-          title: 'General',
-          href: route('security', { server: page.props.server.id }),
-          onlyActivePath: route('security', { server: page.props.server.id }),
+          title: 'Hardening',
+          href: route('security', { server: serverId }),
+          onlyActivePath: route('security', { server: serverId }),
           icon: ShieldIcon,
         },
         {
           title: 'Firewall',
-          href: route('firewall', { server: page.props.server.id }),
-          onlyActivePath: route('firewall', { server: page.props.server.id }),
+          href: route('firewall', { server: serverId }),
+          onlyActivePath: route('firewall', { server: serverId }),
           icon: FlameIcon,
-          hidden: !page.props.server.services['firewall'],
+          hidden: !services['firewall'],
+        },
+        {
+          title: 'SSH Keys',
+          href: route('server-ssh-keys', { server: serverId }),
+          icon: KeyIcon,
+        },
+        {
+          title: 'SSL',
+          href: route('server-ssls', { server: serverId }),
+          icon: LockIcon,
         },
       ],
     },
     {
-      title: 'Network',
-      href: route('servers.network', { server: page.props.server.id }),
-      icon: NetworkIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'CronJobs',
-      href: route('cronjobs', { server: page.props.server.id }),
-      icon: ClockIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'Workers',
-      href: route('workers', { server: page.props.server.id }),
-      icon: ListEndIcon,
-      isDisabled: isMenuDisabled,
-      hidden: !page.props.server.services['process_manager'],
-    },
-    {
-      title: 'SSH Keys',
-      href: route('server-ssh-keys', { server: page.props.server.id }),
-      icon: KeyIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'SSL',
-      href: route('server-ssls', { server: page.props.server.id }),
-      icon: LockIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'Services',
-      href: route('services', { server: page.props.server.id }),
+      title: 'System',
+      href: route('services', { server: serverId }),
       icon: CogIcon,
       isDisabled: isMenuDisabled,
       children: [
         {
           title: 'Services',
-          href: route('services', { server: page.props.server.id }),
-          onlyActivePath: route('services', { server: page.props.server.id }),
+          href: route('services', { server: serverId }),
+          onlyActivePath: route('services', { server: serverId }),
           icon: CogIcon,
         },
         {
           title: 'PHP',
-          href: route('php', { server: page.props.server.id }),
-          onlyActivePath: route('php', { server: page.props.server.id }),
+          href: route('php', { server: serverId }),
+          onlyActivePath: route('php', { server: serverId }),
           icon: PHPIcon,
-          hidden: !page.props.server.services['php'],
+          hidden: !services['php'],
+        },
+        {
+          title: 'Network',
+          href: route('servers.network', { server: serverId }),
+          icon: NetworkIcon,
+        },
+        {
+          title: 'Features',
+          href: route('server-features', { server: serverId }),
+          icon: BoxIcon,
         },
       ],
     },
     {
       title: 'Monitoring',
-      href: route('monitoring', { server: page.props.server.id }),
+      href: route('monitoring', { server: serverId }),
       icon: ChartLineIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
-      title: 'Logs',
-      href: route('logs', { server: page.props.server.id }),
-      icon: LogsIcon,
       children: [
         {
+          title: 'Metrics',
+          href: route('monitoring', { server: serverId }),
+          onlyActivePath: route('monitoring', { server: serverId }),
+          icon: ChartLineIcon,
+        },
+        {
           title: 'Server logs',
-          href: route('logs', { server: page.props.server.id }),
-          onlyActivePath: route('logs', { server: page.props.server.id }),
+          href: route('logs', { server: serverId }),
+          onlyActivePath: route('logs', { server: serverId }),
           icon: LogsIcon,
         },
         {
           title: 'Service logs',
-          href: route('logs.services', { server: page.props.server.id }),
-          onlyActivePath: route('logs.services', { server: page.props.server.id }),
+          href: route('logs.services', { server: serverId }),
+          onlyActivePath: route('logs.services', { server: serverId }),
           icon: CogIcon,
         },
         {
           title: 'Custom logs',
-          href: route('logs.remote', { server: page.props.server.id }),
-          onlyActivePath: route('logs.remote', { server: page.props.server.id }),
+          href: route('logs.remote', { server: serverId }),
+          onlyActivePath: route('logs.remote', { server: serverId }),
           icon: CloudIcon,
         },
       ],
     },
     {
-      title: 'Features',
-      href: route('server-features', { server: page.props.server.id }),
-      icon: BoxIcon,
-      isDisabled: isMenuDisabled,
-    },
-    {
       title: 'Settings',
-      href: route('server-settings', { server: page.props.server.id }),
+      href: route('server-settings', { server: serverId }),
       icon: Settings2Icon,
     },
   ];
@@ -207,7 +212,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       secondNavTitle={viewingSite ? undefined : server.name}
       secondNavSubtitle={viewingSite ? undefined : 'Server'}
     >
-      <ServerHeader server={server} site={page.props.site} />
+      {!viewingSite && <ServerHeader server={server} />}
 
       <div>{children}</div>
     </Layout>
