@@ -31,4 +31,6 @@ export interface SiteResourceServerOption {
   role_color: 'gray' | 'success' | 'info' | 'warning' | 'danger' | 'default';
   has_database: boolean;
   has_cache: boolean;
+  database_status: string | null;
+  cache_status: string | null;
 }

@@ -67,13 +67,24 @@ export default function SiteResources() {
     form.data.type === 'database' ? server.has_database : form.data.type === 'cache' ? server.has_cache : false;
   const currentServerOption = page.props.servers.find((server) => server.id === page.props.server.id);
   const currentServerHasService = !!currentServerOption && hasServiceForType(currentServerOption);
+  const currentServerStatus =
+    form.data.type === 'database'
+      ? currentServerOption?.database_status
+      : form.data.type === 'cache'
+        ? currentServerOption?.cache_status
+        : null;
+  const currentServerInstalling = currentServerStatus != null && currentServerStatus !== 'ready';
   const matchingServers =
     form.data.type === 'bucket' || form.data.type === ''
       ? []
-      : page.props.servers.filter((server) => server.role_value === form.data.type || (server.id === page.props.server.id && hasServiceForType(server)));
+      : page.props.servers.filter((server) => server.role_value === form.data.type || server.id === page.props.server.id);
   const targetSelected = form.data.type === 'bucket'
     ? (isCreatingBucket || page.props.buckets.length === 0 ? form.data.bucket_name.trim().length >= 3 : form.data.bucket_id !== '')
     : form.data.server_id !== '';
+  const targetsCurrentServerWithoutService =
+    form.data.type !== 'bucket' && form.data.type !== '' && form.data.server_id === String(page.props.server.id) && !currentServerHasService;
+
+  const [pendingConnect, setPendingConnect] = useState(false);
 
   useEffect(() => {
     if (!page.props.resources.some((resource) => resource.status === 'connecting')) {
@@ -87,8 +98,7 @@ export default function SiteResources() {
     return () => window.clearInterval(interval);
   }, [page.props.resources]);
 
-  const submit = (event: FormEvent) => {
-    event.preventDefault();
+  const connect = () => {
     form.post(route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }), {
       preserveScroll: true,
       onSuccess: () => {
@@ -98,8 +108,42 @@ export default function SiteResources() {
     });
   };
 
+  useEffect(() => {
+    if (!pendingConnect) {
+      return;
+    }
+
+    if (currentServerHasService) {
+      setPendingConnect(false);
+      connect();
+      return;
+    }
+
+    const interval = window.setInterval(() => {
+      router.reload({ only: ['servers'] });
+    }, 5_000);
+
+    return () => window.clearInterval(interval);
+  }, [pendingConnect, currentServerHasService]);
+
+  const submit = (event: FormEvent) => {
+    event.preventDefault();
+
+    if (targetsCurrentServerWithoutService) {
+      installDefaultService();
+      setPendingConnect(true);
+      return;
+    }
+
+    connect();
+  };
+
   const installDefaultService = () => {
     if (form.data.type !== 'database' && form.data.type !== 'cache') {
+      return;
+    }
+
+    if (currentServerInstalling) {
       return;
     }
 
@@ -198,20 +242,29 @@ export default function SiteResources() {
                         <SelectValue placeholder="Select a server" />
                       </SelectTrigger>
                       <SelectContent>
-                        {matchingServers.map((server) => (
-                          <SelectItem key={server.id} value={server.id.toString()}>
-                            {server.id === page.props.server.id ? `This server (${server.name})` : server.name} · {server.ip}
-                          </SelectItem>
-                        ))}
+                        {matchingServers.map((server) => {
+                          const isCurrent = server.id === page.props.server.id;
+                          const installed = hasServiceForType(server);
+                          const label = isCurrent
+                            ? installed
+                              ? `This server (${server.name})`
+                              : `This server (${server.name}) — install ${defaultServiceName[form.data.type as ResourceType] ?? ''}`
+                            : server.name;
+                          return (
+                            <SelectItem key={server.id} value={server.id.toString()}>
+                              {label} · {server.ip}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   )}
                   <InputError message={form.errors.server_id || form.errors.bucket_id || form.errors.bucket_name} />
                 </div>
 
-                <Button type="submit" disabled={!form.data.type || !targetSelected || form.processing}>
-                  {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <PlusIcon />}
-                  Connect
+                <Button type="submit" disabled={!form.data.type || !targetSelected || form.processing || pendingConnect}>
+                  {form.processing || pendingConnect ? <LoaderCircleIcon className="animate-spin" /> : <PlusIcon />}
+                  {targetsCurrentServerWithoutService ? `Install & Connect` : 'Connect'}
                 </Button>
 
                 {form.data.type === 'bucket' && (isCreatingBucket || page.props.buckets.length === 0) && (
@@ -232,14 +285,23 @@ export default function SiteResources() {
                     <InfoIcon />
                     <AlertDescription className="flex items-center justify-between gap-4">
                       <span>
-                        {matchingServers.length > 0
-                          ? `${selectedDefinition?.label} isn't installed on this server yet — install ${defaultServiceName[form.data.type] ?? ''} to use it locally, or pick from the list.`
-                          : `No ready ${selectedDefinition?.label.toLowerCase()} available. Install ${defaultServiceName[form.data.type] ?? ''} on this server to use it locally.`}
+                        {currentServerInstalling
+                          ? `Installing ${defaultServiceName[form.data.type] ?? ''} on this server (${currentServerStatus})… it will connect automatically once ready.`
+                          : matchingServers.length > 1
+                            ? `${selectedDefinition?.label} isn't installed on this server yet — pick "This server" above to install ${defaultServiceName[form.data.type] ?? ''} and connect automatically, or pick from the list.`
+                            : `No ready ${selectedDefinition?.label.toLowerCase()} available — pick "This server" above to install ${defaultServiceName[form.data.type] ?? ''} and connect automatically.`}
                       </span>
-                      <Button size="sm" variant="outline" type="button" disabled={installForm.processing} onClick={installDefaultService}>
-                        {installForm.processing && <LoaderCircleIcon className="animate-spin" />}
-                        Install {defaultServiceName[form.data.type] ?? ''}
-                      </Button>
+                      {!currentServerInstalling && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          type="button"
+                          disabled={installForm.processing}
+                          onClick={() => form.setData('server_id', String(page.props.server.id))}
+                        >
+                          This server
+                        </Button>
+                      )}
                     </AlertDescription>
                   </Alert>
                 )}
