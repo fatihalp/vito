@@ -30,11 +30,16 @@ class S3 extends AbstractStorageProvider
     {
         $credentials ??= $this->storageProvider->credentials;
 
-        if (isset($credentials['api_url']) && $credentials['api_url']) {
-            return $credentials['api_url'];
+        if (isset($credentials['api_url']) && trim($credentials['api_url']) !== '') {
+            $url = trim($credentials['api_url']);
+            if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
+                $url = 'https://' . $url;
+            }
+
+            return $url;
         }
 
-        $region = $credentials['region'];
+        $region = $credentials['region'] ?? 'us-east-1';
 
         return "https://s3.{$region}.amazonaws.com";
     }
@@ -44,19 +49,19 @@ class S3 extends AbstractStorageProvider
         return new S3Client($this->clientConfig);
     }
 
-    
     public function buildClientConfig(?array $credentials = null): array
     {
         $credentials ??= $this->storageProvider->credentials;
 
         $this->clientConfig = [
             'credentials' => [
-                'key' => $credentials['key'],
-                'secret' => $credentials['secret'],
+                'key' => trim($credentials['key']),
+                'secret' => trim($credentials['secret']),
             ],
-            'region' => $credentials['region'],
+            'region' => trim($credentials['region'] ?? 'us-east-1'),
             'version' => 'latest',
             'endpoint' => $this->getApiUrl($credentials),
+            'use_path_style_endpoint' => true,
         ];
 
         return $this->clientConfig;
@@ -76,13 +81,18 @@ class S3 extends AbstractStorageProvider
 
     public function credentialData(array $input): array
     {
+        $apiUrl = trim($input['api_url'] ?? '');
+        if ($apiUrl !== '' && ! str_starts_with($apiUrl, 'http://') && ! str_starts_with($apiUrl, 'https://')) {
+            $apiUrl = 'https://' . $apiUrl;
+        }
+
         return [
-            'api_url' => $input['api_url'] ?? '',
-            'key' => $input['key'],
-            'secret' => $input['secret'],
-            'region' => $input['region'],
-            'bucket' => $input['bucket'],
-            'path' => $input['path'] ?? '',
+            'api_url' => $apiUrl,
+            'key' => trim($input['key']),
+            'secret' => trim($input['secret']),
+            'region' => trim($input['region']),
+            'bucket' => trim($input['bucket']),
+            'path' => trim($input['path'] ?? ''),
         ];
     }
 

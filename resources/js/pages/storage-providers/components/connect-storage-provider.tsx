@@ -1,4 +1,4 @@
-import { Info, LoaderCircle } from 'lucide-react';
+import { ChevronDownIcon, InfoIcon, LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,6 +23,7 @@ import { DynamicFieldConfig } from '@/types/dynamic-field-config';
 import DynamicField from '@/components/ui/dynamic-field';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { SharedData } from '@/types';
+import { cn } from '@/lib/utils';
 
 type StorageProviderForm = {
   provider: string;
@@ -30,7 +31,48 @@ type StorageProviderForm = {
   global: boolean;
   app_key: string;
   app_secret: string;
+  [key: string]: any;
 };
+
+const S3_PRESETS = [
+  {
+    id: 'hetzner',
+    label: 'Hetzner',
+    apiUrl: 'https://fsn1.your-objectstorage.com',
+    region: 'eu-central',
+    hint: 'Endpoint: https://fsn1.your-objectstorage.com (or hel1, nbg1) | Network zone: eu-central',
+  },
+  {
+    id: 'aws',
+    label: 'AWS S3',
+    apiUrl: '',
+    region: 'us-east-1',
+    hint: 'Standard AWS S3 (API URL is left empty, Region: e.g. us-east-1, eu-west-1)',
+  },
+  {
+    id: 'digitalocean',
+    label: 'DigitalOcean',
+    apiUrl: 'https://fra1.digitaloceanspaces.com',
+    region: 'fra1',
+    hint: 'Endpoint: https://{region}.digitaloceanspaces.com | Region: e.g. fra1, nyc3, ams3',
+  },
+  {
+    id: 'cloudflare',
+    label: 'Cloudflare R2',
+    apiUrl: 'https://<account_id>.r2.cloudflarestorage.com',
+    region: 'auto',
+    hint: 'Endpoint: https://<account_id>.r2.cloudflarestorage.com | Region: auto',
+  },
+  {
+    id: 'custom',
+    label: 'Custom S3',
+    apiUrl: '',
+    region: '',
+    hint: '',
+  },
+];
+
+const OPTIONAL_FIELD_NAMES = ['path', 'port', 'ssl', 'passive'];
 
 export default function ConnectStorageProvider({
   defaultProvider,
@@ -42,17 +84,36 @@ export default function ConnectStorageProvider({
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
+  const [showOptional, setShowOptional] = useState(false);
+  const [activePreset, setActivePreset] = useState<string | null>(null);
 
   const configs = useConfigs()!;
   const csrfToken = usePage<SharedData>().props.csrf_token;
 
   const form = useForm<Required<StorageProviderForm>>({
-    provider: defaultProvider || 'local',
+    provider: defaultProvider || 's3',
     name: '',
     global: false,
     app_key: '',
     app_secret: '',
+    api_url: '',
+    key: '',
+    secret: '',
+    region: '',
+    bucket: '',
+    path: '',
   });
+
+  const selectPreset = (preset: (typeof S3_PRESETS)[number]) => {
+    setActivePreset(preset.id);
+    if (preset.id !== 'custom') {
+      form.setData((prev) => ({
+        ...prev,
+        api_url: preset.apiUrl,
+        region: preset.region,
+      }));
+    }
+  };
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
@@ -117,24 +178,36 @@ export default function ConnectStorageProvider({
     const providerConfig = configs.storage_provider.providers[form.data.provider];
     if (providerConfig?.form) {
       providerConfig.form.forEach((field: DynamicFieldConfig) => {
-        
         if (field.default !== undefined && (form.data[field.name] === '' || form.data[field.name] === undefined)) {
-          
           form.setData(field.name, field.default);
         }
       });
     }
   }, [form.data.provider, configs]);
 
+  // Open optional fields if any optional field has an error
+  useEffect(() => {
+    const hasOptionalError = Object.keys(form.errors).some((key) => OPTIONAL_FIELD_NAMES.includes(key) || key === 'global');
+    if (hasOptionalError) {
+      setShowOptional(true);
+    }
+  }, [form.errors]);
+
+  const rawFields: DynamicFieldConfig[] = configs.storage_provider.providers[form.data.provider]?.form ?? [];
+  const primaryFields = rawFields.filter((f) => !OPTIONAL_FIELD_NAMES.includes(f.name));
+  const optionalFields = rawFields.filter((f) => OPTIONAL_FIELD_NAMES.includes(f.name));
+
+  const currentPresetObj = S3_PRESETS.find((p) => p.id === activePreset);
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>{children}</DialogTrigger>
-      <DialogContent className="max-h-screen overflow-y-auto sm:max-w-lg">
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Connect to storage provider</DialogTitle>
           <DialogDescription className="sr-only">Connect to a new storage provider</DialogDescription>
         </DialogHeader>
-        <Form id="create-storage-provider-form" onSubmit={submit} className="p-4">
+        <Form id="create-storage-provider-form" onSubmit={submit} className="p-4 space-y-4">
           <FormFields>
             <FormField>
               <Label htmlFor="provider">Provider</Label>
@@ -143,6 +216,7 @@ export default function ConnectStorageProvider({
                 onValueChange={(value) => {
                   form.setData('provider', value);
                   form.clearErrors();
+                  setActivePreset(null);
                 }}
               >
                 <SelectTrigger id="provider">
@@ -160,41 +234,113 @@ export default function ConnectStorageProvider({
               </Select>
               <InputError message={form.errors.provider} />
             </FormField>
+
+            {/* S3 Quick Preset Selector */}
+            {form.data.provider === 's3' && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-foreground">S3 Service Preset</Label>
+                  <span className="text-[11px] text-muted-foreground">Click to auto-fill endpoint &amp; region</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {S3_PRESETS.map((p) => (
+                    <Button
+                      key={p.id}
+                      type="button"
+                      variant={activePreset === p.id ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 text-xs px-2.5"
+                      onClick={() => selectPreset(p)}
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+                {currentPresetObj?.hint && (
+                  <p className="text-[11px] text-muted-foreground font-mono bg-background/80 rounded px-2 py-1 border">
+                    {currentPresetObj.hint}
+                  </p>
+                )}
+              </div>
+            )}
+
             {form.data.provider === 'dropbox' && (
               <Alert>
-                <Info />
+                <InfoIcon className="size-4" />
                 <AlertTitle>Connect with Dropbox OAuth</AlertTitle>
                 <AlertDescription>
                   <p>Create a Dropbox app with offline access enabled, then add this redirect URI to its OAuth settings:</p>
-                  <code className="bg-muted block w-full rounded px-1.5 py-1 text-xs break-all">{route('storage-providers.dropbox.callback')}</code>
-                  <p>Enter the app key and secret below, then continue to Dropbox to authorize access.</p>
+                  <code className="bg-muted block w-full rounded px-1.5 py-1 text-xs break-all mt-1">
+                    {route('storage-providers.dropbox.callback')}
+                  </code>
+                  <p className="mt-1">Enter the app key and secret below, then continue to Dropbox to authorize access.</p>
                 </AlertDescription>
               </Alert>
             )}
+
             <FormField>
               <Label htmlFor="name">Name</Label>
-              <Input type="text" name="name" id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+              <Input
+                type="text"
+                name="name"
+                id="name"
+                placeholder="e.g. Hetzner Storage or Backups"
+                value={form.data.name}
+                onChange={(e) => form.setData('name', e.target.value)}
+              />
               <InputError message={form.errors.name} />
             </FormField>
-            {configs.storage_provider.providers[form.data.provider]?.form?.map((field: DynamicFieldConfig) => (
+
+            {/* Primary Required Fields */}
+            {primaryFields.map((field: DynamicFieldConfig) => (
               <DynamicField
                 key={`field-${field.name}`}
-                
                 value={form.data[field.name]}
-                
                 onChange={(value) => form.setData(field.name, value)}
                 config={field}
-                
                 error={form.errors[field.name]}
               />
             ))}
-            <FormField>
-              <div className="flex items-center space-x-3">
-                <Checkbox id="global" name="global" checked={form.data.global} onClick={() => form.setData('global', !form.data.global)} />
-                <Label htmlFor="global">Is global (accessible in all projects)</Label>
-              </div>
-              <InputError message={form.errors.global} />
-            </FormField>
+
+            {/* Collapsible Optional Fields */}
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowOptional(!showOptional)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
+              >
+                <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
+                <span>{showOptional ? 'Hide optional fields' : 'Show optional fields (Path, Global)'}</span>
+              </button>
+
+              {showOptional && (
+                <div className="mt-2 space-y-4 rounded-md border bg-muted/20 p-3 animate-in fade-in-50 duration-200">
+                  {optionalFields.map((field: DynamicFieldConfig) => (
+                    <DynamicField
+                      key={`field-${field.name}`}
+                      value={form.data[field.name]}
+                      onChange={(value) => form.setData(field.name, value)}
+                      config={field}
+                      error={form.errors[field.name]}
+                    />
+                  ))}
+                  <FormField>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="global"
+                        name="global"
+                        checked={form.data.global}
+                        onClick={() => form.setData('global', !form.data.global)}
+                      />
+                      <Label htmlFor="global" className="text-xs font-normal">
+                        Is global (accessible in all projects)
+                      </Label>
+                    </div>
+                    <InputError message={form.errors.global} />
+                  </FormField>
+                </div>
+              )}
+            </div>
           </FormFields>
         </Form>
         <DialogFooter>

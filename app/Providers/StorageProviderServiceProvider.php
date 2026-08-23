@@ -49,22 +49,28 @@ class StorageProviderServiceProvider extends ServiceProvider
                 DynamicForm::make([
                     DynamicField::make('api_url')
                         ->text()
-                        ->label('API URL'),
+                        ->label('API URL')
+                        ->placeholder('e.g. https://fsn1.your-objectstorage.com (leave empty for AWS)'),
                     DynamicField::make('key')
                         ->text()
-                        ->label('Access Key'),
+                        ->label('Access Key')
+                        ->placeholder('e.g. H2T4WXEB3RFBS8YGWV5U'),
                     DynamicField::make('secret')
-                        ->text()
-                        ->label('Secret Key'),
+                        ->passwordWithToggle()
+                        ->label('Secret Key')
+                        ->placeholder('e.g. uwEJcxpl...'),
                     DynamicField::make('region')
                         ->text()
-                        ->label('Region'),
+                        ->label('Region')
+                        ->placeholder('e.g. eu-central or us-east-1'),
                     DynamicField::make('bucket')
                         ->text()
-                        ->label('Bucket Name'),
+                        ->label('Bucket Name')
+                        ->placeholder('e.g. testfatih'),
                     DynamicField::make('path')
                         ->text()
-                        ->label('Path'),
+                        ->label('Path')
+                        ->placeholder('Optional subfolder, e.g. /backups'),
                 ])
             )
             ->register();

@@ -1,9 +1,9 @@
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
-import { LoaderCircleIcon } from 'lucide-react';
+import { ChevronDownIcon, LoaderCircleIcon } from 'lucide-react';
 import FormSuccessful from '@/components/form-successful';
-import { FormEvent } from 'react';
+import { FormEvent, useEffect, useState } from 'react';
 import InputError from '@/components/ui/input-error';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
@@ -13,6 +13,9 @@ import { StorageProvider } from '@/types/storage-provider';
 import DynamicField from '@/components/ui/dynamic-field';
 import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import { useConfigs } from '@/stores/bootstrap-store';
+import { cn } from '@/lib/utils';
+
+const OPTIONAL_FIELD_NAMES = ['path', 'port', 'ssl', 'passive'];
 
 export default function StorageProviderEditDialog({
   open,
@@ -24,6 +27,8 @@ export default function StorageProviderEditDialog({
   storageProvider: StorageProvider;
 }) {
   const configs = useConfigs()!;
+  const [showOptional, setShowOptional] = useState(false);
+
   const editFields: DynamicFieldConfig[] = configs.storage_provider.providers[storageProvider.provider]?.edit_form ?? [];
 
   const form = useForm<{ name: string; global: boolean } & Record<string, DynamicFieldValue>>({
@@ -39,21 +44,32 @@ export default function StorageProviderEditDialog({
     });
   };
 
+  useEffect(() => {
+    const hasOptionalError = Object.keys(form.errors).some((key) => OPTIONAL_FIELD_NAMES.includes(key) || key === 'global');
+    if (hasOptionalError) {
+      setShowOptional(true);
+    }
+  }, [form.errors]);
+
+  const primaryFields = editFields.filter((f) => !OPTIONAL_FIELD_NAMES.includes(f.name));
+  const optionalFields = editFields.filter((f) => OPTIONAL_FIELD_NAMES.includes(f.name));
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-screen overflow-y-auto sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>Edit {storageProvider.name}</DialogTitle>
           <DialogDescription className="sr-only">Edit storage provider</DialogDescription>
         </DialogHeader>
-        <Form id="edit-storage-provider-form" className="p-4" onSubmit={submit}>
+        <Form id="edit-storage-provider-form" className="p-4 space-y-4" onSubmit={submit}>
           <FormFields>
             <FormField>
               <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
-            {editFields.map((field) => (
+
+            {primaryFields.map((field) => (
               <DynamicField
                 key={`field-${field.name}`}
                 value={form.data[field.name]}
@@ -62,18 +78,46 @@ export default function StorageProviderEditDialog({
                 error={form.errors[field.name]}
               />
             ))}
-            <FormField>
-              <div className="flex items-center space-x-3">
-                <Checkbox
-                  id="global"
-                  name="global"
-                  checked={form.data.global}
-                  onCheckedChange={(checked) => form.setData('global', Boolean(checked))}
-                />
-                <Label htmlFor="global">Is global (accessible in all projects)</Label>
-              </div>
-              <InputError message={form.errors.global} />
-            </FormField>
+
+            <div className="pt-1">
+              <button
+                type="button"
+                onClick={() => setShowOptional(!showOptional)}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
+              >
+                <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
+                <span>{showOptional ? 'Hide optional fields' : 'Show optional fields (Path, Global)'}</span>
+              </button>
+
+              {showOptional && (
+                <div className="mt-2 space-y-4 rounded-md border bg-muted/20 p-3 animate-in fade-in-50 duration-200">
+                  {optionalFields.map((field) => (
+                    <DynamicField
+                      key={`field-${field.name}`}
+                      value={form.data[field.name]}
+                      onChange={(value) => form.setData(field.name, value)}
+                      config={field}
+                      error={form.errors[field.name]}
+                    />
+                  ))}
+                  <FormField>
+                    <div className="flex items-center space-x-3">
+                      <Checkbox
+                        id="global"
+                        name="global"
+                        checked={form.data.global}
+                        onCheckedChange={(checked) => form.setData('global', Boolean(checked))}
+                      />
+                      <Label htmlFor="global" className="text-xs font-normal">
+                        Is global (accessible in all projects)
+                      </Label>
+                    </div>
+                    <InputError message={form.errors.global} />
+                  </FormField>
+                </div>
+              )}
+            </div>
+
             <FormField>
               <InputError message={form.errors.provider} />
             </FormField>
