@@ -15,6 +15,7 @@ import { PlusIcon } from 'lucide-react';
 
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
+import { useDialog } from '@/hooks/use-dialog';
 
 type Page = {
   server: Server;
@@ -23,6 +24,7 @@ type Page = {
 
 export default function Databases() {
   const page = usePage<Page>();
+  const dialog = useDialog();
 
   const dbType = page.props.server.services['database'];
   const defaultCharset = dbType === 'postgresql' ? 'UTF8' : 'utf8mb4';
@@ -34,7 +36,13 @@ export default function Databases() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Databases" />
+          <Heading
+            title={
+              page.props.server.counts?.databases !== undefined
+                ? `Databases (${page.props.server.counts.databases})`
+                : 'Databases'
+            }
+          />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

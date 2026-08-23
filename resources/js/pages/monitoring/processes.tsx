@@ -94,7 +94,7 @@ export default function Processes() {
   const killProcess = (pid: number) => {
     dialog.confirm.open({
       title: 'Kill Process',
-      description: `Process #${pid} sonlandırılacak. Devam etmek istiyor musunuz?`,
+      description: `Process #${pid} will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill',
       method: 'post',
       url: route('monitoring.processes.kill', { server: server.id }),
@@ -106,7 +106,7 @@ export default function Processes() {
     if (selectedUser === 'all') return;
     dialog.confirm.open({
       title: `Kill all processes for "${selectedUser}"`,
-      description: `"${selectedUser}" kullanıcısına ait tüm prosesler sonlandırılacak.`,
+      description: `All processes for user "${selectedUser}" will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill All',
       method: 'post',
       url: route('monitoring.processes.kill-user', { server: server.id }),

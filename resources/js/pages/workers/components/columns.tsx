@@ -79,10 +79,33 @@ function Actions({ worker }: { worker: Worker }) {
 function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Worker>[] {
   return [
     {
+      id: 'actions',
+      enableColumnFilter: false,
+      enableSorting: false,
+      cell: ({ row }) => {
+        return <Actions worker={row.original} />;
+      },
+    },
+    {
       accessorKey: 'name',
-      header: 'Name',
+      header: 'Worker',
       enableColumnFilter: true,
       enableSorting: true,
+      cell: ({ row }) => {
+        const siteId = row.original.site_id;
+        const site = siteId ? sites?.find((s) => s.id === siteId) : null;
+        return (
+          <div className="flex flex-col min-w-0 max-w-[200px]">
+            <span className="font-semibold text-xs leading-tight text-foreground truncate" title={row.original.name}>
+              {row.original.name}
+            </span>
+            <span className="text-[11px] text-muted-foreground truncate">
+              {row.original.user}
+              {site ? ` • ${site.domain}` : ''}
+            </span>
+          </div>
+        );
+      },
     },
     {
       accessorKey: 'command',
@@ -94,34 +117,17 @@ function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Wo
       },
     },
     {
-      accessorKey: 'user',
-      header: 'User',
-      enableColumnFilter: true,
-      enableSorting: true,
-    },
-    {
-      accessorKey: 'site_id',
-      header: 'Site',
+      accessorKey: 'numprocs',
+      header: 'Procs',
       enableColumnFilter: true,
       enableSorting: true,
       cell: ({ row }) => {
-        const siteId = row.original.site_id;
-        if (!siteId) {
-          return <span>-</span>;
-        }
-        const site = sites?.find((s) => s.id === siteId);
-        return <span>{site ? site.domain : `Site #${siteId}`}</span>;
+        return <span className="font-mono text-xs text-muted-foreground">{row.original.numprocs}</span>;
       },
     },
     {
-      accessorKey: 'numprocs',
-      header: 'Numprocs',
-      enableColumnFilter: true,
-      enableSorting: true,
-    },
-    {
       accessorKey: 'created_at',
-      header: 'Created at',
+      header: 'Created',
       enableColumnFilter: true,
       enableSorting: true,
       cell: ({ row }) => {
@@ -140,14 +146,6 @@ function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Wo
             <ErrorIndicator error={row.original.error} label={`Worker "${row.original.name}" error`} />
           </div>
         );
-      },
-    },
-    {
-      id: 'actions',
-      enableColumnFilter: false,
-      enableSorting: false,
-      cell: ({ row }) => {
-        return <Actions worker={row.original} />;
       },
     },
   ];

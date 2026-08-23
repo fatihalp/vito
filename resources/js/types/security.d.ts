@@ -23,6 +23,7 @@ export interface PasswordAuthState {
   detected?: boolean | null;
   status: string;
   status_color: SecurityStatusColor;
+  log_id?: number | null;
 }
 
 export interface RootLoginState {
@@ -31,4 +32,5 @@ export interface RootLoginState {
   status: string;
   status_color: SecurityStatusColor;
   manageable: boolean;
+  log_id?: number | null;
 }

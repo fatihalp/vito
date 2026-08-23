@@ -28,3 +28,5 @@ if [ "$KBD_EFFECTIVE" != "no" ]; then
 fi
 
 sudo systemctl reload ssh
+echo "Password authentication disabled successfully."
+echo "Public key authentication: enabled"

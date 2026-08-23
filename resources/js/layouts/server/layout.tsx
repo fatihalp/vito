@@ -72,20 +72,20 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       flyoutContent: <RecentSitesFlyout server={server} />,
     },
     {
-      title: 'Databases',
+      title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
       href: route('databases', { server: serverId }),
       icon: DatabaseIcon,
       isDisabled: isMenuDisabled,
       hidden: !services['database'],
       children: [
         {
-          title: 'Databases',
+          title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
           href: route('databases', { server: serverId }),
           onlyActivePath: route('databases', { server: serverId }),
           icon: DatabaseIcon,
         },
         {
-          title: 'Database users',
+          title: server.counts?.database_users !== undefined ? `Database users (${server.counts.database_users})` : 'Database users',
           href: route('database-users', { server: serverId }),
           icon: UsersIcon,
         },
@@ -172,7 +172,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       ],
     },
     {
-      title: 'Monitoring',
+      title: 'Monitor & Logs',
       href: route('monitoring', { server: serverId }),
       icon: ChartLineIcon,
       children: [

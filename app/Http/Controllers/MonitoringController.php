@@ -202,4 +202,25 @@ class MonitoringController extends Controller
 
         return back()->with('success', 'Log file cleared successfully.');
     }
+
+    #[Post('/log-rotation/clear-all', name: 'monitoring.log-rotation.clear-all')]
+    public function clearAllLogs(Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        $logs = app(GetLogRotationData::class)->handle($server);
+        $clearServiceLog = app(ClearServiceLog::class);
+
+        foreach ($logs as $log) {
+            if ($log['clearable'] ?? false) {
+                try {
+                    $clearServiceLog->run($server, ['key' => $log['key']]);
+                } catch (\Throwable) {
+                    // continue
+                }
+            }
+        }
+
+        return back()->with('success', 'All clearable log files cleared successfully.');
+    }
 }

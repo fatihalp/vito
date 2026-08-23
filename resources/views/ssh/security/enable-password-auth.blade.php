@@ -17,3 +17,4 @@ if [ "$EFFECTIVE" != "yes" ]; then
 fi
 
 sudo systemctl reload ssh
+echo "Password authentication enabled successfully."

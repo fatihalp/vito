@@ -26,6 +26,6 @@ class ManagePasswordAuth
         ]);
         $server->jsonUpdate('feature_data', 'security', $security);
 
-        dispatch(new ApplySecuritySettingJob($server, 'password_auth', $enabled))->onQueue('ssh');
+        dispatch(new ApplySecuritySettingJob($server, 'password_authentication', $enabled))->onQueue('ssh');
     }
 }

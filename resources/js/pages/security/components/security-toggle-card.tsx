@@ -1,8 +1,10 @@
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { LoaderCircleIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { LoaderCircleIcon, TerminalIcon } from 'lucide-react';
 import { useDialog } from '@/hooks/use-dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ControlBadge({ status, color, secure }: { status: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; secure: boolean }) {
   if (status === 'disabled') {
@@ -25,9 +27,11 @@ interface SecurityToggleState {
   enabled: boolean;
   detected: boolean | null;
   manageable?: boolean;
+  log_id?: number | null;
 }
 
 interface SecurityToggleCardProps {
+  serverId: number;
   title: string;
   description: string | React.ReactNode;
   state: SecurityToggleState;
@@ -35,15 +39,27 @@ interface SecurityToggleCardProps {
 }
 
 export default function SecurityToggleCard({
+  serverId,
   title,
   description,
   state,
   onToggle,
 }: SecurityToggleCardProps) {
+  const dialog = useDialog();
   const updating = state.status === 'updating';
   const secure = !state.enabled;
   const drift = !updating && state.detected != null && state.detected !== state.enabled;
   const disabled = updating || (state.manageable !== undefined && !state.manageable);
+
+  const openLog = () => {
+    if (state.log_id) {
+      dialog.logViewer.open({
+        serverId,
+        logId: state.log_id,
+        title: `${title} - Log`,
+      });
+    }
+  };
 
   return (
     <Card>
@@ -57,7 +73,27 @@ export default function SecurityToggleCard({
             </CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          <Switch checked={secure} disabled={disabled} onCheckedChange={onToggle} aria-label={title} />
+          <div className="flex items-center gap-2">
+            {state.log_id && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-8"
+                    onClick={openLog}
+                    aria-label="View console output"
+                  >
+                    <TerminalIcon className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>View console output</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Switch checked={secure} disabled={disabled} onCheckedChange={onToggle} aria-label={title} />
+          </div>
         </div>
       </CardHeader>
     </Card>

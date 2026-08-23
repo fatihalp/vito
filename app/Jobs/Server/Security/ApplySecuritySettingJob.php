@@ -69,7 +69,10 @@ class ApplySecuritySettingJob implements ShouldQueue
     {
         $this->server->refresh();
         $security = $this->server->feature_data['security'] ?? [];
-        $security[$this->setting] = array_merge($security[$this->setting] ?? [], $values);
+        $key = ($this->setting === 'password_auth' || $this->setting === 'password_authentication')
+            ? 'password_authentication'
+            : $this->setting;
+        $security[$key] = array_merge($security[$key] ?? [], $values);
         $this->server->jsonUpdate('feature_data', 'security', $security);
     }
 

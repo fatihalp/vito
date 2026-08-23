@@ -107,6 +107,7 @@ class ServiceController extends Controller
         ]));
     }
 
+    #[Post('/{service}', name: 'services.manage')]
     public function manage(Request $request, Server $server, Service $service): RedirectResponse
     {
         $action = $request->input('action');

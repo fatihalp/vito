@@ -243,6 +243,7 @@ export default function Security() {
   }>();
 
   const serverId = page.props.server.id;
+  const dialog = useDialog();
   const [checking, setChecking] = useState(false);
 
   useSocketListener(
@@ -300,7 +301,8 @@ export default function Security() {
           />
           <FirewallCard server={serverId} firewall={page.props.firewall} />
           <Fail2banCard server={serverId} fail2ban={page.props.fail2ban} />
-          <SecurityToggleCard 
+          <SecurityToggleCard
+            serverId={serverId}
             title="Disable password authentication"
             description="When on, SSH access requires a key and password logins are refused (global default only)."
             state={page.props.passwordAuth}
@@ -318,7 +320,8 @@ export default function Security() {
               });
             }}
           />
-          <SecurityToggleCard 
+          <SecurityToggleCard
+            serverId={serverId}
             title="Disable root SSH login"
             description={page.props.rootLogin.manageable ? 'When on, the root user cannot log in over SSH.' : 'Vito currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
             state={page.props.rootLogin}

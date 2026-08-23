@@ -35,8 +35,8 @@ function formatBytes(b: number): string {
 }
 
 function SizeCell({ entry }: { entry: LogEntry }) {
-  if (!entry.exists) return <span className="text-muted-foreground text-xs">Dosya yok</span>;
-  if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">Boş</span>;
+  if (!entry.exists) return <span className="text-muted-foreground text-xs">File not found</span>;
+  if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">Empty</span>;
 
   const color =
     entry.size_bytes > 100 * 1024 * 1024 ? 'danger' :
@@ -52,7 +52,7 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
     return (
       <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
         <Trash2Icon className="size-4" />
-        <span>Temizle</span>
+        <span>Clear</span>
       </Button>
     );
   }
@@ -64,9 +64,9 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
       className="text-destructive hover:text-destructive"
       onClick={() =>
         dialog.confirm.open({
-          title: 'Log Dosyasını Temizle',
-          description: `"${entry.label}" adlı log dosyası temizlenecek. Bu işlem geri alınamaz.`,
-          confirmLabel: 'Temizle',
+          title: 'Clear Log File',
+          description: `The log file "${entry.label}" will be cleared. This action cannot be undone.`,
+          confirmLabel: 'Clear',
           method: 'post',
           url: route('monitoring.log-rotation.clear', { server: serverId }),
           data: { key: entry.key },
@@ -74,7 +74,7 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
       }
     >
       <Trash2Icon className="size-4" />
-      <span>Temizle</span>
+      <span>Clear</span>
     </Button>
   );
 }
@@ -95,9 +95,9 @@ export default function LogRotation() {
   const handleClearAll = () => {
     if (clearable.length === 0) return;
     dialog.confirm.open({
-      title: 'Tüm Log Dosyalarını Temizle',
-      description: `${clearable.length} adet log dosyası temizlenecek (toplam ${formatBytes(totalSize)}). Bu işlem geri alınamaz.`,
-      confirmLabel: 'Tümünü Temizle',
+      title: 'Clear All Log Files',
+      description: `${clearable.length} log files will be cleared (total ${formatBytes(totalSize)}). This action cannot be undone.`,
+      confirmLabel: 'Clear All',
       method: 'post',
       url: route('monitoring.log-rotation.clear-all', { server: server.id }),
       data: {},
@@ -112,23 +112,23 @@ export default function LogRotation() {
         <HeaderContainer>
           <Heading
             title="Log Rotation"
-            description="Sunucu ve site log dosyalarını görüntüleyin ve temizleyin"
+            description="View and rotate server and service log files"
           />
           <div className="flex items-center gap-2">
             {totalSize > 0 && (
               <span className="text-muted-foreground text-sm">
-                Toplam: <strong>{formatBytes(totalSize)}</strong>
+                Total: <strong>{formatBytes(totalSize)}</strong>
               </span>
             )}
             {clearable.length > 0 && (
               <Button variant="destructive" onClick={handleClearAll}>
                 <Trash2Icon className="size-4" />
-                <span>Tümünü Temizle</span>
+                <span>Clear All</span>
               </Button>
             )}
             <Button variant="outline" onClick={() => window.location.reload()}>
               <RefreshCwIcon className="size-4" />
-              <span className="hidden lg:block">Yenile</span>
+              <span className="hidden lg:block">Refresh</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -136,8 +136,8 @@ export default function LogRotation() {
         {logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border p-16 text-center">
             <FileTextIcon className="text-muted-foreground mb-4 size-10" />
-            <p className="text-muted-foreground">Gösterilecek log dosyası bulunamadı.</p>
-            <p className="text-muted-foreground mt-1 text-sm">Sunucuda en az bir servis kurulu olmalıdır.</p>
+            <p className="text-muted-foreground">No log files found.</p>
+            <p className="text-muted-foreground mt-1 text-sm">At least one service must be installed on the server.</p>
           </div>
         ) : (
           <div className="space-y-6">
@@ -146,15 +146,17 @@ export default function LogRotation() {
                 <div className="bg-muted/40 flex items-center gap-2 border-b px-4 py-2.5">
                   <FileTextIcon className="text-muted-foreground size-4" />
                   <span className="text-sm font-semibold">{serviceLabel}</span>
-                  <span className="text-muted-foreground text-xs">({entries.length} dosya)</span>
+                  <span className="text-muted-foreground text-xs">
+                    ({entries.length} file{entries.length !== 1 ? 's' : ''})
+                  </span>
                 </div>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Log Dosyası</TableHead>
-                      <TableHead>Yol</TableHead>
-                      <TableHead>Boyut</TableHead>
-                      <TableHead className="w-0">İşlem</TableHead>
+                      <TableHead>Log File</TableHead>
+                      <TableHead>Path</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead className="w-0">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>

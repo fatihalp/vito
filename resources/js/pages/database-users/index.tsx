@@ -33,7 +33,13 @@ export default function DatabaseUsers() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Users" />
+          <Heading
+            title={
+              page.props.server.counts?.database_users !== undefined
+                ? `Users (${page.props.server.counts.database_users})`
+                : 'Users'
+            }
+          />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

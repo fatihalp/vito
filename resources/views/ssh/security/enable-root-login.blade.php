@@ -17,3 +17,4 @@ if [ "$EFFECTIVE" = "no" ]; then
 fi
 
 sudo systemctl reload ssh
+echo "Root SSH login enabled successfully."

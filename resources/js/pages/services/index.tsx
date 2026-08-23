@@ -28,13 +28,13 @@ type Page = {
 };
 
 const STATE_LABELS: Record<string, string> = {
-  active: 'Çalışıyor',
-  inactive: 'Durdu',
-  failed: 'Hatalı',
-  activating: 'Başlatılıyor',
-  deactivating: 'Durduruluyor',
-  reloading: 'Yeniden yükleniyor',
-  unknown: 'Bilinmiyor',
+  active: 'Running',
+  inactive: 'Stopped',
+  failed: 'Failed',
+  activating: 'Activating',
+  deactivating: 'Deactivating',
+  reloading: 'Reloading',
+  unknown: 'Unknown',
 };
 
 const COLOR_CLASSES: Record<string, string> = {

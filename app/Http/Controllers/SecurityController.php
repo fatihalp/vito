@@ -40,6 +40,26 @@ class SecurityController extends Controller
         $fail2ban = $server->fail2ban();
         $firewall = $server->firewall();
 
+        $latestPasswordLog = $server->logs()
+            ->whereIn('type', [
+                'enable-password-auth',
+                'disable-password-auth',
+                'enable-password-auth-failed',
+                'disable-password-auth-failed',
+            ])
+            ->latest('id')
+            ->first();
+
+        $latestRootLoginLog = $server->logs()
+            ->whereIn('type', [
+                'enable-root-login',
+                'disable-root-login',
+                'enable-root-login-failed',
+                'disable-root-login-failed',
+            ])
+            ->latest('id')
+            ->first();
+
         return Inertia::render('security/index', [
             'score' => app(CalculateSecurityScore::class)->calculate($server),
             'autoUpdate' => [
@@ -51,6 +71,7 @@ class SecurityController extends Controller
                 'detected' => $state['password_authentication']['detected'],
                 'status' => $passwordStatus->getText(),
                 'status_color' => $passwordStatus->getColor(),
+                'log_id' => $latestPasswordLog?->id,
             ],
             'rootLogin' => [
                 'enabled' => $state['root_login']['enabled'],
@@ -58,6 +79,7 @@ class SecurityController extends Controller
                 'status' => $rootLoginStatus->getText(),
                 'status_color' => $rootLoginStatus->getColor(),
                 'manageable' => $server->getSshUser() !== 'root',
+                'log_id' => $latestRootLoginLog?->id,
             ],
             'fail2ban' => $fail2ban ? new ServiceResource($fail2ban) : null,
             'firewall' => $firewall ? new ServiceResource($firewall) : null,

@@ -46,6 +46,8 @@ export interface Server {
     workers?: number;
     backups?: number;
     services?: number;
+    databases?: number;
+    database_users?: number;
   };
   ssh_keys?: Array<{
     id: number;

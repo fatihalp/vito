@@ -33,11 +33,17 @@ class DetectSecurityJob implements ShouldQueue
             $security = $this->server->feature_data['security'] ?? [];
             $security['password_authentication'] = array_merge(
                 $security['password_authentication'] ?? [],
-                ['detected' => $passwordAuth]
+                [
+                    'detected' => $passwordAuth,
+                    'status' => \App\Enums\SecurityControlStatus::READY->value,
+                ]
             );
             $security['root_login'] = array_merge(
                 $security['root_login'] ?? [],
-                ['detected' => $rootLogin]
+                [
+                    'detected' => $rootLogin,
+                    'status' => \App\Enums\SecurityControlStatus::READY->value,
+                ]
             );
             $this->server->jsonUpdate('feature_data', 'security', $security);
 
