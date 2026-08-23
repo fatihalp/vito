@@ -19,10 +19,9 @@ import { type NavGroup, type NavItem, SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
   ChevronRightIcon,
-  CloudUploadIcon,
   CogIcon,
-  Globe,
   LayoutDashboardIcon,
+  ListIcon,
   LogsIcon,
   MousePointerClickIcon,
   NetworkIcon,
@@ -30,7 +29,6 @@ import {
   PanelLeftOpenIcon,
   ServerIcon,
   UsersIcon,
-  WorkflowIcon,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
@@ -107,6 +105,12 @@ export function AppSidebar({
       icon: LayoutDashboardIcon,
     },
     {
+      title: 'Projects',
+      href: route('projects'),
+      onlyActivePath: route('projects'),
+      icon: ListIcon,
+    },
+    {
       title: 'Networks',
       href: route('networks'),
       icon: NetworkIcon,
@@ -125,21 +129,6 @@ export function AppSidebar({
       icon: MousePointerClickIcon,
       badge: sitesCount,
       flyoutContent: <RecentSitesNavFlyout />,
-    },
-    {
-      title: 'Backups',
-      href: route('backups.all'),
-      icon: CloudUploadIcon,
-    },
-    {
-      title: 'Workflows',
-      href: route('workflows'),
-      icon: WorkflowIcon,
-    },
-    {
-      title: 'Domains',
-      href: route('domains'),
-      icon: Globe,
     },
     {
       title: 'Users',

@@ -1,4 +1,4 @@
-import { Head, useForm, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { FileTextIcon, RefreshCwIcon, Trash2Icon } from 'lucide-react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
@@ -27,38 +27,26 @@ type Page = {
   logs: LogEntry[];
 };
 
+function formatBytes(b: number): string {
+  if (b <= 0) return '0 B';
+  const units = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.min(Math.floor(Math.log(b) / Math.log(1024)), units.length - 1);
+  return `${(b / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+}
+
 function SizeCell({ entry }: { entry: LogEntry }) {
-  if (!entry.exists) {
-    return <span className="text-muted-foreground text-xs">Dosya yok</span>;
-  }
-  if (entry.size_bytes === 0) {
-    return <span className="text-muted-foreground text-xs">Boş</span>;
-  }
+  if (!entry.exists) return <span className="text-muted-foreground text-xs">Dosya yok</span>;
+  if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">Boş</span>;
 
   const color =
-    entry.size_bytes > 100 * 1024 * 1024
-      ? 'danger'
-      : entry.size_bytes > 10 * 1024 * 1024
-        ? 'warning'
-        : 'default';
+    entry.size_bytes > 100 * 1024 * 1024 ? 'danger' :
+    entry.size_bytes > 10 * 1024 * 1024 ? 'warning' : 'default';
 
   return <Badge variant={color as 'default'}>{entry.size_human}</Badge>;
 }
 
 function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number }) {
   const dialog = useDialog();
-  const form = useForm({ key: entry.key });
-
-  const handleClear = () => {
-    dialog.confirm.open({
-      title: 'Log Dosyasını Temizle',
-      description: `"${entry.label}" adlı log dosyası temizlenecek. Bu işlem geri alınamaz.`,
-      confirmLabel: 'Temizle',
-      method: 'post',
-      url: route('monitoring.log-rotation.clear', { server: serverId }),
-      data: { key: entry.key },
-    });
-  };
 
   if (!entry.exists || !entry.clearable) {
     return (
@@ -70,7 +58,21 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={handleClear} className="text-destructive hover:text-destructive">
+    <Button
+      variant="outline"
+      size="sm"
+      className="text-destructive hover:text-destructive"
+      onClick={() =>
+        dialog.confirm.open({
+          title: 'Log Dosyasını Temizle',
+          description: `"${entry.label}" adlı log dosyası temizlenecek. Bu işlem geri alınamaz.`,
+          confirmLabel: 'Temizle',
+          method: 'post',
+          url: route('monitoring.log-rotation.clear', { server: serverId }),
+          data: { key: entry.key },
+        })
+      }
+    >
       <Trash2Icon className="size-4" />
       <span>Temizle</span>
     </Button>
@@ -79,20 +81,27 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
 
 export default function LogRotation() {
   const { server, logs } = usePage<Page>().props;
+  const dialog = useDialog();
+
+  const clearable = logs.filter((l) => l.clearable);
+  const totalSize = logs.reduce((sum, l) => sum + (l.exists ? l.size_bytes : 0), 0);
 
   const grouped = logs.reduce<Record<string, LogEntry[]>>((acc, log) => {
-    const key = log.service_label;
-    if (!acc[key]) acc[key] = [];
-    acc[key].push(log);
+    if (!acc[log.service_label]) acc[log.service_label] = [];
+    acc[log.service_label].push(log);
     return acc;
   }, {});
 
-  const totalSize = logs.reduce((sum, l) => sum + (l.exists ? l.size_bytes : 0), 0);
-  const formatBytes = (b: number) => {
-    if (b <= 0) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.min(Math.floor(Math.log(b) / Math.log(1024)), units.length - 1);
-    return `${(b / Math.pow(1024, i)).toFixed(2)} ${units[i]}`;
+  const handleClearAll = () => {
+    if (clearable.length === 0) return;
+    dialog.confirm.open({
+      title: 'Tüm Log Dosyalarını Temizle',
+      description: `${clearable.length} adet log dosyası temizlenecek (toplam ${formatBytes(totalSize)}). Bu işlem geri alınamaz.`,
+      confirmLabel: 'Tümünü Temizle',
+      method: 'post',
+      url: route('monitoring.log-rotation.clear-all', { server: server.id }),
+      data: {},
+    });
   };
 
   return (
@@ -105,11 +114,17 @@ export default function LogRotation() {
             title="Log Rotation"
             description="Sunucu ve site log dosyalarını görüntüleyin ve temizleyin"
           />
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {totalSize > 0 && (
               <span className="text-muted-foreground text-sm">
                 Toplam: <strong>{formatBytes(totalSize)}</strong>
               </span>
+            )}
+            {clearable.length > 0 && (
+              <Button variant="destructive" onClick={handleClearAll}>
+                <Trash2Icon className="size-4" />
+                <span>Tümünü Temizle</span>
+              </Button>
             )}
             <Button variant="outline" onClick={() => window.location.reload()}>
               <RefreshCwIcon className="size-4" />
@@ -151,12 +166,8 @@ export default function LogRotation() {
                             {entry.path}
                           </code>
                         </TableCell>
-                        <TableCell>
-                          <SizeCell entry={entry} />
-                        </TableCell>
-                        <TableCell>
-                          <ClearAction entry={entry} serverId={server.id} />
-                        </TableCell>
+                        <TableCell><SizeCell entry={entry} /></TableCell>
+                        <TableCell><ClearAction entry={entry} serverId={server.id} /></TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
+use Spatie\RouteAttributes\Attributes\Where;
 
 #[Prefix('servers/{server}/monitoring')]
 #[Middleware(['auth', 'has-project'])]
@@ -53,12 +54,9 @@ class MonitoringController extends Controller
     }
 
     #[Get('/{metric}', name: 'monitoring.show')]
+    #[Where('metric', 'load|memory|disk')]
     public function show(Server $server, string $metric): Response
     {
-        if (! in_array($metric, ['load', 'memory', 'disk'])) {
-            abort(404);
-        }
-
         $this->authorize('viewAny', [Metric::class, $server]);
 
         return Inertia::render('monitoring/show', [

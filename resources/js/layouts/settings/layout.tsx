@@ -2,15 +2,15 @@ import { type NavItem, SharedData } from '@/types';
 import {
   BellIcon,
   CloudIcon,
+  CloudUploadIcon,
   CodeIcon,
   CommandIcon,
   DatabaseIcon,
   GithubIcon,
   GlobeIcon,
   KeyIcon,
-  ListIcon,
   PlugIcon,
-  SlidersHorizontalIcon,
+  WorkflowIcon,
 } from 'lucide-react';
 import { ReactNode } from 'react';
 import Layout from '@/layouts/app/layout';
@@ -25,11 +25,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
   }
 
   const sidebarNavItems: NavItem[] = [
-    {
-      title: 'Projects',
-      href: route('projects'),
-      icon: ListIcon,
-    },
     {
       title: 'Server Providers',
       href: route('server-providers'),
@@ -66,6 +61,21 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       icon: CommandIcon,
     },
     {
+      title: 'Backups',
+      href: route('backups.all'),
+      icon: CloudUploadIcon,
+    },
+    {
+      title: 'Workflows',
+      href: route('workflows'),
+      icon: WorkflowIcon,
+    },
+    {
+      title: 'Domains',
+      href: route('domains'),
+      icon: GlobeIcon,
+    },
+    {
       title: 'Plugins',
       href: route('plugins'),
       icon: PlugIcon,
@@ -77,12 +87,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       icon: GithubIcon,
       hidden: !isAdmin,
     },
-    {
-      title: 'Vito Settings',
-      href: route('vito-settings'),
-      icon: SlidersHorizontalIcon,
-      hidden: !isAdmin,
-    },
   ];
 
   return (
@@ -91,3 +95,4 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     </Layout>
   );
 }
+
