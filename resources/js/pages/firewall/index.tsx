@@ -5,9 +5,10 @@ import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import Container from '@/components/container';
 import { VitoTable } from '@/components/vito-table';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import Delete from '@/pages/firewall/components/delete';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
@@ -46,15 +47,12 @@ export default function Firewall() {
           actions={(row: Row) => {
             const firewallRule = asRow<FirewallRule>(row, ['id', 'name', 'server_id']);
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <DropdownMenuItem onSelect={() => dialog.firewallForm.open({ serverId: firewallRule.server_id, firewallRule })}>
                       Edit
                     </DropdownMenuItem>

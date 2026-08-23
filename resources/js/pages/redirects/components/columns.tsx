@@ -1,7 +1,6 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreVerticalIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Badge } from '@/components/ui/badge';
 import DateTime from '@/components/date-time';
 import { Redirect } from '@/types/redirect';
@@ -81,15 +80,12 @@ export const columns: ColumnDef<Redirect>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
+              <TableActionTrigger />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <Edit redirect={row.original} />
               <Delete redirect={row.original} />
             </DropdownMenuContent>

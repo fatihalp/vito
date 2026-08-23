@@ -10,8 +10,9 @@ import Delete from '@/pages/server-ssh-keys/components/delete';
 import ConnectSshDialog from '@/pages/servers/components/connect-ssh-dialog';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BookOpenIcon, MoreVerticalIcon, RocketIcon } from 'lucide-react';
+import { RocketIcon } from 'lucide-react';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
 
@@ -44,15 +45,12 @@ export default function SshKeys() {
         <VitoTable
           tableData={page.props.sshKeys}
           actions={(row: Row) => (
-            <div className="flex items-center justify-end">
+            <div className="flex items-center gap-2">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreVerticalIcon />
-                  </Button>
+                  <TableActionTrigger />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="start">
                   <Delete sshKey={asRow<SshKey>(row, ['id', 'name'])} />
                 </DropdownMenuContent>
               </DropdownMenu>

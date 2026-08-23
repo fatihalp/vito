@@ -68,11 +68,15 @@ class HandleInertiaRequests extends Middleware
             $data['server'] = ServerResource::make($server);
 
             if ($request->route('site')) {
-
                 $site = $request->route('site');
-                $site->load('hostedDomains.ssl', 'workers')
-                    ->loadCount(['hostedDomains', 'workers', 'resources', 'commands']);
-                $data['site'] = SiteResource::make($site);
+                if (! ($site instanceof Site)) {
+                    $site = Site::find($site);
+                }
+                if ($site) {
+                    $site->load('hostedDomains.ssl', 'workers')
+                        ->loadCount(['hostedDomains', 'workers', 'resources', 'commands']);
+                    $data['site'] = SiteResource::make($site);
+                }
             }
         }
 

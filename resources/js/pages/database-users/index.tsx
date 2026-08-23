@@ -7,7 +7,8 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
+import { PlusIcon } from 'lucide-react';
 import CreateDatabaseUser from '@/pages/database-users/components/create-database-user';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -63,15 +64,12 @@ export default function DatabaseUsers() {
           actions={(row: Row) => {
             const databaseUser = asRow<DatabaseUser>(row, ['id', 'username', 'server_id', 'permission', 'databases', 'host']);
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <DropdownMenuItem onSelect={() => dialog.databaseUserEdit.open({ databaseUser, usesHost })}>Edit</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => dialog.databaseUserLink.open({ databaseUser })}>Link</DropdownMenuItem>
                     <DropdownMenuSeparator />

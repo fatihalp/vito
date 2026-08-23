@@ -53,6 +53,48 @@ class ServiceController extends Controller
         );
     }
 
+    #[Get('/live-statuses', name: 'services.live-statuses')]
+    public function liveStatuses(Server $server): JsonResponse
+    {
+        $this->authorize('viewAny', [Service::class, $server]);
+
+        $services = $server->services()->whereIn('status', ['ready', 'stopped', 'failed', 'disabled'])->get();
+
+        $result = [];
+        $checkable = [];
+        $units = [];
+
+        foreach ($services as $service) {
+            if (! $service->hasHandler()) {
+                continue;
+            }
+            $unit = $service->handler()->unit();
+            if ($unit === '') {
+                continue;
+            }
+            $checkable[] = $service;
+            $units[] = $unit;
+        }
+
+        if ($units !== []) {
+            $states = $server->systemd()->activeStates($units);
+            foreach ($checkable as $index => $service) {
+                $state = $states[$index] ?? 'unknown';
+                $result[$service->id] = [
+                    'state' => $state,
+                    'color' => match ($state) {
+                        'active' => 'success',
+                        'inactive', 'failed' => 'danger',
+                        'activating', 'deactivating', 'reloading' => 'warning',
+                        default => 'gray',
+                    },
+                ];
+            }
+        }
+
+        return response()->json($result);
+    }
+
     #[Post('/', name: 'services.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {

@@ -4,8 +4,8 @@ import { DNSRecord } from '@/types/dns-record';
 import { Domain } from '@/types/domain';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { LockIcon, MoreVerticalIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
+import { LockIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useDialog } from '@/hooks/use-dialog';
@@ -140,15 +140,12 @@ export function getColumns(providerConfig?: ProviderConfig, domain?: Domain): Co
     enableSorting: false,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
+              <TableActionTrigger />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               {domain && <Edit domain={domain} record={row.original} />}
               <DropdownMenuSeparator />
               <Delete record={row.original} />

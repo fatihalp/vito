@@ -1,8 +1,8 @@
 import { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { useForm } from '@inertiajs/react';
-import { LoaderCircleIcon, MoreVerticalIcon } from 'lucide-react';
+import { LoaderCircleIcon } from 'lucide-react';
 import FormSuccessful from '@/components/form-successful';
 import { CronJob } from '@/types/cronjob';
 import { Badge } from '@/components/ui/badge';
@@ -56,15 +56,12 @@ function Actions({ cronJob, site }: { cronJob: CronJob; site?: Site }) {
   const dialog = useDialog();
 
   return (
-    <div className="flex items-center justify-end">
+    <div className="flex items-center gap-2">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreVerticalIcon />
-          </Button>
+          <TableActionTrigger />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="start">
           <DropdownMenuItem onSelect={() => dialog.cronjobForm.open({ serverId: cronJob.server_id, site, cronJob })}>Edit</DropdownMenuItem>
           {cronJob.status === 'disabled' && <Action type="enable" cronJob={cronJob} site={site} />}
           {cronJob.status === 'ready' && <Action type="disable" cronJob={cronJob} site={site} />}

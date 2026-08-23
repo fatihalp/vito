@@ -7,7 +7,7 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon, RefreshCwIcon, RotateCwIcon } from 'lucide-react';
+import { MoreHorizontalIcon, PlusIcon, RefreshCwIcon, RotateCwIcon } from 'lucide-react';
 import Container from '@/components/container';
 import { DataTable } from '@/components/data-table';
 import { Worker } from '@/types/worker';
@@ -47,8 +47,9 @@ export default function WorkerIndex() {
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <MoreVerticalIcon />
+                <Button variant="outline" size="sm" className="gap-1.5">
+                  <MoreHorizontalIcon className="size-4" />
+                  <span>Actions</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">

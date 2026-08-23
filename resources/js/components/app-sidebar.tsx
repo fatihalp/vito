@@ -35,6 +35,7 @@ import {
 import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Button } from '@/components/ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import React, { useRef, useState } from 'react';
 import RecentServersFlyout from '@/components/recent-servers-flyout';

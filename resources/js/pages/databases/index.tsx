@@ -9,8 +9,9 @@ import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
 import Delete from '@/pages/databases/components/delete';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
@@ -62,15 +63,12 @@ export default function Databases() {
         <VitoTable
           tableData={page.props.databases}
           actions={(row: Row) => (
-            <div className="flex items-center justify-end">
+            <div className="flex items-center gap-2">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreVerticalIcon />
-                  </Button>
+                  <TableActionTrigger />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="start">
                   <Delete database={asRow<Database>(row, ['id', 'name', 'server_id'])} />
                 </DropdownMenuContent>
               </DropdownMenu>

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import ConnectServerProvider from '@/pages/server-providers/components/connect-server-provider';
 import { VitoTable } from '@/components/vito-table';
 import { ServerProvider } from '@/types/server-provider';
-import { BookOpenIcon, MoreVerticalIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Edit from '@/pages/server-providers/components/edit';
 import Delete from '@/pages/server-providers/components/delete';
@@ -41,15 +41,12 @@ export default function ServerProviders() {
           actions={(row: Row) => {
             const serverProvider = asRow<ServerProvider>(row, ['id', 'name', 'global']);
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <Edit serverProvider={serverProvider} />
                     <DropdownMenuSeparator />
                     <Delete serverProvider={serverProvider} />

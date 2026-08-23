@@ -7,8 +7,9 @@ import { VitoTable } from '@/components/vito-table';
 import { SshKey } from '@/types/ssh-key';
 import AddSshKey from '@/pages/ssh-keys/components/add-ssh-key';
 import Delete from '@/pages/ssh-keys/components/delete';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
 
@@ -38,15 +39,12 @@ export default function SshKeys() {
         <VitoTable
           tableData={page.props.sshKeys}
           actions={(row: Row) => (
-            <div className="flex items-center justify-end">
+            <div className="flex items-center gap-2">
               <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="h-8 w-8 p-0">
-                    <span className="sr-only">Open menu</span>
-                    <MoreVerticalIcon />
-                  </Button>
+                  <TableActionTrigger />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="start">
                   <Delete sshKey={asRow<SshKey>(row, ['id', 'name'])} />
                 </DropdownMenuContent>
               </DropdownMenu>

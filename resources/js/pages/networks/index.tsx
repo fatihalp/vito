@@ -51,10 +51,11 @@ export default function Networks() {
         <VitoTable
           tableData={page.props.networks}
           actions={(row: Row) => (
-            <div className="flex items-center justify-end">
-              <Button variant="outline" size="sm" asChild>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" asChild>
                 <Link href={route('networks.show', { network: row.id })} aria-label="View network" prefetch>
-                  <EyeIcon />
+                  <EyeIcon className="size-3.5" />
+                  <span>Manage</span>
                 </Link>
               </Button>
             </div>

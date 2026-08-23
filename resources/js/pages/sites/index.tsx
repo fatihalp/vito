@@ -109,12 +109,13 @@ export default function Sites() {
             status: statusCell,
           }}
           actions={(row: Row) => (
-            <div className="flex items-center justify-end gap-2">
-              <Link href={route('application', { server: row.server_id, site: row.id })} prefetch>
-                <Button variant="outline" size="sm">
-                  <EyeIcon />
-                </Button>
-              </Link>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" asChild>
+                <Link href={route('application', { server: row.server_id, site: row.id })} prefetch>
+                  <EyeIcon className="size-3.5" />
+                  <span>Manage</span>
+                </Link>
+              </Button>
             </div>
           )}
         />

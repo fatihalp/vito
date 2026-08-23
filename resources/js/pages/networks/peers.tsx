@@ -3,8 +3,9 @@ import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import NetworkLayout from '@/layouts/network/layout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -42,15 +43,12 @@ export default function NetworkPeers() {
             const peer = asRow<NetworkPeer>(row, ['id', 'name', 'status', 'byo', 'has_private_key']);
             const disabled = peer.status === 'disabled';
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <DropdownMenuItem
                       onSelect={() => dialog.networkPeerConfig.open({ networkId: network.id, peerId: peer.id, byo: peer.byo, name: peer.name })}
                     >

@@ -102,8 +102,10 @@ export function SiteHeaderNav() {
             asChild
           >
             <Link href={item.href} aria-current={active ? 'page' : undefined}>
-              {item.title}
-              {!!item.count && <span className="text-muted-foreground ml-1 text-xs">({item.count})</span>}
+              <span>{item.title}</span>
+              {typeof item.count === 'number' && item.count > 0 && (
+                <span className="text-muted-foreground ml-1 text-xs">({item.count})</span>
+              )}
             </Link>
           </Button>
         );

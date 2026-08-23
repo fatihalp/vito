@@ -1,7 +1,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Link, useForm } from '@inertiajs/react';
-import { LoaderCircleIcon, MoreVerticalIcon } from 'lucide-react';
+import { LoaderCircleIcon } from 'lucide-react';
 import { Backup } from '@/types/backup';
 import { useDialog } from '@/hooks/use-dialog';
 
@@ -60,12 +60,9 @@ export default function BackupActions({ backup }: { backup: Backup }) {
       ) : (
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-8 w-8 p-0">
-              <span className="sr-only">Open menu</span>
-              <MoreVerticalIcon />
-            </Button>
+            <TableActionTrigger />
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent align="start">
             <Edit backup={backup} />
             <ToggleEnabled backup={backup} />
             <DropdownMenuItem asChild>

@@ -3,8 +3,9 @@ import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, MoreVerticalIcon, PlusIcon, SparklesIcon, UploadIcon } from 'lucide-react';
+import { DownloadIcon, PlusIcon, SparklesIcon, UploadIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Workflow } from '@/types/workflow';
 import Layout from '@/layouts/app/layout';
 import CreateWorkflow from './components/create-workflow';
@@ -51,15 +52,12 @@ export default function Workflows() {
           actions={(row: Row) => {
             const workflow = asRow<Workflow>(row, ['id', 'name']);
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <Run workflow={workflow}>
                       <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Run</DropdownMenuItem>
                     </Run>

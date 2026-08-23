@@ -152,12 +152,14 @@ export default function SiteResources() {
     installForm.post(route('services.store', { server: page.props.server.id }), { preserveScroll: true });
   };
 
+  const resourcesCount = page.props.resources?.length ?? page.props.site.counts?.resources;
+
   return (
     <ServerLayout>
       <Head title={`Resources - ${page.props.site.domain}`} />
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Resources" />
+          <Heading title={`Resources${typeof resourcesCount === 'number' && resourcesCount > 0 ? ` (${resourcesCount})` : ''}`} />
           <SiteBanners site={page.props.site} compact />
         </HeaderContainer>
 

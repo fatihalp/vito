@@ -3,9 +3,8 @@ import DateTime from '@/components/date-time';
 import { Domain } from '@/types/domain';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { router } from '@inertiajs/react';
-import { MoreVerticalIcon } from 'lucide-react';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Remove({ domain }: { domain: Domain }) {
@@ -74,15 +73,12 @@ export const columns: ColumnDef<Domain>[] = [
     enableSorting: false,
     cell: ({ row }) => {
       return (
-        <div className="flex items-center justify-end gap-2">
+        <div className="flex items-center gap-2">
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
+              <TableActionTrigger />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <DropdownMenuItem onSelect={() => router.visit(route('domains.show', row.original.id))}>Manage Records</DropdownMenuItem>
               <DropdownMenuSeparator />
               <Remove domain={row.original} />

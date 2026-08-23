@@ -6,9 +6,10 @@ import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import { BookOpenIcon, MoreVerticalIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import Container from '@/components/container';
 import { VitoTable } from '@/components/vito-table';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import Delete from '@/pages/server-network/components/delete';
 import SetPrimary from '@/pages/server-network/components/set-primary';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -74,16 +75,13 @@ export default function ServerNetwork() {
             const canDelete = ipAddress.is_managed && !ipAddress.is_primary;
             const hasActions = canSetPrimary || canDelete;
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0" disabled={!hasActions}>
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger disabled={!hasActions} />
                   </DropdownMenuTrigger>
                   {hasActions && (
-                    <DropdownMenuContent align="end">
+                    <DropdownMenuContent align="start">
                       {canSetPrimary && <SetPrimary ipAddress={ipAddress} />}
                       {canDelete && <Delete ipAddress={ipAddress} />}
                     </DropdownMenuContent>

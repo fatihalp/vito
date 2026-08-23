@@ -7,6 +7,7 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
@@ -100,6 +101,7 @@ export default function HostedDomains() {
   const dialog = useDialog();
 
   const sslLocked = !page.props.site.can_configure_ssl;
+  const domainsCount = page.props.hostedDomains?.total ?? page.props.site.counts?.domains;
 
   return (
     <ServerLayout>
@@ -107,7 +109,10 @@ export default function HostedDomains() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Domains" description="Manage domains and SSL assignments for this site" />
+          <Heading
+            title={`Domains${typeof domainsCount === 'number' && domainsCount > 0 ? ` (${domainsCount})` : ''}`}
+            description="Manage domains and SSL assignments for this site"
+          />
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -207,16 +212,13 @@ export default function HostedDomains() {
             }
 
             return (
-              <div className="flex items-center justify-end gap-2">
+              <div className="flex items-center gap-2">
                 <ErrorIndicator error={hd.error} label={`Domain "${hd.domain}" error`} />
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <DropdownMenuItem onSelect={() => dialog.editHostedDomain.open({ hostedDomain: hd })}>Edit</DropdownMenuItem>
                     {hd.ssl_can_check_expiry && (
                       <>

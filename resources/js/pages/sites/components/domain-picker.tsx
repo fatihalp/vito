@@ -7,6 +7,8 @@ import InputError from '@/components/ui/input-error';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 import {
   Dialog,
   DialogContent,
@@ -178,7 +180,7 @@ export default function DomainPicker({
           <button
             type="button"
             onClick={openDnsModal}
-            className="flex items-center gap-1 text-xs text-primary hover:underline font-normal"
+            className="flex items-center gap-1 text-xs text-primary hover:underline font-normal cursor-pointer"
           >
             <CloudIcon className="size-3.5" />
             <span>From Cloudflare / DNS Provider</span>
@@ -217,7 +219,7 @@ export default function DomainPicker({
           <button
             type="button"
             onClick={() => onChange({ ...emptyDomainPickerValue(), domain: value.domain })}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline ml-2"
+            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground underline ml-2 cursor-pointer"
           >
             <UnlinkIcon className="size-3" />
             Unlink
@@ -229,21 +231,30 @@ export default function DomainPicker({
 
       {/* DNS Provider Modal Dialog */}
       <Dialog open={dnsDialogOpen} onOpenChange={setDnsDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Select from DNS Provider</DialogTitle>
-            <DialogDescription>
-              Select a domain managed by your DNS provider to automatically configure DNS records for this site.
-            </DialogDescription>
+        <DialogContent className="p-0 gap-0 sm:max-w-xl overflow-hidden rounded-xl">
+          <DialogHeader className="border-b px-6 py-4 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <div className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0">
+                <CloudIcon className="size-5" />
+              </div>
+              <div>
+                <DialogTitle className="text-base font-semibold">Select from DNS Provider</DialogTitle>
+                <DialogDescription className="text-xs text-muted-foreground mt-0.5">
+                  Select a domain managed by your DNS provider to automatically configure DNS records for this site.
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
 
-          <div className="space-y-4 py-2">
+          <div className="space-y-5 p-6">
             {connectedProviders.length > 1 && (
               <div className="space-y-1.5">
-                <Label htmlFor="dns_provider_modal_id">DNS Provider</Label>
+                <Label htmlFor="dns_provider_modal_id" className="text-xs font-medium">
+                  DNS Provider
+                </Label>
                 <div className="flex items-center gap-2">
                   <Select value={tempProviderId} onValueChange={handleProviderSelect}>
-                    <SelectTrigger id="dns_provider_modal_id">
+                    <SelectTrigger id="dns_provider_modal_id" className="h-9">
                       <SelectValue placeholder={loadingProviders ? 'Loading providers...' : 'Select DNS Provider'} />
                     </SelectTrigger>
                     <SelectContent>
@@ -257,119 +268,168 @@ export default function DomainPicker({
                     </SelectContent>
                   </Select>
                   <ConnectDNSProvider onProviderAdded={fetchProviders}>
-                    <Button variant="outline" size="icon" type="button" aria-label="Connect DNS Provider">
-                      <CloudIcon className="h-4 w-4" />
+                    <Button variant="outline" size="icon" type="button" className="h-9 w-9 shrink-0" aria-label="Connect DNS Provider">
+                      <CloudIcon className="size-4" />
                     </Button>
                   </ConnectDNSProvider>
                 </div>
               </div>
             )}
 
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="provider_zone_id">Domain / Zone</Label>
-                <div className="flex items-center gap-2">
-                  <Select
-                    value={tempZoneId}
-                    onValueChange={setTempZoneId}
-                    disabled={!tempProviderId || loadingDomains}
-                  >
-                    <SelectTrigger id="provider_zone_id">
-                      <SelectValue placeholder={loadingDomains ? 'Loading...' : 'Select a domain'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {availableDomains.map((domain) => (
-                          <SelectItem key={domain.id} value={domain.id}>
-                            <div className="flex items-center gap-2">
-                              <GlobeIcon className="h-4 w-4" />
-                              <span>{domain.name}</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    type="button"
-                    disabled={loadingDomains || !tempProviderId}
-                    onClick={() => fetchDomainsForProvider(tempProviderId, true)}
-                  >
-                    <RefreshCwIcon className={`h-4 w-4 ${loadingDomains ? 'animate-spin' : ''}`} />
-                  </Button>
+            {/* Subdomain (First) and Domain/Zone (Second) */}
+            <div className="space-y-1.5">
+              <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
+                {/* Subdomain on the left (col-span-5) */}
+                <div className="sm:col-span-5 space-y-1.5">
+                  <Label htmlFor="subdomain_modal" className="text-xs font-medium flex items-center justify-between">
+                    <span>Subdomain</span>
+                    <span className="text-[10px] text-muted-foreground font-normal">Optional</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    id="subdomain_modal"
+                    value={tempSubdomain}
+                    onChange={(e) => setTempSubdomain(e.target.value)}
+                    placeholder="e.g. app, api, or @"
+                    className="h-9 font-mono text-xs"
+                  />
                 </div>
-              </div>
 
-              <div className="space-y-1.5">
-                <Label htmlFor="subdomain_modal">Subdomain</Label>
-                <Input
-                  type="text"
-                  id="subdomain_modal"
-                  value={tempSubdomain}
-                  onChange={(e) => setTempSubdomain(e.target.value)}
-                  placeholder="e.g. app, api, or leave empty"
-                />
+                {/* Dot separator on desktop */}
+                <div className="hidden sm:flex sm:col-span-1 items-center justify-center pb-2 text-muted-foreground font-bold text-lg select-none">
+                  .
+                </div>
+
+                {/* Domain / Zone on the right (col-span-6) */}
+                <div className="sm:col-span-6 space-y-1.5">
+                  <Label htmlFor="provider_zone_id" className="text-xs font-medium">
+                    Domain / Zone
+                  </Label>
+                  <div className="flex items-center gap-1.5">
+                    <Select
+                      value={tempZoneId}
+                      onValueChange={setTempZoneId}
+                      disabled={!tempProviderId || loadingDomains}
+                    >
+                      <SelectTrigger id="provider_zone_id" className="h-9 flex-1">
+                        <SelectValue placeholder={loadingDomains ? 'Loading domains...' : 'Select a domain'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {availableDomains.map((domain) => (
+                            <SelectItem key={domain.id} value={domain.id}>
+                              <div className="flex items-center gap-2">
+                                <GlobeIcon className="size-3.5 text-muted-foreground shrink-0" />
+                                <span className="font-mono text-xs">{domain.name}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      type="button"
+                      className="h-9 w-9 shrink-0"
+                      disabled={loadingDomains || !tempProviderId}
+                      onClick={() => fetchDomainsForProvider(tempProviderId, true)}
+                      title="Refresh domain list"
+                    >
+                      <RefreshCwIcon className={cn('size-3.5', loadingDomains && 'animate-spin')} />
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
 
+            {/* Result Preview Box */}
             {computedDialogDomain && (
-              <div className="bg-muted/50 space-y-1.5 rounded-lg border p-3 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-muted-foreground">Site domain:</span>
-                  <span className="text-foreground font-mono font-semibold">{computedDialogDomain}</span>
+              <div className="rounded-xl border bg-muted/40 p-3.5 space-y-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs text-muted-foreground font-medium">Site Domain:</span>
+                  <div className="flex items-center gap-1.5 font-mono text-xs font-semibold text-foreground bg-background px-2.5 py-1 rounded-md border shadow-2xs">
+                    <GlobeIcon className="size-3.5 text-primary shrink-0" />
+                    <span>{computedDialogDomain}</span>
+                  </div>
                 </div>
+
                 {tempCreateDnsRecord && serverIp && (
-                  <div className="text-muted-foreground flex items-center justify-between">
-                    <span className="flex items-center gap-1">
-                      <ServerIcon className="h-3 w-3" />
+                  <div className="flex items-center justify-between gap-2 pt-1 border-t border-border/50 text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1.5">
+                      <ServerIcon className="size-3.5" />
                       <span>DNS A Record:</span>
                     </span>
-                    <span className="text-foreground font-mono font-medium">
-                      {computedDialogDomain} &rarr; {serverIp}
-                    </span>
+                    <div className="flex items-center gap-1.5 font-mono text-[11px] text-muted-foreground bg-background/80 px-2 py-0.5 rounded border">
+                      <span>{computedDialogDomain}</span>
+                      <span>&rarr;</span>
+                      <span className="font-semibold text-foreground">{serverIp}</span>
+                      {tempDnsRecordProxied && (
+                        <Badge variant="outline" className="text-[9px] px-1 py-0 text-orange-600 dark:text-orange-400 border-orange-500/30 ml-1">
+                          Proxied
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
             )}
 
-            <div className="space-y-3 pt-1">
-              <div className="flex items-start space-x-3">
+            {/* Checkbox Options */}
+            <div className="space-y-2.5 pt-1">
+              <label
+                htmlFor="modal_create_dns_record"
+                className={cn(
+                  'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors select-none',
+                  tempCreateDnsRecord ? 'bg-primary/5 border-primary/30' : 'bg-muted/20 hover:bg-muted/40'
+                )}
+              >
                 <Checkbox
                   id="modal_create_dns_record"
                   checked={tempCreateDnsRecord}
                   onCheckedChange={(checked) => setTempCreateDnsRecord(Boolean(checked))}
+                  className="mt-0.5"
                 />
-                <div className="grid gap-0.5 leading-none">
-                  <Label htmlFor="modal_create_dns_record" className="cursor-pointer font-medium text-xs">
+                <div className="grid gap-1">
+                  <span className="text-xs font-medium leading-none text-foreground">
                     Automatically create an A record
-                  </Label>
-                  <p className="text-muted-foreground text-[11px]">
-                    Points <span className="font-mono">{computedDialogDomain || 'domain'}</span> at server IP
-                    {serverIp ? <> (<span className="font-mono">{serverIp}</span>)</> : null}.
+                  </span>
+                  <p className="text-[11px] text-muted-foreground leading-relaxed">
+                    Points <span className="font-mono text-foreground">{computedDialogDomain || 'domain'}</span> at server IP
+                    {serverIp ? <> (<span className="font-mono text-foreground font-medium">{serverIp}</span>)</> : ''}.
                   </p>
                 </div>
-              </div>
+              </label>
 
               {selectedProvider?.provider === 'cloudflare' && tempCreateDnsRecord && (
-                <div className="flex items-start space-x-3 pl-6">
+                <label
+                  htmlFor="modal_dns_record_proxied"
+                  className={cn(
+                    'flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors select-none ml-4',
+                    tempDnsRecordProxied ? 'bg-orange-500/5 border-orange-500/30' : 'bg-muted/20 hover:bg-muted/40'
+                  )}
+                >
                   <Checkbox
                     id="modal_dns_record_proxied"
                     checked={tempDnsRecordProxied}
                     onCheckedChange={(checked) => setTempDnsRecordProxied(Boolean(checked))}
+                    className="mt-0.5"
                   />
-                  <div className="grid gap-0.5 leading-none">
-                    <Label htmlFor="modal_dns_record_proxied" className="cursor-pointer font-medium text-xs">
-                      Enable Cloudflare Proxy (CDN & DDoS Protection)
-                    </Label>
+                  <div className="grid gap-1">
+                    <span className="text-xs font-medium leading-none text-foreground flex items-center gap-1.5">
+                      <span>Enable Cloudflare Proxy</span>
+                      <span className="text-[10px] font-normal text-muted-foreground">(CDN &amp; DDoS Protection)</span>
+                    </span>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      Routes web traffic through Cloudflare for caching, edge SSL, and DDoS mitigation.
+                    </p>
                   </div>
-                </div>
+                </label>
               )}
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="border-t px-6 py-3.5 bg-muted/20 gap-2">
             <Button variant="outline" type="button" onClick={() => setDnsDialogOpen(false)}>
               Cancel
             </Button>

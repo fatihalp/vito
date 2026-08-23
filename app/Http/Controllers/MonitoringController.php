@@ -3,7 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Monitoring\GetMetrics;
+use App\Actions\Monitoring\GetServerInformation;
+use App\Actions\Monitoring\GetServerProcesses;
+use App\Actions\Monitoring\GetLogRotationData;
+use App\Actions\Monitoring\KillProcess;
+use App\Actions\Monitoring\KillUserProcesses;
 use App\Actions\Monitoring\UpdateMetricSettings;
+use App\Actions\Server\ClearServiceLog;
 use App\Enums\ServiceStatus;
 use App\Models\Metric;
 use App\Models\Server;
@@ -17,6 +23,7 @@ use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Patch;
+use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/monitoring')]
@@ -91,5 +98,110 @@ class MonitoringController extends Controller
         $server->metrics()->delete();
 
         return back()->with('success', 'All metrics deleted!');
+    }
+
+    #[Get('/processes', name: 'monitoring.processes')]
+    public function processes(Server $server): Response
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $data = app(GetServerProcesses::class)->handle($server);
+
+        return Inertia::render('monitoring/processes', [
+            'processes' => $data['processes'] ?? [],
+            'users' => $data['users'] ?? [],
+            'error' => $data['error'] ?? null,
+        ]);
+    }
+
+    #[Get('/processes/json', name: 'monitoring.processes.json')]
+    public function processesJson(Server $server): JsonResponse
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $data = app(GetServerProcesses::class)->handle($server);
+
+        return response()->json($data);
+    }
+
+    #[Post('/processes/kill', name: 'monitoring.processes.kill')]
+    public function killProcess(Request $request, Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        $request->validate([
+            'pid' => ['required', 'integer', 'min:2'],
+        ]);
+
+        $success = app(KillProcess::class)->handle($server, (int) $request->input('pid'));
+
+        if (! $success) {
+            return back()->with('error', 'Failed to terminate process #' . $request->input('pid'));
+        }
+
+        return back()->with('success', 'Process #' . $request->input('pid') . ' terminated successfully.');
+    }
+
+    #[Post('/processes/kill-user', name: 'monitoring.processes.kill-user')]
+    public function killUserProcesses(Request $request, Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        $request->validate([
+            'user' => ['required', 'string', 'max:64'],
+        ]);
+
+        $targetUser = $request->input('user');
+        $success = app(KillUserProcesses::class)->handle($server, $targetUser);
+
+        if (! $success) {
+            return back()->with('error', 'Failed to terminate processes for user: ' . $targetUser);
+        }
+
+        return back()->with('success', 'All processes for user "' . $targetUser . '" terminated.');
+    }
+
+    #[Get('/information', name: 'monitoring.information')]
+    public function information(Server $server): Response
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $info = app(GetServerInformation::class)->handle($server);
+
+        return Inertia::render('monitoring/information', [
+            'info' => $info,
+        ]);
+    }
+
+    #[Get('/information/json', name: 'monitoring.information.json')]
+    public function informationJson(Server $server): JsonResponse
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $info = app(GetServerInformation::class)->handle($server);
+
+        return response()->json($info);
+    }
+
+    #[Get('/log-rotation', name: 'monitoring.log-rotation')]
+    public function logRotation(Server $server): Response
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $logs = app(GetLogRotationData::class)->handle($server);
+
+        return Inertia::render('monitoring/log-rotation', [
+            'logs' => $logs,
+        ]);
+    }
+
+    #[Post('/log-rotation/clear', name: 'monitoring.log-rotation.clear')]
+    public function clearLog(Request $request, Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        app(ClearServiceLog::class)->run($server, $request->only('key'));
+
+        return back()->with('success', 'Log file cleared successfully.');
     }
 }

@@ -1,5 +1,5 @@
-import { Button } from '@/components/ui/button';
-import { LoaderCircleIcon, MoreVerticalIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
+import { LoaderCircleIcon } from 'lucide-react';
 import { BackupFile } from '@/types/backup-file';
 import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
@@ -122,15 +122,12 @@ export const columns: ColumnDef<BackupFile>[] = [
       }
 
       return (
-        <div className="flex items-center justify-end">
+        <div className="flex items-center gap-2">
           <DropdownMenu modal={false}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreVerticalIcon />
-              </Button>
+              <TableActionTrigger />
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="start">
               <Restore backup={row.original.backup} file={row.original} />
               <Delete file={row.original} />
             </DropdownMenuContent>

@@ -7,8 +7,9 @@ import ProjectForm from '@/pages/projects/components/project-form';
 import { SharedData } from '@/types';
 import type { Project } from '@/types/project';
 import { usePage } from '@inertiajs/react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { ColumnDef } from '@tanstack/react-table';
-import { MoreVerticalIcon, UsersIcon } from 'lucide-react';
+import { UsersIcon } from 'lucide-react';
 import LeaveProject from '@/pages/projects/components/leave-project';
 import { useDialog } from '@/hooks/use-dialog';
 
@@ -21,19 +22,16 @@ function ProjectActions({ project }: { project: Project }) {
   const dialog = useDialog();
 
   return (
-    <div className="flex items-center justify-end gap-2">
-      <Button variant="outline" size="sm" onClick={() => dialog.projectUsers.open({ project })}>
-        <UsersIcon />
-        {project.role === 'user' ? 'View access' : 'Manage access'}
+    <div className="flex items-center gap-2">
+      <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => dialog.projectUsers.open({ project })}>
+        <UsersIcon className="size-3.5" />
+        <span>{project.role === 'user' ? 'View access' : 'Manage access'}</span>
       </Button>
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreVerticalIcon />
-          </Button>
+          <TableActionTrigger />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="start">
           <ProjectForm project={project}>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
           </ProjectForm>

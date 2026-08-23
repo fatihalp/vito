@@ -1,5 +1,4 @@
-import { MoreVerticalIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Action } from '@/pages/services/components/action';
 import { ResyncStats } from '@/pages/services/components/resync-stats';
@@ -13,15 +12,12 @@ import { useDialog } from '@/hooks/use-dialog';
 export default function ServiceActions({ service }: { service: Service }) {
   const dialog = useDialog();
   return (
-    <div className="flex items-center justify-end">
+    <div className="flex items-center gap-2">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" className="h-8 w-8 p-0">
-            <span className="sr-only">Open menu</span>
-            <MoreVerticalIcon />
-          </Button>
+          <TableActionTrigger />
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
+        <DropdownMenuContent align="start">
           <Action type="start" service={service} />
           <Action type="stop" service={service} />
           <Action type="restart" service={service} />

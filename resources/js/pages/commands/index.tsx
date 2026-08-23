@@ -3,6 +3,7 @@ import DateTime from '@/components/date-time';
 import Heading from '@/components/heading';
 import SiteBanners from '@/components/site-banners';
 import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Card, CardContent, CardDescription, CardHeader, CardRow, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
@@ -49,9 +50,7 @@ function CommandRow({ command }: { command: Command }) {
         </Button>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="size-8" aria-label={`Manage ${command.name}`}>
-              <MoreVerticalIcon />
-            </Button>
+            <TableActionTrigger iconOnly aria-label={`Manage ${command.name}`} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild className="sm:hidden">

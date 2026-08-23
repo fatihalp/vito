@@ -1,8 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
-import { MoreVerticalIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VitoTable } from '@/components/vito-table';
 import { useDialog } from '@/hooks/use-dialog';
@@ -48,13 +47,10 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
         const deployment = asRow<Deployment>(row, ['id', 'site_id', 'server_id']);
 
         return (
-          <div className="flex items-center">
+          <div className="flex items-center gap-2">
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="h-8 w-8 p-0">
-                  <span className="sr-only">Open menu</span>
-                  <MoreVerticalIcon />
-                </Button>
+                <TableActionTrigger />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
                 <DropdownMenuItem asChild>

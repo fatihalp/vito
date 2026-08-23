@@ -7,7 +7,7 @@ import ConnectNotificationChannel from '@/pages/notification-channels/components
 import { VitoTable } from '@/components/vito-table';
 import { NotificationChannel } from '@/types/notification-channel';
 import { Configs } from '@/types';
-import { BookOpenIcon, MoreVerticalIcon } from 'lucide-react';
+import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Edit from '@/pages/notification-channels/components/edit';
 import Delete from '@/pages/notification-channels/components/delete';
@@ -40,15 +40,12 @@ export default function NotificationChannels() {
           actions={(row: Row) => {
             const notificationChannel = asRow<NotificationChannel>(row, ['id', 'name', 'global']);
             return (
-              <div className="flex items-center justify-end">
+              <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreVerticalIcon />
-                    </Button>
+                    <TableActionTrigger />
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="start">
                     <Edit notificationChannel={notificationChannel} />
                     <DropdownMenuSeparator />
                     <Delete notificationChannel={notificationChannel} />
