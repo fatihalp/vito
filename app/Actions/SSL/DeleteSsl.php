@@ -3,7 +3,7 @@
 namespace App\Actions\SSL;
 
 use App\Enums\SslStatus;
-use App\Jobs\SSL\DeleteServerSslJob;
+use App\Jobs\SSL\DeleteSslJob;
 use App\Models\ServerLog;
 use App\Models\Service;
 use App\Models\Ssl;
@@ -48,7 +48,7 @@ class DeleteSsl
         $ssl->log_id = ServerLog::log($server, 'delete-server-ssl', '')->id;
         $ssl->save();
 
-        dispatch(new DeleteServerSslJob($server, $ssl))->onQueue('ssh');
+        dispatch(new DeleteSslJob($server, $ssl))->onQueue('ssh');
     }
 
     

@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\HasFeatures;
+
 use App\Actions\SiteResource\CleanupSiteResources;
 use App\Enums\DeploymentStatus;
 use App\Enums\HostedDomainStatus;
@@ -14,15 +16,13 @@ use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Helpers\SiteShellEnvironment;
 use App\Helpers\SSH;
-use App\Jobs\SSL\DeleteSiteSslJob;
+use App\Jobs\SSL\DeleteSslJob;
 use App\Services\Webserver\Webserver;
-use App\SiteFeatures\ActionInterface;
 use App\SiteTypes\AbstractProxiedSiteType;
 use App\SiteTypes\AbstractSiteType;
 use App\SiteTypes\BunSite;
 use App\SiteTypes\NodeSite;
 use App\SiteTypes\SiteType;
-use App\SourceControlProviders\GithubApp;
 use App\Tooling\ToolingRegistry;
 use App\Traits\HasProjectThroughServer;
 use Database\Factories\SiteFactory;
@@ -31,15 +31,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-
 class Site extends AbstractModel
 {
+    use HasFeatures;
     
     use HasFactory;
 
@@ -101,7 +100,7 @@ class Site extends AbstractModel
                 $worker->delete();
             });
             $site->ssls()->each(function (Ssl $ssl) use ($site): void {
-                dispatch(new DeleteSiteSslJob($site->server, $ssl))->onQueue('ssh');
+                dispatch(new DeleteSslJob($site->server, $ssl))->onQueue('ssh');
             });
             $site->deployments()->delete();
             $site->deploymentScript()->delete();
@@ -138,85 +137,7 @@ class Site extends AbstractModel
     
     public function getWarnings(): array
     {
-        $warnings = [];
-
-        $hostedDomains = $this->relationLoaded('hostedDomains') ? $this->hostedDomains : collect();
-
-        $pendingDomains = $hostedDomains->where('status', HostedDomainStatus::PENDING);
-        if ($pendingDomains->isNotEmpty()) {
-            $warnings[] = [
-                'key' => 'pending_domains',
-                'count' => $pendingDomains->count(),
-                'domains' => $pendingDomains->pluck('domain')->all(),
-            ];
-        }
-
-        if (! $this->ssl_enabled) {
-            $warnings[] = ['key' => 'ssl_disabled'];
-        }
-
-        if (! $this->vhost_generation_enabled) {
-            $warnings[] = ['key' => 'vhost_generation_disabled'];
-        }
-
-        if ($this->vhost_template !== null
-            && array_filter($this->phpSettings(), fn ($v) => $v !== null) !== []) {
-            $warnings[] = ['key' => 'php_settings_ignored'];
-        }
-
-        $expiring = $hostedDomains->filter(
-            fn ($hd) => $hd->ssl_id
-                && $hd->relationLoaded('ssl')
-                && $hd->ssl
-                && $hd->ssl->status === SslStatus::CREATED
-                && $hd->ssl->expires_at
-                && $hd->ssl->expires_at <= now()->addDays(14)
-        );
-
-        if ($expiring->isNotEmpty()) {
-            $earliestExpiry = $expiring->min(fn ($hd) => $hd->ssl->expires_at);
-            $warnings[] = [
-                'key' => 'ssl_expiring',
-                'count' => $expiring->count(),
-                'domains' => $expiring->pluck('domain')->all(),
-                'earliest_expiry' => $earliestExpiry?->toIso8601String(),
-            ];
-        }
-
-        if ($this->typeOrNull() instanceof AbstractProxiedSiteType
-            && ! ($this->getAttribute('has_finished_deployment') ?? $this->deployments()->where('status', DeploymentStatus::FINISHED)->exists())) {
-            $warnings[] = ['key' => 'needs_first_deploy'];
-        }
-
-        if ($this->type_data['composer_install_failed'] ?? false) {
-            $warnings[] = ['key' => 'composer_install_failed'];
-        }
-
-        if ($this->relationLoaded('workers')) {
-            $bootstrapId = $this->bootstrapWorkerId();
-
-            foreach ($this->workers as $worker) {
-                $isBootstrap = $bootstrapId !== null && $worker->id === $bootstrapId;
-
-                $inError = $worker->status === WorkerStatus::FAILED
-                    || ($isBootstrap && $worker->status === WorkerStatus::STOPPED);
-
-                if (! $inError) {
-                    continue;
-                }
-
-                $warnings[] = [
-                    'key' => 'worker_not_running',
-                    'worker_id' => $worker->id,
-                    'name' => $worker->name,
-                    'status' => $worker->status->getText(),
-                    'status_color' => $worker->status->getColor(),
-                    'error' => $worker->error,
-                ];
-            }
-        }
-
-        return $warnings;
+        return app(\App\Actions\Site\GetSiteWarnings::class)->get($this);
     }
 
     public function bootstrapWorkerId(): ?int
@@ -241,14 +162,14 @@ class Site extends AbstractModel
         return $this->belongsTo(IsolatedUser::class);
     }
 
-    public function getUserAttribute(?string $value): ?string
+    public function getUserAttribute(): ?string
     {
-        return ($value !== null && $value !== '') ? $value : $this->isolatedUser?->username;
+        return $this->isolatedUser?->username;
     }
 
-    public function getSshKeyAttribute(?string $value): ?string
+    public function getSshKeyAttribute(): ?string
     {
-        return ($value !== null && $value !== '') ? $value : $this->isolatedUser?->ssh_key;
+        return $this->isolatedUser?->ssh_key;
     }
 
     
@@ -415,18 +336,11 @@ class Site extends AbstractModel
 
     public function type(): SiteType
     {
-        $type = match ($this->type) {
-            'mise_bun' => BunSite::id(),
-            'mise_nodejs' => NodeSite::id(),
-            default => $this->type,
-        };
-
-        $handlerClass = config('site.types.'.$type.'.handler');
+        $handlerClass = config('site.types.'.$this->type.'.handler');
         if (! class_exists($handlerClass)) {
             throw new RuntimeException("Site type handler class {$handlerClass} does not exist.");
         }
 
-        
         $handler = new $handlerClass($this);
 
         return $handler;
@@ -541,10 +455,6 @@ class Site extends AbstractModel
 
     public function getSshKeyName(): string
     {
-        if ($this->getRawOriginal('ssh_key')) {
-            return 'site_'.$this->id;
-        }
-
         return $this->isolated_user_id
             ? 'iuser_'.$this->isolated_user_id
             : 'site_'.$this->id;
@@ -618,13 +528,7 @@ class Site extends AbstractModel
 
     public function isIsolated(): bool
     {
-        if ($this->isolated_user_id !== null) {
-            return true;
-        }
-
-        $column = $this->getRawOriginal('user');
-
-        return is_string($column) && $column !== '' && $column !== $this->server->getSshUser();
+        return $this->isolated_user_id !== null;
     }
 
     public function userSharedWithSiblings(): bool
@@ -744,32 +648,9 @@ class Site extends AbstractModel
     {
         return $this->redirects()->whereIn('status', [RedirectStatus::CREATING, RedirectStatus::READY]);
     }
-
-    
-    public function features(): array
+    public function featuresConfig(): array
     {
-        $features = config('site.types.'.$this->type.'.features', []);
-        foreach ($features as $featureKey => $feature) {
-            foreach ($feature['actions'] ?? [] as $actionKey => $action) {
-                $handlerClass = $action['handler'] ?? null;
-                if ($handlerClass && class_exists($handlerClass)) {
-                    
-                    $handler = new $handlerClass($this);
-                    $action['active'] = $handler->active();
-                    if (! isset($action['form']) || empty($action['form'])) {
-                        $action['form'] = $handler->form()?->toArray() ?? [];
-                    }
-                }
-                $features[$featureKey]['actions'][$actionKey] = $action;
-            }
-        }
-
-        return $features;
-    }
-
-    public function hasFeature(string $feature): bool
-    {
-        return in_array($feature, config('site.types.'.$this->type.'.features', []));
+        return config('site.types.'.$this->type.'.features', []);
     }
 
     public function createDefaultDeploymentScript(): void

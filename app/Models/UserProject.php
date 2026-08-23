@@ -6,7 +6,6 @@ use App\Enums\UserRole;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class UserProject extends Model
 {
     protected $table = 'user_project';

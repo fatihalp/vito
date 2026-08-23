@@ -16,6 +16,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth'])]
 class ServerTemplateController extends Controller
 {
+
     #[Get('/', name: 'server-templates.index')]
     public function index(): JsonResponse
     {

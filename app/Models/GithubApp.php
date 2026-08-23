@@ -5,7 +5,6 @@ namespace App\Models;
 use Database\Factories\GithubAppFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-
 class GithubApp extends AbstractModel
 {
     

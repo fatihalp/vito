@@ -6,7 +6,6 @@ use App\Models\ServerIpAddress;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class ServerIpAddressResource extends JsonResource
 {
     

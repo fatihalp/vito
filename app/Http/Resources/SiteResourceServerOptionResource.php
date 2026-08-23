@@ -7,7 +7,6 @@ use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class SiteResourceServerOptionResource extends JsonResource
 {
 

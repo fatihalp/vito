@@ -7,7 +7,6 @@ use Database\Factories\RedirectFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class Redirect extends AbstractModel
 {
     

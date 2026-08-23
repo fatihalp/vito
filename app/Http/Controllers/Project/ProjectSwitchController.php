@@ -13,6 +13,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ProjectSwitchController extends Controller
 {
+
     #[Patch('switch/{project}', name: 'projects.switch')]
     public function __invoke(Project $project): RedirectResponse
     {

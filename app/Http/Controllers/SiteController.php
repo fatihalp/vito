@@ -25,11 +25,11 @@ use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
-use Throwable;
 
 #[Middleware(['auth', 'has-project'])]
 class SiteController extends Controller
 {
+
     #[Get('/sites', name: 'sites.all')]
     public function index(Request $request): Response
     {
@@ -82,6 +82,7 @@ class SiteController extends Controller
     }
 
     
+
     #[Post('/servers/{server}/sites/', name: 'sites.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {

@@ -23,7 +23,6 @@ function generate_key_pair(string $path): void
     chmod($path, 0400);
 }
 
-
 function date_with_timezone(mixed $date, string $timezone): string
 {
     $dt = new DateTime('now', new DateTimeZone($timezone));
@@ -80,7 +79,6 @@ function get_public_key_content(): string
 
     return $content;
 }
-
 
 function tail(string $filepath, int $lines = 1, bool $adaptive = true): string
 {

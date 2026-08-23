@@ -8,7 +8,6 @@ use App\Support\Testing\SSHFake;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Facade as FacadeAlias;
 
-
 class SSH extends FacadeAlias
 {
     public static function fake(?string $output = null): SSHFake

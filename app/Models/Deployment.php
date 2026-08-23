@@ -7,7 +7,6 @@ use Database\Factories\DeploymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class Deployment extends AbstractModel
 {
     

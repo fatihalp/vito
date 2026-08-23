@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class FirewallRuleController extends Controller
 {
+
     #[Get('/', name: 'api.projects.servers.firewall-rules', middleware: 'ability:read')]
     public function index(Project $project, Server $server): ResourceCollection
     {

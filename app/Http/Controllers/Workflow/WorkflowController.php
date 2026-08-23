@@ -27,6 +27,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class WorkflowController extends Controller
 {
+
     #[Get('/', name: 'workflows')]
     public function index(): Response
     {

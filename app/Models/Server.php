@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\HasFeatures;
+
 use App\Actions\Network\ResyncNetworkSiblings;
 use App\Actions\Server\CheckConnection;
 use App\Actions\SiteResource\CleanupSiteResources;
@@ -11,9 +13,7 @@ use App\Enums\SecurityControlStatus;
 use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
-use App\Exceptions\SSHError;
 use App\Facades\SSH;
-use App\ServerFeatures\ActionInterface;
 use App\SSH\OS\Cron;
 use App\SSH\OS\OS;
 use App\SSH\OS\Security;
@@ -26,18 +26,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Filesystem\FilesystemAdapter;
-use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Throwable;
 
-
 class Server extends AbstractModel
 {
+    use HasFeatures;
     
     use HasFactory;
 
@@ -364,15 +361,10 @@ class Server extends AbstractModel
 
         
         if (! $service) {
-            
             $service = $this->services()
                 ->where('type', $type)
                 ->whereIn('status', [ServiceStatus::READY, ServiceStatus::STOPPED])
                 ->first();
-            if ($service) {
-                $service->is_default = true;
-                $service->save();
-            }
         }
 
         return $service;
@@ -384,29 +376,19 @@ class Server extends AbstractModel
     }
 
     
-    public function installedPHPVersions(): array
+    public function installedServiceVersions(string $type): array
     {
-        $versions = [];
-        $phps = $this->services()->where('type', 'php')->get(['version']);
-        
-        foreach ($phps as $php) {
-            $versions[] = $php->version;
-        }
-
-        return $versions;
+        return $this->services()->where('type', $type)->pluck('version')->all();
     }
 
-    
+    public function installedPHPVersions(): array
+    {
+        return $this->installedServiceVersions('php');
+    }
+
     public function installedNodejsVersions(): array
     {
-        $versions = [];
-        $nodes = $this->services()->where('type', 'nodejs')->get(['version']);
-        
-        foreach ($nodes as $node) {
-            $versions[] = $node->version;
-        }
-
-        return $versions;
+        return $this->installedServiceVersions('nodejs');
     }
 
     public function provider(): \App\ServerProviders\ServerProvider
@@ -428,31 +410,28 @@ class Server extends AbstractModel
         }
     }
 
-    public function webserver(?string $version = null): ?Service
+    public function serviceOrDefault(string $type, ?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('webserver');
+        if ($version === null || $version === '') {
+            return $this->defaultService($type);
         }
 
-        return $this->service('webserver', $version);
+        return $this->service($type, $version);
+    }
+
+    public function webserver(?string $version = null): ?Service
+    {
+        return $this->serviceOrDefault('webserver', $version);
     }
 
     public function database(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('database');
-        }
-
-        return $this->service('database', $version);
+        return $this->serviceOrDefault('database', $version);
     }
 
     public function firewall(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('firewall');
-        }
-
-        return $this->service('firewall', $version);
+        return $this->serviceOrDefault('firewall', $version);
     }
 
     public function fail2ban(): ?Service
@@ -462,47 +441,27 @@ class Server extends AbstractModel
 
     public function processManager(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('process_manager');
-        }
-
-        return $this->service('process_manager', $version);
+        return $this->serviceOrDefault('processManager', $version);
     }
 
     public function php(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('php');
-        }
-
-        return $this->service('php', $version);
+        return $this->serviceOrDefault('php', $version);
     }
 
     public function nodejs(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('nodejs');
-        }
-
-        return $this->service('nodejs', $version);
+        return $this->serviceOrDefault('nodejs', $version);
     }
 
     public function memoryDatabase(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('memory_database');
-        }
-
-        return $this->service('memory_database', $version);
+        return $this->serviceOrDefault('memoryDatabase', $version);
     }
 
     public function monitoring(?string $version = null): ?Service
     {
-        if ($version === null || $version === '' || $version === '0') {
-            return $this->defaultService('monitoring');
-        }
-
-        return $this->service('monitoring', $version);
+        return $this->serviceOrDefault('monitoring', $version);
     }
 
     
@@ -568,35 +527,6 @@ class Server extends AbstractModel
     }
 
     
-    public function securityScore(): array
-    {
-        $state = $this->securityState();
-        $fail2ban = $this->fail2ban();
-        $firewall = $this->firewall();
-        $ready = SecurityControlStatus::READY->value;
-
-        $checks = [
-            ['key' => 'auto_update', 'label' => 'Automatic updates enabled', 'passed' => (bool) $this->auto_update],
-            ['key' => 'firewall', 'label' => 'Firewall installed', 'passed' => $firewall instanceof Service && $firewall->status === ServiceStatus::READY],
-            ['key' => 'fail2ban', 'label' => 'Fail2ban installed', 'passed' => $fail2ban instanceof Service && $fail2ban->status === ServiceStatus::READY],
-            ['key' => 'password_auth', 'label' => 'Password authentication disabled', 'passed' => $state['password_authentication']['enabled'] === false && $state['password_authentication']['status'] === $ready],
-        ];
-
-        if ($this->getSshUser() !== 'root') {
-            $checks[] = ['key' => 'root_login', 'label' => 'Root SSH login disabled', 'passed' => $state['root_login']['enabled'] === false && $state['root_login']['status'] === $ready];
-        }
-
-        $passed = count(array_filter($checks, fn (array $check): bool => $check['passed']));
-
-        return [
-            'score' => (int) round($passed / count($checks) * 100),
-            'passed' => $passed,
-            'total' => count($checks),
-            'checks' => $checks,
-        ];
-    }
-
-    
     public function checkForUpdates(): void
     {
         $result = $this->os()->availableUpdates();
@@ -614,32 +544,9 @@ class Server extends AbstractModel
             $path
         );
     }
-
-    
-    public function features(): array
+    public function featuresConfig(): array
     {
-        $features = config('server.features', []);
-        foreach ($features as $featureKey => $feature) {
-            foreach ($feature['actions'] ?? [] as $actionKey => $action) {
-                $handlerClass = $action['handler'] ?? null;
-                if ($handlerClass && class_exists($handlerClass)) {
-                    
-                    $handler = new $handlerClass($this);
-                    $action['active'] = $handler->active();
-                    if (! isset($action['form']) || empty($action['form'])) {
-                        $action['form'] = $handler->form()?->toArray() ?? [];
-                    }
-                }
-                $features[$featureKey]['actions'][$actionKey] = $action;
-            }
-        }
-
-        return $features;
-    }
-
-    public function hasFeature(string $feature): bool
-    {
-        return in_array($feature, config('server.features', []));
+        return config('server.features', []);
     }
 
     

@@ -31,4 +31,14 @@ enum ServerRole: string implements HasTableDisplay, VitoEnum
             self::CACHE => 'Cache (Redis) server',
         };
     }
+
+    public function requiredServiceTypes(): array
+    {
+        return match ($this) {
+            self::APP => ['webserver'],
+            self::QUEUE => ['php', 'process_manager'],
+            self::DATABASE => ['database'],
+            self::CACHE => ['memory_database'],
+        };
+    }
 }

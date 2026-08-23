@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class DNSRecordController extends Controller
 {
+
     #[Get('/', name: 'api.dns-records', middleware: 'ability:read')]
     public function index(Project $project, Domain $domain): ResourceCollection
     {

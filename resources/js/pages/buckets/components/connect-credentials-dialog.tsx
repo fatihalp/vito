@@ -9,16 +9,8 @@ import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function ConnectCredentialsDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
-
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
   const form = useForm<{ access_key: string; secret_key: string }>({
     access_key: '',
     secret_key: '',

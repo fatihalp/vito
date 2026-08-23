@@ -6,7 +6,6 @@ use Database\Factories\FileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class File extends AbstractModel
 {
     

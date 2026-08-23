@@ -31,6 +31,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class ServiceController extends Controller
 {
+
     #[Get('/', name: 'services')]
     public function index(Server $server): Response
     {
@@ -47,14 +48,9 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', [Service::class, $server]);
 
-        $versions = [];
-        $services = $server->services()->where('type', $service)->latest('version')->get(['version']);
-        
-        foreach ($services as $service) {
-            $versions[] = $service->version;
-        }
-
-        return response()->json($versions);
+        return response()->json(
+            $server->services()->where('type', $service)->latest('version')->pluck('version')
+        );
     }
 
     #[Post('/', name: 'services.store')]
@@ -69,74 +65,15 @@ class ServiceController extends Controller
         ]));
     }
 
-    #[Post('/{service}/start', name: 'services.start')]
-    public function start(Server $server, Service $service): RedirectResponse
+    public function manage(Request $request, Server $server, Service $service): RedirectResponse
     {
-        $this->authorize('start', $service);
+        $action = $request->input('action');
+        abort_unless(in_array($action, ['start', 'stop', 'restart', 'reload', 'enable', 'disable']), 404);
+        $this->authorize($action, $service);
 
-        app(Manage::class)->start($service);
+        app(Manage::class)->$action($service);
 
-        return back()->with('success', __(':service is being started.', [
-            'service' => $service->name,
-        ]));
-    }
-
-    #[Post('/{service}/restart', name: 'services.restart')]
-    public function restart(Server $server, Service $service): RedirectResponse
-    {
-        $this->authorize('restart', $service);
-
-        app(Manage::class)->restart($service);
-
-        return back()->with('success', __(':service is being restarted.', [
-            'service' => $service->name,
-        ]));
-    }
-
-    #[Post('/{service}/reload', name: 'services.reload')]
-    public function reload(Server $server, Service $service): RedirectResponse
-    {
-        $this->authorize('reload', $service);
-
-        app(Manage::class)->reload($service);
-
-        return back()->with('success', __(':service is being reloaded.', [
-            'service' => $service->name,
-        ]));
-    }
-
-    #[Post('/{service}/stop', name: 'services.stop')]
-    public function stop(Server $server, Service $service): RedirectResponse
-    {
-        $this->authorize('stop', $service);
-
-        app(Manage::class)->stop($service);
-
-        return back()->with('success', __(':service is being stopped.', [
-            'service' => $service->name,
-        ]));
-    }
-
-    #[Post('/{service}/enable', name: 'services.enable')]
-    public function enable(Server $server, Service $service): RedirectResponse
-    {
-        $this->authorize('enable', $service);
-
-        app(Manage::class)->enable($service);
-
-        return back()->with('success', __(':service is being enabled.', [
-            'service' => $service->name,
-        ]));
-    }
-
-    #[Post('/{service}/disable', name: 'services.disable')]
-    public function disable(Server $server, Service $service): RedirectResponse
-    {
-        $this->authorize('disable', $service);
-
-        app(Manage::class)->disable($service);
-
-        return back()->with('success', __(':service is being disabled.', [
+        return back()->with('success', __(":service is being {$action}ed.", [
             'service' => $service->name,
         ]));
     }

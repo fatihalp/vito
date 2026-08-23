@@ -11,7 +11,7 @@ import { VitoTable } from '@/components/vito-table';
 import Delete from '@/pages/databases/components/delete';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
-import SyncDatabases from '@/pages/databases/components/sync-databases';
+
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
 
@@ -35,7 +35,21 @@ export default function Databases() {
         <HeaderContainer>
           <Heading title="Databases" />
           <div className="flex items-center gap-2">
-            <SyncDatabases server={page.props.server} />
+            <Button
+              variant="outline"
+              onClick={() =>
+                dialog.confirm.open({
+                  title: 'Sync databases',
+                  description:
+                    'This action will connect to your server and perform a two-way synchronization of databases. Vito will fetch any databases created manually on the server, and verify the existence of databases managed by Vito. If a database tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
+                  confirmLabel: 'Sync databases',
+                  url: route('databases.sync', { server: page.props.server.id }),
+                  method: 'post',
+                })
+              }
+            >
+              Sync
+            </Button>
             <CreateDatabase server={page.props.server.id} defaultCharset={defaultCharset} defaultCollation={defaultCollation}>
               <Button>
                 <PlusIcon />

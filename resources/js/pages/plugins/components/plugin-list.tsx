@@ -7,18 +7,29 @@ import { Fragment } from 'react';
 import Install from '@/pages/plugins/components/quick-install';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Badge } from '@/components/ui/badge';
 
-export default function OfficialPlugins() {
+interface PluginListProps {
+  filter: 'official' | 'community';
+}
+
+export default function PluginList({ filter }: PluginListProps) {
+  const isOfficial = filter === 'official';
   const query = useInfiniteQuery<{
     total_count: number;
     incomplete_results: boolean;
     items: Repo[];
     next_page?: number;
   }>({
-    queryKey: ['official-plugins'],
+    queryKey: [`${filter}-plugins`],
     queryFn: async ({ pageParam }) => {
+      const q = isOfficial
+        ? 'owner:vitodeploy%20topic:vitodeploy-plugin'
+        : '-owner:vitodeploy%20topic:vitodeploy-plugin%20fork:true';
       const data = (
-        await axios.get('https://api.github.com/search/repositories?q=owner:vitodeploy%20topic:vitodeploy-plugin&per_page=10&page=' + pageParam)
+        await axios.get(
+          `https://api.github.com/search/repositories?q=${q}&per_page=10&page=${pageParam}`
+        )
       ).data;
       if (data.items.length == 10) {
         data.next_page = (pageParam as number) + 1;
@@ -47,7 +58,11 @@ export default function OfficialPlugins() {
                       <a href={repo.html_url} target="_blank" className="hover:text-primary">
                         {repo.name}
                       </a>
-                      <BadgeCheckIcon className="text-primary size-4" />
+                      {isOfficial ? (
+                        <BadgeCheckIcon className="text-primary size-4" />
+                      ) : (
+                        <Badge variant="outline">by {repo.owner.login}</Badge>
+                      )}
                     </div>
                     <span className="text-muted-foreground text-xs">{repo.description}</span>
                   </div>
@@ -59,7 +74,9 @@ export default function OfficialPlugins() {
                     <Install url={repo.html_url} />
                   </div>
                 </CardRow>
-                {!(page.items[page.items.length - 1].id === repo.id && page === query.data.pages[query.data.pages.length - 1]) && <Separator />}
+                {!(page.items[page.items.length - 1].id === repo.id && page === query.data.pages[query.data.pages.length - 1]) && (
+                  <Separator className={!isOfficial ? "my-2" : undefined} />
+                )}
               </Fragment>
             )),
           )}

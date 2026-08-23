@@ -6,7 +6,6 @@ use App\Models\CronJob;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class CronJobResource extends JsonResource
 {
     

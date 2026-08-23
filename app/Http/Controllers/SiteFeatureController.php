@@ -18,6 +18,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class SiteFeatureController extends Controller
 {
+
     #[Get('/', name: 'site-features')]
     public function index(Server $server, Site $site): Response
     {

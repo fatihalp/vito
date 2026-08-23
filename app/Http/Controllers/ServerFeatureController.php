@@ -17,6 +17,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class ServerFeatureController extends Controller
 {
+
     #[Get('/', name: 'server-features')]
     public function index(Server $server): Response
     {

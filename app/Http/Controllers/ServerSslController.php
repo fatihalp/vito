@@ -27,6 +27,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Middleware(['auth', 'has-project'])]
 class ServerSslController extends Controller
 {
+
     #[Get('/', name: 'server-ssls')]
     public function index(Server $server): Response
     {

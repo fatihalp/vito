@@ -20,7 +20,7 @@ import type { ServerRole } from '@/lib/server-roles';
 import InputError from '@/components/ui/input-error';
 import { useConfigs } from '@/stores/bootstrap-store';
 
-export default function Databases() {
+export default function ServerSettings() {
   const configs = useConfigs()!;
   const page = usePage<{
     server: Server;

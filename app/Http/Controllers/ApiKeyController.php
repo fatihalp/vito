@@ -20,6 +20,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ApiKeyController extends Controller
 {
+
     #[Get('/', name: 'api-keys')]
     public function index(): Response
     {

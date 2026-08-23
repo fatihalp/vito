@@ -23,6 +23,7 @@ class HetznerController extends Controller
     ];
 
     
+
     #[Get('/latency', name: 'hetzner.latency')]
     public function latency(): JsonResponse
     {

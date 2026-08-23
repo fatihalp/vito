@@ -4,7 +4,6 @@
 @plugin 'tailwindcss-animate';
 
 @source '../views';
-@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -45,15 +44,6 @@
 
 ::-webkit-scrollbar-thumb:hover {
   background-color: rgba(100, 100, 100, 0.7);
-}
-
-.scrollbar-hide {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
 }
 
 .react-flow__panel.react-flow__controls {

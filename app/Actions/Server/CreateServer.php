@@ -157,14 +157,7 @@ class CreateServer
                 }
 
                 $serviceTypes = collect($input['services'] ?? [])->pluck('type');
-                $required = match ($role) {
-                    ServerRole::APP => ['webserver'],
-                    ServerRole::QUEUE => ['php', 'process_manager'],
-                    ServerRole::DATABASE => ['database'],
-                    ServerRole::CACHE => ['memory_database'],
-                };
-
-                foreach ($required as $type) {
+                foreach ($role->requiredServiceTypes() as $type) {
                     if (! $serviceTypes->contains($type)) {
                         $validator->errors()->add('services', __('The selected server type requires a :service service.', ['service' => $type]));
                     }
@@ -199,13 +192,13 @@ class CreateServer
 
         $services = $input['services'] ?? [];
 
-        foreach ($services as $service) {
-            $this->server->services()->create([
+        $this->server->services()->createMany(
+            collect($services)->map(fn ($service) => [
                 'type' => $service['type'],
                 'name' => $service['name'],
                 'version' => $service['version'],
-            ]);
-        }
+            ])->all()
+        );
 
         $this->server->services()->where('type', '=', 'php')->update(['is_default' => 0]);
         $this->server->services()

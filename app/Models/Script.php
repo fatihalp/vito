@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToProjectOrGlobal;
+
 use Carbon\Carbon;
 use Database\Factories\ScriptFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,9 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Collection;
 
-
 class Script extends AbstractModel
 {
+    use BelongsToProjectOrGlobal;
     
     use HasFactory;
 

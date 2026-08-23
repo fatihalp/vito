@@ -9,6 +9,7 @@ use Symfony\Component\Yaml\Yaml;
 
 class ApiDocsController extends Controller
 {
+
     #[Get('/api/docs', name: 'api.docs')]
     public function index(): BinaryFileResponse
     {

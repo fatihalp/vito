@@ -36,7 +36,7 @@ function Field({ label, children, className }: { label: ReactNode; children: Rea
   );
 }
 
-export default function Databases() {
+export default function SiteSettings() {
   const dialog = useDialog();
   const page = usePage<{
     server: Server;

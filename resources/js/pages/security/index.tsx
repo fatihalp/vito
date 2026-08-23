@@ -22,7 +22,7 @@ import { Separator } from '@/components/ui/separator';
 import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import ScheduleBuilder, { buildSchedule, parseSchedule } from '@/pages/security/components/schedule-builder';
-
+import SecurityToggleCard from '@/pages/security/components/security-toggle-card';
 function serviceStatusLabel(status: string): string {
   return status === 'ready' ? 'active' : status;
 }
@@ -90,87 +90,6 @@ function AutoUpdateCard({ server, autoUpdate }: { server: number; autoUpdate: Au
   );
 }
 
-function PasswordAuthCard({ server, passwordAuth }: { server: number; passwordAuth: PasswordAuthState }) {
-  const dialog = useDialog();
-  const updating = passwordAuth.status === 'updating';
-  const secure = !passwordAuth.enabled;
-  const drift = !updating && passwordAuth.detected != null && passwordAuth.detected !== passwordAuth.enabled;
-
-  const toggle = (nextSecure: boolean) => {
-    dialog.confirm.open({
-      title: nextSecure ? 'Disable password authentication' : 'Allow password authentication',
-      description: nextSecure
-        ? 'Only SSH key authentication will be allowed. Make sure your key works — any password-only users will be locked out.'
-        : 'Password logins will be allowed again over SSH.',
-      variant: nextSecure ? 'destructive' : 'default',
-      confirmLabel: nextSecure ? 'Disable' : 'Allow',
-      method: 'post',
-      url: route('security.password-auth', { server }),
-      data: { enabled: !nextSecure },
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
-              Disable password authentication
-              <ControlBadge status={passwordAuth.status} color={passwordAuth.status_color} secure={secure} />
-              {drift && <Badge variant="warning">drift detected</Badge>}
-            </CardTitle>
-            <CardDescription>When on, SSH access requires a key and password logins are refused (global default only).</CardDescription>
-          </div>
-          <Switch checked={secure} disabled={updating} onCheckedChange={toggle} aria-label="Disable password authentication" />
-        </div>
-      </CardHeader>
-    </Card>
-  );
-}
-
-function RootLoginCard({ server, rootLogin }: { server: number; rootLogin: RootLoginState }) {
-  const dialog = useDialog();
-  const updating = rootLogin.status === 'updating';
-  const secure = !rootLogin.enabled;
-  const drift = !updating && rootLogin.detected != null && rootLogin.detected !== rootLogin.enabled;
-
-  const toggle = (nextSecure: boolean) => {
-    dialog.confirm.open({
-      title: nextSecure ? 'Disable root SSH login' : 'Allow root SSH login',
-      description: nextSecure
-        ? 'Root SSH login will be refused. Vito connects as the deploy user and uses sudo, so this is safe.'
-        : 'Root will be allowed to log in over SSH again.',
-      variant: nextSecure ? 'destructive' : 'default',
-      confirmLabel: nextSecure ? 'Disable' : 'Allow',
-      method: 'post',
-      url: route('security.root-login', { server }),
-      data: { enabled: !nextSecure },
-    });
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
-              Disable root SSH login
-              <ControlBadge status={rootLogin.status} color={rootLogin.status_color} secure={secure} />
-              {drift && <Badge variant="warning">drift detected</Badge>}
-            </CardTitle>
-            <CardDescription>
-              {rootLogin.manageable
-                ? 'When on, the root user cannot log in over SSH.'
-                : 'Vito currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
-            </CardDescription>
-          </div>
-          <Switch checked={secure} disabled={updating || !rootLogin.manageable} onCheckedChange={toggle} aria-label="Disable root SSH login" />
-        </div>
-      </CardHeader>
-    </Card>
-  );
-}
 
 function Fail2banCard({ server, fail2ban }: { server: number; fail2ban: Service | null }) {
   const dialog = useDialog();
@@ -381,8 +300,42 @@ export default function Security() {
           />
           <FirewallCard server={serverId} firewall={page.props.firewall} />
           <Fail2banCard server={serverId} fail2ban={page.props.fail2ban} />
-          <PasswordAuthCard server={serverId} passwordAuth={page.props.passwordAuth} />
-          <RootLoginCard server={serverId} rootLogin={page.props.rootLogin} />
+          <SecurityToggleCard 
+            title="Disable password authentication"
+            description="When on, SSH access requires a key and password logins are refused (global default only)."
+            state={page.props.passwordAuth}
+            onToggle={(nextSecure) => {
+              dialog.confirm.open({
+                title: nextSecure ? 'Disable password authentication' : 'Allow password authentication',
+                description: nextSecure
+                  ? 'Only SSH key authentication will be allowed. Make sure your key works — any password-only users will be locked out.'
+                  : 'Password logins will be allowed again over SSH.',
+                variant: nextSecure ? 'destructive' : 'default',
+                confirmLabel: nextSecure ? 'Disable' : 'Allow',
+                method: 'post',
+                url: route('security.password-auth', { server: serverId }),
+                data: { enabled: !nextSecure },
+              });
+            }}
+          />
+          <SecurityToggleCard 
+            title="Disable root SSH login"
+            description={page.props.rootLogin.manageable ? 'When on, the root user cannot log in over SSH.' : 'Vito currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
+            state={page.props.rootLogin}
+            onToggle={(nextSecure) => {
+              dialog.confirm.open({
+                title: nextSecure ? 'Disable root SSH login' : 'Allow root SSH login',
+                description: nextSecure
+                  ? 'Root SSH login will be refused. Vito connects as the deploy user and uses sudo, so this is safe.'
+                  : 'Root will be allowed to log in over SSH again.',
+                variant: nextSecure ? 'destructive' : 'default',
+                confirmLabel: nextSecure ? 'Disable' : 'Allow',
+                method: 'post',
+                url: route('security.root-login', { server: serverId }),
+                data: { enabled: !nextSecure },
+              });
+            }}
+          />
         </div>
       </Container>
     </ServerLayout>

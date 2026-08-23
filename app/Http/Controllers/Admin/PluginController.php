@@ -29,6 +29,7 @@ use Throwable;
 #[Middleware(['auth', 'must-be-admin'])]
 class PluginController extends Controller
 {
+
     #[Get('/', name: 'plugins')]
     public function index(DiscoverPlugins $pluginDiscovery): Response
     {

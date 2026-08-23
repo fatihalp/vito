@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class DomainController extends Controller
 {
+
     #[Get('/', name: 'api.projects.domains', middleware: 'ability:read')]
     public function index(Project $project): ResourceCollection
     {

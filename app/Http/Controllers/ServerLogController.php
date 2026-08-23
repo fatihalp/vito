@@ -7,6 +7,7 @@ use App\Actions\Server\DownloadServiceLog;
 use App\Actions\Server\GetServiceLogs;
 use App\Actions\Server\ReadServiceLog;
 use App\Actions\ServerLog\CreateLog;
+use App\Actions\ServerLog\DownloadLog;
 use App\Actions\ServerLog\UpdateLog;
 use App\DTOs\ServiceLog;
 use App\Helpers\QueryBuilder;
@@ -27,12 +28,12 @@ use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Symfony\Component\HttpFoundation\StreamedResponse;
-use Throwable;
 
 #[Prefix('servers/{server}/logs')]
 #[Middleware(['auth', 'has-project'])]
 class ServerLogController extends Controller
 {
+
     #[Get('/', name: 'logs')]
     public function index(Server $server): Response
     {
@@ -134,12 +135,13 @@ class ServerLogController extends Controller
     }
 
     
+
     #[Get('/{log}/download', name: 'logs.download')]
     public function download(Server $server, ServerLog $log): StreamedResponse
     {
         $this->authorize('view', $log);
 
-        return $log->download();
+        return app(DownloadLog::class)->download($log);
     }
 
     #[Post('/', name: 'logs.store')]

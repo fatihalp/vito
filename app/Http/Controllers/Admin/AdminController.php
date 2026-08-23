@@ -12,6 +12,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'must-be-admin'])]
 class AdminController extends Controller
 {
+
     #[Get('/', name: 'admin')]
     public function index(): RedirectResponse
     {

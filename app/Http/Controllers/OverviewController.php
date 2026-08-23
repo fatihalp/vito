@@ -15,6 +15,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware(['auth', 'has-project'])]
 class OverviewController extends Controller
 {
+
     #[Get('/overview', name: 'overview')]
     public function __invoke(): Response
     {

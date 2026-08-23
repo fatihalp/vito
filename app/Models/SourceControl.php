@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToProjectOrGlobal;
+
 use App\SourceControlProviders\SourceControlProvider;
 use Database\Factories\SourceControlFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -11,9 +13,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Validation\Rule;
 
-
 class SourceControl extends AbstractModel
 {
+    use BelongsToProjectOrGlobal;
     public const string PROVIDER_GITHUB_APP = 'github-app';
 
     
@@ -99,18 +101,5 @@ class SourceControl extends AbstractModel
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    
-    public static function getByProjectId(int $projectId, User $user): Builder
-    {
-        
-        $query = static::query();
-
-        return $query
-            ->where('user_id', $user->id)
-            ->where(function (Builder $query) use ($projectId): void {
-                $query->where('project_id', $projectId)->orWhereNull('project_id');
-            });
     }
 }

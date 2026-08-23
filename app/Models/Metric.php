@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class Metric extends Model
 {
     
@@ -113,48 +112,53 @@ class Metric extends Model
         );
     }
 
+    private function toBytes(float|int|null $value, int $multiplier): float|int
+    {
+        return ($value ?? 0) * $multiplier;
+    }
+
     public function getMemoryTotalInBytesAttribute(): float|int
     {
-        return ($this->memory_total ?? 0) * 1024;
+        return $this->toBytes($this->memory_total, 1024);
     }
 
     public function getMemoryUsedInBytesAttribute(): float|int
     {
-        return ($this->memory_used ?? 0) * 1024;
+        return $this->toBytes($this->memory_used, 1024);
     }
 
     public function getMemoryFreeInBytesAttribute(): float|int
     {
-        return ($this->memory_free ?? 0) * 1024;
+        return $this->toBytes($this->memory_free, 1024);
     }
 
     public function getDiskTotalInBytesAttribute(): float|int
     {
-        return ($this->disk_total ?? 0) * (1024 * 1024);
+        return $this->toBytes($this->disk_total, 1024 * 1024);
     }
 
     public function getDiskUsedInBytesAttribute(): float|int
     {
-        return ($this->disk_used ?? 0) * (1024 * 1024);
+        return $this->toBytes($this->disk_used, 1024 * 1024);
     }
 
     public function getDiskFreeInBytesAttribute(): float|int
     {
-        return ($this->disk_free ?? 0) * (1024 * 1024);
+        return $this->toBytes($this->disk_free, 1024 * 1024);
     }
 
     public function getSwapTotalInBytesAttribute(): float|int
     {
-        return ($this->swap_total ?? 0) * 1024;
+        return $this->toBytes($this->swap_total, 1024);
     }
 
     public function getSwapUsedInBytesAttribute(): float|int
     {
-        return ($this->swap_used ?? 0) * 1024;
+        return $this->toBytes($this->swap_used, 1024);
     }
 
     public function getSwapFreeInBytesAttribute(): float|int
     {
-        return ($this->swap_free ?? 0) * 1024;
+        return $this->toBytes($this->swap_free, 1024);
     }
 }

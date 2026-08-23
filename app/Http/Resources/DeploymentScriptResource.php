@@ -6,7 +6,6 @@ use App\Models\DeploymentScript;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class DeploymentScriptResource extends JsonResource
 {
     

@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class DNSProviderController extends Controller
 {
+
     #[Get('/', name: 'dns-providers')]
     public function index(): Response
     {

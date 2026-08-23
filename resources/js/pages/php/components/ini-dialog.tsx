@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon } from 'lucide-react';
 import { registerIniLanguage } from '@/lib/editor';
 import { useAppearance } from '@/hooks/use-appearance';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function PhpIniDialog({
   open,
@@ -25,7 +24,6 @@ export default function PhpIniDialog({
   type: 'fpm' | 'cli';
 }) {
   const { getActualAppearance } = useAppearance();
-  const setFocused = useInputFocus((state) => state.setFocused);
   const form = useForm<{
     ini: string;
     type: 'fpm' | 'cli';
@@ -36,12 +34,7 @@ export default function PhpIniDialog({
     version: service.version,
   });
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  const submit = (e: FormEvent) => {
+    const submit = (e: FormEvent) => {
     e.preventDefault();
     form.patch(route('php.ini.update', { server: service.server_id, service: service.id }), {
       onSuccess: () => onOpenChange(false),

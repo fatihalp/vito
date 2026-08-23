@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class RedirectController extends Controller
 {
+
     #[Get('/', name: 'api.projects.servers.sites.redirects.index', middleware: 'ability:read')]
     public function index(Project $project, Server $server, Site $site): ResourceCollection
     {

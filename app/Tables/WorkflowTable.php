@@ -9,7 +9,6 @@ use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
 use Forjed\InertiaTable\Table;
 
-
 class WorkflowTable extends Table
 {
     protected function query(): void

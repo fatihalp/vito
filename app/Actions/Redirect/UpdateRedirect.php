@@ -31,35 +31,6 @@ class UpdateRedirect
     
     private function validate(Site $site, Redirect $redirect, array $input): void
     {
-        $rules = [
-            'from' => [
-                'required',
-                'string',
-                'max:255',
-                'not_regex:/^http(s)?:\/\//',
-                Rule::unique('redirects', 'from')->where('site_id', $site->id)->ignore($redirect->id),
-            ],
-            'to' => [
-                'required',
-                'url:http,https',
-            ],
-            'mode' => [
-                'required',
-                'integer',
-                Rule::in([
-                    301,
-                    302,
-                    307,
-                    308,
-                    Redirect::MODE_PROXY,
-                ]),
-            ],
-            'websocket' => [
-                'nullable',
-                'boolean',
-            ],
-        ];
-
-        Validator::make($input, $rules)->validate();
+        Validator::make($input, CreateRedirect::rules($site, $redirect))->validate();
     }
 }

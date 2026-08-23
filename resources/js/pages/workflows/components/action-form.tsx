@@ -10,7 +10,6 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function ActionForm({
   action,
@@ -25,7 +24,6 @@ export default function ActionForm({
   type: 'add' | 'edit';
   children: ReactNode;
 }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const [open, setOpen] = useState(false);
   const form = useForm({
     label: action.label,
@@ -35,7 +33,6 @@ export default function ActionForm({
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    setFocused(isOpen);
   };
 
   const submit = (e: FormEvent) => {

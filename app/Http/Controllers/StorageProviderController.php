@@ -29,6 +29,7 @@ use Throwable;
 #[Middleware(['auth'])]
 class StorageProviderController extends Controller
 {
+
     #[Get('/', name: 'storage-providers')]
     public function index(): Response
     {

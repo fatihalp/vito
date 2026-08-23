@@ -6,7 +6,6 @@ use App\Traits\HasTimezoneTimestamps;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
-
 abstract class AbstractModel extends Model
 {
     use HasTimezoneTimestamps;

@@ -2,7 +2,6 @@
 
 namespace App\Support;
 
-
 class Cidr
 {
     public const V4_BITS = 32;

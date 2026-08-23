@@ -11,7 +11,7 @@ import Container from '@/components/container';
 import { DataTable } from '@/components/data-table';
 import { CronJob } from '@/types/cronjob';
 import { columns } from '@/pages/cronjobs/components/columns';
-import SyncCronJobs from '@/pages/cronjobs/components/sync-cronjobs';
+
 import { Site } from '@/types/site';
 import { useDialog } from '@/hooks/use-dialog';
 import {
@@ -44,7 +44,21 @@ export default function CronJobIndex() {
             description={page.props.site ? `Manage scheduled tasks and cron jobs for ${page.props.site.domain}` : "Manage server's cron jobs"}
           />
           <div className="flex items-center gap-2">
-            <SyncCronJobs server={page.props.server} />
+            <Button
+              variant="outline"
+              onClick={() =>
+                dialog.confirm.open({
+                  title: 'Sync cron jobs',
+                  description:
+                    'This action will connect to your server and perform a two-way synchronization of cron jobs. Vito will fetch any cron jobs created manually on the server, and verify the existence of cron jobs managed by Vito. If a cron job tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
+                  confirmLabel: 'Sync cron jobs',
+                  url: route('cronjobs.sync', { server: page.props.server.id }),
+                  method: 'post',
+                })
+              }
+            >
+              Sync
+            </Button>
             <DropdownMenu>
               <div className="flex items-center rounded-md shadow-xs">
                 <Button

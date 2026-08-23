@@ -24,6 +24,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 #[Middleware(['auth', 'has-project'])]
 class SiteToolingController extends Controller
 {
+
     #[Get('/', name: 'site-tooling')]
     public function index(Server $server, Site $site): Response
     {

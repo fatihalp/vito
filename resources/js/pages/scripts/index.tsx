@@ -23,7 +23,7 @@ export default function Scripts() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Scripts" description="These are the bash scripts that you can execute on your servers and sites" />
+          <Heading title="Scripts" description="Execute bash scripts across your servers and sites." />
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => dialog.scriptTemplates.open({})}>
               <SparklesIcon className="text-primary size-4" />
@@ -43,9 +43,9 @@ export default function Scripts() {
                 <div className="bg-primary/10 text-primary flex size-10 items-center justify-center rounded-lg">
                   <SparklesIcon className="size-5" />
                 </div>
-                <h4 className="text-sm font-semibold">Start with a Template</h4>
+                <h4 className="text-sm font-semibold">Script Templates</h4>
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  Choose from curated, battle-tested Laravel script templates for zero-downtime deployment, cache warmup, database migrations, queue management, and maintenance.
+                  Ready-to-use templates for common server tasks.
                 </p>
               </div>
               <div className="pt-4">
@@ -61,15 +61,15 @@ export default function Scripts() {
                 <div className="bg-muted text-muted-foreground flex size-10 items-center justify-center rounded-lg">
                   <TerminalIcon className="size-5" />
                 </div>
-                <h4 className="text-sm font-semibold">Create Custom Script</h4>
+                <h4 className="text-sm font-semibold">Custom Script</h4>
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  Write your own custom bash script from scratch. Use dynamic variable placeholders like <code className="font-mono text-[11px]">${'{SITE_PATH}'}</code> that will be prompted on execution.
+                  Create a bash script from scratch with variable support.
                 </p>
               </div>
               <div className="pt-4">
                 <Button size="sm" onClick={() => dialog.scriptForm.open({})}>
                   <PlusIcon className="mr-1.5 size-3.5" />
-                  Blank Script
+                  New Script
                 </Button>
               </div>
             </div>

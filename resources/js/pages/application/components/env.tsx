@@ -12,7 +12,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { LoaderCircleIcon, PlusIcon, RefreshCwIcon, UploadIcon, AlertCircleIcon, ClipboardIcon, InfoIcon } from 'lucide-react';
 import { Site } from '@/types/site';
 import { Input } from '@/components/ui/input';
-import { useInputFocus } from '@/stores/useInputFocus';
 import { useAppearance } from '@/hooks/use-appearance';
 import { registerDotEnvLanguage } from '@/lib/editor';
 import { EnvVariable } from '@/types/env';
@@ -53,7 +52,6 @@ const errorMessage = (error: unknown, fallback: string): string => {
 };
 
 export default function Env({ site, children }: { site: Site; children: ReactNode }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const { getActualAppearance } = useAppearance();
   const monaco = useMonaco();
   const [open, setOpen] = useState(false);
@@ -69,101 +67,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (monaco) {
-      registerDotEnvLanguage(monaco);
-    }
-  }, [monaco]);
-
   
-  const duplicateKeys = useMemo(() => {
-    const keyCounts = new Map<string, number>();
-    variables.forEach((v) => {
-      const key = v.key.trim();
-      if (key) {
-        keyCounts.set(key, (keyCounts.get(key) || 0) + 1);
-      }
-    });
-    const duplicates = new Set<string>();
-    keyCounts.forEach((count, key) => {
-      if (count > 1) {
-        duplicates.add(key);
-      }
-    });
-    return duplicates;
-  }, [variables]);
-
-  const hasDuplicates = duplicateKeys.size > 0;
-
-  const form = useForm<{
-    variables: Array<{ key: string; value: string; is_secret: boolean }>;
-    path: string;
-  }>({
-    variables: [],
-    path: defaultEnvPath(site),
-  });
-
-  const handleOpenChange = (isOpen: boolean) => {
-    setOpen(isOpen);
-    setFocused(isOpen);
-    if (!isOpen) {
-      setMode('variables');
-      setVariables([]);
-      setRawContent('');
-      setVariablesDirty(false);
-      setUploadError(null);
-    }
-  };
-
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-
-    if (mode === 'classic') {
-      form.transform(() => ({ env: rawContent, path: committedPath }));
-    } else {
-      form.transform(() => ({
-        variables: variables.map((v) => ({
-          key: v.key,
-          value: v.value,
-          is_secret: v.isSecret,
-        })),
-        path: committedPath,
-      }));
-    }
-
-    form.put(route('application.update-env', { server: site.server_id, site: site.id }), {
-      onSuccess: () => handleOpenChange(false),
-    });
-  };
-
-  const query = useQuery({
-    queryKey: ['application.env', site.server_id, site.id, committedPath],
-    queryFn: async () => {
-      const response = await axios.get(
-        route('application.env', {
-          server: site.server_id,
-          site: site.id,
-          env: committedPath,
-        }),
-      );
-      return response.data;
-    },
-    retry: false,
-    enabled: open,
-    refetchOnWindowFocus: false,
-    refetchOnReconnect: false,
-  });
-
-  useEffect(() => {
-    if (!query.data) {
-      return;
-    }
-
-    setVariables(toVariables(query.data.variables ?? [], false));
-    setRawContent(query.data.env ?? '');
-    setCanEdit(query.data.can_edit === true);
-    setVariablesDirty(false);
-  }, [query.data, query.dataUpdatedAt]);
 
   const queryError = useMemo(() => (query.isError ? errorMessage(query.error, 'Failed to read the .env file') : null), [query.isError, query.error]);
 

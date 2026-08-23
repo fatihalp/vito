@@ -7,7 +7,6 @@ use Illuminate\Http\Response;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Where;
 
-
 final class ZiggyRoutesController extends Controller
 {
     #[Get('/ziggy/{version}.js', name: 'ziggy.routes')]

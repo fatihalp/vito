@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ProjectUserController extends Controller
 {
+
     #[Get('/json', name: 'projects.users.json')]
     public function json(Request $request, Project $project): ResourceCollection
     {

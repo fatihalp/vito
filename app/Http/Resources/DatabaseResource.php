@@ -6,7 +6,6 @@ use App\Models\Database;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class DatabaseResource extends JsonResource
 {
     

@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class PHPController extends Controller
 {
+
     #[Get('/', name: 'php')]
     public function index(Server $server): Response
     {
@@ -77,6 +78,7 @@ class PHPController extends Controller
     }
 
     
+
     #[Post('/{service}/default-cli', name: 'php.default-cli')]
     public function defaultCli(Request $request, Server $server, Service $service): RedirectResponse
     {

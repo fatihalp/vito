@@ -1,13 +1,11 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 type AutoGrowTextareaProps = React.ComponentProps<'textarea'>;
 
 const MAX_HEIGHT = 200; 
 
 const AutoGrowTextarea = React.forwardRef<HTMLTextAreaElement, AutoGrowTextareaProps>(({ className, value, onChange, ...props }, ref) => {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   
@@ -45,8 +43,6 @@ const AutoGrowTextarea = React.forwardRef<HTMLTextAreaElement, AutoGrowTextareaP
         'aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
         className,
       )}
-      onFocus={() => setFocused(true)}
-      onBlur={() => setFocused(false)}
       {...props}
     />
   );

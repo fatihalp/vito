@@ -11,7 +11,6 @@ use App\Actions\Server\StopServer;
 use App\Actions\Server\TransferServer;
 use App\Actions\Server\Update;
 use App\Actions\Server\UpdateKernel;
-use App\Exceptions\SSHError;
 use App\Http\Resources\ServerLogResource;
 use App\Http\Resources\ServerProviderResource;
 use App\Http\Resources\ServerResource;
@@ -34,6 +33,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class ServerController extends Controller
 {
+
     #[Get('/', name: 'servers')]
     public function index(): Response
     {
@@ -138,6 +138,7 @@ class ServerController extends Controller
     }
 
     
+
     #[Post('/{server}/check-for-updates', name: 'servers.check-for-updates')]
     public function checkForUpdates(Server $server): RedirectResponse
     {

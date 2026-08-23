@@ -6,7 +6,6 @@ use Database\Factories\DNSRecordFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class DNSRecord extends AbstractModel
 {
     

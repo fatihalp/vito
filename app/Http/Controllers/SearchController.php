@@ -14,6 +14,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class SearchController extends Controller
 {
+
     #[Get('/', name: 'search')]
     public function search(Request $request): JsonResponse
     {

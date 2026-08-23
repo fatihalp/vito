@@ -23,6 +23,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth:sanctum'])]
 class UserServerProviderController extends Controller
 {
+
     #[Get('/', name: 'api.user.server-providers', middleware: 'ability:read')]
     public function index(): ResourceCollection
     {

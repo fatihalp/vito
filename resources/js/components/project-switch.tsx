@@ -4,7 +4,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, Layers3Icon, PlusIcon } from 'lucide-react';
-import { useInitials } from '@/hooks/use-initials';
+import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import ProjectForm from '@/pages/projects/components/project-form';
 import { ProjectSelect } from '@/components/project-select';
@@ -17,7 +17,7 @@ export function ProjectSwitch() {
   const [open, setOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
   const [selected, setSelected] = useState<string>(isAllProjects ? 'all' : (auth.currentProject?.id?.toString() ?? ''));
-  const initials = useInitials();
+  const initials = getInitials;
   const form = useForm();
 
   useEffect(() => {

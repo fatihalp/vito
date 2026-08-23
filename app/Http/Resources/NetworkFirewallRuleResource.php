@@ -6,7 +6,6 @@ use App\Models\NetworkFirewallRule;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class NetworkFirewallRuleResource extends JsonResource
 {
     

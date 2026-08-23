@@ -30,6 +30,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class DatabaseUserController extends Controller
 {
+
     #[Get('/', name: 'database-users')]
     public function index(Server $server): Response
     {

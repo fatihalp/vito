@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth:sanctum'])]
 class DNSProviderController extends Controller
 {
+
     #[Get('/', name: 'api.dns-providers', middleware: 'ability:read')]
     public function index(): ResourceCollection
     {

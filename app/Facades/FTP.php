@@ -6,7 +6,6 @@ use App\Support\Testing\FTPFake;
 use FTP\Connection;
 use Illuminate\Support\Facades\Facade;
 
-
 class FTP extends Facade
 {
     protected static function getFacadeAccessor(): string

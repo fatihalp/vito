@@ -7,7 +7,6 @@ use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Table;
 
-
 class WorkflowRunTable extends Table
 {
     protected array $tableSettings = ['realtime' => 'workflow-run'];

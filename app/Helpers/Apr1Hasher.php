@@ -2,7 +2,6 @@
 
 namespace App\Helpers;
 
-
 class Apr1Hasher
 {
     private const ALPHABET = './0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';

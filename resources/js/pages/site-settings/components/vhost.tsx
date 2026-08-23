@@ -14,11 +14,9 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { Site } from '@/types/site';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusRipple } from '@/components/status-ripple';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function VHost({ site, children }: { site: Site; children: ReactNode }) {
   const { getActualAppearance } = useAppearance();
-  const setFocused = useInputFocus((state) => state.setFocused);
   const [open, setOpen] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -33,7 +31,6 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    setFocused(isOpen);
   };
 
   const submit = (e: FormEvent) => {

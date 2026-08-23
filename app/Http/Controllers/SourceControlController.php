@@ -26,6 +26,7 @@ use Spatie\RouteAttributes\Attributes\Where;
 #[Middleware(['auth'])]
 class SourceControlController extends Controller
 {
+
     #[Get('/', name: 'source-controls')]
     public function index(): Response
     {

@@ -4,7 +4,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronsUpDownIcon, GlobeIcon, PlusIcon } from 'lucide-react';
-import { useInitials } from '@/hooks/use-initials';
+import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateSite from '@/pages/sites/components/create-site';
 import SiteSelect from '@/pages/sites/components/site-select';
@@ -20,7 +20,7 @@ export function SiteSwitch() {
   const storedSite = siteHelper.getStoredSite();
   const currentSite = page.props.site || null;
   const [selected, setSelected] = useState<string>(currentSite?.id?.toString() ?? '');
-  const initials = useInitials();
+  const initials = getInitials;
   const form = useForm();
 
   useEffect(() => {

@@ -29,6 +29,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class ServerSSLController extends Controller
 {
+
     #[Get('/', name: 'api.projects.servers.ssls', middleware: 'ability:read')]
     public function index(Project $project, Server $server): ResourceCollection
     {

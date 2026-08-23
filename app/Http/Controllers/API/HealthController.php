@@ -8,6 +8,7 @@ use Spatie\RouteAttributes\Attributes\Get;
 
 class HealthController extends Controller
 {
+
     #[Get('api/health', name: 'api.health')]
     public function __invoke(): JsonResponse
     {

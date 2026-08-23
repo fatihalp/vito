@@ -42,7 +42,7 @@ class CreateCronJob
         return $cronJob;
     }
 
-    private function validate(array $input, Server $server, ?Site $site = null): void
+        public static function rules(array $input, Server $server, ?Site $site = null): array
     {
         $rules = [
             'command' => [
@@ -79,6 +79,11 @@ class CreateCronJob
             ];
         }
 
-        Validator::make($input, $rules)->validate();
+        return $rules;
+    }
+
+    private function validate(array $input, Server $server, ?Site $site = null): void
+    {
+        Validator::make($input, self::rules($input, $server, $site))->validate();
     }
 }

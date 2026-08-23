@@ -9,7 +9,7 @@ import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
 import { BookOpenIcon, MoreVerticalIcon, PlusIcon } from 'lucide-react';
 import CreateDatabaseUser from '@/pages/database-users/components/create-database-user';
-import SyncUsers from '@/pages/database-users/components/sync-users';
+
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDialog } from '@/hooks/use-dialog';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
@@ -34,7 +34,21 @@ export default function DatabaseUsers() {
         <HeaderContainer>
           <Heading title="Users" />
           <div className="flex items-center gap-2">
-            <SyncUsers server={page.props.server} />
+            <Button
+              variant="outline"
+              onClick={() =>
+                dialog.confirm.open({
+                  title: 'Sync users',
+                  description:
+                    'This action will connect to your server and perform a two-way synchronization of database users. Vito will fetch any database users created manually on the server, and verify the existence of users managed by Vito. If a user tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
+                  confirmLabel: 'Sync users',
+                  url: route('database-users.sync', { server: page.props.server.id }),
+                  method: 'post',
+                })
+              }
+            >
+              Sync
+            </Button>
             <CreateDatabaseUser server={page.props.server.id} usesHost={usesHost}>
               <Button>
                 <PlusIcon />

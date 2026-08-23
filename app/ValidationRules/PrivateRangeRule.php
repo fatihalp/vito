@@ -6,7 +6,6 @@ use App\Support\Cidr;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-
 class PrivateRangeRule implements ValidationRule
 {
     private const BLOCKS = [

@@ -6,7 +6,6 @@ use App\Models\Redirect;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class RedirectResource extends JsonResource
 {
     

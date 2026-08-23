@@ -10,6 +10,7 @@ use App\Services\Database\Database;
 use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use App\Enums\DatabaseUserPermission;
 use Illuminate\Validation\ValidationException;
 
 class CreateDatabaseUser
@@ -72,7 +73,7 @@ class CreateDatabaseUser
             ],
             'permission' => [
                 'nullable',
-                Rule::in(['read', 'write', 'admin']),
+                Rule::enum(DatabaseUserPermission::class),
             ],
         ];
 

@@ -14,6 +14,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class LogAnalysisController extends Controller
 {
+
     #[Post('/resync', name: 'log-analysis.resync')]
     public function resync(Server $server): RedirectResponse
     {

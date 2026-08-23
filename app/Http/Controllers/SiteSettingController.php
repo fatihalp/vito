@@ -21,7 +21,6 @@ use App\Actions\Site\WorkerStartCommandUpdateResult;
 use App\Actions\Webserver\GenerateCaddyConfig;
 use App\Actions\Webserver\GenerateNginxConfig;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
-use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
 use App\Http\Resources\SourceControlResource;
 use App\Models\Server;
@@ -45,6 +44,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class SiteSettingController extends Controller
 {
+
     #[Get('/', name: 'site-settings')]
     public function index(Server $server, Site $site): Response
     {
@@ -54,6 +54,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/branch', name: 'site-settings.update-branch')]
     public function updateBranch(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -75,6 +76,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/php-version', name: 'site-settings.update-php-version')]
     public function updatePHPVersion(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -86,6 +88,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/php-settings', name: 'site-settings.update-php-settings')]
     public function updatePHPSettings(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -99,6 +102,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/web-directory', name: 'site-settings.update-web-directory')]
     public function updateWebDirectory(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -110,6 +114,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/port', name: 'site-settings.update-port')]
     public function updatePort(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -121,6 +126,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/start-command', name: 'site-settings.update-start-command')]
     public function updateStartCommand(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -162,6 +168,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/worker-env', name: 'site-settings.update-worker-env')]
     public function updateWorkerEnv(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -254,6 +261,7 @@ class SiteSettingController extends Controller
     }
 
     
+
     #[Patch('/basic-auth', name: 'site-settings.update-basic-auth')]
     public function updateBasicAuth(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -281,8 +289,7 @@ class SiteSettingController extends Controller
             : app(GenerateNginxConfig::class);
     }
 
-    #[Post('/force-ssl/enable', name: 'site-settings.enable-force-ssl')]
-    public function enableForceSsl(Server $server, Site $site): RedirectResponse
+    public function toggleForceSsl(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
@@ -291,53 +298,35 @@ class SiteSettingController extends Controller
                 'force_ssl' => 'Force SSL cannot be changed for this webserver.',
             ]);
         }
+        
+        $request->validate(['enabled' => 'required|boolean']);
+        $enabled = (bool) $request->input('enabled');
 
-        $site->force_ssl = true;
+        $site->force_ssl = $enabled;
         $site->save();
         $site->webserver()->updateVHost($site);
 
-        return back()->with('success', 'Force SSL enabled successfully.');
+        return back()->with('success', $enabled ? 'Force SSL enabled successfully.' : 'Force SSL disabled successfully.');
     }
 
-    #[Post('/force-ssl/disable', name: 'site-settings.disable-force-ssl')]
-    public function disableForceSsl(Server $server, Site $site): RedirectResponse
+    public function toggleStats(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
+        
+        $request->validate(['enabled' => 'required|boolean']);
+        $enabled = (bool) $request->input('enabled');
 
-        if (! $site->webserver()->canConfigureSSL()) {
-            throw ValidationException::withMessages([
-                'force_ssl' => 'Force SSL cannot be changed for this webserver.',
-            ]);
+        if ($enabled) {
+            app(UpdateSiteStats::class)->enable($site);
+            return back()->with('success', 'Statistics enabled for this site.');
         }
-
-        $site->force_ssl = false;
-        $site->save();
-        $site->webserver()->updateVHost($site);
-
-        return back()->with('success', 'Force SSL disabled successfully.');
-    }
-
-    #[Post('/stats/enable', name: 'site-settings.enable-stats')]
-    public function enableStats(Server $server, Site $site): RedirectResponse
-    {
-        $this->authorize('update', [$site, $server]);
-
-        app(UpdateSiteStats::class)->enable($site);
-
-        return back()->with('success', 'Statistics enabled for this site.');
-    }
-
-    #[Post('/stats/disable', name: 'site-settings.disable-stats')]
-    public function disableStats(Server $server, Site $site): RedirectResponse
-    {
-        $this->authorize('update', [$site, $server]);
 
         app(UpdateSiteStats::class)->disable($site);
-
         return back()->with('success', 'Statistics disabled and historical data erased.');
     }
 
     
+
     #[Delete('/', name: 'site-settings.destroy')]
     public function destroy(Request $request, Server $server, Site $site): RedirectResponse
     {

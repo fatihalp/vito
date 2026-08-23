@@ -14,7 +14,6 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusRipple } from '@/components/status-ripple';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function DeploymentScript({
   site,
@@ -28,7 +27,6 @@ export default function DeploymentScript({
   children: ReactNode;
 }) {
   const { getActualAppearance } = useAppearance();
-  const setFocused = useInputFocus((state) => state.setFocused);
 
   const availableCommands = site.available_tooling_commands;
 

@@ -3,7 +3,7 @@
 namespace App\Actions\Server\Security;
 
 use App\Enums\SecurityControlStatus;
-use App\Jobs\Server\Security\ApplyPasswordAuthJob;
+use App\Jobs\Server\Security\ApplySecuritySettingJob;
 use App\Models\Server;
 use Illuminate\Support\Facades\Validator;
 
@@ -26,6 +26,6 @@ class ManagePasswordAuth
         ]);
         $server->jsonUpdate('feature_data', 'security', $security);
 
-        dispatch(new ApplyPasswordAuthJob($server, $enabled))->onQueue('ssh');
+        dispatch(new ApplySecuritySettingJob($server, 'password_auth', $enabled))->onQueue('ssh');
     }
 }

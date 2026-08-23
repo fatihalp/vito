@@ -57,42 +57,6 @@ class EditCronJob
 
     private function validate(array $input, Server $server, ?Site $site = null): void
     {
-        $rules = [
-            'command' => [
-                'required',
-            ],
-            'user' => [
-                'required',
-                Rule::in($site?->getSshUsers() ?? $server->getSshUsers()),
-            ],
-            'frequency' => [
-                'required',
-                new CronRule(acceptCustom: true),
-            ],
-            'name' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-        ];
-
-        
-        if (isset($input['site_id']) && ! empty($input['site_id'])) {
-            $rules['site_id'] = [
-                'required',
-                'integer',
-                'exists:sites,id',
-                Rule::exists('sites', 'id')->where('server_id', $server->id),
-            ];
-        }
-
-        if (isset($input['frequency']) && $input['frequency'] == 'custom') {
-            $rules['custom'] = [
-                'required',
-                new CronRule,
-            ];
-        }
-
-        Validator::make($input, $rules)->validate();
+        Validator::make($input, CreateCronJob::rules($input, $server, $site))->validate();
     }
 }

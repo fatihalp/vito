@@ -11,6 +11,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class SettingController extends Controller
 {
+
     #[Get('/', name: 'settings')]
     public function index(): RedirectResponse
     {

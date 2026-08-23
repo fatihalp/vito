@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class DomainController extends Controller
 {
+
     #[Get('/', name: 'domains')]
     public function index(): Response
     {

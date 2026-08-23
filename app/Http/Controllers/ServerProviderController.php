@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ServerProviderController extends Controller
 {
+
     #[Get('/', name: 'server-providers')]
     public function index(): Response
     {

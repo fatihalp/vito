@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 #[Middleware(['auth', 'has-project'])]
 class BackupController extends Controller
 {
+
     #[Get('/backups', name: 'backups.all')]
     public function index(): Response
     {

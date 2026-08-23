@@ -28,6 +28,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class SiteResourceController extends Controller
 {
+
     #[Get('/', name: 'site-resources')]
     public function index(Server $server, Site $site): Response
     {

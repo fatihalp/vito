@@ -2,13 +2,11 @@ import * as React from 'react';
 import { EyeIcon, EyeOffIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 type PasswordInputProps = Omit<React.ComponentProps<'input'>, 'type'>;
 
 const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ className, ...props }, ref) => {
   const [showPassword, setShowPassword] = React.useState(false);
-  const setFocused = useInputFocus((state) => state.setFocused);
 
   return (
     <div className="relative">
@@ -23,8 +21,6 @@ const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ 
           className,
         )}
         ref={ref}
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         {...props}
       />
       <button

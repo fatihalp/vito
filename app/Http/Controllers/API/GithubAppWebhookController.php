@@ -16,6 +16,7 @@ use Throwable;
 
 class GithubAppWebhookController extends Controller
 {
+
     #[Post('api/webhooks/github-app', name: 'api.webhooks.github-app')]
     public function __invoke(Request $request): JsonResponse
     {

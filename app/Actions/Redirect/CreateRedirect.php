@@ -31,15 +31,15 @@ class CreateRedirect
         return $redirect->refresh();
     }
 
-    private function validate(Site $site, array $input): void
+    public static function rules(Site $site, ?Redirect $ignore = null): array
     {
-        $rules = [
+        return [
             'from' => [
                 'required',
                 'string',
                 'max:255',
                 'not_regex:/^http(s)?:\/\//',
-                Rule::unique('redirects', 'from')->where('site_id', $site->id),
+                Rule::unique('redirects', 'from')->where('site_id', $site->id)->when($ignore, fn ($rule) => $rule->ignore($ignore->id)),
             ],
             'to' => [
                 'required',
@@ -61,7 +61,10 @@ class CreateRedirect
                 'boolean',
             ],
         ];
+    }
 
-        Validator::make($input, $rules)->validate();
+    private function validate(Site $site, array $input): void
+    {
+        Validator::make($input, self::rules($site))->validate();
     }
 }

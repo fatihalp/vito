@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class BackupFileController extends Controller
 {
+
     #[Get('/', name: 'backup-files')]
     public function index(Server $server, Backup $backup): Response
     {

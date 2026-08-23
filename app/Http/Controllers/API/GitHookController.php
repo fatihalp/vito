@@ -16,7 +16,6 @@ use Throwable;
 
 class GitHookController extends Controller
 {
-    
     #[Any('api/git-hooks', name: 'api.git-hooks')]
     public function __invoke(Request $request): JsonResponse
     {

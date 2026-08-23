@@ -28,6 +28,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class NetworkPeerController extends Controller
 {
+
     #[Get('/', name: 'networks.peers')]
     public function index(Network $network): Response
     {

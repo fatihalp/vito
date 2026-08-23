@@ -11,18 +11,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import InputError from '@/components/ui/input-error';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { FormEvent, useEffect } from 'react';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function CreateBucketDialog({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
   const configs = useConfigs()!;
-  const setFocused = useInputFocus((state) => state.setFocused);
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  const form = useForm<{
+    const form = useForm<{
     name: string;
     region: string;
     visibility: 'private' | 'public';

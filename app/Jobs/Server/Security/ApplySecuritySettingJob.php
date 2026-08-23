@@ -12,19 +12,34 @@ use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 
-class ApplyPasswordAuthJob implements ShouldQueue
+class ApplySecuritySettingJob implements ShouldQueue
 {
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected Server $server, protected bool $enabled) {}
+    public function __construct(
+        protected Server $server,
+        protected string $setting,
+        protected bool $enabled
+    ) {}
 
     public function handle(): void
     {
         $this->run("server-{$this->server->id}", function (): void {
-            $this->server->security()->setPasswordAuth($this->enabled);
+            if ($this->setting === 'root_login') {
+                if (! $this->enabled && $this->server->getSshUser() === 'root') {
+                    $this->writeState(['status' => SecurityControlStatus::FAILED->value]);
+                    ServerLog::log($this->server, 'disable-root-login-failed', 'Refusing to disable root login while Vito connects as root.');
+                    $this->broadcast();
 
-            $detected = $this->server->security()->passwordAuthEnabled();
+                    return;
+                }
+                $this->server->security()->setRootLogin($this->enabled);
+                $detected = $this->server->security()->rootLoginEnabled();
+            } else {
+                $this->server->security()->setPasswordAuth($this->enabled);
+                $detected = $this->server->security()->passwordAuthEnabled();
+            }
 
             $this->writeState([
                 'enabled' => $this->enabled,
@@ -42,17 +57,19 @@ class ApplyPasswordAuthJob implements ShouldQueue
             'status' => SecurityControlStatus::FAILED->value,
         ]);
 
-        ServerLog::log($this->server, ($this->enabled ? 'enable' : 'disable').'-password-auth-failed', $e->getMessage());
+        $action = $this->enabled ? 'enable' : 'disable';
+        $logKey = $this->setting === 'root_login' ? 'root-login' : 'password-auth';
+        
+        ServerLog::log($this->server, "{$action}-{$logKey}-failed", $e->getMessage());
 
         $this->broadcast();
     }
 
-    
     private function writeState(array $values): void
     {
         $this->server->refresh();
         $security = $this->server->feature_data['security'] ?? [];
-        $security['password_authentication'] = array_merge($security['password_authentication'] ?? [], $values);
+        $security[$this->setting] = array_merge($security[$this->setting] ?? [], $values);
         $this->server->jsonUpdate('feature_data', 'security', $security);
     }
 

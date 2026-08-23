@@ -27,6 +27,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'must-be-admin'])]
 class GithubAppController extends Controller
 {
+
     #[Get('/', name: 'github-app')]
     public function index(Request $request): Response
     {

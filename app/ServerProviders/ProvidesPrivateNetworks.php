@@ -5,7 +5,6 @@ namespace App\ServerProviders;
 use App\DTOs\PrivateNetworkDTO;
 use App\Exceptions\PrivateNetworkSyncError;
 
-
 interface ProvidesPrivateNetworks
 {
     

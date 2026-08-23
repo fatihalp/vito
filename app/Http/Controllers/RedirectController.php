@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class RedirectController extends Controller
 {
+
     #[Get('/', name: 'redirects')]
     public function index(Server $server, Site $site): Response
     {

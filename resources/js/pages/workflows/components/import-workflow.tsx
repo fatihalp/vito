@@ -9,7 +9,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon, UploadIcon } from 'lucide-react';
 import { useAppearance } from '@/hooks/use-appearance';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 const PLACEHOLDER_PATTERN = /__[A-Z][A-Z0-9_]*__/g;
 const SENSITIVE_PATTERN = /PASSWORD|SECRET|TOKEN|KEY/;
@@ -57,7 +56,6 @@ function placeholderLabel(token: string): string {
 }
 
 export default function ImportWorkflow({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const { getActualAppearance } = useAppearance();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [jsonText, setJsonText] = useState(EXAMPLE);
@@ -67,16 +65,12 @@ export default function ImportWorkflow({ open, onOpenChange }: { open: boolean; 
     name: '',
   });
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  const parsed = useMemo((): { data: Record<string, unknown> | null; error: string | null } => {
+  const parsed = useMemo(() => {
     try {
-      return { data: JSON.parse(jsonText), error: null };
+      const data = JSON.parse(jsonText);
+      return { data, error: null };
     } catch (e) {
-      return { data: null, error: e instanceof Error ? e.message : 'Invalid JSON' };
+      return { data: null, error: e as Error };
     }
   }, [jsonText]);
 
@@ -173,7 +167,7 @@ export default function ImportWorkflow({ open, onOpenChange }: { open: boolean; 
                   minimap: { enabled: false },
                 }}
               />
-              {parsed.error && <p className="text-destructive text-sm">{parsed.error}</p>}
+              {parsed.error && <p className="text-destructive text-sm">{parsed.error.message}</p>}
             </FormField>
             {placeholders.length > 0 && (
               <FormField>

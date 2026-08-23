@@ -10,7 +10,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon } from 'lucide-react';
 import { useAppearance } from '@/hooks/use-appearance';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function ServiceConfigFileDialog({
   open,
@@ -24,7 +23,6 @@ export default function ServiceConfigFileDialog({
   configPath: ConfigPath;
 }) {
   const { getActualAppearance } = useAppearance();
-  const setFocused = useInputFocus((state) => state.setFocused);
   const form = useForm<{
     content: string;
     config_name: string;
@@ -33,12 +31,7 @@ export default function ServiceConfigFileDialog({
     config_name: configPath.name,
   });
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  const submit = (e: FormEvent) => {
+    const submit = (e: FormEvent) => {
     e.preventDefault();
     form.patch(route('services.config.update', { server: service.server_id, service: service.id }), {
       onSuccess: () => onOpenChange(false),

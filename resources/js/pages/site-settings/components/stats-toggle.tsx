@@ -17,11 +17,11 @@ import FormSuccessful from '@/components/form-successful';
 
 export default function StatsToggle({ site, children }: { site: Site; children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const form = useForm();
   const enabled = site.stats_enabled;
+  const form = useForm({ enabled: !enabled });
 
   const submit = () => {
-    const routeName = enabled ? 'site-settings.disable-stats' : 'site-settings.enable-stats';
+    const routeName = 'site-settings.toggle-stats';
     form.post(route(routeName, { server: site.server_id, site: site.id }), {
       preserveScroll: true,
       onSuccess: () => setOpen(false),

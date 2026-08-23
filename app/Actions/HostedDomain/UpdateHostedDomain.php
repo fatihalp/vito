@@ -2,6 +2,8 @@
 
 namespace App\Actions\HostedDomain;
 
+use App\Rules\DomainRule;
+
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
 use App\Enums\SslMethod;
@@ -86,7 +88,7 @@ class UpdateHostedDomain
                 'required',
                 'string',
                 'max:255',
-                'regex:/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/',
+                new DomainRule,
                 function (string $attribute, mixed $value, \Closure $fail) use ($site, $hostedDomain): void {
                     $exists = HostedDomain::query()
                         ->where('domain', $value)

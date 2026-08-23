@@ -10,7 +10,6 @@ use Database\Factories\ServerIpAddressFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class ServerIpAddress extends AbstractModel
 {
     

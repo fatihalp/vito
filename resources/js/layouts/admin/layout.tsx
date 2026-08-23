@@ -27,7 +27,7 @@ const sidebarNavItems: NavItem[] = [
   },
 ];
 
-export default function SettingsLayout({ children }: { children: ReactNode }) {
+export default function AdminLayout({ children }: { children: ReactNode }) {
   
   if (typeof window === 'undefined') {
     return null;

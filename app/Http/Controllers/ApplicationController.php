@@ -6,16 +6,12 @@ use App\Actions\Site\Deploy;
 use App\Actions\Site\GetEnv;
 use App\Actions\Site\GetSiteOverview;
 use App\Actions\Site\ParseEnv;
+use App\Actions\Site\ResolveDomainProxyStatuses;
 use App\Actions\Site\Rollback;
 use App\Actions\Site\StringifyEnv;
 use App\Actions\Site\UpdateDeploymentScript;
 use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
-use App\Exceptions\DeploymentScriptIsEmptyException;
-use App\Exceptions\FailedToDestroyGitHook;
-use App\Exceptions\ReverseProxyNotConfiguredException;
-use App\Exceptions\SourceControlIsNotConnected;
-use App\Exceptions\SSHError;
 use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\DeploymentResource;
 use App\Http\Resources\DNSProviderResource;
@@ -28,7 +24,6 @@ use App\Actions\Domain\ToggleDomainProxy;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
 use App\Models\DNSProvider;
-use App\Models\DNSRecord;
 use App\Models\Server;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
@@ -50,6 +45,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class ApplicationController extends Controller
 {
+
     #[Get('/', name: 'application')]
     public function index(Server $server, Site $site): Response
     {
@@ -70,26 +66,7 @@ class ApplicationController extends Controller
             ->where('connected', true)
             ->get();
 
-        $allDomainNames = collect([$site->domain])
-            ->merge($site->hostedDomains()->pluck('domain'))
-            ->unique()
-            ->values();
-
-        $dnsRecords = DNSRecord::where('type', 'A')
-            ->whereHas('domain.dnsProvider', function ($query) {
-                $query->where('connected', true);
-            })
-            ->get();
-
-        $domainProxyStatus = [];
-        foreach ($allDomainNames as $dName) {
-            $matched = $dnsRecords->first(function ($r) use ($dName) {
-                $rootDomain = strtolower($r->domain->domain ?? '');
-                $sub = $dName === $rootDomain ? '@' : str_replace('.' . $rootDomain, '', $dName);
-                return strtolower($r->name) === strtolower($dName) || strtolower($r->name) === strtolower($sub);
-            });
-            $domainProxyStatus[$dName] = $matched ? (bool) $matched->proxied : false;
-        }
+        $domainProxyStatus = app(ResolveDomainProxyStatuses::class)->resolve($site);
 
         return Inertia::render('application/index', [
             'deployments' => DeploymentTable::make($site->deployments())->overview(),
@@ -163,6 +140,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Post('/deploy', name: 'application.deploy')]
     public function deploy(Server $server, Site $site): RedirectResponse
     {
@@ -202,6 +180,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Get('/env', name: 'application.env')]
     public function env(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -221,6 +200,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Post('/env/parse', name: 'application.parse-env')]
     public function parseEnv(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -230,6 +210,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Post('/env/stringify', name: 'application.stringify-env')]
     public function stringifyEnv(Request $request, Server $server, Site $site): JsonResponse
     {
@@ -239,6 +220,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Put('/env', name: 'application.update-env')]
     public function updateEnv(Request $request, Server $server, Site $site): RedirectResponse
     {
@@ -250,6 +232,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Post('/enable-auto-deployment', name: 'application.enable-auto-deployment')]
     public function enableAutoDeployment(Server $server, Site $site): RedirectResponse
     {
@@ -265,6 +248,7 @@ class ApplicationController extends Controller
     }
 
     
+
     #[Post('/disable-auto-deployment', name: 'application.disable-auto-deployment')]
     public function disableAutoDeployment(Server $server, Site $site): RedirectResponse
     {

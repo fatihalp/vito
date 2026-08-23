@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class NetworkServerController extends Controller
 {
+
     #[Post('/', name: 'networks.servers.store')]
     public function store(Request $request, Network $network): RedirectResponse
     {

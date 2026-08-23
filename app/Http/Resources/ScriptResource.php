@@ -6,7 +6,6 @@ use App\Models\Script;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class ScriptResource extends JsonResource
 {
     

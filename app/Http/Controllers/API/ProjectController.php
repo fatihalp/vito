@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware('auth:sanctum')]
 class ProjectController extends Controller
 {
+
     #[Get('api/projects', name: 'api.projects.index', middleware: 'ability:read')]
     public function index(): ResourceCollection
     {

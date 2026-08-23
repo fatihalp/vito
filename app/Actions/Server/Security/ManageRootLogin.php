@@ -3,7 +3,7 @@
 namespace App\Actions\Server\Security;
 
 use App\Enums\SecurityControlStatus;
-use App\Jobs\Server\Security\ApplyRootLoginJob;
+use App\Jobs\Server\Security\ApplySecuritySettingJob;
 use App\Models\Server;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -33,6 +33,6 @@ class ManageRootLogin
         ]);
         $server->jsonUpdate('feature_data', 'security', $security);
 
-        dispatch(new ApplyRootLoginJob($server, $enabled))->onQueue('ssh');
+        dispatch(new ApplySecuritySettingJob($server, 'root_login', $enabled))->onQueue('ssh');
     }
 }

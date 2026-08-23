@@ -7,7 +7,6 @@ use Database\Factories\CronJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class CronJob extends AbstractModel
 {
     
@@ -55,8 +54,7 @@ class CronJob extends AbstractModel
 
     public static function crontab(Server $server, string $user): string
     {
-        $data = '';
-        $cronJobs = $server->cronJobs()
+        return $server->cronJobs()
             ->where('user', $user)
             ->whereIn('status', [
                 CronjobStatus::READY,
@@ -64,17 +62,9 @@ class CronJob extends AbstractModel
                 CronjobStatus::UPDATING,
                 CronjobStatus::ENABLING,
             ])
-            ->get();
-        
-        foreach ($cronJobs as $key => $cronJob) {
-            $command = $user === 'root' ? $cronJob->command : self::wrapCommand($cronJob->command);
-            $data .= $cronJob->frequency.' '.$command;
-            if ($key != count($cronJobs) - 1) {
-                $data .= "\n";
-            }
-        }
-
-        return $data;
+            ->get()
+            ->map(fn (self $cronJob) => $cronJob->frequency . ' ' . ($user === 'root' ? $cronJob->command : self::wrapCommand($cronJob->command)))
+            ->implode("\n");
     }
 
     public static function wrapCommand(string $command): string

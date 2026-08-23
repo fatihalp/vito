@@ -11,6 +11,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 #[Middleware(['auth', 'has-project'])]
 class EventsController extends Controller
 {
+
     #[Post('/events/token', name: 'events.token')]
     public function token(Request $request): JsonResponse
     {

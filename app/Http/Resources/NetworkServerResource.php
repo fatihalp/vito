@@ -6,7 +6,6 @@ use App\Models\NetworkServer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class NetworkServerResource extends JsonResource
 {
     

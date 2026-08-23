@@ -23,6 +23,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth'])]
 class ProfileController extends Controller
 {
+
     #[Get('/', name: 'profile')]
     public function edit(Request $request): Response
     {

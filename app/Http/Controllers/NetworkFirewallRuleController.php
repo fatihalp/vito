@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class NetworkFirewallRuleController extends Controller
 {
+
     #[Get('/', name: 'networks.firewall')]
     public function index(Network $network): Response
     {

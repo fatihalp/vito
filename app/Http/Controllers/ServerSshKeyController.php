@@ -23,6 +23,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class ServerSshKeyController extends Controller
 {
+
     #[Get('/', name: 'server-ssh-keys')]
     public function index(Server $server): Response
     {
@@ -34,6 +35,7 @@ class ServerSshKeyController extends Controller
     }
 
     
+
     #[Post('/', name: 'server-ssh-keys.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {
@@ -54,6 +56,7 @@ class ServerSshKeyController extends Controller
     }
 
     
+
     #[Delete('/{sshKey}', name: 'server-ssh-keys.destroy')]
     public function destroy(Server $server, SshKey $sshKey): RedirectResponse
     {

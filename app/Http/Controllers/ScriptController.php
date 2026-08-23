@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth'])]
 class ScriptController extends Controller
 {
+
     #[Get('/', name: 'scripts')]
     public function index(): Response
     {

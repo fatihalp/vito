@@ -7,7 +7,6 @@ use App\SourceControlProviders\SourceControlProvider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class SourceControlResource extends JsonResource
 {
     

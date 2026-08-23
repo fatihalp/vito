@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class ServerNetworkController extends Controller
 {
+
     #[Get('/', name: 'servers.network')]
     public function index(Server $server): Response
     {
@@ -38,6 +39,7 @@ class ServerNetworkController extends Controller
     }
 
     
+
     #[Post('/refresh', name: 'servers.network.refresh')]
     public function refresh(Server $server): RedirectResponse
     {

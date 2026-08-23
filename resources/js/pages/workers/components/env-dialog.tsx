@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircleIcon, LoaderCircleIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
-import { useInputFocus } from '@/stores/useInputFocus';
 import { EnvVariable } from '@/types/env';
 import { generateUniqueKey } from '@/lib/env';
 import { rowId } from '@/lib/utils';
@@ -32,31 +31,21 @@ export default function WorkerEnvDialog({
   workerId?: number;
   siteId?: number;
 }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const groupLabelId = useId();
   const [variables, setVariables] = useState<EnvVariable[]>([]);
   const [apply, setApply] = useState<ApplyChoice>('');
-
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
   const duplicateKeys = useMemo(() => {
-    const keyCounts = new Map<string, number>();
-    variables.forEach((v) => {
-      const key = v.key.trim();
-      if (key) {
-        keyCounts.set(key, (keyCounts.get(key) || 0) + 1);
-      }
-    });
-    const duplicates = new Set<string>();
-    keyCounts.forEach((count, key) => {
-      if (count > 1) {
-        duplicates.add(key);
-      }
-    });
-    return duplicates;
+    const counts = new Map<string, number>();
+    for (const v of variables) {
+      const trimmed = v.key.trim();
+      if (!trimmed) continue;
+      counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
+    }
+    const dupes = new Set<string>();
+    for (const [k, c] of counts) {
+      if (c > 1) dupes.add(k);
+    }
+    return dupes;
   }, [variables]);
 
   const hasDuplicates = duplicateKeys.size > 0;

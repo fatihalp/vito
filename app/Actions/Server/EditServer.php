@@ -130,14 +130,7 @@ class EditServer
             ]);
         }
 
-        $requiredServices = match ($role) {
-            ServerRole::APP => ['webserver'],
-            ServerRole::QUEUE => ['php', 'process_manager'],
-            ServerRole::DATABASE => ['database'],
-            ServerRole::CACHE => ['memory_database'],
-        };
-
-        foreach ($requiredServices as $requiredService) {
+        foreach ($role->requiredServiceTypes() as $requiredService) {
             if (! $server->services()->where('type', $requiredService)->exists()) {
                 throw ValidationException::withMessages([
                     'role' => __('Install the required services before selecting this server type.'),

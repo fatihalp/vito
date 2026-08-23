@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class WorkflowRunController extends Controller
 {
+
     #[Get('/', name: 'workflow-runs')]
     public function index(Workflow $workflow): Response
     {

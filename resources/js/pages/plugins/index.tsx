@@ -12,8 +12,7 @@ import { BookOpenIcon } from 'lucide-react';
 import InstallDialog from '@/pages/plugins/components/install-dialog';
 import DiscoveredPlugins from '@/pages/plugins/components/discovered';
 import CheckForUpdates from '@/pages/plugins/components/check-updates';
-import OfficialPlugins from '@/pages/plugins/components/official';
-
+import PluginList from '@/pages/plugins/components/plugin-list';
 export default function Plugins() {
   const [tab, setTab] = useState('installed');
   const page = usePage<{
@@ -37,7 +36,8 @@ export default function Plugins() {
           <TabsList>
             <TabsTrigger value="installed">Installed</TabsTrigger>
             <TabsTrigger value="discovered">Discovered</TabsTrigger>
-            <TabsTrigger value="official">Available</TabsTrigger>
+            <TabsTrigger value="official">Official</TabsTrigger>
+            <TabsTrigger value="community">Community</TabsTrigger>
           </TabsList>
           <TabsContent value="installed">
             <Card className="overflow-hidden">
@@ -64,11 +64,22 @@ export default function Plugins() {
           <TabsContent value="official">
             <Card className="overflow-hidden">
               <CardHeader>
-                <CardTitle>Available plugins</CardTitle>
+                <CardTitle>Official plugins</CardTitle>
                 <CardDescription>These plugins are developed and maintained by VitoDeploy's team</CardDescription>
               </CardHeader>
               <CardContent className="bg-background">
-                <OfficialPlugins />
+                <PluginList filter="official" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="community">
+            <Card className="overflow-hidden">
+              <CardHeader>
+                <CardTitle>Community plugins</CardTitle>
+                <CardDescription>These plugins are developed by the community</CardDescription>
+              </CardHeader>
+              <CardContent className="bg-background">
+                <PluginList filter="community" />
               </CardContent>
             </Card>
           </TabsContent>

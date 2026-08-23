@@ -6,7 +6,6 @@ use App\Models\Site;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class ProjectOverviewSiteResource extends JsonResource
 {
     

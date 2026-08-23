@@ -6,7 +6,6 @@ use App\Enums\SiteResourceType;
 use App\Enums\SiteResourceStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-
 class SiteResource extends AbstractModel
 {
     protected $fillable = [

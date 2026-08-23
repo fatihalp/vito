@@ -15,7 +15,8 @@ export function Action({ type, service }: { type: 'start' | 'stop' | 'restart' |
           variant: ['disable', 'stop'].includes(type) ? 'destructive' : 'default',
           confirmLabel: type,
           method: 'post',
-          url: route(`services.${type}`, { server: service.server_id, service: service }),
+          url: route('services.manage', { server: service.server_id, service: service, action: type }),
+          data: { action: type },
         })
       }
     >

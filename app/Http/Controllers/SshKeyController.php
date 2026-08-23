@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class SshKeyController extends Controller
 {
+
     #[Get('/', name: 'ssh-keys')]
     public function index(): Response
     {

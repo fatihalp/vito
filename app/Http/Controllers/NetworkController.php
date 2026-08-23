@@ -35,6 +35,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class NetworkController extends Controller
 {
+
     #[Get('/', name: 'networks')]
     public function index(): Response
     {

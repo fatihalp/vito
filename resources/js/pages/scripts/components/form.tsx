@@ -11,7 +11,6 @@ import { registerBashLanguage } from '@/lib/editor';
 import { Editor, useMonaco } from '@monaco-editor/react';
 import { useAppearance } from '@/hooks/use-appearance';
 import { Script } from '@/types/script';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function ScriptForm({
   open,
@@ -27,7 +26,6 @@ export default function ScriptForm({
   initialContent?: string;
 }) {
   const { getActualAppearance } = useAppearance();
-  const setFocused = useInputFocus((state) => state.setFocused);
 
   const form = useForm<{
     name: string;
@@ -37,26 +35,7 @@ export default function ScriptForm({
     content: script?.content ?? initialContent ?? '',
   });
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  useEffect(() => {
-    if (open) {
-      if (script) {
-        form.setData({
-          name: script.name ?? '',
-          content: script.content ?? '',
-        });
-      } else {
-        form.setData({
-          name: initialName ?? '',
-          content: initialContent ?? '',
-        });
-      }
-    }
-  }, [open, script, initialName, initialContent]);
+  
 
   const submit = (e: FormEvent) => {
     e.preventDefault();

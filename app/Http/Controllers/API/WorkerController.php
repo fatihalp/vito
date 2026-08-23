@@ -31,6 +31,7 @@ use Spatie\RouteAttributes\Attributes\WhereNumber;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class WorkerController extends Controller
 {
+
     #[Get('/workers', name: 'api.projects.servers.workers', middleware: 'ability:read')]
     public function serverIndex(Project $project, Server $server): ResourceCollection
     {
@@ -123,6 +124,7 @@ class WorkerController extends Controller
     }
 
     #[Put('/workers/{worker}/{site?}', name: 'api.projects.servers.workers.update', middleware: 'ability:write')]
+    #[WhereNumber('site')]
     public function update(Request $request, Project $project, Server $server, Worker $worker, ?Site $site = null): WorkerResource
     {
         $this->authorize('update', [$project, $server, $site]);

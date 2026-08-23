@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Actions\User\ResetUserPassword;
 use App\Actions\User\UpdateUserPassword;
 use App\Actions\User\UpdateUserProfileInformation;
 use Illuminate\Cache\RateLimiting\Limit;
@@ -22,16 +21,10 @@ class AuthServiceProvider extends ServiceProvider
     {
         Fortify::updateUserProfileInformationUsing(UpdateUserProfileInformation::class);
         Fortify::updateUserPasswordsUsing(UpdateUserPassword::class);
-        Fortify::resetUserPasswordsUsing(ResetUserPassword::class);
         Fortify::redirectUserForTwoFactorAuthenticationUsing(RedirectIfTwoFactorAuthenticatable::class);
 
         Fortify::loginView(fn () => Inertia::render('auth/login'));
-        Fortify::requestPasswordResetLinkView(fn () => Inertia::render('auth/forgot-password'));
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/reset-password', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-        ]));
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor'));
 
         RateLimiter::for('login', function (Request $request) {

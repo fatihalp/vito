@@ -24,6 +24,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class BucketController extends Controller
 {
+
     #[Get('/', name: 'buckets')]
     public function index(): Response
     {

@@ -17,6 +17,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class WorkflowController extends Controller
 {
+
     #[Get('/', name: 'api.projects.workflows', middleware: 'ability:read')]
     public function index(Project $project): ResourceCollection
     {

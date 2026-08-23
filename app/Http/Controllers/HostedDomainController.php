@@ -39,6 +39,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 #[Middleware(['auth', 'has-project'])]
 class HostedDomainController extends Controller
 {
+
     #[Get('/', name: 'hosted-domains')]
     public function index(Server $server, Site $site): Response
     {

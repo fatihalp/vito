@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Server\Security\CalculateSecurityScore;
 use App\Actions\Server\Security\CheckSecurityState;
 use App\Actions\Server\Security\ConfigureFail2ban;
 use App\Actions\Server\Security\ManageAutoUpdate;
@@ -27,6 +28,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class SecurityController extends Controller
 {
+
     #[Get('/', name: 'security')]
     public function index(Server $server): Response
     {
@@ -39,7 +41,7 @@ class SecurityController extends Controller
         $firewall = $server->firewall();
 
         return Inertia::render('security/index', [
-            'score' => $server->securityScore(),
+            'score' => app(CalculateSecurityScore::class)->calculate($server),
             'autoUpdate' => [
                 'enabled' => (bool) $server->auto_update,
                 'schedule' => $server->auto_update_schedule,

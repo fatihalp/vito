@@ -6,7 +6,6 @@ use App\Models\ServerProvider;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class ServerProviderResource extends JsonResource
 {
     

@@ -10,6 +10,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 #[Middleware(['auth'])]
 final class BootstrapController extends Controller
 {
+
     #[Get('/bootstrap', name: 'bootstrap.show')]
     public function __invoke(GetBootstrap $getBootstrap): JsonResponse
     {

@@ -5,7 +5,6 @@ namespace App\Traits;
 use Carbon\Carbon;
 use Exception;
 
-
 trait HasTimezoneTimestamps
 {
     public function getCreatedAtByTimezoneAttribute(): string

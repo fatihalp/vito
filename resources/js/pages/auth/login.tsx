@@ -2,7 +2,6 @@ import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { FormEvent } from 'react';
 import InputError from '@/components/ui/input-error';
-import TextLink from '@/components/text-link';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -54,12 +53,7 @@ export default function Login() {
           </div>
 
           <div className="grid gap-2">
-            <div className="flex items-center">
-              <Label htmlFor="password">Password</Label>
-              <TextLink href="/forgot-password" className="ml-auto text-sm" tabIndex={5}>
-                Forgot password?
-              </TextLink>
-            </div>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"

@@ -23,6 +23,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class NotificationChannelController extends Controller
 {
+
     #[Get('/', name: 'notification-channels')]
     public function index(): Response
     {

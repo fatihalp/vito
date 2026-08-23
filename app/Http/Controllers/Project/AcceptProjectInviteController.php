@@ -14,6 +14,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class AcceptProjectInviteController extends Controller
 {
+
     #[Get('/{project}/invitations/accept', name: 'projects.invitations.accept')]
     public function __invoke(Project $project): RedirectResponse
     {

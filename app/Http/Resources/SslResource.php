@@ -6,7 +6,6 @@ use App\Models\Ssl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class SslResource extends JsonResource
 {
     

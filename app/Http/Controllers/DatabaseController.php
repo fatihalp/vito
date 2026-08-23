@@ -26,6 +26,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class DatabaseController extends Controller
 {
+
     #[Get('/', name: 'databases')]
     public function index(Server $server): Response
     {

@@ -19,7 +19,6 @@ use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Throwable;
 
-
 class ServerLog extends AbstractModel
 {
     
@@ -110,33 +109,6 @@ class ServerLog extends AbstractModel
     }
 
     
-    public function download(): StreamedResponse
-    {
-        if ($this->is_remote) {
-            $tmpName = $this->server->id.'-'.strtotime('now').'-'.$this->type.'.log';
-            $tmpPath = Storage::disk('local')->path($tmpName);
-
-            $this->server->ssh()->download($tmpPath, $this->name);
-
-            dispatch(function () use ($tmpPath): void {
-                if (File::exists($tmpPath)) {
-                    File::delete($tmpPath);
-                }
-            })
-                ->delay(now()->addMinutes(5))
-                ->onQueue('default');
-
-            return Storage::disk('local')->download($tmpName, str($this->name)->afterLast('/'));
-        }
-
-        if (! Storage::disk($this->disk)->exists($this->name)) {
-            abort(404, "Log file doesn't exist or is empty!");
-        }
-
-        return Storage::disk($this->disk)->download($this->name);
-    }
-
-    
     public static function getRemote(Builder $query, bool $active = true, ?Site $site = null): Builder
     {
         $query->where('is_remote', $active);
@@ -223,13 +195,7 @@ class ServerLog extends AbstractModel
 
     public function forSite(Site|int $site): ServerLog
     {
-        if ($site instanceof Site) {
-            $site = $site->id;
-
-            return $this;
-        }
-
-        $this->site_id = $site;
+        $this->site_id = $site instanceof Site ? $site->id : $site;
 
         return $this;
     }

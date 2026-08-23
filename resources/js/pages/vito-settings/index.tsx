@@ -7,7 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import ExportVito from '@/pages/vito-settings/components/export';
 import ImportVito from '@/pages/vito-settings/components/import';
 
-export default function Users() {
+export default function VitoSettings() {
   return (
     <AdminLayout>
       <Head title="Vito Settings" />

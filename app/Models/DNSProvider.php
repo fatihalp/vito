@@ -2,15 +2,17 @@
 
 namespace App\Models;
 
+use App\Traits\BelongsToProjectOrGlobal;
+
 use Database\Factories\DNSProviderFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-
 class DNSProvider extends AbstractModel
 {
+    use BelongsToProjectOrGlobal;
     
     use HasFactory;
 
@@ -80,18 +82,5 @@ class DNSProvider extends AbstractModel
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
-    }
-
-    
-    public static function getByProjectId(int $projectId, User $user): Builder
-    {
-        
-        $query = static::query();
-
-        return $query
-            ->where('user_id', $user->id)
-            ->where(function (Builder $query) use ($projectId): void {
-                $query->where('project_id', $projectId)->orWhereNull('project_id');
-            });
     }
 }

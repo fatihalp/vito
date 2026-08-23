@@ -23,7 +23,6 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import InputError from '@/components/ui/input-error';
-import { useInputFocus } from '@/stores/useInputFocus';
 import { ServerProvider } from '@/types/server-provider';
 import axios from 'axios';
 import { toast } from 'sonner';
@@ -45,7 +44,6 @@ export default function WorkflowTemplatesDialog({
   onOpenChange: (open: boolean) => void;
   initialTemplateId?: string;
 }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(initialTemplateId || WORKFLOW_TEMPLATES[0].id);
   const [serverProviders, setServerProviders] = useState<ServerProvider[]>([]);
   const [loadingProviders, setLoadingProviders] = useState(false);
@@ -98,16 +96,7 @@ export default function WorkflowTemplatesDialog({
     name: '',
   });
 
-  useEffect(() => {
-    setFocused(open);
-    return () => setFocused(false);
-  }, [open, setFocused]);
-
-  useEffect(() => {
-    if (open) {
-      setStep(0);
-    }
-  }, [open]);
+  
 
   useEffect(() => {
     if (open) {

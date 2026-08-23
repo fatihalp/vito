@@ -19,10 +19,8 @@ import { Editor } from '@monaco-editor/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { useInputFocus } from '@/stores/useInputFocus';
 
 export default function Run({ workflow, children }: { workflow: Workflow; children: ReactNode }) {
-  const setFocused = useInputFocus((state) => state.setFocused);
   const [open, setOpen] = useState(false);
 
   const form = useForm<{
@@ -36,7 +34,6 @@ export default function Run({ workflow, children }: { workflow: Workflow; childr
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    setFocused(isOpen);
   };
 
   const submit = () => {

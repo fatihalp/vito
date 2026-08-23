@@ -4,7 +4,6 @@ namespace App\Exceptions;
 
 use Exception;
 
-
 class PrivateNetworkSyncError extends Exception
 {
     public function __construct(

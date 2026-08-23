@@ -14,6 +14,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class LeaveProjectController extends Controller
 {
+
     #[Delete('/{project}/leave', name: 'projects.leave')]
     public function __invoke(Project $project): RedirectResponse
     {

@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth:sanctum', 'can-see-project'])]
 class ServerSSHKeyController extends Controller
 {
+
     #[Get('/', name: 'api.projects.servers.ssh-keys', middleware: 'ability:read')]
     public function index(Project $project, Server $server): ResourceCollection
     {
@@ -36,6 +37,7 @@ class ServerSSHKeyController extends Controller
     }
 
     
+
     #[Post('/', name: 'api.projects.servers.ssh-keys.create', middleware: 'ability:write')]
     public function create(Request $request, Project $project, Server $server): SshKeyResource
     {
@@ -68,6 +70,7 @@ class ServerSSHKeyController extends Controller
     }
 
     
+
     #[Delete('{sshKey}', name: 'api.projects.servers.ssh-keys.delete', middleware: 'ability:write')]
     public function delete(Project $project, Server $server, SshKey $sshKey): Response
     {

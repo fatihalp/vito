@@ -25,6 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth', 'has-project'])]
 class DNSRecordController extends Controller
 {
+
     #[Get('/', name: 'dns-records.index')]
     public function index(Domain $domain): Response
     {

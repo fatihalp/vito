@@ -7,7 +7,6 @@ use App\Support\Cidr;
 use Closure;
 use Illuminate\Contracts\Validation\ValidationRule;
 
-
 class WithinCidrRule implements ValidationRule
 {
     public function __construct(private ?string $cidr) {}

@@ -35,6 +35,7 @@ use Spatie\RouteAttributes\Attributes\WhereNumber;
 #[Middleware(['auth', 'has-project'])]
 class WorkerController extends Controller
 {
+
     #[Get('/workers', name: 'workers')]
     public function index(Server $server): Response
     {
@@ -132,6 +133,7 @@ class WorkerController extends Controller
     }
 
     #[Put('/workers/{worker}/{site?}', name: 'workers.update')]
+    #[WhereNumber('site')]
     public function update(Request $request, Server $server, Worker $worker, ?Site $site = null): RedirectResponse
     {
         $this->authorize('update', [$worker, $server, $site]);

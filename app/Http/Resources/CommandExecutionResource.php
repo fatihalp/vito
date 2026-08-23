@@ -6,7 +6,6 @@ use App\Models\CommandExecution;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-
 class CommandExecutionResource extends JsonResource
 {
     

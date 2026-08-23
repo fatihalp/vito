@@ -4,7 +4,7 @@ import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, ServerIcon } from 'lucide-react';
-import { useInitials } from '@/hooks/use-initials';
+import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateServer from '@/pages/servers/components/create-server';
 import ServerSelect from '@/pages/servers/components/server-select';
@@ -16,7 +16,7 @@ export function ServerSwitch() {
   const [open, setOpen] = useState(false);
   const [serverFormOpen, setServerFormOpen] = useState(false);
   const [selected, setSelected] = useState<string>(page.props.server?.id?.toString() ?? '');
-  const initials = useInitials();
+  const initials = getInitials;
   const form = useForm();
 
   useEffect(() => {
