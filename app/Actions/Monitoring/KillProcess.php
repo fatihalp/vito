@@ -15,7 +15,7 @@ class KillProcess
         }
 
         try {
-            $server->ssh('root')->exec('sudo kill -9 ' . (int) $pid);
+            $server->ssh()->exec('sudo kill -9 ' . (int) $pid);
             return true;
         } catch (Throwable $e) {
             return false;

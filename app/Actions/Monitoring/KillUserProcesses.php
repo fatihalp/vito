@@ -17,7 +17,7 @@ class KillUserProcesses
 
         try {
             $escapedUser = escapeshellarg($user);
-            $server->ssh('root')->exec("sudo pkill -9 -u {$escapedUser} 2>/dev/null || sudo killall -9 -u {$escapedUser} 2>/dev/null || true");
+            $server->ssh()->exec("sudo pkill -9 -u {$escapedUser} 2>/dev/null || sudo killall -9 -u {$escapedUser} 2>/dev/null || true");
             return true;
         } catch (Throwable $e) {
             return false;

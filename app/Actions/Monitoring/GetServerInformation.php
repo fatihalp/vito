@@ -28,7 +28,7 @@ df -hP 2>/dev/null || df -h
 echo "___SECTION_END___"
 BASH;
 
-            $output = $server->ssh('root')->exec($script);
+            $output = $server->ssh()->exec($script);
             return $this->parseOutput($output);
         } catch (Throwable $e) {
             return [
