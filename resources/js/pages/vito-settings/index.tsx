@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Head } from '@inertiajs/react';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
@@ -9,7 +9,7 @@ import ImportVito from '@/pages/vito-settings/components/import';
 
 export default function VitoSettings() {
   return (
-    <AdminLayout>
+    <SettingsLayout>
       <Head title="Vito Settings" />
 
       <Container className="max-w-5xl">
@@ -31,6 +31,6 @@ export default function VitoSettings() {
           </CardContent>
         </Card>
       </Container>
-    </AdminLayout>
+    </SettingsLayout>
   );
 }

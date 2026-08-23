@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin/layout';
+import Layout from '@/layouts/app/layout';
 import { Head } from '@inertiajs/react';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
@@ -9,7 +9,7 @@ import RolePermissionsTable from '@/pages/users/components/role-permissions-tabl
 
 export default function Users() {
   return (
-    <AdminLayout>
+    <Layout>
       <Head title="Users" />
 
       <Container className="max-w-5xl space-y-6">
@@ -22,6 +22,6 @@ export default function Users() {
         <UsersList />
         <RolePermissionsTable />
       </Container>
-    </AdminLayout>
+    </Layout>
   );
 }

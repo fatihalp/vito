@@ -152,13 +152,6 @@ class User extends Authenticatable
         return $this->is_admin;
     }
 
-    
-    public function scripts(): HasMany
-    {
-        return $this->hasMany(Script::class);
-    }
-
-    
     public function allServers(): Builder
     {
         

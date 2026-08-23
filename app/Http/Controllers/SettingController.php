@@ -15,6 +15,6 @@ class SettingController extends Controller
     #[Get('/', name: 'settings')]
     public function index(): RedirectResponse
     {
-        return to_route('profile');
+        return to_route('projects');
     }
 }

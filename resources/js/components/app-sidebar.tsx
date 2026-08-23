@@ -18,24 +18,20 @@ import {
 import { type NavGroup, type NavItem, SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import {
-  BookOpen,
   ChevronRightIcon,
   CloudUploadIcon,
   CogIcon,
   DatabaseBackupIcon,
-  Folder,
   Globe,
   LayoutDashboardIcon,
-  ListEndIcon,
   LogsIcon,
   MousePointerClickIcon,
   NetworkIcon,
   PanelLeftCloseIcon,
   PanelLeftOpenIcon,
   ServerIcon,
-  Settings2Icon,
+  UsersIcon,
   WorkflowIcon,
-  ZapIcon,
 } from 'lucide-react';
 import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
@@ -132,11 +128,6 @@ export function AppSidebar({
       icon: DatabaseBackupIcon,
     },
     {
-      title: 'Scripts',
-      href: route('scripts'),
-      icon: ZapIcon,
-    },
-    {
       title: 'Workflows',
       href: route('workflows'),
       icon: WorkflowIcon,
@@ -147,40 +138,25 @@ export function AppSidebar({
       icon: Globe,
     },
     {
+      title: 'Users',
+      href: route('users'),
+      onlyActivePath: route('users'),
+      icon: UsersIcon,
+      hidden: !page.props.auth.user?.is_admin,
+    },
+    {
       title: 'Settings',
       href: route('settings'),
       icon: CogIcon,
-    },
-    {
-      title: 'Admin',
-      href: route('admin'),
-      icon: Settings2Icon,
-      hidden: !page.props.auth.user?.is_admin,
     },
   ];
 
   const footerNavItems: NavItem[] = [
     {
-      title: 'Horizon Dashboard',
-      href: route('horizon.index'),
-      icon: ListEndIcon,
-      hidden: !page.props.auth.user?.is_admin,
-    },
-    {
       title: 'Vito Logs',
       href: route('log-viewer.index'),
       icon: LogsIcon,
       hidden: !page.props.auth.user?.is_admin,
-    },
-    {
-      title: 'Repository',
-      href: 'https://github.com/vitodeploy/vito',
-      icon: Folder,
-    },
-    {
-      title: 'Documentation',
-      href: 'https://vitodeploy.com',
-      icon: BookOpen,
     },
   ];
 

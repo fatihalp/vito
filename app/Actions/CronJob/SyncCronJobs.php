@@ -12,7 +12,7 @@ class SyncCronJobs
     
     public function sync(Server $server): void
     {
-        $users = $server->getSshUsers();
+        $users = array_values(array_filter($server->getSshUsers(), fn ($u) => is_string($u) && $u !== ''));
 
         foreach ($users as $user) {
             $this->syncUserCronJobs($server, $user);
@@ -163,11 +163,13 @@ class SyncCronJobs
     
     private function getUserCrontab(Server $server, string $user): string
     {
-        $output = $server->ssh($user)->exec("crontab -l 2>/dev/null || echo ''", 'get-user-crontab');
+        try {
+            $output = $server->ssh($user)->exec("crontab -l 2>/dev/null || echo ''", 'get-user-crontab');
+            $output = str_replace('cron updated!', '', $output);
 
-        
-        $output = str_replace('cron updated!', '', $output);
-
-        return trim($output);
+            return trim($output);
+        } catch (\Throwable) {
+            return '';
+        }
     }
 }

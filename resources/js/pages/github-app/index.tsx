@@ -1,4 +1,4 @@
-import AdminLayout from '@/layouts/admin/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
@@ -65,7 +65,7 @@ export default function GithubAppIndex() {
   const { githubApp, manifest, manualSetup, installPath, installations, localUrlWarning } = page.props;
 
   return (
-    <AdminLayout>
+    <SettingsLayout>
       <Head title="GitHub App" />
       <Container className="max-w-5xl">
         <Heading
@@ -122,7 +122,7 @@ export default function GithubAppIndex() {
           </Card>
         )}
       </Container>
-    </AdminLayout>
+    </SettingsLayout>
   );
 }
 

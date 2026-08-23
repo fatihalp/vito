@@ -1,11 +1,13 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { CheckIcon, XIcon, ShieldCheckIcon } from 'lucide-react';
+import { CheckIcon, XIcon, ShieldCheckIcon, ChevronDownIcon } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 
 interface PermissionRow {
   area: string;
-  description: string;
   admin: {
     allowed: boolean;
     label: string;
@@ -18,154 +20,126 @@ interface PermissionRow {
 
 const permissions: PermissionRow[] = [
   {
-    area: 'Admin Panel (/admin/*)',
-    description: 'Access to instance-level settings, user administration, and system controls',
-    admin: {
-      allowed: true,
-      label: 'Full access',
-    },
-    user: {
-      allowed: false,
-      label: 'No access',
-    },
+    area: 'Admin Panel',
+    admin: { allowed: true, label: 'Full' },
+    user: { allowed: false, label: 'No' },
   },
   {
     area: 'User Management',
-    description: 'Create, update, delete users, and assign system roles',
-    admin: {
-      allowed: true,
-      label: 'Full control',
-    },
-    user: {
-      allowed: false,
-      label: 'No access',
-    },
+    admin: { allowed: true, label: 'Full' },
+    user: { allowed: false, label: 'No' },
   },
   {
-    area: 'Plugins & System Integrations',
-    description: 'Install and configure official/community plugins, GitHub App, and system providers',
-    admin: {
-      allowed: true,
-      label: 'Full control',
-    },
-    user: {
-      allowed: false,
-      label: 'No access',
-    },
+    area: 'Plugins',
+    admin: { allowed: true, label: 'Full' },
+    user: { allowed: false, label: 'No' },
   },
   {
-    area: 'System Settings & Backups',
-    description: 'Manage global instance configurations, auto-updates, and instance-wide backups',
-    admin: {
-      allowed: true,
-      label: 'Full control',
-    },
-    user: {
-      allowed: false,
-      label: 'No access',
-    },
+    area: 'Settings',
+    admin: { allowed: true, label: 'Full' },
+    user: { allowed: false, label: 'No' },
   },
   {
-    area: 'Projects Scope',
-    description: 'Visibility and management of projects within Vito',
-    admin: {
-      allowed: true,
-      label: 'All projects across instance',
-    },
-    user: {
-      allowed: true,
-      label: 'Assigned projects only',
-    },
+    area: 'Projects',
+    admin: { allowed: true, label: 'All' },
+    user: { allowed: true, label: 'Assigned' },
   },
   {
-    area: 'Servers & Sites Management',
-    description: 'Manage servers, deployments, databases, SSL certificates, cron jobs, and queues',
-    admin: {
-      allowed: true,
-      label: 'All servers and sites',
-    },
-    user: {
-      allowed: true,
-      label: 'Only within assigned projects',
-    },
+    area: 'Servers & Sites',
+    admin: { allowed: true, label: 'All' },
+    user: { allowed: true, label: 'Assigned' },
   },
   {
-    area: 'Credentials & API Keys',
-    description: 'Create and manage SSH keys, API tokens, and deployment credentials',
-    admin: {
-      allowed: true,
-      label: 'Global & personal credentials',
-    },
-    user: {
-      allowed: true,
-      label: 'Personal & project credentials',
-    },
+    area: 'Credentials',
+    admin: { allowed: true, label: 'All' },
+    user: { allowed: true, label: 'Assigned' },
   },
 ];
 
 export default function RolePermissionsTable() {
+  const [isOpen, setIsOpen] = useState(false);
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <ShieldCheckIcon className="text-primary size-5" />
-          <CardTitle>Role Permissions Matrix</CardTitle>
-        </div>
-        <CardDescription>
-          Overview of permissions and capabilities comparing Admin and standard User roles.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-1/3">Permission / Area</TableHead>
-              <TableHead className="w-1/3">
-                <div className="flex items-center gap-2">
-                  <span>Admin</span>
-                  <Badge variant="default">Full Access</Badge>
-                </div>
-              </TableHead>
-              <TableHead className="w-1/3">
-                <div className="flex items-center gap-2">
-                  <span>User</span>
-                  <Badge variant="outline">Project Scoped</Badge>
-                </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {permissions.map((row) => (
-              <TableRow key={row.area}>
-                <TableCell className="font-medium">
-                  <div className="font-semibold text-foreground">{row.area}</div>
-                  <div className="text-muted-foreground text-xs">{row.description}</div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {row.admin.allowed ? (
-                      <CheckIcon className="text-success size-4 shrink-0" />
-                    ) : (
-                      <XIcon className="text-destructive size-4 shrink-0" />
-                    )}
-                    <span className="text-sm">{row.admin.label}</span>
-                  </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    {row.user.allowed ? (
-                      <CheckIcon className="text-success size-4 shrink-0" />
-                    ) : (
-                      <XIcon className="text-destructive size-4 shrink-0" />
-                    )}
-                    <span className="text-sm">{row.user.label}</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <Card className="overflow-hidden">
+        <CollapsibleTrigger asChild>
+          <button
+            type="button"
+            className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-muted/30"
+          >
+            <div className="flex items-center gap-3">
+              <ShieldCheckIcon className="size-4 text-primary" />
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-semibold">Role Permissions</span>
+                <span className="text-xs text-muted-foreground">• Admin (Full) / User (Project)</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <span>{isOpen ? 'Hide' : 'Details'}</span>
+              <ChevronDownIcon
+                className={cn('size-3.5 transition-transform duration-200', isOpen && 'rotate-180')}
+              />
+            </div>
+          </button>
+        </CollapsibleTrigger>
+
+        <CollapsibleContent>
+          <CardContent className="border-t p-0">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/40 hover:bg-muted/40">
+                  <TableHead className="w-1/3 py-2 text-xs font-medium">Area</TableHead>
+                  <TableHead className="w-1/3 py-2 text-xs font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <span>Admin</span>
+                      <Badge variant="default" className="text-[10px] px-1.5 py-0 font-normal">
+                        Full
+                      </Badge>
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-1/3 py-2 text-xs font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <span>User</span>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-normal">
+                        Project
+                      </Badge>
+                    </div>
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {permissions.map((row) => (
+                  <TableRow key={row.area} className="hover:bg-muted/20">
+                    <TableCell className="py-2 text-xs font-medium text-foreground">
+                      {row.area}
+                    </TableCell>
+                    <TableCell className="py-2">
+                      <div className="flex items-center gap-1.5">
+                        {row.admin.allowed ? (
+                          <CheckIcon className="size-3.5 text-emerald-500 shrink-0" />
+                        ) : (
+                          <XIcon className="size-3.5 text-destructive shrink-0" />
+                        )}
+                        <span className="text-xs text-muted-foreground">{row.admin.label}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-2">
+                      <div className="flex items-center gap-1.5">
+                        {row.user.allowed ? (
+                          <CheckIcon className="size-3.5 text-emerald-500 shrink-0" />
+                        ) : (
+                          <XIcon className="size-3.5 text-destructive shrink-0" />
+                        )}
+                        <span className="text-xs text-muted-foreground">{row.user.label}</span>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }

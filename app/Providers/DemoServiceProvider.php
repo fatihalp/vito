@@ -5,8 +5,6 @@ namespace App\Providers;
 use App\Facades\SSH;
 use App\Models\FirewallRule;
 use App\Models\PersonalAccessToken;
-use App\Models\Script;
-use App\Models\ScriptExecution;
 use App\Models\ServerLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -16,23 +14,15 @@ class DemoServiceProvider extends ServiceProvider
 {
     protected string $error = 'Cannot modify on Demo!';
 
-    
     protected array $canDelete = [
-        
     ];
 
-    
     protected array $canUpdate = [
         ServerLog::class,
-        Script::class,
-        ScriptExecution::class,
     ];
 
-    
     protected array $canCreate = [
         ServerLog::class,
-        Script::class,
-        ScriptExecution::class,
         FirewallRule::class,
         PersonalAccessToken::class,
     ];

@@ -625,16 +625,17 @@ class Site extends AbstractModel
     
     public function getSshUsers(): array
     {
-        $users = [
-            'root',
-            $this->server->getSshUser(),
-        ];
+        $users = ['root'];
 
-        if ($this->isIsolated()) {
+        if ($sshUser = $this->server->getSshUser()) {
+            $users[] = $sshUser;
+        }
+
+        if ($this->isIsolated() && filled($this->user)) {
             $users[] = $this->user;
         }
 
-        return $users;
+        return array_values(array_unique(array_filter($users, fn ($u) => is_string($u) && $u !== '')));
     }
 
     

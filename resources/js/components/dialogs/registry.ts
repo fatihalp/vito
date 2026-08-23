@@ -24,8 +24,6 @@ import EditHostedDomain from '@/pages/hosted-domains/components/edit-hosted-doma
 import FirewallRuleForm from '@/pages/firewall/components/form';
 import ServerIpForm from '@/pages/server-network/components/form';
 import RecordForm from '@/pages/domains/components/record-form';
-import ScriptForm from '@/pages/scripts/components/form';
-import ScriptTemplatesDialog from '@/pages/scripts/components/templates-dialog';
 import EditCommand from '@/pages/commands/components/edit-command';
 import CreateCommand from '@/pages/commands/components/create-command';
 import ExecuteCommand from '@/pages/commands/components/execute';
@@ -81,8 +79,6 @@ export const dialogs = {
   firewallForm: FirewallRuleForm,
   serverIpForm: ServerIpForm,
   dnsRecordForm: RecordForm,
-  scriptForm: ScriptForm,
-  scriptTemplates: ScriptTemplatesDialog,
   commandEdit: EditCommand,
   commandCreate: CreateCommand,
   commandExecute: ExecuteCommand,

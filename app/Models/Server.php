@@ -317,11 +317,16 @@ class Server extends AbstractModel
     
     public function getSshUsers(): array
     {
-        $users = ['root', $this->getSshUser()];
+        $users = ['root'];
+
+        if ($sshUser = $this->getSshUser()) {
+            $users[] = $sshUser;
+        }
+
         $users = array_merge($users, $this->isolatedUsers()->pluck('username')->toArray());
         $users = array_merge($users, $this->sites()->whereNotNull('user')->pluck('user')->toArray());
 
-        return array_values(array_unique($users));
+        return array_values(array_unique(array_filter($users, fn ($u) => is_string($u) && $u !== '')));
     }
 
     
@@ -441,7 +446,7 @@ class Server extends AbstractModel
 
     public function processManager(?string $version = null): ?Service
     {
-        return $this->serviceOrDefault('processManager', $version);
+        return $this->serviceOrDefault('process_manager', $version);
     }
 
     public function php(?string $version = null): ?Service
@@ -456,7 +461,7 @@ class Server extends AbstractModel
 
     public function memoryDatabase(?string $version = null): ?Service
     {
-        return $this->serviceOrDefault('memoryDatabase', $version);
+        return $this->serviceOrDefault('memory_database', $version);
     }
 
     public function monitoring(?string $version = null): ?Service
