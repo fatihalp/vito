@@ -33,7 +33,7 @@ class GetOverviewResources
                 ->where('sites.server_id', $validated['fallback_server_id'])
                 ->latest('sites.created_at')
                 ->orderByDesc('sites.id')
-                ->limit(5)
+                ->limit(10)
                 ->pluck('sites.id');
 
             if ($latestSiteIds->isNotEmpty()) {

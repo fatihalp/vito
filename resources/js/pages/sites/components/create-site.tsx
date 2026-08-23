@@ -3,7 +3,7 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHe
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { LoaderCircle } from 'lucide-react';
+import { ChevronRight, LoaderCircle } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -90,9 +90,41 @@ export default function CreateSite({
     dns_record_proxied: form.data.dns_record_proxied,
   };
 
+  const [showAdvanced, setShowAdvanced] = useState(false);
+
   const handleDomainChange = (next: DomainPickerValue) => {
     form.setData((data) => ({ ...data, ...next }));
   };
+
+  const isAdvancedField = (field: DynamicFieldConfig) => {
+    if (field.name === 'web_directory' || field.name === 'package_manager') {
+      return true;
+    }
+    if (['laravel', 'php', 'phpblank'].includes(form.data.type)) {
+      if (field.type === 'tooling' || field.type === 'tooling-selector') {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  const currentTypeForm = configs.site.types[form.data.type]?.form ?? [];
+  const primaryFields = useMemo(() => currentTypeForm.filter((f) => !isAdvancedField(f)), [currentTypeForm, form.data.type]);
+  const advancedFields = useMemo(() => currentTypeForm.filter((f) => isAdvancedField(f)), [currentTypeForm, form.data.type]);
+
+  const hasAdvancedErrors = useMemo(() => {
+    return advancedFields.some((f) => {
+      const err = (form.errors as Record<string, string | undefined>)[f.name];
+      const versionErr = (form.errors as Record<string, string | undefined>)[`${f.name}_version`];
+      return Boolean(err || versionErr);
+    });
+  }, [advancedFields, form.errors]);
+
+  useEffect(() => {
+    if (hasAdvancedErrors) {
+      setShowAdvanced(true);
+    }
+  }, [hasAdvancedErrors]);
 
   
   
@@ -476,7 +508,26 @@ export default function CreateSite({
                   <DomainPicker value={domainPickerValue} onChange={handleDomainChange} serverIp={server?.ip} error={form.errors.domain} />
                 </FormField>
 
-                {configs.site.types[form.data.type].form?.map((config) => getFormField(config))}
+                {primaryFields.map((config) => getFormField(config))}
+
+                {advancedFields.length > 0 && (
+                  <div className="pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowAdvanced(!showAdvanced)}
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+                    >
+                      <ChevronRight className={`size-3.5 transition-transform duration-200 ${showAdvanced ? 'rotate-90' : ''}`} />
+                      <span>{showAdvanced ? 'Hide advanced settings' : 'Advanced settings (Package manager, Node.js, Web directory)'}</span>
+                    </button>
+
+                    {showAdvanced && (
+                      <div className="mt-3 space-y-4 rounded-lg border border-dashed p-4 bg-muted/20">
+                        {advancedFields.map((config) => getFormField(config))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </FormFields>

@@ -12,8 +12,8 @@ import SourceControlEditDialog from '@/pages/source-controls/components/edit-dia
 import DataRetentionDialog from '@/pages/monitoring/components/data-retention-dialog';
 import EditDatabaseUserDialog from '@/pages/database-users/components/edit-database-user';
 import LinkDatabaseUserDialog from '@/pages/database-users/components/link-dialog';
-import PhpExtensionsDialog from '@/pages/php/components/extensions-dialog';
-import PhpIniDialog from '@/pages/php/components/ini-dialog';
+import PhpExtensionsDialog from '@/pages/services/components/php-extensions-dialog';
+import PhpIniDialog from '@/pages/services/components/php-ini-dialog';
 import ServerProviderEditDialog from '@/pages/server-providers/components/edit-dialog';
 import DnsProviderEditDialog from '@/pages/dns-providers/components/edit-dialog';
 import NotificationChannelEditDialog from '@/pages/notification-channels/components/edit-dialog';

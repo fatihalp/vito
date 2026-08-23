@@ -5,20 +5,21 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
-import { BookOpenIcon, LoaderCircleIcon } from 'lucide-react';
+import { LoaderCircleIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import ServerStatus from '@/pages/servers/components/status';
 import DateTime from '@/components/date-time';
 import CopyableBadge from '@/components/copyable-badge';
 import { Input } from '@/components/ui/input';
-import React, { useState } from 'react';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
 import DeleteServer from '@/pages/servers/components/delete-server';
 import TransferServer from '@/pages/servers/components/transfer-server';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { ServerRole } from '@/lib/server-roles';
 import InputError from '@/components/ui/input-error';
 import { useConfigs } from '@/stores/bootstrap-store';
+import { FormEvent } from 'react';
 
 export default function ServerSettings() {
   const configs = useConfigs()!;
@@ -26,7 +27,7 @@ export default function ServerSettings() {
     server: Server;
   }>();
 
-  const [editMode, setEditMode] = useState<string | undefined>();
+  const server = page.props.server;
 
   const form = useForm<{
     name: string;
@@ -36,249 +37,227 @@ export default function ServerSettings() {
     role: ServerRole;
     stage: 'prod' | 'beta' | 'alfa';
   }>({
-    name: page.props.server.name,
-    ip: page.props.server.ip,
-    port: page.props.server.port.toString(),
-    local_ip: page.props.server.local_ip,
-    role: page.props.server.role_value,
-    stage: page.props.server.stage || 'prod',
+    name: server.name,
+    ip: server.ip,
+    port: server.port.toString(),
+    local_ip: server.local_ip,
+    role: server.role_value,
+    stage: server.stage || 'prod',
   });
 
-  const submit = () => {
-    form.patch(route('server-settings.update', { server: page.props.server.id }), {
-      onSuccess: () => {
-        setEditMode(undefined);
-      },
-    });
-  };
-
-  const handleEnterKey = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submit();
-    }
+  const submit = (e?: FormEvent) => {
+    e?.preventDefault();
+    form.patch(route('server-settings.update', { server: server.id }));
   };
 
   return (
     <ServerLayout>
-      <Head title={`Settings - ${page.props.server.name}`} />
+      <Head title={`Settings - ${server.name}`} />
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Settings" />
+          <Heading title="Settings" description="Manage server configuration, network settings, and project assignment." />
         </HeaderContainer>
 
-        <Card className="overflow-hidden">
-          <CardHeader className="flex-row items-center justify-between gap-2">
-            <div className="space-y-2">
-              <CardTitle>Server details</CardTitle>
-              <CardDescription>Update server details</CardDescription>
-            </div>
-            <div className="flex items-center gap-2">
-              {form.isDirty && (
-                <Button onClick={submit}>
-                  {form.processing && <LoaderCircleIcon className="animate-spin" />}
-                  Save changes
-                </Button>
-              )}
-              {(editMode || form.isDirty) && (
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setEditMode(undefined);
-                    form.reset();
-                  }}
-                >
-                  Cancel
-                </Button>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="bg-background">
-            <div className="flex items-center justify-between p-4">
-              <span>ID</span>
-              <span className="text-muted-foreground">{page.props.server.id}</span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between gap-4 p-4">
-              <span>Server type</span>
-              <div className="grid gap-2">
-                <Select value={form.data.role} onValueChange={(value: typeof form.data.role) => form.setData('role', value)}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {configs.server_roles.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <InputError message={form.errors.role} />
-              </div>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between gap-4 p-4">
-              <span>Stage</span>
-              <div className="grid gap-2">
-                <Select value={form.data.stage} onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}>
-                  <SelectTrigger className="w-56">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prod">Prod</SelectItem>
-                    <SelectItem value="beta">Beta</SelectItem>
-                    <SelectItem value="alfa">Alfa</SelectItem>
-                  </SelectContent>
-                </Select>
-                <InputError message={form.errors.stage} />
-              </div>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Name</span>
-              {editMode === 'name' ? (
-                <Input
-                  id="name"
-                  className="h-6 max-w-48"
-                  value={form.data.name}
-                  onChange={(e) => form.setData('name', e.target.value)}
-                  onKeyDown={handleEnterKey}
-                  autoFocus
-                />
-              ) : (
-                <span className="text-muted-foreground cursor-pointer underline" onClick={() => setEditMode('name')}>
-                  {form.data.name}
-                </span>
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Status</span>
-              <ServerStatus server={page.props.server} />
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>IP</span>
-              {editMode === 'ip' ? (
-                <Input
-                  id="ip"
-                  className="h-6 max-w-48"
-                  value={form.data.ip}
-                  onChange={(e) => form.setData('ip', e.target.value)}
-                  onKeyDown={handleEnterKey}
-                  autoFocus
-                />
-              ) : (
-                <span className="text-muted-foreground cursor-pointer underline" onClick={() => setEditMode('ip')}>
-                  {form.data.ip}
-                </span>
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>SSH Port</span>
-              {editMode === 'port' ? (
-                <Input
-                  id="port"
-                  className="h-6 max-w-48"
-                  value={form.data.port}
-                  onChange={(e) => form.setData('port', e.target.value)}
-                  onKeyDown={handleEnterKey}
-                  autoFocus
-                />
-              ) : (
-                <span className="text-muted-foreground cursor-pointer underline" onClick={() => setEditMode('port')}>
-                  {form.data.port}
-                </span>
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Local IP</span>
-              {editMode === 'local_ip' ? (
-                <Input
-                  id="local_ip"
-                  className="h-6 max-w-48"
-                  value={form.data.local_ip ?? ''}
-                  onChange={(e) => form.setData('local_ip', e.target.value)}
-                  onKeyDown={handleEnterKey}
-                  autoFocus
-                />
-              ) : (
-                <span className="text-muted-foreground cursor-pointer underline" onClick={() => setEditMode('local_ip')}>
-                  {form.data.local_ip ? form.data.local_ip : 'Click to set'}
-                </span>
-              )}
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Created at</span>
-              <span className="text-muted-foreground">
-                <DateTime date={page.props.server.created_at} />
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Last update check</span>
-              <span className="text-muted-foreground">
-                {page.props.server.last_update_check ? <DateTime date={page.props.server.last_update_check} /> : '-'}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Available updates</span>
-              <span className="text-muted-foreground">
-                <span className="text-muted-foreground">{page.props.server.updates ?? '-'}</span>
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Provider</span>
-              <span className="text-muted-foreground">
-                <span className="text-muted-foreground">{page.props.server.provider}</span>
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between p-4">
-              <span>Public key</span>
-              <CopyableBadge text={page.props.server.public_key} />
-            </div>
-          </CardContent>
-        </Card>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-12">
+          <div className="lg:col-span-7">
+            <Card>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle>Configuration</CardTitle>
+                <CardDescription>Update server details and network settings</CardDescription>
+              </CardHeader>
+              <CardContent className="p-6 pt-5">
+                <form onSubmit={submit} className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name">Server Name</Label>
+                    <Input
+                      id="name"
+                      value={form.data.name}
+                      onChange={(e) => form.setData('name', e.target.value)}
+                      placeholder="e.g. production-app-1"
+                    />
+                    <InputError message={form.errors.name} />
+                  </div>
 
-        <Card className="overflow-hidden">
-          <CardHeader>
-            <CardTitle>Transfer server</CardTitle>
-            <CardDescription>Here you can transfer server to another project</CardDescription>
-          </CardHeader>
-          <CardContent className="bg-background">
-            <div className="space-y-2 p-4">
-              <p>This action will transfer the server to another project. All associated data will remain intact.</p>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                    <div className="grid gap-2">
+                      <Label htmlFor="role">Server Role</Label>
+                      <Select
+                        value={form.data.role}
+                        onValueChange={(value: typeof form.data.role) => form.setData('role', value)}
+                      >
+                        <SelectTrigger id="role" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {configs.server_roles.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <InputError message={form.errors.role} />
+                    </div>
 
-              <TransferServer server={page.props.server}>
-                <Button variant="outline">Transfer server</Button>
-              </TransferServer>
-            </div>
-          </CardContent>
-        </Card>
+                    <div className="grid gap-2">
+                      <Label htmlFor="stage">Environment Stage</Label>
+                      <Select
+                        value={form.data.stage}
+                        onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}
+                      >
+                        <SelectTrigger id="stage" className="w-full">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="prod">Production</SelectItem>
+                          <SelectItem value="beta">Beta</SelectItem>
+                          <SelectItem value="alfa">Alpha</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <InputError message={form.errors.stage} />
+                    </div>
+                  </div>
 
-        <Card className="border-destructive/50 overflow-hidden">
-          <CardHeader>
-            <CardTitle>Delete server</CardTitle>
-            <CardDescription>Here you can delete the server.</CardDescription>
-          </CardHeader>
-          <CardContent className="bg-background">
-            <div className="space-y-2 p-4">
-              <p>please note that this action is irreversible and will delete all data associated with the server.</p>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                    <div className="sm:col-span-2 grid gap-2">
+                      <Label htmlFor="ip">Public IP Address</Label>
+                      <Input
+                        id="ip"
+                        value={form.data.ip}
+                        onChange={(e) => form.setData('ip', e.target.value)}
+                        placeholder="1.2.3.4"
+                      />
+                      <InputError message={form.errors.ip} />
+                    </div>
 
-              <DeleteServer server={page.props.server}>
-                <Button variant="destructive">Delete server</Button>
-              </DeleteServer>
-            </div>
-          </CardContent>
-        </Card>
+                    <div className="grid gap-2">
+                      <Label htmlFor="port">SSH Port</Label>
+                      <Input
+                        id="port"
+                        value={form.data.port}
+                        onChange={(e) => form.setData('port', e.target.value)}
+                        placeholder="22"
+                      />
+                      <InputError message={form.errors.port} />
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label htmlFor="local_ip">Private / Local IP</Label>
+                    <Input
+                      id="local_ip"
+                      value={form.data.local_ip ?? ''}
+                      onChange={(e) => form.setData('local_ip', e.target.value)}
+                      placeholder="e.g. 10.0.0.1"
+                    />
+                    <InputError message={form.errors.local_ip} />
+                  </div>
+
+                  <div className="flex items-center justify-end gap-2 pt-3">
+                    {form.isDirty && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => form.reset()}
+                      >
+                        Reset
+                      </Button>
+                    )}
+                    <Button type="submit" size="sm" disabled={!form.isDirty || form.processing}>
+                      {form.processing && <LoaderCircleIcon className="mr-1.5 size-4 animate-spin" />}
+                      Save Changes
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="space-y-6 lg:col-span-5">
+            <Card>
+              <CardHeader className="p-6 pb-4">
+                <CardTitle>System Information</CardTitle>
+                <CardDescription>Status and metadata</CardDescription>
+              </CardHeader>
+              <CardContent className="divide-y p-0 text-sm">
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-muted-foreground">Status</span>
+                  <ServerStatus server={server} />
+                </div>
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-muted-foreground">Server ID</span>
+                  <span className="font-mono text-xs">#{server.id}</span>
+                </div>
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-muted-foreground">Provider</span>
+                  <Badge variant="outline" className="capitalize">{server.provider}</Badge>
+                </div>
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-muted-foreground">Created</span>
+                  <span className="text-muted-foreground text-xs">
+                    <DateTime date={server.created_at} />
+                  </span>
+                </div>
+                <div className="flex items-center justify-between px-6 py-3">
+                  <span className="text-muted-foreground">Last Update Check</span>
+                  <span className="text-muted-foreground text-xs">
+                    {server.last_update_check ? <DateTime date={server.last_update_check} /> : '-'}
+                  </span>
+                </div>
+                {server.updates !== null && server.updates !== undefined && (
+                  <div className="flex items-center justify-between px-6 py-3">
+                    <span className="text-muted-foreground">Available Updates</span>
+                    <Badge variant={server.updates > 0 ? 'warning' : 'outline'}>
+                      {server.updates} packages
+                    </Badge>
+                  </div>
+                )}
+                <div className="flex flex-col gap-1.5 px-6 py-3.5">
+                  <span className="text-muted-foreground text-xs font-medium">SSH Public Key</span>
+                  <CopyableBadge text={server.public_key} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="border-destructive/30">
+              <CardHeader className="p-6 pb-4">
+                <CardTitle className="text-destructive">Danger Zone</CardTitle>
+                <CardDescription>Transfer or permanently delete this server</CardDescription>
+              </CardHeader>
+              <CardContent className="divide-y p-0 text-sm">
+                <div className="flex items-center justify-between gap-4 px-6 py-4">
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-foreground text-sm">Transfer to Project</p>
+                    <p className="text-muted-foreground text-xs">
+                      Move this server and its resources to another project.
+                    </p>
+                  </div>
+                  <TransferServer server={server}>
+                    <Button variant="outline" size="sm" className="shrink-0">
+                      Transfer
+                    </Button>
+                  </TransferServer>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 px-6 py-4">
+                  <div className="space-y-0.5">
+                    <p className="font-medium text-destructive text-sm">Delete Server</p>
+                    <p className="text-muted-foreground text-xs">
+                      Permanently remove this server and all its data.
+                    </p>
+                  </div>
+                  <DeleteServer server={server}>
+                    <Button variant="destructive" size="sm" className="shrink-0">
+                      Delete
+                    </Button>
+                  </DeleteServer>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </Container>
     </ServerLayout>
   );

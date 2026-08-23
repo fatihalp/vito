@@ -41,6 +41,43 @@ import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
+import React, { useRef, useState } from 'react';
+
+function NavFlyout({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMouseEnter = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setOpen(true), 120);
+  };
+
+  const handleMouseLeave = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setOpen(false), 200);
+  };
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <div onMouseEnter={handleMouseEnter} onMouseLeave={handleMouseLeave} className="w-full">
+        <PopoverAnchor asChild>
+          <div className="w-full">{children}</div>
+        </PopoverAnchor>
+      </div>
+      <PopoverContent
+        side="right"
+        align="start"
+        sideOffset={8}
+        className="w-72 p-2 shadow-xl border bg-popover text-popover-foreground z-50 rounded-xl"
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+      >
+        <div onClick={() => setOpen(false)}>{content}</div>
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export function AppSidebar({
   secondNavItems,
@@ -333,6 +370,32 @@ export function AppSidebar({
                             </CollapsibleContent>
                           </SidebarMenuItem>
                         </Collapsible>
+                      );
+                    }
+
+                    if (item.flyoutContent) {
+                      return (
+                        <SidebarMenuItem key={`${item.title}-${item.href}`} hidden={item.hidden}>
+                          <NavFlyout content={item.flyoutContent}>
+                            <SidebarMenuButton isActive={isActive} asChild>
+                              {item.external ? (
+                                <a href={item.href} target="_blank">
+                                  {item.icon && <item.icon />}
+                                  <span>{item.title}</span>
+                                </a>
+                              ) : (
+                                <Link
+                                  href={item.isDisabled ? '#' : item.href}
+                                  disabled={item.isDisabled || false}
+                                  className={item.isDisabled ? 'pointer-events-none opacity-50' : ''}
+                                >
+                                  {item.icon && <item.icon />}
+                                  <span>{item.title}</span>
+                                </Link>
+                              )}
+                            </SidebarMenuButton>
+                          </NavFlyout>
+                        </SidebarMenuItem>
                       );
                     }
 

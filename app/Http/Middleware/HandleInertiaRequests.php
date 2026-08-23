@@ -55,6 +55,13 @@ class HandleInertiaRequests extends Middleware
                 $user->save();
             }
 
+            if (! ($server instanceof Server)) {
+                $server = Server::find($server);
+            }
+            if ($server) {
+                $server->loadCount(['sites', 'cronJobs', 'workers', 'backups', 'services']);
+            }
+
             $data['server'] = ServerResource::make($server);
 
             if ($request->route('site')) {

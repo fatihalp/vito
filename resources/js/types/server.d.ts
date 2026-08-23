@@ -40,6 +40,13 @@ export interface Server {
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
   can_power_manage?: boolean;
   warnings?: ServerWarning[];
+  counts?: {
+    sites?: number;
+    cronjobs?: number;
+    workers?: number;
+    backups?: number;
+    services?: number;
+  };
   [key: string]: unknown;
 }
 

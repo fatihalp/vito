@@ -33,6 +33,7 @@ export interface NavItem {
   children?: NavItem[];
   hidden?: boolean;
   external?: boolean;
+  flyoutContent?: React.ReactNode;
 }
 
 export interface Configs {

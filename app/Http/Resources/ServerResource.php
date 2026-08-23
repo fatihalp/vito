@@ -43,6 +43,13 @@ class ServerResource extends JsonResource
             'can_power_manage' => $this->canPowerManage(),
             'features' => $this->features(),
             'warnings' => $this->getWarnings(),
+            'counts' => [
+                'sites' => (int) ($this->sites_count ?? $this->sites()->count()),
+                'cronjobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),
+                'workers' => (int) ($this->workers_count ?? $this->workers()->count()),
+                'backups' => (int) ($this->backups_count ?? $this->backups()->count()),
+                'services' => (int) ($this->services_count ?? $this->services()->count()),
+            ],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];
