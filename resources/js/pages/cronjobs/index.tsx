@@ -22,7 +22,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { CRONJOB_TEMPLATES } from '@/pages/cronjobs/components/form';
+import { CRONJOB_TEMPLATES } from '@/config/cron-templates';
 
 export default function CronJobIndex() {
   const page = usePage<{

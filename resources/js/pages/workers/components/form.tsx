@@ -25,6 +25,7 @@ type WorkerTargetServer = {
   has_process_manager: boolean;
 };
 
+export { WORKER_TEMPLATES } from '@/config/worker-templates';
 import { WORKER_TEMPLATES } from '@/config/worker-templates';
 
 export default function WorkerForm({

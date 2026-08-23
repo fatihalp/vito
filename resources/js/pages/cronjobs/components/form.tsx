@@ -15,6 +15,7 @@ import { Site } from '@/types/site';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { cn } from '@/lib/utils';
 
+export { CRONJOB_TEMPLATES } from '@/config/cron-templates';
 import { CRONJOB_TEMPLATES } from '@/config/cron-templates';
 
 export default function CronJobForm({
