@@ -7,6 +7,7 @@ import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';
 import ServerActions from '@/pages/servers/components/actions';
+import ConnectSshDialog from '@/pages/servers/components/connect-ssh-dialog';
 import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 import { SharedData } from '@/types';
 import type { Server } from '@/types/server';
@@ -38,6 +39,7 @@ export default function ServerOverview() {
   return (
     <Container className="max-w-5xl">
       <div className="flex flex-wrap items-center gap-2">
+        <ConnectSshDialog server={server} />
         <InstantLogs server={server}>
           <Button variant="outline" size="sm">
             <LogsIcon className="size-4" />

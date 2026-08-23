@@ -1,3 +1,5 @@
+import axios from 'axios';
+
 export type HetznerRegion = {
   value: string;
   code: string;
@@ -18,3 +20,57 @@ export const hetznerRegions: HetznerRegion[] = [
 
 export const getHetznerRegion = (value: string | number | boolean | string[] | null | undefined) =>
   hetznerRegions.find((region) => region.value === value?.toString());
+
+export type Latencies = Record<string, number | null>;
+
+let memoryLatenciesCache: Latencies | null = null;
+let latencyPromise: Promise<Latencies> | null = null;
+
+export const getCachedLatencies = (): Latencies | null => {
+  if (memoryLatenciesCache) return memoryLatenciesCache;
+  try {
+    const raw = sessionStorage.getItem('vito.hetzner_latencies');
+    if (raw) {
+      memoryLatenciesCache = JSON.parse(raw);
+      return memoryLatenciesCache;
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+};
+
+export const setCachedLatencies = (latencies: Latencies): void => {
+  memoryLatenciesCache = latencies;
+  try {
+    sessionStorage.setItem('vito.hetzner_latencies', JSON.stringify(latencies));
+  } catch {
+    // ignore
+  }
+};
+
+export const fetchHetznerLatencies = async (force = false): Promise<Latencies> => {
+  if (!force) {
+    const cached = getCachedLatencies();
+    if (cached && Object.keys(cached).length > 0) {
+      return cached;
+    }
+  }
+
+  if (latencyPromise && !force) {
+    return latencyPromise;
+  }
+
+  latencyPromise = (async () => {
+    try {
+      const response = await axios.get<{ latencies: Latencies }>(route('hetzner.latency'));
+      const data = response.data.latencies;
+      setCachedLatencies(data);
+      return data;
+    } finally {
+      latencyPromise = null;
+    }
+  })();
+
+  return latencyPromise;
+};

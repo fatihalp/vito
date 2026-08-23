@@ -62,13 +62,16 @@ class StorageProvider extends AbstractModel
         return (object) $this->provider()->editableData();
     }
 
-    
     public function backups(): HasMany
     {
         return $this->hasMany(Backup::class, 'storage_id');
     }
 
-    
+    public function siteResources(): HasMany
+    {
+        return $this->hasMany(SiteResource::class, 'storage_provider_id');
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);

@@ -11,7 +11,7 @@ class SiteResource extends AbstractModel
     protected $fillable = [
         'site_id',
         'server_id',
-        'bucket_id',
+        'storage_provider_id',
         'type',
         'status',
         'configuration',
@@ -22,7 +22,7 @@ class SiteResource extends AbstractModel
     protected $casts = [
         'site_id' => 'integer',
         'server_id' => 'integer',
-        'bucket_id' => 'integer',
+        'storage_provider_id' => 'integer',
         'type' => SiteResourceType::class,
         'status' => SiteResourceStatus::class,
         'configuration' => 'encrypted:json',
@@ -36,21 +36,18 @@ class SiteResource extends AbstractModel
         'original_environment',
     ];
 
-    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
     }
 
-    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class);
     }
 
-    
-    public function bucket(): BelongsTo
+    public function storageProvider(): BelongsTo
     {
-        return $this->belongsTo(Bucket::class);
+        return $this->belongsTo(StorageProvider::class, 'storage_provider_id');
     }
 }

@@ -1,10 +1,10 @@
-import { Bucket } from '@/types/bucket';
+import { StorageProvider } from '@/types/storage-provider';
 
 export interface SiteResource {
   id: number;
   site_id: number;
   type: string;
-  type_value: 'database' | 'cache' | 'bucket';
+  type_value: 'database' | 'cache' | 'storage';
   type_color: 'gray' | 'success' | 'info' | 'warning' | 'danger' | 'default';
   status: 'connecting' | 'ready' | 'failed';
   status_color: 'success' | 'warning' | 'danger';
@@ -15,7 +15,7 @@ export interface SiteResource {
     local_ip: string | null;
     role: string;
   } | null;
-  bucket: Bucket | null;
+  storage_provider: StorageProvider | null;
   environment?: Record<string, string>;
   environment_keys: string[];
   created_at: string;

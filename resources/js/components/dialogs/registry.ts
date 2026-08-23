@@ -43,9 +43,6 @@ import AddNetworkPeer from '@/pages/networks/components/add-peer';
 import PeerConfigDialog from '@/pages/networks/components/peer-config';
 import ImportWorkflow from '@/pages/workflows/components/import-workflow';
 import WorkflowTemplatesDialog from '@/pages/workflows/components/templates-dialog';
-import ConnectBucketCredentialsDialog from '@/pages/buckets/components/connect-credentials-dialog';
-import CreateBucketDialog from '@/pages/buckets/components/create-bucket-dialog';
-import RevealBucketCredentialsDialog from '@/pages/buckets/components/reveal-credentials-dialog';
 import RevealSiteResourceDialog from '@/pages/site-resources/components/reveal-site-resource-dialog';
 import InviteProjectUser from '@/pages/projects/components/invite';
 import ProjectUsers from '@/pages/projects/components/users';
@@ -100,9 +97,6 @@ export const dialogs = {
   workflowTemplates: WorkflowTemplatesDialog,
   projectInvite: InviteProjectUser,
   projectUsers: ProjectUsers,
-  bucketCredentialsConnect: ConnectBucketCredentialsDialog,
-  bucketCreate: CreateBucketDialog,
-  bucketCredentialsReveal: RevealBucketCredentialsDialog,
   siteResourceReveal: RevealSiteResourceDialog,
   
 } as const satisfies Record<string, ComponentType<any>>;

@@ -45,6 +45,9 @@ class HandleInertiaRequests extends Middleware
             $user->unsetRelation('currentProject');
             $currentProject = $user->currentProject;
         }
+        if ($currentProject) {
+            $currentProject->loadCount(['servers', 'sites']);
+        }
 
         $data = [];
         if ($request->route('server')) {

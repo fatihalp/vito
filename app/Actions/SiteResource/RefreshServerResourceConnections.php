@@ -23,7 +23,7 @@ class RefreshServerResourceConnections
                 $key = match ($resource->type) {
                     SiteResourceType::DATABASE => 'DB_HOST',
                     SiteResourceType::CACHE => 'REDIS_HOST',
-                    SiteResourceType::BUCKET => null,
+                    SiteResourceType::STORAGE => null,
                 };
 
                 if ($key === null) {

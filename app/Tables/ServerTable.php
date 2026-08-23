@@ -42,8 +42,9 @@ class ServerTable extends Table
                 ->value(fn (Server $server) => $server->latestMetric ? (float) $server->getAttribute('performance_score') : null)
                 ->accessor('performance_sort_score')
                 ->sortable(),
+            Column::make('warnings', 'Warnings')
+                ->value(fn (Server $server) => $server->getWarnings()),
             Column::data('updates'),
-            Column::data('warnings', fn (Server $server) => $server->getWarnings()),
             Column::data('cpu_usage_percent', fn (Server $server) => $server->latestMetric?->cpu_usage_percent),
             Column::data('memory_used_percent', fn (Server $server) => $server->latestMetric?->memory_total > 0
                 ? round(($server->latestMetric->memory_used / $server->latestMetric->memory_total) * 100, 1)

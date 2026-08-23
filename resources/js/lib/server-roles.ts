@@ -1,1 +1,1 @@
-export type ServerRole = 'app' | 'queue' | 'database' | 'cache';
+export type ServerRole = 'app' | 'queue' | 'database' | 'cache' | 'custom';

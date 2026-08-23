@@ -12,7 +12,7 @@ interface ResourceCredentialsViewProps {
   environment: Record<string, string>;
   title?: string;
   subtitle?: string;
-  type?: 'database' | 'cache' | 'bucket' | 'websocket' | string;
+  type?: 'database' | 'cache' | 'storage' | 'websocket' | string;
   className?: string;
 }
 

@@ -79,7 +79,7 @@ class ApplicationController extends Controller
             'overviewWorkersCount' => $overview['workers_count'],
             'overviewCronJobs' => CronJobResource::collection($overview['cron_jobs']),
             'overviewCronJobsCount' => $overview['cron_jobs_count'],
-            'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'bucket'])->get()),
+            'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'storageProvider'])->get()),
             'hostedDomains' => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()),
             'dnsProviders' => DNSProviderResource::collection($dnsProviders),
             'domainProxyStatus' => $domainProxyStatus,

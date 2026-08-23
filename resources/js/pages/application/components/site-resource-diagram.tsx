@@ -94,7 +94,7 @@ export default function SiteResourceDiagram({
 
   const dbResource = resources.find((r) => r.type_value === 'database');
   const cacheResource = resources.find((r) => r.type_value === 'cache');
-  const bucketResource = resources.find((r) => r.type_value === 'bucket');
+  const storageResource = resources.find((r) => r.type_value === 'storage');
 
   const resourcesUrl = route('site-resources', { server: server.id, site: site.id });
 
@@ -734,15 +734,15 @@ export default function SiteResourceDiagram({
               </div>
 
               {}
-              {bucketResource ? (
+              {storageResource ? (
                 <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2.5 min-w-0">
                       <HardDriveIcon className="size-4 text-muted-foreground shrink-0" />
                       <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-sm font-semibold text-foreground">Storage Bucket</span>
+                        <span className="text-sm font-semibold text-foreground">Storage Provider</span>
                         <span className="text-xs text-muted-foreground font-normal truncate">
-                          {bucketResource.bucket?.name || 'Attached'}
+                          {storageResource.storage_provider?.name || 'Attached'}
                         </span>
                       </div>
                     </div>
@@ -750,7 +750,7 @@ export default function SiteResourceDiagram({
                       variant="ghost"
                       size="sm"
                       className="h-6 px-1.5 text-xs text-muted-foreground hover:text-foreground"
-                      onClick={() => setSelectedResource(bucketResource)}
+                      onClick={() => setSelectedResource(storageResource)}
                     >
                       <KeyIcon className="size-3" />
                     </Button>
@@ -761,10 +761,10 @@ export default function SiteResourceDiagram({
                       <div className="flex items-center justify-between">
                         <span className="flex items-center gap-2 text-muted-foreground">
                           <HardDriveIcon className="size-3.5 text-muted-foreground/70" />
-                          <span>Bucket name</span>
+                          <span>Provider</span>
                         </span>
                         <span className="font-mono text-xs font-medium text-foreground">
-                          {bucketResource.bucket?.name || 'S3 Bucket'}
+                          {storageResource.storage_provider?.name || 'S3 Storage'}
                         </span>
                       </div>
 
@@ -775,7 +775,7 @@ export default function SiteResourceDiagram({
                         </span>
                         <span className="flex items-center gap-1.5 font-medium text-foreground">
                           <span className="size-1.5 rounded-full bg-emerald-500" />
-                          {bucketResource.status === 'ready' ? 'Connected' : bucketResource.status}
+                          {storageResource.status === 'ready' ? 'Connected' : storageResource.status}
                         </span>
                       </div>
                     </div>

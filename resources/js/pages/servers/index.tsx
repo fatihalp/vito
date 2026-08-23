@@ -8,7 +8,7 @@ import CreateServer from '@/pages/servers/components/create-server';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import Layout from '@/layouts/app/layout';
-import { BookOpenIcon, EyeIcon, PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon } from 'lucide-react';
+import { BookOpenIcon, EyeIcon, PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +70,10 @@ const performanceCell = ({ row, value }: CellRenderProps) => {
 const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
   const str = `${String(roleValue || '')} ${String(roleLabel || '')}`.toLowerCase();
 
+  if (str.includes('custom')) {
+    return ServerIcon;
+  }
+
   if (str.includes('cache') || str.includes('redis')) {
     return ZapIcon;
   }
@@ -122,6 +126,43 @@ const stageCell = ({ value }: CellRenderProps) => {
   );
 };
 
+const warningsCell = ({ row, value }: CellRenderProps) => {
+  const warnings = ((value as Array<{ key: string; count?: number }>) ?? (row.warnings as Array<{ key: string; count?: number }>)) || [];
+  const count = warnings.length;
+
+  if (count === 0) {
+    return <span className="text-muted-foreground text-xs">—</span>;
+  }
+
+  const formatWarningLabel = (w: { key: string; count?: number }) => {
+    if (w.key === 'reboot_required') return 'Restart required';
+    if (w.key === 'updates_available') return `${w.count ?? ''} package ${w.count === 1 ? 'update' : 'updates'} available`;
+    if (w.key === 'kernel_update_available') return 'Kernel update available';
+    return w.key;
+  };
+
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="bg-warning/15 text-warning border-warning/40 inline-flex cursor-default items-center gap-1.5 rounded-md border px-2 py-1">
+            <TriangleAlertIcon className="size-3.5 shrink-0" />
+            <span className="text-xs font-semibold">{count} {count === 1 ? 'warning' : 'warnings'}</span>
+          </div>
+        </TooltipTrigger>
+        <TooltipContent className="max-w-xs space-y-1 p-2">
+          {warnings.map((warning, i) => (
+            <div key={i} className="flex items-center gap-1.5 text-xs">
+              <span className="size-1.5 rounded-full bg-amber-500 shrink-0" />
+              <span>{formatWarningLabel(warning)}</span>
+            </div>
+          ))}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+};
+
 export default function Servers() {
   const page = usePage<Page>();
 
@@ -153,35 +194,21 @@ export default function Servers() {
         </div>
         <VitoTable
           tableData={page.props.servers}
-          cellRenderers={{ performance_score: performanceCell, role: roleCell, stage: stageCell }}
-          actions={(row: Row) => {
-            const warnings = (row.warnings as Array<{ key: string }>) ?? [];
-            const count = warnings.length;
-            return (
-              <div className="flex items-center justify-end gap-2">
-                {count > 0 && (
-                  <TooltipProvider delayDuration={0}>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <div className="bg-warning/15 text-warning border-warning/40 flex cursor-default items-center gap-1.5 rounded-md border px-2 py-1.5">
-                          <TriangleAlertIcon className="h-4 w-4" />
-                          <span className="text-xs font-semibold">{count}</span>
-                        </div>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        {count} {count === 1 ? 'warning' : 'warnings'}
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                <Link href={route('servers.show', { server: row.id })} prefetch>
-                  <Button variant="outline" size="sm">
-                    <EyeIcon />
-                  </Button>
-                </Link>
-              </div>
-            );
+          cellRenderers={{
+            performance_score: performanceCell,
+            role: roleCell,
+            stage: stageCell,
+            warnings: warningsCell,
           }}
+          actions={(row: Row) => (
+            <div className="flex items-center justify-end gap-2">
+              <Link href={route('servers.show', { server: row.id })} prefetch>
+                <Button variant="outline" size="sm">
+                  <EyeIcon />
+                </Button>
+              </Link>
+            </div>
+          )}
         />
       </Container>
     </Layout>

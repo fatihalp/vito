@@ -47,6 +47,12 @@ export interface Server {
     backups?: number;
     services?: number;
   };
+  ssh_keys?: Array<{
+    id: number;
+    name: string;
+    user: string;
+    status: string;
+  }>;
   [key: string]: unknown;
 }
 

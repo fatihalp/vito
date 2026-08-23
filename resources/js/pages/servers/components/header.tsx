@@ -1,12 +1,14 @@
 import { Server } from '@/types/server';
-import { CheckIcon, CloudIcon, LoaderCircleIcon, SlashIcon } from 'lucide-react';
+import { CheckIcon, CloudIcon, KeyRoundIcon, LoaderCircleIcon, SlashIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { StatusRipple } from '@/components/status-ripple';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { router, useForm } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import ConnectSshDialog from './connect-ssh-dialog';
 
 export default function ServerHeader({ server: initialServer }: { server: Server }) {
   const server = useRealtimeRecord<Server>(initialServer, 'server')!;
@@ -101,6 +103,15 @@ export default function ServerHeader({ server: initialServer }: { server: Server
             </Tooltip>
           </>
         )}
+      </div>
+
+      <div className="flex items-center gap-1.5">
+        <ConnectSshDialog server={server}>
+          <Button variant="ghost" size="sm" className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground">
+            <KeyRoundIcon className="size-3" />
+            <span>Connect</span>
+          </Button>
+        </ConnectSshDialog>
       </div>
     </div>
   );

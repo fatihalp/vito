@@ -4,8 +4,10 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { VitoTable } from '@/components/vito-table';
 import { SshKey } from '@/types/ssh-key';
+import { Server } from '@/types/server';
 import DeployKey from '@/pages/server-ssh-keys/components/deploy-key';
 import Delete from '@/pages/server-ssh-keys/components/delete';
+import ConnectSshDialog from '@/pages/servers/components/connect-ssh-dialog';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -15,10 +17,12 @@ import { asRow } from '@/lib/inertia-table';
 
 type Page = {
   sshKeys: InertiaTableData;
+  server: Server;
 };
 
 export default function SshKeys() {
   const page = usePage<Page>();
+  const server = page.props.server;
 
   return (
     <ServerLayout>
@@ -27,6 +31,7 @@ export default function SshKeys() {
         <HeaderContainer>
           <Heading title="SSH Keys" description="Here you can manage the ssh keys deployed to the server" />
           <div className="flex items-center gap-2">
+            {server && <ConnectSshDialog server={server} />}
             <DeployKey>
               <Button>
                 <RocketIcon />

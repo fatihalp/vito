@@ -6,12 +6,13 @@ use App\Actions\SiteResource\ConnectSiteResource;
 use App\Actions\SiteResource\DisconnectSiteResource;
 use App\Enums\ServerRole;
 use App\Enums\SiteResourceStatus;
-use App\Http\Resources\BucketResource;
 use App\Http\Resources\SiteResourceResource;
 use App\Http\Resources\SiteResourceServerOptionResource;
+use App\Http\Resources\StorageProviderResource;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\SiteResource;
+use App\Models\StorageProvider;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -38,7 +39,7 @@ class SiteResourceController extends Controller
 
         return Inertia::render('site-resources/index', [
             'resources' => SiteResourceResource::collection(
-                $site->resources()->with(['server', 'bucket'])->latest()->get()
+                $site->resources()->with(['server', 'storageProvider'])->latest()->get()
             ),
             'servers' => SiteResourceServerOptionResource::collection(
                 $project->servers()
@@ -50,8 +51,9 @@ class SiteResourceController extends Controller
                     ->orderBy('name')
                     ->get()
             ),
-            'buckets' => BucketResource::collection($project->buckets()->orderBy('name')->get()),
-            'credentialsConnected' => $project->bucketCredential()->exists(),
+            'storageProviders' => StorageProviderResource::collection(
+                StorageProvider::getByProjectId($project->id, user())->orderBy('profile')->get()
+            ),
         ]);
     }
 
@@ -62,7 +64,7 @@ class SiteResourceController extends Controller
 
         $target = $resource->server
             ? $resource->server->name
-            : ($resource->bucket ? $resource->bucket->name : 'Resource');
+            : ($resource->storageProvider ? $resource->storageProvider->profile : 'Resource');
 
         return response()->json([
             'type' => $resource->type->getText(),

@@ -11,7 +11,6 @@ use App\Enums\SiteResourceStatus;
 use App\Enums\SiteResourceType;
 use App\Helpers\EnvParser;
 use App\Jobs\SiteResource\FinalizeConnectionJob;
-use App\Models\Bucket;
 use App\Models\Database;
 use App\Models\DatabaseUser;
 use App\Models\FirewallRule;
@@ -19,6 +18,7 @@ use App\Models\Server;
 use App\Models\Service;
 use App\Models\Site;
 use App\Models\SiteResource;
+use App\Models\StorageProvider;
 use App\Services\SupportsNetworking;
 use App\Services\SupportsNetworkingSecret;
 use App\Services\Database\Database as DatabaseHandler;
@@ -33,7 +33,6 @@ class ConnectSiteResource
 {
     public function __construct(private SyncManagedEnvironment $environment) {}
 
-    
     public function connect(Site $site, array $input): SiteResource
     {
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
@@ -41,7 +40,7 @@ class ConnectSiteResource
         $validator = Validator::make($input, [
             'type' => ['required', Rule::enum(SiteResourceType::class)],
             'server_id' => [
-                'exclude_if:type,bucket',
+                'exclude_if:type,storage',
                 'required',
                 'integer',
                 Rule::exists('servers', 'id')->where(function (Builder $query) use ($projectId, $type, $site): void {
@@ -53,29 +52,16 @@ class ConnectSiteResource
                         ->whereIn('status', ['ready', 'updating']);
                 }),
             ],
-            'bucket_id' => [
-                'exclude_unless:type,bucket',
-                'nullable',
+            'storage_provider_id' => [
+                'exclude_unless:type,storage',
+                'required',
                 'integer',
-                Rule::exists('buckets', 'id')->where('project_id', $projectId),
-            ],
-            'bucket_name' => [
-                'exclude_unless:type,bucket',
-                'nullable',
-                'string',
-                'min:3',
-                'max:63',
-                'regex:/^[a-z0-9][a-z0-9\-]*[a-z0-9]$/',
+                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId): void {
+                    $query->where('project_id', $projectId)
+                        ->orWhereNull('project_id');
+                }),
             ],
         ]);
-
-        $validator->after(function ($validator) use ($input): void {
-            if (($input['type'] ?? '') === SiteResourceType::BUCKET->value) {
-                if (empty($input['bucket_id']) && empty($input['bucket_name'])) {
-                    $validator->errors()->add('bucket_name', __('Select an existing bucket or enter a bucket name.'));
-                }
-            }
-        });
 
         $data = $validator->validate();
 
@@ -85,19 +71,8 @@ class ConnectSiteResource
             throw ValidationException::withMessages(['type' => __('This resource type is already connected to the site.')]);
         }
 
-        if ($type === SiteResourceType::BUCKET) {
-            if (! empty($data['bucket_name']) && empty($data['bucket_id'])) {
-                $bucket = app(\App\Actions\Bucket\CreateBucket::class)->create($site->server->project, [
-                    'name' => $data['bucket_name'],
-                    'region' => config('hetzner-object-storage.default_region', 'fsn1'),
-                    'visibility' => 'private',
-                    'allowed_origins' => [],
-                ]);
-
-                return $this->connectBucket($site, $bucket->id);
-            }
-
-            return $this->connectBucket($site, (int) $data['bucket_id']);
+        if ($type === SiteResourceType::STORAGE) {
+            return $this->connectStorage($site, (int) $data['storage_provider_id']);
         }
 
         $server = Server::query()
@@ -261,30 +236,40 @@ class ConnectSiteResource
         }
     }
 
-    private function connectBucket(Site $site, int $bucketId): SiteResource
+    private function connectStorage(Site $site, int $storageProviderId): SiteResource
     {
-        $bucket = Bucket::query()
-            ->where('project_id', $site->server->project_id)
-            ->findOrFail($bucketId);
-        $config = $bucket->configuration;
+        $storageProvider = StorageProvider::query()
+            ->where(function ($query) use ($site): void {
+                $query->where('project_id', $site->server->project_id)
+                    ->orWhereNull('project_id');
+            })
+            ->findOrFail($storageProviderId);
 
-        return $this->persist($site, SiteResourceType::BUCKET, null, $bucket, [], [
+        $credentials = $storageProvider->credentials ?? [];
+        $endpoint = $credentials['api_url'] ?? ($credentials['endpoint'] ?? '');
+        $region = $credentials['region'] ?? 'us-east-1';
+        $bucket = $credentials['bucket'] ?? '';
+        $key = $credentials['key'] ?? '';
+        $secret = $credentials['secret'] ?? '';
+
+        $env = [
             'FILESYSTEM_DISK' => 's3',
-            'AWS_ACCESS_KEY_ID' => (string) $config['access_key'],
-            'AWS_SECRET_ACCESS_KEY' => (string) $config['secret_key'],
-            'AWS_DEFAULT_REGION' => (string) $config['region'],
-            'AWS_BUCKET' => (string) $config['bucket'],
-            'AWS_ENDPOINT' => (string) ($config['endpoint'] ?? ''),
-            'AWS_USE_PATH_STYLE_ENDPOINT' => ($config['path_style'] ?? false) ? 'true' : 'false',
-        ]);
+            'AWS_ACCESS_KEY_ID' => (string) $key,
+            'AWS_SECRET_ACCESS_KEY' => (string) $secret,
+            'AWS_DEFAULT_REGION' => (string) $region,
+            'AWS_BUCKET' => (string) $bucket,
+            'AWS_ENDPOINT' => (string) $endpoint,
+            'AWS_USE_PATH_STYLE_ENDPOINT' => ! empty($endpoint) ? 'true' : 'false',
+        ];
+
+        return $this->persist($site, SiteResourceType::STORAGE, null, $storageProvider, [], $env);
     }
 
-    
     private function persist(
         Site $site,
         SiteResourceType $type,
         ?Server $server,
-        ?Bucket $bucket,
+        ?StorageProvider $storageProvider,
         array $configuration,
         array $environment,
         bool $deferEnvironment = false,
@@ -308,7 +293,7 @@ class ConnectSiteResource
 
         $resource = $site->resources()->create([
             'server_id' => $server?->id,
-            'bucket_id' => $bucket?->id,
+            'storage_provider_id' => $storageProvider?->id,
             'type' => $type,
             'status' => $deferEnvironment ? SiteResourceStatus::CONNECTING : SiteResourceStatus::READY,
             'configuration' => $configuration,

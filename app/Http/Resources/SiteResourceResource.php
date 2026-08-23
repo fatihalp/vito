@@ -26,7 +26,7 @@ class SiteResourceResource extends JsonResource
                 'local_ip' => $this->server->local_ip,
                 'role' => $this->server->role->getText(),
             ] : null,
-            'bucket' => $this->bucket ? new BucketResource($this->bucket) : null,
+            'storage_provider' => $this->storageProvider ? new StorageProviderResource($this->storageProvider) : null,
             'environment' => $this->environment,
             'environment_keys' => array_keys($this->environment),
             'created_at' => $this->created_at,

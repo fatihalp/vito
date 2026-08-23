@@ -109,16 +109,4 @@ class Project extends Model
     {
         return $this->hasMany(Network::class);
     }
-
-    
-    public function buckets(): HasMany
-    {
-        return $this->hasMany(Bucket::class);
-    }
-
-    
-    public function bucketCredential(): HasOne
-    {
-        return $this->hasOne(BucketCredential::class);
-    }
 }

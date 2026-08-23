@@ -43,6 +43,12 @@ class ServerResource extends JsonResource
             'can_power_manage' => $this->canPowerManage(),
             'features' => $this->features(),
             'warnings' => $this->getWarnings(),
+            'ssh_keys' => $this->sshKeys->map(fn ($key) => [
+                'id' => $key->id,
+                'name' => $key->name,
+                'user' => $key->pivot->user ?? $this->ssh_user ?? 'root',
+                'status' => $key->pivot->status ?? 'ready',
+            ])->values()->all(),
             'counts' => [
                 'sites' => (int) ($this->sites_count ?? $this->sites()->count()),
                 'cronjobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),

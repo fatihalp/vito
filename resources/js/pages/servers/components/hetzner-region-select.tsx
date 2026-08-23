@@ -3,12 +3,9 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import axios from 'axios';
 import { CheckIcon, GaugeIcon, LoaderCircleIcon, MapPinIcon } from 'lucide-react';
-import { useMemo, useState, useEffect, useRef } from 'react';
-import { getHetznerRegion, hetznerRegions } from './hetzner-regions';
-
-type Latencies = Record<string, number | null>;
+import { useMemo, useState, useEffect } from 'react';
+import { fetchHetznerLatencies, getCachedLatencies, getHetznerRegion, hetznerRegions, type Latencies } from './hetzner-regions';
 
 export default function HetznerRegionSelect({
   value,
@@ -21,8 +18,7 @@ export default function HetznerRegionSelect({
 }) {
   const [open, setOpen] = useState(false);
   const [testing, setTesting] = useState(false);
-  const [latencies, setLatencies] = useState<Latencies>({});
-  const hasTested = useRef(false);
+  const [latencies, setLatencies] = useState<Latencies>(() => getCachedLatencies() || {});
 
   const selectedRegion = getHetznerRegion(value);
   const bestRegion = useMemo(() => {
@@ -31,27 +27,35 @@ export default function HetznerRegionSelect({
     return measured.sort((a, b) => a[1] - b[1])[0]?.[0];
   }, [latencies]);
 
-  const measureAll = async () => {
+  const measureAll = async (force = true) => {
     setTesting(true);
-    setLatencies(Object.fromEntries(hetznerRegions.map((region) => [region.value, null])));
+    if (force) {
+      setLatencies(Object.fromEntries(hetznerRegions.map((region) => [region.value, null])));
+    }
 
     try {
-      const response = await axios.get<{ latencies: Latencies }>(route('hetzner.latency'));
-      setLatencies(response.data.latencies);
+      const data = await fetchHetznerLatencies(force);
+      setLatencies(data);
+    } catch {
+      // ignore
     } finally {
       setTesting(false);
     }
   };
 
   useEffect(() => {
-    if (open && !hasTested.current) {
-      hasTested.current = true;
-      measureAll();
+    if (open) {
+      const cached = getCachedLatencies();
+      if (cached && Object.keys(cached).length > 0) {
+        setLatencies(cached);
+      } else {
+        measureAll(false);
+      }
     }
   }, [open]);
 
   const latencyText = (value: string) => {
-    if (!(value in latencies)) return '-';
+    if (!(value in latencies)) return testing ? '...' : '-';
     if (latencies[value] === null) {
       return testing ? '...' : 'timeout';
     }
@@ -91,7 +95,7 @@ export default function HetznerRegionSelect({
         <div className="space-y-4 p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="text-muted-foreground text-sm">Only Hetzner Cloud locations are listed.</div>
-            <Button type="button" variant="outline" onClick={measureAll} disabled={testing}>
+            <Button type="button" variant="outline" onClick={() => measureAll(true)} disabled={testing}>
               {testing ? <LoaderCircleIcon className="animate-spin" /> : <GaugeIcon />}
               Test latency
             </Button>

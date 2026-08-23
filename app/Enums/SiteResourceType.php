@@ -8,14 +8,14 @@ enum SiteResourceType: string implements VitoEnum
 {
     case DATABASE = 'database';
     case CACHE = 'cache';
-    case BUCKET = 'bucket';
+    case STORAGE = 'storage';
 
     public function getColor(): string
     {
         return match ($this) {
             self::DATABASE => 'success',
             self::CACHE => 'default',
-            self::BUCKET => 'info',
+            self::STORAGE => 'info',
         };
     }
 
@@ -24,7 +24,7 @@ enum SiteResourceType: string implements VitoEnum
         return match ($this) {
             self::DATABASE => 'Database',
             self::CACHE => 'Cache (Redis)',
-            self::BUCKET => 'Bucket',
+            self::STORAGE => 'Storage Provider',
         };
     }
 
@@ -33,7 +33,7 @@ enum SiteResourceType: string implements VitoEnum
         return match ($this) {
             self::DATABASE => ServerRole::DATABASE,
             self::CACHE => ServerRole::CACHE,
-            self::BUCKET => null,
+            self::STORAGE => null,
         };
     }
 }

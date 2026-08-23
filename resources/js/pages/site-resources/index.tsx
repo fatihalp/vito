@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -17,9 +16,9 @@ import { useConfigs } from '@/stores/bootstrap-store';
 import type { Server } from '@/types/server';
 import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
-import type { Bucket } from '@/types/bucket';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
-import { DatabaseIcon, EyeIcon, HardDriveIcon, InfoIcon, KeyIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import type { StorageProvider } from '@/types/storage-provider';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { DatabaseIcon, ExternalLinkIcon, EyeIcon, HardDriveIcon, InfoIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
 
 type ResourceType = SiteResource['type_value'];
@@ -27,7 +26,7 @@ type ResourceType = SiteResource['type_value'];
 const resourceTypes: Array<{ value: ResourceType; label: string }> = [
   { value: 'database', label: 'Database server' },
   { value: 'cache', label: 'Cache (Redis) server' },
-  { value: 'bucket', label: 'Bucket' },
+  { value: 'storage', label: 'Storage Provider' },
 ];
 
 const defaultServiceName: Partial<Record<ResourceType, string>> = {
@@ -47,20 +46,17 @@ export default function SiteResources() {
     site: Site;
     resources: SiteResource[];
     servers: SiteResourceServerOption[];
-    buckets: Bucket[];
-    credentialsConnected?: boolean;
+    storageProviders: StorageProvider[];
   }>();
   const dialog = useDialog();
   const configs = useConfigs();
   const installForm = useForm<{ name: string; version: string }>({ name: '', version: '' });
   const connectedTypes = new Set(page.props.resources.map((resource) => resource.type_value));
   const availableTypes = resourceTypes.filter((type) => !connectedTypes.has(type.value));
-  const [isCreatingBucket, setIsCreatingBucket] = useState(page.props.buckets.length === 0);
-  const form = useForm<{ type: ResourceType | ''; server_id: string; bucket_id: string; bucket_name: string }>({
+  const form = useForm<{ type: ResourceType | ''; server_id: string; storage_provider_id: string }>({
     type: '',
     server_id: '',
-    bucket_id: '',
-    bucket_name: '',
+    storage_provider_id: '',
   });
   const selectedDefinition = resourceTypes.find((type) => type.value === form.data.type);
   const hasServiceForType = (server: (typeof page.props.servers)[number]) =>
@@ -75,14 +71,14 @@ export default function SiteResources() {
         : null;
   const currentServerInstalling = currentServerStatus != null && currentServerStatus !== 'ready';
   const matchingServers =
-    form.data.type === 'bucket' || form.data.type === ''
+    form.data.type === 'storage' || form.data.type === ''
       ? []
       : page.props.servers.filter((server) => server.role_value === form.data.type || server.id === page.props.server.id);
-  const targetSelected = form.data.type === 'bucket'
-    ? (isCreatingBucket || page.props.buckets.length === 0 ? form.data.bucket_name.trim().length >= 3 : form.data.bucket_id !== '')
+  const targetSelected = form.data.type === 'storage'
+    ? form.data.storage_provider_id !== ''
     : form.data.server_id !== '';
   const targetsCurrentServerWithoutService =
-    form.data.type !== 'bucket' && form.data.type !== '' && form.data.server_id === String(page.props.server.id) && !currentServerHasService;
+    form.data.type !== 'storage' && form.data.type !== '' && form.data.server_id === String(page.props.server.id) && !currentServerHasService;
 
   const [pendingConnect, setPendingConnect] = useState(false);
 
@@ -103,7 +99,6 @@ export default function SiteResources() {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
-        setIsCreatingBucket(page.props.buckets.length === 0);
       },
     });
   };
@@ -180,10 +175,7 @@ export default function SiteResources() {
                   <Select
                     value={form.data.type}
                     onValueChange={(value: ResourceType) => {
-                      form.setData({ type: value, server_id: '', bucket_id: '', bucket_name: '' });
-                      if (value === 'bucket') {
-                        setIsCreatingBucket(page.props.buckets.length === 0);
-                      }
+                      form.setData({ type: value, server_id: '', storage_provider_id: '' });
                     }}
                   >
                     <SelectTrigger id="resource-type">
@@ -199,45 +191,30 @@ export default function SiteResources() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="resource-target">Target</Label>
-                    {form.data.type === 'bucket' && page.props.buckets.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsCreatingBucket(!isCreatingBucket);
-                          form.setData({ ...form.data, bucket_id: '', bucket_name: '' });
-                        }}
-                        className="text-primary hover:underline text-xs"
-                      >
-                        {isCreatingBucket ? 'Select existing bucket' : '+ Create new bucket'}
-                      </button>
-                    )}
-                  </div>
-                  {form.data.type === 'bucket' ? (
-                    isCreatingBucket || page.props.buckets.length === 0 ? (
-                      <Input
-                        id="resource-target"
-                        placeholder="Bucket name (e.g. my-app-uploads)"
-                        value={form.data.bucket_name}
-                        onChange={(e) => form.setData('bucket_name', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                        className="font-mono"
-                        autoComplete="off"
-                      />
-                    ) : (
-                      <Select value={form.data.bucket_id} onValueChange={(value) => form.setData('bucket_id', value)}>
-                        <SelectTrigger id="resource-target">
-                          <SelectValue placeholder="Select a bucket" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {page.props.buckets.map((bucket) => (
-                            <SelectItem key={bucket.id} value={bucket.id.toString()}>{bucket.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )
+                  <Label htmlFor="resource-target">Target</Label>
+                  {form.data.type === 'storage' ? (
+                    <Select
+                      value={form.data.storage_provider_id}
+                      onValueChange={(value) => form.setData('storage_provider_id', value)}
+                      disabled={page.props.storageProviders.length === 0}
+                    >
+                      <SelectTrigger id="resource-target">
+                        <SelectValue placeholder={page.props.storageProviders.length === 0 ? 'No storage provider configured' : 'Select a storage provider'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {page.props.storageProviders.map((provider) => (
+                          <SelectItem key={provider.id} value={provider.id.toString()}>
+                            {provider.name} ({provider.provider.toUpperCase()})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   ) : (
-                    <Select value={form.data.server_id} onValueChange={(value) => form.setData('server_id', value)} disabled={form.data.type === ''}>
+                    <Select
+                      value={form.data.server_id}
+                      onValueChange={(value) => form.setData('server_id', value)}
+                      disabled={form.data.type === ''}
+                    >
                       <SelectTrigger id="resource-target">
                         <SelectValue placeholder="Select a server" />
                       </SelectTrigger>
@@ -259,7 +236,7 @@ export default function SiteResources() {
                       </SelectContent>
                     </Select>
                   )}
-                  <InputError message={form.errors.server_id || form.errors.bucket_id || form.errors.bucket_name} />
+                  <InputError message={form.errors.server_id || form.errors.storage_provider_id} />
                 </div>
 
                 <Button type="submit" disabled={!form.data.type || !targetSelected || form.processing || pendingConnect}>
@@ -267,20 +244,22 @@ export default function SiteResources() {
                   {targetsCurrentServerWithoutService ? `Install & Connect` : 'Connect'}
                 </Button>
 
-                {form.data.type === 'bucket' && (isCreatingBucket || page.props.buckets.length === 0) && (
-                  page.props.credentialsConnected === false && (
-                    <Alert className="md:col-span-3">
-                      <KeyIcon className="size-4" />
-                      <AlertDescription className="flex items-center justify-between gap-4">
-                        <span>Connect Hetzner Object Storage credentials to create buckets.</span>
-                        <Button size="sm" variant="outline" type="button" onClick={() => dialog.bucketCredentialsConnect.open({})}>
-                          Connect credentials
-                        </Button>
-                      </AlertDescription>
-                    </Alert>
-                  )
+                {form.data.type === 'storage' && page.props.storageProviders.length === 0 && (
+                  <Alert className="md:col-span-3">
+                    <InfoIcon className="size-4" />
+                    <AlertDescription className="flex items-center justify-between gap-4">
+                      <span>No storage providers found. Connect a storage provider in Settings first.</span>
+                      <Button size="sm" variant="outline" asChild>
+                        <Link href={route('storage-providers')}>
+                          <ExternalLinkIcon className="size-3.5 mr-1" />
+                          Storage Providers
+                        </Link>
+                      </Button>
+                    </AlertDescription>
+                  </Alert>
                 )}
-                {form.data.type && form.data.type !== 'bucket' && !currentServerHasService && (
+
+                {form.data.type && form.data.type !== 'storage' && !currentServerHasService && (
                   <Alert className="md:col-span-3">
                     <InfoIcon />
                     <AlertDescription className="flex items-center justify-between gap-4">
@@ -315,11 +294,11 @@ export default function SiteResources() {
         <div className="flex w-full flex-col gap-6">
           {page.props.resources.map((resource) => {
             const ResourceIcon = typeIcon(resource.type_value);
-            const target = resource.server?.name ?? resource.bucket?.name ?? 'Unavailable resource';
+            const target = resource.server?.name ?? resource.storage_provider?.name ?? 'Unavailable resource';
             const targetDetail = resource.server
               ? `${resource.server.role} · ${resource.server.ip}`
-              : resource.bucket
-                ? `${resource.bucket.bucket} · ${resource.bucket.region}`
+              : resource.storage_provider
+                ? `${resource.storage_provider.provider.toUpperCase()} · ${resource.storage_provider.name}`
                 : 'The connected resource is no longer available';
 
             return (

@@ -33,6 +33,7 @@ export interface NavItem {
   children?: NavItem[];
   hidden?: boolean;
   external?: boolean;
+  badge?: string | number;
   flyoutContent?: React.ReactNode;
 }
 
@@ -64,9 +65,6 @@ export interface Configs {
         edit_form?: DynamicFieldConfig[];
       };
     };
-  };
-  bucket: {
-    regions: Array<{ value: string; label: string }>;
   };
   source_control: {
     providers: {

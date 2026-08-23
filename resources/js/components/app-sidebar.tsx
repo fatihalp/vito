@@ -21,7 +21,6 @@ import {
   ChevronRightIcon,
   CloudUploadIcon,
   CogIcon,
-  DatabaseBackupIcon,
   Globe,
   LayoutDashboardIcon,
   LogsIcon,
@@ -36,9 +35,10 @@ import {
 import AppLogo from './app-logo';
 import { Icon } from '@/components/icon';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Button } from '@/components/ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import React, { useRef, useState } from 'react';
+import RecentServersFlyout from '@/components/recent-servers-flyout';
+import RecentSitesNavFlyout from '@/components/recent-sites-nav-flyout';
 
 function NavFlyout({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -94,6 +94,10 @@ export function AppSidebar({
   const navGroups = secondNavGroups ?? [{ title: '', items: secondNavItems ?? [] }];
   const hasSecondNav = navGroups.some((group) => group.items.length > 0);
 
+  const currentProject = page.props.auth?.currentProject;
+  const serversCount = currentProject?.servers_count;
+  const sitesCount = currentProject?.sites_count;
+
   const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
@@ -110,22 +114,21 @@ export function AppSidebar({
       title: 'Servers',
       href: route('servers'),
       icon: ServerIcon,
+      badge: serversCount,
+      flyoutContent: <RecentServersFlyout />,
     },
     {
       title: 'Sites',
       href: route('sites.all', { project: 'all' }),
       onlyActivePath: route('sites.all'),
       icon: MousePointerClickIcon,
+      badge: sitesCount,
+      flyoutContent: <RecentSitesNavFlyout />,
     },
     {
       title: 'Backups',
       href: route('backups.all'),
       icon: CloudUploadIcon,
-    },
-    {
-      title: 'Buckets',
-      href: route('buckets'),
-      icon: DatabaseBackupIcon,
     },
     {
       title: 'Workflows',
@@ -355,18 +358,28 @@ export function AppSidebar({
                           <NavFlyout content={item.flyoutContent}>
                             <SidebarMenuButton isActive={isActive} asChild>
                               {item.external ? (
-                                <a href={item.href} target="_blank">
+                                <a href={item.href} target="_blank" className="flex items-center w-full">
                                   {item.icon && <item.icon />}
-                                  <span>{item.title}</span>
+                                  <span className="truncate">{item.title}</span>
+                                  {item.badge !== undefined && (
+                                    <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
+                                      {item.badge}
+                                    </span>
+                                  )}
                                 </a>
                               ) : (
                                 <Link
                                   href={item.isDisabled ? '#' : item.href}
                                   disabled={item.isDisabled || false}
-                                  className={item.isDisabled ? 'pointer-events-none opacity-50' : ''}
+                                  className={cn('flex items-center w-full', item.isDisabled && 'pointer-events-none opacity-50')}
                                 >
                                   {item.icon && <item.icon />}
-                                  <span>{item.title}</span>
+                                  <span className="truncate">{item.title}</span>
+                                  {item.badge !== undefined && (
+                                    <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
+                                      {item.badge}
+                                    </span>
+                                  )}
                                 </Link>
                               )}
                             </SidebarMenuButton>
@@ -379,18 +392,28 @@ export function AppSidebar({
                       <SidebarMenuItem key={`${item.title}-${item.href}`} hidden={item.hidden}>
                         <SidebarMenuButton isActive={isActive} asChild>
                           {item.external ? (
-                            <a href={item.href} target="_blank">
+                            <a href={item.href} target="_blank" className="flex items-center w-full">
                               {item.icon && <item.icon />}
-                              <span>{item.title}</span>
+                              <span className="truncate">{item.title}</span>
+                              {item.badge !== undefined && (
+                                <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
+                                  {item.badge}
+                                </span>
+                              )}
                             </a>
                           ) : (
                             <Link
                               href={item.isDisabled ? '#' : item.href}
                               disabled={item.isDisabled || false}
-                              className={item.isDisabled ? 'pointer-events-none opacity-50' : ''}
+                              className={cn('flex items-center w-full', item.isDisabled && 'pointer-events-none opacity-50')}
                             >
                               {item.icon && <item.icon />}
-                              <span>{item.title}</span>
+                              <span className="truncate">{item.title}</span>
+                              {item.badge !== undefined && (
+                                <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
+                                  {item.badge}
+                                </span>
+                              )}
                             </Link>
                           )}
                         </SidebarMenuButton>

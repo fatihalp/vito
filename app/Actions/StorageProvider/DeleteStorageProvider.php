@@ -16,6 +16,12 @@ class DeleteStorageProvider
             ]);
         }
 
+        if ($storageProvider->siteResources()->exists()) {
+            throw ValidationException::withMessages([
+                'provider' => __('This storage provider is currently connected to a site.'),
+            ]);
+        }
+
         if ($storageProvider->provider === Dropbox::id()) {
             $provider = $storageProvider->provider();
             assert($provider instanceof Dropbox);

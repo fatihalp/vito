@@ -43,6 +43,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import HetznerRegionSelect from './hetzner-region-select';
+import { fetchHetznerLatencies } from './hetzner-regions';
 import HetznerPlanSelect from './hetzner-plan-select';
 import { toast } from 'sonner';
 import { useSocketListener } from '@/hooks/use-socket-events';
@@ -86,6 +87,7 @@ const servicesForRole = (role: CreateServerForm['role']): Service[] => {
     ],
     database: [{ type: 'database', name: 'postgresql', version: '18' }],
     cache: [{ type: 'memory_database', name: 'redis', version: 'latest' }],
+    custom: [],
   };
 
   return [...roleServices[role], ...baseServices];
@@ -370,8 +372,7 @@ export default function CreateServer({
 
       if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
         try {
-          const latencyRes = await axios.get<{ latencies: Record<string, number | null> }>(route('hetzner.latency'));
-          const latencies = latencyRes.data.latencies;
+          const latencies = await fetchHetznerLatencies();
           const validLatencies = Object.entries(latencies).filter((e): e is [string, number] => typeof e[1] === 'number');
           if (validLatencies.length > 0) {
             validLatencies.sort((a, b) => a[1] - b[1]);

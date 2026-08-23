@@ -43,13 +43,37 @@ class GetOverviewResources
                     $validated['fallback_server_id'],
                 )->sortBy(fn (Site $site) => $latestSiteIds->search($site->id))->values();
             }
+        } elseif ($sites->isEmpty() && empty($validated['sites'])) {
+            $latestSiteIds = $project->sites()
+                ->latest('sites.created_at')
+                ->orderByDesc('sites.id')
+                ->limit(10)
+                ->pluck('sites.id');
+
+            if ($latestSiteIds->isNotEmpty()) {
+                $sites = app(GetOverviewSites::class)->forProject(
+                    $project,
+                    $latestSiteIds->all(),
+                )->sortBy(fn (Site $site) => $latestSiteIds->search($site->id))->values();
+            }
+        }
+
+        $serverIds = $validated['servers'] ?? [];
+        if (empty($serverIds)) {
+            $servers = $project->servers()
+                ->latest()
+                ->limit(10)
+                ->with('latestMetric')
+                ->get();
+        } else {
+            $servers = $project->servers()
+                ->whereKey($serverIds)
+                ->with('latestMetric')
+                ->get();
         }
 
         return [
-            'servers' => $project->servers()
-                ->whereKey($validated['servers'] ?? [])
-                ->with('latestMetric')
-                ->get(),
+            'servers' => $servers,
             'sites' => $sites,
         ];
     }

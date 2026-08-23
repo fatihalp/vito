@@ -74,12 +74,6 @@ final class GetBootstrap
             'storage_provider' => [
                 'providers' => config('storage-provider.providers'),
             ],
-            'bucket' => [
-                'regions' => collect(config('hetzner-object-storage.regions'))
-                    ->map(fn (string $label, string $value): array => ['value' => $value, 'label' => $label])
-                    ->values()
-                    ->all(),
-            ],
             'notification_channel' => [
                 'providers' => config('notification-channel.providers'),
             ],

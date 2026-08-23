@@ -11,6 +11,7 @@ enum ServerRole: string implements HasTableDisplay, VitoEnum
     case QUEUE = 'queue';
     case DATABASE = 'database';
     case CACHE = 'cache';
+    case CUSTOM = 'custom';
 
     public function getColor(): string
     {
@@ -19,6 +20,7 @@ enum ServerRole: string implements HasTableDisplay, VitoEnum
             self::QUEUE => 'warning',
             self::DATABASE => 'success',
             self::CACHE => 'default',
+            self::CUSTOM => 'default',
         };
     }
 
@@ -29,6 +31,7 @@ enum ServerRole: string implements HasTableDisplay, VitoEnum
             self::QUEUE => 'Queue server',
             self::DATABASE => 'Database server',
             self::CACHE => 'Cache (Redis) server',
+            self::CUSTOM => 'Custom server',
         };
     }
 
@@ -39,6 +42,7 @@ enum ServerRole: string implements HasTableDisplay, VitoEnum
             self::QUEUE => ['php', 'process_manager'],
             self::DATABASE => ['database'],
             self::CACHE => ['memory_database'],
+            self::CUSTOM => [],
         };
     }
 }
