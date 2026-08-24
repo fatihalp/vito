@@ -9,7 +9,6 @@ use App\SourceControlProviders\Gitlab;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
-
 class SourceControlFactory extends Factory
 {
     protected $model = SourceControl::class;

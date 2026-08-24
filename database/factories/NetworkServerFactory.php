@@ -9,7 +9,6 @@ use App\Models\NetworkServer;
 use App\Models\Server;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class NetworkServerFactory extends Factory
 {
     protected $model = NetworkServer::class;

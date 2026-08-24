@@ -277,7 +277,6 @@ export default function SiteResourceDiagram({
               )}
             </div>
 
-            {/* Domains Card */}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -852,8 +851,4 @@ export default function SiteResourceDiagram({
     </Card>
   );
 }
-
-
-
-
 

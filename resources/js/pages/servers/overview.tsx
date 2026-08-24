@@ -2,7 +2,7 @@ import Container from '@/components/container';
 import ServerBanners from '@/components/server-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';

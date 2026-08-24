@@ -6,7 +6,6 @@ use App\Enums\BackupFileStatus;
 use App\Models\BackupFile;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class BackupFileFactory extends Factory
 {
     public function definition(): array

@@ -193,7 +193,6 @@ export default function ConnectStorageProvider({
     }
   }, [form.data.provider, configs]);
 
-  // Open optional fields if any optional field has an error
   useEffect(() => {
     const hasOptionalError = Object.keys(form.errors).some((key) => OPTIONAL_FIELD_NAMES.includes(key) || key === 'global');
     if (hasOptionalError) {
@@ -251,7 +250,6 @@ export default function ConnectStorageProvider({
               <InputError message={form.errors.provider} />
             </FormField>
 
-            {/* S3 Quick Preset Selector */}
             {form.data.provider === 's3' && (
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between">
@@ -313,7 +311,6 @@ export default function ConnectStorageProvider({
               <InputError message={form.errors.name} />
             </FormField>
 
-            {/* Primary Required Fields */}
             {primaryFields.map((field: DynamicFieldConfig) => (
               <DynamicField
                 key={`field-${field.name}`}
@@ -324,7 +321,6 @@ export default function ConnectStorageProvider({
               />
             ))}
 
-            {/* Collapsible Optional Fields */}
             <div className="pt-1">
               <button
                 type="button"

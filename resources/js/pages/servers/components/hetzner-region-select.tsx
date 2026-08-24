@@ -37,7 +37,6 @@ export default function HetznerRegionSelect({
       const data = await fetchHetznerLatencies(force);
       setLatencies(data);
     } catch {
-      // ignore
     } finally {
       setTesting(false);
     }

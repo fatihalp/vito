@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Backup;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class BackupFactory extends Factory
 {
     public function definition(): array

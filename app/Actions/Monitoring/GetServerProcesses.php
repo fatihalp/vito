@@ -28,11 +28,9 @@ class GetServerProcesses
             return ['processes' => [], 'users' => []];
         }
 
-        // Detect format from header line
         $header = strtolower(trim($lines[0] ?? ''));
         $isPsAux = str_starts_with($header, 'user') || str_contains($header, 'vsz');
 
-        // Remove header
         array_shift($lines);
 
         $processes = [];
@@ -45,7 +43,6 @@ class GetServerProcesses
             }
 
             if ($isPsAux) {
-                // ps aux format: USER PID %CPU %MEM VSZ RSS TTY STAT START TIME COMMAND
                 $parts = preg_split('/\s+/', $line, 11);
                 if (count($parts) < 11) {
                     continue;
@@ -57,7 +54,6 @@ class GetServerProcesses
                 $command = $parts[10];
                 $priority = 0;
             } else {
-                // ps -eo pid,user,ni,pcpu,pmem,args format
                 $parts = preg_split('/\s+/', $line, 6);
                 if (count($parts) < 6) {
                     continue;

@@ -6,7 +6,6 @@ use App\Enums\CronjobStatus;
 use App\Models\CronJob;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class CronJobFactory extends Factory
 {
     protected $model = CronJob::class;

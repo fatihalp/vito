@@ -94,7 +94,6 @@ export default function ServicesIndex() {
         setLiveStatuses(data);
       }
     } catch {
-      // silently ignore
     }
   }, [server.id]);
 

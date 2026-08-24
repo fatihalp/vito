@@ -7,7 +7,6 @@ use App\Models\Site;
 use App\SiteTypes\Laravel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class SiteFactory extends Factory
 {
     protected $model = Site::class;

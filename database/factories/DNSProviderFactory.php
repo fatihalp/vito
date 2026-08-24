@@ -6,7 +6,6 @@ use App\Models\DNSProvider;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class DNSProviderFactory extends Factory
 {
     

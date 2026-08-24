@@ -144,9 +144,7 @@ export default function Information() {
         </HeaderContainer>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Card 1: System & CPU */}
           <div className="space-y-4">
-            {/* System */}
             <div className="rounded-md border shadow-2xs overflow-hidden">
               <div className="bg-muted/30 flex items-center gap-2 border-b px-3.5 py-2">
                 <ServerIcon className="size-3.5 text-muted-foreground" />
@@ -161,7 +159,6 @@ export default function Information() {
               </div>
             </div>
 
-            {/* Processor */}
             <div className="rounded-md border shadow-2xs overflow-hidden">
               <div className="bg-muted/30 flex items-center justify-between border-b px-3.5 py-2">
                 <div className="flex items-center gap-2">
@@ -188,9 +185,7 @@ export default function Information() {
             </div>
           </div>
 
-          {/* Card 2: Memory & Disks */}
           <div className="space-y-4">
-            {/* Memory */}
             <div className="rounded-md border shadow-2xs overflow-hidden">
               <div className="bg-muted/30 flex items-center justify-between border-b px-3.5 py-2">
                 <h3 className="text-xs font-semibold">Memory</h3>
@@ -230,7 +225,6 @@ export default function Information() {
               </div>
             </div>
 
-            {/* Disks */}
             {info.disks.length > 0 && (
               <div className="rounded-md border shadow-2xs overflow-hidden">
                 <div className="bg-muted/30 flex items-center gap-2 border-b px-3.5 py-2">
@@ -275,7 +269,6 @@ export default function Information() {
           </div>
         </div>
 
-        {/* Collapsible Raw Report */}
         <div className="rounded-md border shadow-2xs overflow-hidden">
           <button
             type="button"

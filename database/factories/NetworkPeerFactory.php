@@ -7,7 +7,6 @@ use App\Models\Network;
 use App\Models\NetworkPeer;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class NetworkPeerFactory extends Factory
 {
     protected $model = NetworkPeer::class;

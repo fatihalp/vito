@@ -17,33 +17,26 @@ export type OverviewProject = {
   name: string;
   users_count: number;
   is_current: boolean;
-  created_at?: string;
 };
 
 export type OverviewProviderItem = {
   id: number;
   provider: string;
-  profile?: string;
-  username?: string;
-  connected: boolean;
-  created_at?: string;
+  profile: string;
+  connected?: boolean;
 };
 
 export type OverviewBackup = {
   id: number;
   name: string;
-  server_id: number;
   server_name?: string;
-  schedule?: string;
-  retention?: number;
-  created_at?: string;
+  interval?: string;
 };
 
 export type OverviewDomain = {
   id: number;
   domain: string;
   provider_name?: string;
-  created_at?: string;
 };
 
 export type OverviewResources = {

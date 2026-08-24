@@ -63,7 +63,6 @@ export default function DomainPicker({
   const [availableDomains, setAvailableDomains] = useState<ProviderDomain[]>([]);
   const [loadingDomains, setLoadingDomains] = useState(false);
 
-  // Dialog temporary state
   const [tempProviderId, setTempProviderId] = useState('');
   const [tempZoneId, setTempZoneId] = useState('');
   const [tempSubdomain, setTempSubdomain] = useState('');
@@ -126,7 +125,6 @@ export default function DomainPicker({
         setTempProviderId(firstId);
       }
     } catch {
-      // Ignored
     } finally {
       setLoadingProviders(false);
     }
@@ -229,7 +227,6 @@ export default function DomainPicker({
 
       <InputError message={error} />
 
-      {/* DNS Provider Modal Dialog */}
       <Dialog open={dnsDialogOpen} onOpenChange={setDnsDialogOpen}>
         <DialogContent className="p-0 gap-0 sm:max-w-xl overflow-hidden rounded-xl">
           <DialogHeader className="border-b px-6 py-4 bg-muted/20">
@@ -276,10 +273,8 @@ export default function DomainPicker({
               </div>
             )}
 
-            {/* Subdomain (First) and Domain/Zone (Second) */}
             <div className="space-y-1.5">
               <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
-                {/* Subdomain on the left (col-span-5) */}
                 <div className="sm:col-span-5 space-y-1.5">
                   <Label htmlFor="subdomain_modal" className="text-xs font-medium flex items-center justify-between">
                     <span>Subdomain</span>
@@ -295,12 +290,10 @@ export default function DomainPicker({
                   />
                 </div>
 
-                {/* Dot separator on desktop */}
                 <div className="hidden sm:flex sm:col-span-1 items-center justify-center pb-2 text-muted-foreground font-bold text-lg select-none">
                   .
                 </div>
 
-                {/* Domain / Zone on the right (col-span-6) */}
                 <div className="sm:col-span-6 space-y-1.5">
                   <Label htmlFor="provider_zone_id" className="text-xs font-medium">
                     Domain / Zone
@@ -343,7 +336,6 @@ export default function DomainPicker({
               </div>
             </div>
 
-            {/* Result Preview Box */}
             {computedDialogDomain && (
               <div className="rounded-xl border bg-muted/40 p-3.5 space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
@@ -375,7 +367,6 @@ export default function DomainPicker({
               </div>
             )}
 
-            {/* Checkbox Options */}
             <div className="space-y-2.5 pt-1">
               <label
                 htmlFor="modal_create_dns_record"

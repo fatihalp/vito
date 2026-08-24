@@ -6,7 +6,6 @@ use App\Models\DNSRecord;
 use App\Models\Domain;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class DNSRecordFactory extends Factory
 {
     

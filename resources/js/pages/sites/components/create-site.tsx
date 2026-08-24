@@ -83,7 +83,6 @@ type SiteTypePreset = {
 };
 
 const SITE_TYPE_PRESETS: SiteTypePreset[] = [
-  // PHP
   { key: 'laravel', actualType: 'laravel', label: 'Laravel', category: 'php', description: 'The PHP framework for web artisans' },
   { key: 'symfony', actualType: 'php', label: 'Symfony', category: 'php', description: 'High-performance PHP framework', defaults: { web_directory: 'public' } },
   { key: 'statamic', actualType: 'laravel', label: 'Statamic', category: 'php', description: 'Flat-first, Git-powered CMS for Laravel', defaults: { web_directory: 'public' } },
@@ -92,16 +91,13 @@ const SITE_TYPE_PRESETS: SiteTypePreset[] = [
   { key: 'php', actualType: 'php', label: 'PHP', category: 'php', description: 'Standard PHP application with repository deployment' },
   { key: 'phpblank', actualType: 'phpblank', label: 'PHP Blank', category: 'php', description: 'Empty PHP site without Git repository' },
 
-  // JavaScript
   { key: 'nextjs', actualType: 'nodesite', label: 'Next.js', category: 'javascript', description: 'React framework for production-grade web apps' },
   { key: 'nuxtjs', actualType: 'nodesite', label: 'Nuxt.js', category: 'javascript', description: 'Intuitive Vue framework for web applications' },
   { key: 'node', actualType: 'nodesite', label: 'Node.js', category: 'javascript', description: 'Node.js server runtime application' },
   { key: 'bun', actualType: 'bunsite', label: 'Bun', category: 'javascript', description: 'All-in-one JavaScript runtime & toolkit' },
 
-  // Static
   { key: 'html', actualType: 'blank', label: 'HTML', category: 'static', description: 'Static HTML, CSS, and client-side JavaScript' },
 
-  // Other
   { key: 'loadbalancer', actualType: 'loadbalancer', label: 'Load Balancer', category: 'other', description: 'Distribute HTTP/HTTPS traffic across multiple servers' },
   { key: 'blank', actualType: 'blank', label: 'Other', category: 'other', description: 'Blank site configured as custom reverse proxy' },
 ];
@@ -140,7 +136,6 @@ export default function CreateSite({
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
     if (!isOpen) {
-      // Reset to Step 1 on close
       setTimeout(() => setStep(1), 200);
     }
     if (onOpenChange) {
@@ -179,7 +174,6 @@ export default function CreateSite({
 
   const selectSiteType = (preset: SiteTypePreset) => {
     setSelectedPresetKey(preset.key);
-    // Resolve actual backend type
     const backendType = configs.site.types[preset.actualType] ? preset.actualType : preset.key;
     form.setData((prev) => ({
       ...prev,
@@ -227,7 +221,6 @@ export default function CreateSite({
     }
   }, [hasAdvancedErrors]);
 
-  // Load defaults and available database servers
   useEffect(() => {
     const targetServerId = form.data.server || server?.id.toString();
     if (!targetServerId) return;
@@ -317,7 +310,6 @@ export default function CreateSite({
     );
   };
 
-  // Group presets by category
   const groupedPresets = useMemo(() => {
     const groups: Record<string, SiteTypePreset[]> = {
       php: [],
@@ -327,7 +319,6 @@ export default function CreateSite({
     };
 
     SITE_TYPE_PRESETS.forEach((preset) => {
-      // Include preset if backend supports its actual type or if standard
       if (groups[preset.category]) {
         groups[preset.category].push(preset);
       }
@@ -340,7 +331,6 @@ export default function CreateSite({
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="w-full lg:max-w-2xl overflow-y-auto max-h-screen p-0 flex flex-col">
-        {/* STEP 1: SELECT SITE TYPE */}
         {step === 1 && (
           <div className="flex flex-col h-full">
             <SheetHeader className="p-6 pb-4 border-b">
@@ -399,7 +389,6 @@ export default function CreateSite({
           </div>
         )}
 
-        {/* STEP 2: INSTALL SITE APPLICATION FORM */}
         {step === 2 && (
           <div className="flex flex-col h-full">
             <SheetHeader className="p-6 pb-4 border-b">
@@ -431,7 +420,6 @@ export default function CreateSite({
 
             <Form id="create-site-form" className="p-6 flex-1 overflow-y-auto space-y-5" onSubmit={submit}>
               <FormFields className="space-y-4">
-                {/* Server Selection (if not fixed) */}
                 {server === undefined && (
                   <FormField>
                     <Label htmlFor="server">Server</Label>
@@ -443,7 +431,6 @@ export default function CreateSite({
                   </FormField>
                 )}
 
-                {/* Domain Picker */}
                 <FormField>
                   <DomainPicker
                     value={domainPickerValue}
@@ -453,7 +440,6 @@ export default function CreateSite({
                   />
                 </FormField>
 
-                {/* Source Control Provider & Repository (Mockup Layout) */}
                 {supportsSourceControl && (
                   <div className="space-y-3 rounded-xl border bg-muted/15 p-4">
                     <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1.4fr] items-end gap-2 sm:gap-3">
@@ -503,7 +489,6 @@ export default function CreateSite({
                   </div>
                 )}
 
-                {/* PHP Version */}
                 {isPhpType && (
                   <FormField>
                     <Label htmlFor="php_version">PHP Version</Label>
@@ -519,7 +504,6 @@ export default function CreateSite({
                   </FormField>
                 )}
 
-                {/* CONNECT TO DATABASE SECTION (Mockup Layout) */}
                 <div className="rounded-xl border bg-card p-4 space-y-3">
                   <div className="flex items-center justify-between gap-3">
                     <div className="space-y-0.5">
@@ -537,7 +521,6 @@ export default function CreateSite({
 
                   {form.data.connect_database && (
                     <div className="pt-2 border-t space-y-3 mt-3 animate-in fade-in-50 duration-200">
-                      {/* Database Server Selector (if multiple servers available) */}
                       {dbServers.length > 1 && (
                         <FormField>
                           <Label htmlFor="database_server_id" className="text-xs">
@@ -570,7 +553,6 @@ export default function CreateSite({
                         </FormField>
                       )}
 
-                      {/* Action Mode: New vs Existing Database */}
                       <div className="flex gap-2">
                         <Button
                           type="button"
@@ -628,10 +610,8 @@ export default function CreateSite({
                   )}
                 </div>
 
-                {/* Primary custom fields for the selected type */}
                 {primaryFields.map((config) => getFormField(config))}
 
-                {/* Collapsible Advanced Settings */}
                 {advancedFields.length > 0 && (
                   <div className="pt-1">
                     <button

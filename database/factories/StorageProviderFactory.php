@@ -10,7 +10,6 @@ use App\StorageProviders\S3;
 use App\StorageProviders\SFTP;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class StorageProviderFactory extends Factory
 {
     public function definition(): array

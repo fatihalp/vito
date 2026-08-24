@@ -9,7 +9,6 @@ use App\Models\Server;
 use App\Models\ServerIpAddress;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class ServerIpAddressFactory extends Factory
 {
     protected $model = ServerIpAddress::class;

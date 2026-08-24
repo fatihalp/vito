@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\ServerTemplate;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class ServerTemplateFactory extends Factory
 {
     

@@ -8,7 +8,6 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class DomainFactory extends Factory
 {
     

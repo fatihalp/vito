@@ -7,7 +7,6 @@ use App\Models\Site;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Carbon;
 
-
 class DeploymentScriptFactory extends Factory
 {
     protected $model = DeploymentScript::class;

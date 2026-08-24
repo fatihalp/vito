@@ -216,7 +216,6 @@ class MonitoringController extends Controller
                 try {
                     $clearServiceLog->run($server, ['key' => $log['key']]);
                 } catch (\Throwable) {
-                    // continue
                 }
             }
         }

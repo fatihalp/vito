@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\SshKey;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class SshKeyFactory extends Factory
 {
     protected $model = SshKey::class;

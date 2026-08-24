@@ -9,7 +9,6 @@ use App\Models\Server;
 use App\ServerProviders\Custom;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class ServerFactory extends Factory
 {
     protected $model = Server::class;

@@ -97,7 +97,6 @@ export default function EdgeNetworkDialog({
               </DialogDescription>
             </div>
 
-            {/* Quick Links Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="h-8 gap-1.5 shrink-0 text-xs">
@@ -143,7 +142,6 @@ export default function EdgeNetworkDialog({
         </DialogHeader>
 
         <div className="space-y-4 py-2">
-          {/* Provider Status Summary Card */}
           <div className="flex items-center justify-between gap-4 rounded-lg border bg-muted/20 px-4 py-3">
             <div className="space-y-0.5">
               <div className="flex items-center gap-2">
@@ -175,7 +173,6 @@ export default function EdgeNetworkDialog({
             </div>
           </div>
 
-          {/* Domains Section */}
           <div className="rounded-lg border overflow-hidden">
             <div className="flex items-center justify-between bg-muted/30 px-4 py-2.5 border-b">
               <div className="flex items-center gap-2">

@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\NotificationChannel;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-
 class NotificationChannelFactory extends Factory
 {
     public function definition(): array
