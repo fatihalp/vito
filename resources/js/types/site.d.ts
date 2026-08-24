@@ -5,7 +5,7 @@ export interface Site {
   id: number;
   server_id: number;
   server?: Server;
-  source_control_id: number;
+  source_control_id: number | null;
   type: string;
   type_data: {
     method?: 'round-robin' | 'least-connections' | 'ip-hash';

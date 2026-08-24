@@ -23,6 +23,8 @@ interface SiteType
 
     public function install(): void;
 
+    public function attachSourceControl(): void;
+
     public function assertReadyToDeploy(): void;
 
     

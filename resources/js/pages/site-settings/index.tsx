@@ -22,6 +22,7 @@ import DeleteSite from '@/pages/site-settings/components/delete-site';
 import VHost from '@/pages/site-settings/components/vhost';
 import VHostPreview from '@/pages/site-settings/components/vhost-preview';
 import ChangeSourceControl from '@/pages/site-settings/components/source-control';
+import AttachSourceControl from '@/pages/site-settings/components/attach-source-control';
 import BasicAuth from '@/pages/site-settings/components/basic-auth';
 import StatsToggle from '@/pages/site-settings/components/stats-toggle';
 import WebDirectory from './components/web-directory';
@@ -65,7 +66,7 @@ export default function SiteSettings() {
             </div>
           </CardHeader>
           <CardContent className="bg-background p-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2">
+            <div>
               <Field label="ID">
                 <span className="text-muted-foreground">{page.props.site.id}</span>
               </Field>
@@ -74,7 +75,7 @@ export default function SiteSettings() {
                 <Badge variant={page.props.site.status_color}>{page.props.site.status}</Badge>
               </Field>
 
-              <Field label="Domain" className="sm:col-span-2">
+              <Field label="Domain">
                 <a href={page.props.site.url} target="_blank" className="text-muted-foreground truncate hover:underline">
                   {page.props.site.domain}
                 </a>
@@ -100,7 +101,11 @@ export default function SiteSettings() {
                     </Button>
                   </ChangeSourceControl>
                 ) : (
-                  <span className="text-muted-foreground">-</span>
+                  <AttachSourceControl site={page.props.site}>
+                    <Button variant="outline" className="h-6">
+                      Attach
+                    </Button>
+                  </AttachSourceControl>
                 )}
               </Field>
 
@@ -116,11 +121,11 @@ export default function SiteSettings() {
                 )}
               </Field>
 
-              <Field label="Repository" className="sm:col-span-2">
+              <Field label="Repository">
                 <span className="text-muted-foreground truncate">{page.props.site.repository || '-'}</span>
               </Field>
 
-              <Field label="Path" className="sm:col-span-2">
+              <Field label="Path">
                 <CopyableBadge text={page.props.site.path} />
               </Field>
 
@@ -200,7 +205,7 @@ export default function SiteSettings() {
                 )}
               </Field>
 
-              <Field label="Created at" className="sm:col-span-2 sm:border-b-0">
+              <Field label="Created at" className="border-b-0">
                 <span className="text-muted-foreground">
                   <DateTime date={page.props.site.created_at} />
                 </span>

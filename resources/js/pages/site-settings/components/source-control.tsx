@@ -10,7 +10,7 @@ export default function ChangeSourceControl({ site, children }: { site: Site; ch
     <FieldUpdateDialog
       title="Change source control"
       description="sr-only"
-      initialValue={site.source_control_id.toString() || ''}
+      initialValue={site.source_control_id?.toString() || ''}
       fieldName="source_control"
       routeName="site-settings.update-source-control"
       routeParams={{ server: site.server_id, site: site.id }}

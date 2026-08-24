@@ -210,7 +210,12 @@ abstract class AbstractSiteType implements SiteType
         }
     }
 
-    
+    public function attachSourceControl(): void
+    {
+        $this->deployKey();
+        $this->cloneRepository();
+    }
+
     protected function cloneRepository(): void
     {
         if (! $this->site->repository) {

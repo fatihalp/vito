@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Site\AttachSourceControl;
 use App\Actions\Site\DeleteSite;
 use App\Actions\Site\PreviewVhost;
 use App\Actions\Site\UpdateBasicAuth;
@@ -63,6 +64,16 @@ class SiteSettingController extends Controller
         app(UpdateBranch::class)->update($site, $request->input());
 
         return back()->with('success', 'Branch updated successfully.');
+    }
+
+    #[Patch('/attach-source-control', name: 'site-settings.attach-source-control')]
+    public function attachSourceControl(Request $request, Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        app(AttachSourceControl::class)->attach($site, $request->input());
+
+        return back()->with('success', 'Source control is being attached to the site.');
     }
 
     #[Patch('/source-control', name: 'site-settings.update-source-control')]
