@@ -122,72 +122,40 @@ export default function SiteResourceDiagram({
           </div>
         </div>
         <div className="flex items-center gap-2">
-          {}
-          <div className="flex items-center bg-muted/40 p-0.5 rounded-lg border border-border/60">
-            <button
-              type="button"
-              onClick={() => toggleMode(false)}
-              className={cn(
-                'flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all',
-                !isDetailed
-                  ? 'bg-card text-foreground shadow-xs border border-border/60 font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <Rows3Icon className="size-3.5" />
-              <span>Simple</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => toggleMode(true)}
-              className={cn(
-                'flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-md transition-all',
-                isDetailed
-                  ? 'bg-card text-foreground shadow-xs border border-border/60 font-semibold'
-                  : 'text-muted-foreground hover:text-foreground',
-              )}
-            >
-              <CreditCardIcon className="size-3.5" />
-              <span>Detailed</span>
-            </button>
-          </div>
-
           <Button
+            type="button"
             variant="outline"
             size="sm"
+            onClick={() => toggleMode(!isDetailed)}
             className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground border-border/60"
-            onClick={() => dialog.createHostedDomain.open({ site })}
           >
-            <PlusIcon className="size-3.5" />
-            <span>Add Domain</span>
+            <LayersIcon className="size-3.5" />
+            <span>{isDetailed ? 'Overview mode' : 'Detailed mode'}</span>
           </Button>
+
           <Button
+            type="button"
             variant="outline"
             size="sm"
             asChild
             className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground border-border/60"
           >
             <Link href={resourcesUrl}>
-              Resources
-              <ArrowRightIcon className="size-3.5" />
+              <ExternalLinkIcon className="size-3.5" />
+              <span>Resources</span>
             </Link>
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="relative p-5 md:p-8 bg-[radial-gradient(rgba(255,255,255,0.04)_1px,transparent_1px)] [background-size:16px_16px] pb-16 transition-all duration-300">
-        
-        {}
+      <CardContent className="p-4 sm:p-6 space-y-6">
         <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1.15fr_auto_1.25fr] items-start gap-4 lg:gap-0">
-          
-          {}
           <div className="rounded-2xl border border-border/50 bg-muted/15 p-3.5 sm:p-4 flex flex-col gap-3 relative z-10">
             <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-1">
               <span>Network</span>
               <InfoIcon className="size-3.5 text-muted-foreground/60" />
             </div>
 
-            {}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <button
@@ -204,8 +172,19 @@ export default function SiteResourceDiagram({
                     onClick={() => setIsEdgeDialogOpen(true)}
                     className="flex items-center gap-1.5 text-[11px] font-mono text-muted-foreground hover:text-foreground bg-muted/30 px-2 py-0.5 rounded-md border border-border/40 hover:border-border transition-colors"
                   >
-                    <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/40')} />
-                    {hasCloudflare ? 'Cloudflare' : anyConnectedDns ? 'DNS' : 'Direct'}
+                    <span
+                      className={cn(
+                        'size-1.5 rounded-full',
+                        isPrimaryProxied
+                          ? 'bg-emerald-500'
+                          : hasCloudflare
+                          ? 'bg-amber-500/80'
+                          : anyConnectedDns
+                          ? 'bg-muted-foreground/50'
+                          : 'bg-muted-foreground/40',
+                      )}
+                    />
+                    {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare (DNS Only)') : anyConnectedDns ? 'DNS' : 'Direct'}
                     <SettingsIcon className="size-2.5 opacity-60 ml-0.5" />
                   </button>
                 </div>
@@ -225,8 +204,17 @@ export default function SiteResourceDiagram({
                       <span>DDoS protection</span>
                     </span>
                     <span className="flex items-center gap-1.5 font-medium text-foreground">
-                      <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
-                      {hasCloudflare ? 'Active (Cloudflare)' : 'Origin Shield'}
+                      <span
+                        className={cn(
+                          'size-1.5 rounded-full',
+                          isPrimaryProxied ? 'bg-emerald-500' : 'bg-muted-foreground/50',
+                        )}
+                      />
+                      {isPrimaryProxied
+                        ? 'Active (Cloudflare Edge)'
+                        : hasCloudflare
+                        ? 'Bypassed (DNS Only)'
+                        : 'Origin Shield'}
                     </span>
                   </div>
 
@@ -239,11 +227,20 @@ export default function SiteResourceDiagram({
                   >
                     <span className="flex items-center gap-2 text-muted-foreground">
                       <RadioIcon className="size-3.5 text-muted-foreground/70" />
-                      <span>CDN & Routing</span>
+                      <span>CDN &amp; Routing</span>
                     </span>
                     <span className="flex items-center gap-1.5 font-medium text-foreground">
-                      <span className={cn('size-1.5 rounded-full', hasCloudflare ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
-                      {hasCloudflare ? 'Edge Proxied' : 'DNS Direct (80/443)'}
+                      <span
+                        className={cn(
+                          'size-1.5 rounded-full',
+                          isPrimaryProxied ? 'bg-emerald-500' : 'bg-muted-foreground/50',
+                        )}
+                      />
+                      {isPrimaryProxied
+                        ? 'Edge Proxied (CDN Active)'
+                        : hasCloudflare
+                        ? 'DNS Only (Direct Origin)'
+                        : 'DNS Direct (80/443)'}
                     </span>
                   </div>
 
@@ -259,15 +256,24 @@ export default function SiteResourceDiagram({
                       <span>Edge SSL / TLS</span>
                     </span>
                     <span className="flex items-center gap-1.5 font-medium text-foreground">
-                      <span className={cn('size-1.5 rounded-full', site.ssl_enabled ? 'bg-emerald-500' : 'bg-muted-foreground/50')} />
-                      {site.ssl_enabled ? 'Strict HTTPS' : 'Disabled'}
+                      <span
+                        className={cn(
+                          'size-1.5 rounded-full',
+                          isPrimaryProxied || site.ssl_enabled ? 'bg-emerald-500' : 'bg-muted-foreground/50',
+                        )}
+                      />
+                      {isPrimaryProxied
+                        ? 'Edge SSL + Origin HTTPS'
+                        : site.ssl_enabled
+                        ? 'Origin HTTPS (Direct)'
+                        : 'Disabled'}
                     </span>
                   </div>
                 </div>
               )}
             </div>
 
-            {}
+            {/* Domains Card */}
             <div className="rounded-xl border border-border/70 bg-card p-3.5 shadow-2xs hover:border-primary/40 transition-colors">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -286,10 +292,14 @@ export default function SiteResourceDiagram({
 
               {isDetailed ? (
                 <div className="mt-3.5 space-y-2 border-t border-border/40 pt-3 text-xs">
-                  {}
                   <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 min-w-0">
-                      <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                      <span
+                        className={cn(
+                          'size-1.5 rounded-full shrink-0',
+                          isPrimaryProxied ? 'bg-emerald-500' : 'bg-muted-foreground/40',
+                        )}
+                      />
                       <span className="font-mono text-[11px] font-medium text-foreground truncate max-w-[120px]" title={site.domain}>
                         {site.domain}
                       </span>
@@ -299,24 +309,24 @@ export default function SiteResourceDiagram({
                       <button
                         type="button"
                         disabled={togglingDomain === site.domain}
-                        onClick={(e) => handleToggleProxy(e, site.domain, domainProxyStatus[site.domain] ?? true)}
+                        onClick={(e) => handleToggleProxy(e, site.domain, isPrimaryProxied)}
                         className={cn(
                           'flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-medium transition-colors border',
-                          (domainProxyStatus[site.domain] ?? true)
+                          isPrimaryProxied
                             ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30 hover:bg-emerald-500/20'
                             : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
                           togglingDomain === site.domain && 'opacity-60 pointer-events-none',
                         )}
-                        title={(domainProxyStatus[site.domain] ?? true) ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                        title={isPrimaryProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
                       >
                         {togglingDomain === site.domain ? (
                           <LoaderCircleIcon className="size-2.5 animate-spin" />
-                        ) : (domainProxyStatus[site.domain] ?? true) ? (
+                        ) : isPrimaryProxied ? (
                           <ShieldCheckIcon className="size-2.5 text-emerald-500" />
                         ) : (
                           <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                         )}
-                        <span>{(domainProxyStatus[site.domain] ?? true) ? 'Protected' : 'DNS Direct'}</span>
+                        <span>{isPrimaryProxied ? 'Protected' : 'DNS only'}</span>
                       </button>
                     ) : (
                       <span className="text-[10px] font-mono text-muted-foreground">Direct</span>
@@ -327,7 +337,7 @@ export default function SiteResourceDiagram({
                   {customDomains.length > 0 ? (
                     <div className="space-y-1.5 pt-1 border-t border-border/30">
                       {customDomains.map((hd) => {
-                        const isProxied = domainProxyStatus[hd.domain] ?? true;
+                        const isProxied = Boolean(domainProxyStatus[hd.domain]);
                         const isUpdating = togglingDomain === hd.domain;
 
                         return (
@@ -357,7 +367,7 @@ export default function SiteResourceDiagram({
                                 ) : (
                                   <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                                 )}
-                                <span>{isProxied ? 'Protected' : 'DNS Direct'}</span>
+                                <span>{isProxied ? 'Protected' : 'DNS only'}</span>
                               </button>
                             ) : (
                               <span
@@ -380,16 +390,28 @@ export default function SiteResourceDiagram({
               ) : (
                 <div className="mt-2.5 flex items-center justify-between rounded-lg border border-border/40 bg-muted/20 px-2.5 py-1.5 text-xs">
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <span className="size-1.5 rounded-full bg-emerald-500 shrink-0" />
+                    <span
+                      className={cn(
+                        'size-1.5 rounded-full shrink-0',
+                        isPrimaryProxied ? 'bg-emerald-500' : 'bg-muted-foreground/40',
+                      )}
+                    />
                     <span className="font-mono text-xs font-medium text-foreground truncate max-w-[130px]" title={site.domain}>
                       {site.domain}
                     </span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     {hasCloudflare && (
-                      <span className="inline-flex items-center gap-1 text-[10px] font-mono text-emerald-500 bg-emerald-500/10 px-1.5 py-0.5 rounded border border-emerald-500/20">
-                        <ShieldCheckIcon className="size-2.5" />
-                        {(domainProxyStatus[site.domain] ?? true) ? 'Proxy' : 'DNS'}
+                      <span
+                        className={cn(
+                          'inline-flex items-center gap-1 text-[10px] font-mono px-1.5 py-0.5 rounded border',
+                          isPrimaryProxied
+                            ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
+                            : 'text-muted-foreground bg-muted/40 border-border/50',
+                        )}
+                      >
+                        {isPrimaryProxied ? <ShieldCheckIcon className="size-2.5" /> : <ShieldAlertIcon className="size-2.5" />}
+                        {isPrimaryProxied ? 'Proxy' : 'DNS'}
                       </span>
                     )}
                     {customDomains.length > 0 && (

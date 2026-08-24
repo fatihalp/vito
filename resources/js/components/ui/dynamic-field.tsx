@@ -138,7 +138,11 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
           defaultValue={(value as string) || ''}
           placeholder={config.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          autoComplete="off"
+          autoComplete="new-password"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-bwignore="true"
+          data-form-type="other"
           spellCheck={false}
         />
         {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}
@@ -147,7 +151,6 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  
   if (config?.type === 'password-with-toggle') {
     return (
       <FormField>
@@ -160,7 +163,11 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
           defaultValue={(value as string) || ''}
           placeholder={config.placeholder}
           onChange={(e) => onChange(e.target.value)}
-          autoComplete="off"
+          autoComplete="new-password"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-bwignore="true"
+          data-form-type="other"
           spellCheck={false}
         />
         {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}
@@ -169,7 +176,6 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  
   if (config?.type === 'component' && config?.name === 'server_provider') {
     return (
       <FormField>
@@ -183,7 +189,6 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
     );
   }
 
-  
   const props: InputHTMLAttributes<HTMLInputElement> = {};
   if (config?.placeholder) {
     props.placeholder = config.placeholder;
@@ -200,6 +205,12 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
         id={`field-${config.name}`}
         defaultValue={(value as string) || ''}
         onChange={(e) => onChange(e.target.value)}
+        autoComplete="off"
+        data-1p-ignore="true"
+        data-lpignore="true"
+        data-bwignore="true"
+        data-form-type="other"
+        spellCheck={false}
         {...props}
       />
       {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}

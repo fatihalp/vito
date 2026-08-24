@@ -61,11 +61,31 @@ export default function StorageProviderEditDialog({
           <DialogTitle>Edit {storageProvider.name}</DialogTitle>
           <DialogDescription className="sr-only">Edit storage provider</DialogDescription>
         </DialogHeader>
-        <Form id="edit-storage-provider-form" className="p-4 space-y-4" onSubmit={submit}>
+        <Form
+          id="edit-storage-provider-form"
+          className="p-4 space-y-4"
+          onSubmit={submit}
+          autoComplete="off"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-bwignore="true"
+        >
           <FormFields>
             <FormField>
               <Label htmlFor="name">Name</Label>
-              <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+              <Input
+                type="text"
+                id="name"
+                name="name"
+                autoComplete="off"
+                data-1p-ignore="true"
+                data-lpignore="true"
+                data-bwignore="true"
+                data-form-type="other"
+                spellCheck={false}
+                value={form.data.name}
+                onChange={(e) => form.setData('name', e.target.value)}
+              />
               <InputError message={form.errors.name} />
             </FormField>
 

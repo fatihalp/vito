@@ -36,13 +36,20 @@ class SiteResourceController extends Controller
         $this->authorize('viewAny', [SiteResource::class, $site, $server]);
 
         $project = $server->project;
+        $user = user();
+        $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+
+        $serversQuery = $isAdmin ? Server::query() : $project->servers();
+        $storageProviders = $isAdmin
+            ? StorageProvider::query()->orderBy('profile')->get()
+            : StorageProvider::getByProjectId($project->id, $user)->orderBy('profile')->get();
 
         return Inertia::render('site-resources/index', [
             'resources' => SiteResourceResource::collection(
                 $site->resources()->with(['server', 'storageProvider'])->latest()->get()
             ),
             'servers' => SiteResourceServerOptionResource::collection(
-                $project->servers()
+                $serversQuery
                     ->where(function (Builder $query) use ($site): void {
                         $query->whereIn('role', [ServerRole::DATABASE->value, ServerRole::CACHE->value])
                             ->orWhere('id', $site->server_id);
@@ -51,9 +58,7 @@ class SiteResourceController extends Controller
                     ->orderBy('name')
                     ->get()
             ),
-            'storageProviders' => StorageProviderResource::collection(
-                StorageProvider::getByProjectId($project->id, user())->orderBy('profile')->get()
-            ),
+            'storageProviders' => StorageProviderResource::collection($storageProviders),
         ]);
     }
 

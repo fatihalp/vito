@@ -22,6 +22,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
+use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('servers/{server}')]
 #[Middleware(['auth', 'has-project'])]
@@ -39,9 +40,8 @@ class CronJobController extends Controller
         ]);
     }
 
-    
-
-    #[Post('/cronjobs', name: 'cronjobs.store')]
+    #[Post('/cronjobs/{site?}', name: 'cronjobs.store')]
+    #[WhereNumber('site')]
     public function store(Request $request, Server $server, ?Site $site = null): RedirectResponse
     {
         $this->authorize('create', [CronJob::class, $server, $site]);
@@ -52,9 +52,8 @@ class CronJobController extends Controller
             ->with('success', 'Cron job has been created.');
     }
 
-    
-
-    #[Put('/cronjobs/{cronJob}', name: 'cronjobs.update')]
+    #[Put('/cronjobs/{cronJob}/{site?}', name: 'cronjobs.update')]
+    #[WhereNumber('site')]
     public function update(Request $request, Server $server, CronJob $cronJob, ?Site $site = null): RedirectResponse
     {
         $this->authorize('update', [$cronJob, $server, $site]);
@@ -63,6 +62,18 @@ class CronJobController extends Controller
 
         return back()
             ->with('success', 'Cron job has been updated.');
+    }
+
+    #[Post('/sites/{site}/cronjobs', name: 'cronjobs.site.store')]
+    public function siteStore(Request $request, Server $server, Site $site): RedirectResponse
+    {
+        return $this->store($request, $server, $site);
+    }
+
+    #[Put('/sites/{site}/cronjobs/{cronJob}', name: 'cronjobs.site.update')]
+    public function siteUpdate(Request $request, Server $server, Site $site, CronJob $cronJob): RedirectResponse
+    {
+        return $this->update($request, $server, $cronJob, $site);
     }
 
     

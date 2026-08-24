@@ -37,15 +37,20 @@ class ConnectSiteResource
     {
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
         $projectId = $site->server->project_id;
+        $user = auth()->user() ?? (function_exists('user') ? user() : null);
+        $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+
         $validator = Validator::make($input, [
             'type' => ['required', Rule::enum(SiteResourceType::class)],
             'server_id' => [
                 'exclude_if:type,storage',
                 'required',
                 'integer',
-                Rule::exists('servers', 'id')->where(function (Builder $query) use ($projectId, $type, $site): void {
-                    $query->where('project_id', $projectId)
-                        ->where(function (Builder $query) use ($type, $site): void {
+                Rule::exists('servers', 'id')->where(function (Builder $query) use ($projectId, $type, $site, $isAdmin): void {
+                    if (! $isAdmin) {
+                        $query->where('project_id', $projectId);
+                    }
+                    $query->where(function (Builder $query) use ($type, $site): void {
                             $query->where('role', $type?->serverRole()?->value)
                                 ->orWhere('id', $site->server_id);
                         })
@@ -56,11 +61,15 @@ class ConnectSiteResource
                 'exclude_unless:type,storage',
                 'required',
                 'integer',
-                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId): void {
-                    $query->where('project_id', $projectId)
-                        ->orWhereNull('project_id');
+                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId, $isAdmin): void {
+                    if (! $isAdmin) {
+                        $query->where('project_id', $projectId)
+                            ->orWhereNull('project_id');
+                    }
                 }),
             ],
+            'database_id' => ['nullable', 'integer'],
+            'database_name' => ['nullable', 'string', 'max:64'],
         ]);
 
         $data = $validator->validate();
@@ -75,9 +84,11 @@ class ConnectSiteResource
             return $this->connectStorage($site, (int) $data['storage_provider_id']);
         }
 
-        $server = Server::query()
-            ->where('project_id', $site->server->project_id)
-            ->findOrFail((int) $data['server_id']);
+        $serverQuery = Server::query();
+        if (! $isAdmin) {
+            $serverQuery->where('project_id', $site->server->project_id);
+        }
+        $server = $serverQuery->findOrFail((int) $data['server_id']);
 
         $isOwnServer = $server->id === $site->server_id;
 
@@ -94,12 +105,12 @@ class ConnectSiteResource
         }
 
         return match ($type) {
-            SiteResourceType::DATABASE => $this->connectDatabase($site, $server),
+            SiteResourceType::DATABASE => $this->connectDatabase($site, $server, $data),
             SiteResourceType::CACHE => $this->connectCache($site, $server),
         };
     }
 
-    private function connectDatabase(Site $site, Server $server): SiteResource
+    private function connectDatabase(Site $site, Server $server, array $options = []): SiteResource
     {
         $isLocal = $server->id === $site->server_id;
 
@@ -118,10 +129,14 @@ class ConnectSiteResource
             throw ValidationException::withMessages(['server_id' => __('Could not determine database charset settings.')]);
         }
 
-        $name = 'site_'.$site->id;
+        $existingDb = ! empty($options['database_id'])
+            ? Database::where('server_id', $server->id)->find($options['database_id'])
+            : null;
+
+        $name = $existingDb ? $existingDb->name : (! empty($options['database_name']) ? $options['database_name'] : 'site_'.$site->id);
         $username = 'site_'.$site->id.'_'.Str::lower(Str::random(6));
         $password = Str::password(32, symbols: false);
-        $database = null;
+        $database = $existingDb;
         $databaseUser = null;
         $firewallRule = null;
 
@@ -129,11 +144,13 @@ class ConnectSiteResource
             if (! $isLocal) {
                 $this->enableNetworking($service, $handler);
             }
-            $database = app(CreateDatabase::class)->create($server, [
-                'name' => $name,
-                'charset' => $charset,
-                'collation' => $collation,
-            ]);
+            if (! $database) {
+                $database = app(CreateDatabase::class)->create($server, [
+                    'name' => $name,
+                    'charset' => $charset,
+                    'collation' => $collation,
+                ]);
+            }
             $databaseUser = $isLocal
                 ? app(CreateDatabaseUser::class)->create($server, [
                     'username' => $username,

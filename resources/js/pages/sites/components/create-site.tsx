@@ -3,8 +3,20 @@ import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHe
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { ChevronRight, LoaderCircle } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
+import {
+  ArrowLeftIcon,
+  ChevronRightIcon,
+  DatabaseIcon,
+  GlobeIcon,
+  GitBranchIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+  ServerIcon,
+  Settings2Icon,
+} from 'lucide-react';
+import { useForm, usePage } from '@inertiajs/react';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/ui/input-error';
@@ -21,10 +33,24 @@ import SelectRepo from '@/pages/source-controls/components/select-repo';
 import SelectBranch from '@/pages/source-controls/components/select-branch';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import DomainPicker, { DomainPickerValue, emptyDomainPickerValue } from '@/pages/sites/components/domain-picker';
+import { getSiteTypeIcon } from '@/components/icons/framework-icons';
+import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { SharedData } from '@/types';
+
+type DatabaseServerItem = {
+  id: number;
+  name: string;
+  ip: string;
+  role: string;
+  is_current: boolean;
+};
 
 type SiteCreationDefaults = {
   php_version: string | null;
   source_control_id: number | null;
+  has_database?: boolean;
+  database_servers?: DatabaseServerItem[];
 };
 
 type CreateSiteForm = {
@@ -39,10 +65,52 @@ type CreateSiteForm = {
   source_control: string;
   repository: string;
   branch: string;
-  
-  
-  
+  connect_database: boolean;
+  database_server_id: string;
+  database_action: 'new' | 'existing';
+  database_id: string;
+  database_name: string;
   [key: string]: string | number | boolean | string[] | undefined;
+};
+
+type SiteTypePreset = {
+  key: string;
+  actualType: string;
+  label: string;
+  category: 'php' | 'javascript' | 'static' | 'other';
+  description: string;
+  defaults?: Record<string, unknown>;
+};
+
+const SITE_TYPE_PRESETS: SiteTypePreset[] = [
+  // PHP
+  { key: 'laravel', actualType: 'laravel', label: 'Laravel', category: 'php', description: 'The PHP framework for web artisans' },
+  { key: 'symfony', actualType: 'php', label: 'Symfony', category: 'php', description: 'High-performance PHP framework', defaults: { web_directory: 'public' } },
+  { key: 'statamic', actualType: 'laravel', label: 'Statamic', category: 'php', description: 'Flat-first, Git-powered CMS for Laravel', defaults: { web_directory: 'public' } },
+  { key: 'wordpress', actualType: 'wordpress', label: 'WordPress', category: 'php', description: 'The world’s most popular blogging & CMS platform' },
+  { key: 'phpmyadmin', actualType: 'phpmyadmin', label: 'phpMyAdmin', category: 'php', description: 'Web interface for MySQL & MariaDB administration' },
+  { key: 'php', actualType: 'php', label: 'PHP', category: 'php', description: 'Standard PHP application with repository deployment' },
+  { key: 'phpblank', actualType: 'phpblank', label: 'PHP Blank', category: 'php', description: 'Empty PHP site without Git repository' },
+
+  // JavaScript
+  { key: 'nextjs', actualType: 'nodesite', label: 'Next.js', category: 'javascript', description: 'React framework for production-grade web apps' },
+  { key: 'nuxtjs', actualType: 'nodesite', label: 'Nuxt.js', category: 'javascript', description: 'Intuitive Vue framework for web applications' },
+  { key: 'node', actualType: 'nodesite', label: 'Node.js', category: 'javascript', description: 'Node.js server runtime application' },
+  { key: 'bun', actualType: 'bunsite', label: 'Bun', category: 'javascript', description: 'All-in-one JavaScript runtime & toolkit' },
+
+  // Static
+  { key: 'html', actualType: 'blank', label: 'HTML', category: 'static', description: 'Static HTML, CSS, and client-side JavaScript' },
+
+  // Other
+  { key: 'loadbalancer', actualType: 'loadbalancer', label: 'Load Balancer', category: 'other', description: 'Distribute HTTP/HTTPS traffic across multiple servers' },
+  { key: 'blank', actualType: 'blank', label: 'Other', category: 'other', description: 'Blank site configured as custom reverse proxy' },
+];
+
+const CATEGORY_TITLES: Record<string, string> = {
+  php: 'PHP',
+  javascript: 'JavaScript',
+  static: 'Static',
+  other: 'Other',
 };
 
 export default function CreateSite({
@@ -57,7 +125,11 @@ export default function CreateSite({
   children: ReactNode;
 }) {
   const configs = useConfigs()!;
+  const page = usePage<SharedData>();
   const [open, setOpen] = useState(defaultOpen || false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedPresetKey, setSelectedPresetKey] = useState<string>('laravel');
+  const [dbServers, setDbServers] = useState<DatabaseServerItem[]>([]);
 
   useEffect(() => {
     if (defaultOpen !== undefined) {
@@ -67,6 +139,10 @@ export default function CreateSite({
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
+    if (!isOpen) {
+      // Reset to Step 1 on close
+      setTimeout(() => setStep(1), 200);
+    }
     if (onOpenChange) {
       onOpenChange(isOpen);
     }
@@ -79,7 +155,12 @@ export default function CreateSite({
     php_version: '',
     source_control: '',
     repository: '',
-    branch: '',
+    branch: 'main',
+    connect_database: false,
+    database_server_id: server?.id.toString() || '',
+    database_action: 'new',
+    database_id: '',
+    database_name: '',
   });
 
   const domainPickerValue: DomainPickerValue = {
@@ -96,6 +177,18 @@ export default function CreateSite({
     form.setData((data) => ({ ...data, ...next }));
   };
 
+  const selectSiteType = (preset: SiteTypePreset) => {
+    setSelectedPresetKey(preset.key);
+    // Resolve actual backend type
+    const backendType = configs.site.types[preset.actualType] ? preset.actualType : preset.key;
+    form.setData((prev) => ({
+      ...prev,
+      type: backendType,
+      ...(preset.defaults || {}),
+    }));
+    setStep(2);
+  };
+
   const isAdvancedField = (field: DynamicFieldConfig) => {
     if (field.name === 'web_directory' || field.name === 'package_manager') {
       return true;
@@ -109,7 +202,15 @@ export default function CreateSite({
   };
 
   const currentTypeForm = configs.site.types[form.data.type]?.form ?? [];
-  const primaryFields = useMemo(() => currentTypeForm.filter((f) => !isAdvancedField(f)), [currentTypeForm, form.data.type]);
+  const primaryFields = useMemo(
+    () =>
+      currentTypeForm.filter(
+        (f) =>
+          !isAdvancedField(f) &&
+          !['source_control', 'repository', 'branch', 'php_version', 'database', 'database_user', 'database_password'].includes(f.name),
+      ),
+    [currentTypeForm, form.data.type],
+  );
   const advancedFields = useMemo(() => currentTypeForm.filter((f) => isAdvancedField(f)), [currentTypeForm, form.data.type]);
 
   const hasAdvancedErrors = useMemo(() => {
@@ -126,13 +227,13 @@ export default function CreateSite({
     }
   }, [hasAdvancedErrors]);
 
-  
-  
+  // Load defaults and available database servers
   useEffect(() => {
-    if (!form.data.server) return;
+    const targetServerId = form.data.server || server?.id.toString();
+    if (!targetServerId) return;
 
     axios
-      .get<SiteCreationDefaults>(route('sites.creation-defaults', { server: form.data.server }))
+      .get<SiteCreationDefaults>(route('sites.creation-defaults', { server: targetServerId }))
       .then(({ data }) => {
         if (data.php_version && !form.data.php_version) {
           form.setData('php_version', data.php_version);
@@ -140,20 +241,26 @@ export default function CreateSite({
         if (data.source_control_id && !form.data.source_control) {
           form.setData('source_control', data.source_control_id.toString());
         }
+        if (data.database_servers) {
+          setDbServers(data.database_servers);
+          if (!form.data.database_server_id) {
+            const defaultDbServer = data.database_servers.find((s) => s.is_current) || data.database_servers[0];
+            if (defaultDbServer) {
+              form.setData('database_server_id', defaultDbServer.id.toString());
+            }
+          }
+        }
       })
-      .catch(() => {
-        
-      });
-  }, [form.data.server]);
+      .catch(() => {});
+  }, [form.data.server, server?.id]);
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    form.post(route('sites.store', { server: form.data.server }));
+    form.post(route('sites.store', { server: form.data.server || server?.id }));
   };
 
   useEffect(() => {
     const typeConfig = configs.site.types[form.data.type];
-
     const sourceControlFields = ['source_control', 'repository', 'branch'];
     const sourceControlOff = typeConfig?.form?.some((f) => f.name === 'use_source_control') && !form.data.use_source_control;
 
@@ -171,7 +278,6 @@ export default function CreateSite({
     }
   }, [form.data.type, form.data.use_source_control, form.setData, configs]);
 
-  
   type ActiveTool = { toolId: string; kind: 'tooling' | 'tooling-picker' | 'tooling-selector' };
   const activeTools = useMemo<ActiveTool[]>(() => {
     const typeConfig = configs.site.types[form.data.type];
@@ -185,275 +291,21 @@ export default function CreateSite({
     return result;
   }, [configs, form.data.type]);
 
-  const hasSourceControlToggle = useMemo<boolean>(
-    () => (configs.site.types[form.data.type]?.form ?? []).some((f) => f.name === 'use_source_control'),
-    [configs, form.data.type],
-  );
-  const sourceControlEnabled = !hasSourceControlToggle || !!form.data.use_source_control;
+  const currentTypeConfig = configs.site.types[form.data.type];
+  const selectedPreset = SITE_TYPE_PRESETS.find((p) => p.key === selectedPresetKey) || {
+    key: form.data.type,
+    actualType: form.data.type,
+    label: currentTypeConfig?.label || form.data.type,
+    category: 'other',
+    description: '',
+  };
 
-  useEffect(() => {
-    if (hasSourceControlToggle && !form.data.use_source_control) {
-      if (form.data.source_control) form.setData('source_control', '');
-      if (form.data.repository) form.setData('repository', '');
-      if (form.data.branch) form.setData('branch', '');
-    }
-  }, [hasSourceControlToggle, form.data.use_source_control, form.data.source_control, form.data.repository, form.data.branch, form.setData]);
+  const isPhpType = ['laravel', 'php', 'phpblank', 'wordpress', 'phpmyadmin'].includes(form.data.type) || selectedPreset.category === 'php';
+  const supportsSourceControl =
+    ['laravel', 'php', 'nodesite', 'bunsite'].includes(form.data.type) ||
+    currentTypeForm.some((f) => f.name === 'source_control' || f.name === 'repository');
 
   const getFormField = (field: DynamicFieldConfig) => {
-    if (!sourceControlEnabled && (field.name === 'source_control' || field.name === 'repository' || field.name === 'branch')) {
-      return null;
-    }
-
-    if (field.name === 'source_control') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="source_control">Source Control</Label>
-          <SourceControlSelect
-            id="source_control"
-            value={form.data.source_control}
-            onValueChange={(value) => form.setData('source_control', value)}
-          />
-          <InputError message={form.errors.source_control} />
-        </FormField>
-      );
-    }
-
-    if (field.name === 'repository') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="repository">Repository</Label>
-          <SelectRepo
-            sourceControlId={form.data.source_control}
-            value={form.data.repository}
-            onValueChange={(value) => form.setData('repository', value)}
-            placeholder="owner/repository"
-          />
-          <InputError message={form.errors.repository} />
-        </FormField>
-      );
-    }
-
-    if (field.name === 'branch') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="branch">Branch</Label>
-          <SelectBranch
-            sourceControlId={form.data.source_control}
-            repository={form.data.repository}
-            value={form.data.branch}
-            onValueChange={(value) => form.setData('branch', value)}
-            placeholder="e.g. main, master, develop"
-          />
-          <InputError message={form.errors.branch} />
-        </FormField>
-      );
-    }
-
-    if (field.name === 'php_version') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="php_version">PHP Version</Label>
-          <ServiceVersionSelect
-            id="php_version"
-            serverId={parseInt(form.data.server)}
-            service="php"
-            value={form.data.php_version}
-            onValueChange={(value) => form.setData('php_version', value)}
-            autoSelectSingle
-          />
-          <InputError message={form.errors.php_version} />
-        </FormField>
-      );
-    }
-
-    if (field.type === 'tooling') {
-      const rawOptions = field.options;
-      const toolIds = Array.isArray(rawOptions) ? rawOptions : rawOptions ? Object.values(rawOptions) : [];
-      const catalogue = configs.tooling ?? [];
-      const showLaravelNotice = form.data.type === 'laravel' && toolIds.includes('node');
-
-      return (
-        <FormField key={`field-${field.name}`}>
-          {showLaravelNotice && (
-            <Alert role="status">
-              <AlertDescription>Laravel sites typically need a JavaScript runtime to build front-end assets during deployment.</AlertDescription>
-            </Alert>
-          )}
-          {field.label && <Label>{field.label}</Label>}
-          <div className="flex flex-col gap-3">
-            {toolIds.map((toolId) => {
-              const descriptor = catalogue.find((t) => t.id === toolId);
-              if (!descriptor) return null;
-              const formKey = `${toolId}_version`;
-              const options = ['none', ...descriptor.supported_versions];
-              const labelFor = (v: string) => (v === 'none' ? 'None' : `${descriptor.label} ${v}`);
-              const value = ((form.data as Record<string, unknown>)[formKey] as string | undefined) ?? 'none';
-
-              return (
-                <div key={toolId} className="space-y-2">
-                  <Label htmlFor={`${toolId}-version`}>{descriptor.label}</Label>
-                  <Select value={value} onValueChange={(v) => form.setData(formKey, v)}>
-                    <SelectTrigger id={`${toolId}-version`}>
-                      <SelectValue placeholder={`Select ${descriptor.label} version`} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {options.map((v) => (
-                          <SelectItem key={v} value={v}>
-                            {labelFor(v)}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <InputError message={(form.errors as Record<string, string | undefined>)[formKey]} />
-                </div>
-              );
-            })}
-          </div>
-        </FormField>
-      );
-    }
-
-    if (field.type === 'tooling-picker') {
-      const rawOptions = field.options;
-      const toolIds = Array.isArray(rawOptions) ? rawOptions : rawOptions ? Object.values(rawOptions) : [];
-      const toolId = toolIds[0];
-      const descriptor = (configs.tooling ?? []).find((t) => t.id === toolId);
-      if (!toolId || !descriptor) return null;
-
-      const formKey = `${toolId}_version`;
-      const labelFor = (v: string) => `${descriptor.label} ${v}`;
-      const value = ((form.data as Record<string, unknown>)[formKey] as string | undefined) ?? descriptor.supported_versions[0] ?? '';
-
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor={`${toolId}-version`}>{field.label ?? `${descriptor.label} Version`}</Label>
-          <Select value={value} onValueChange={(v) => form.setData(formKey, v)}>
-            <SelectTrigger id={`${toolId}-version`}>
-              <SelectValue placeholder={`Select ${descriptor.label} version`} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {descriptor.supported_versions.map((v) => (
-                  <SelectItem key={v} value={v}>
-                    {labelFor(v)}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <InputError message={(form.errors as Record<string, string | undefined>)[formKey]} />
-        </FormField>
-      );
-    }
-
-    if (field.type === 'tooling-selector') {
-      const rawOptions = field.options;
-      const toolIds = Array.isArray(rawOptions) ? rawOptions : rawOptions ? Object.values(rawOptions) : [];
-      const catalogue = configs.tooling ?? [];
-      const pickedToolId = ((form.data as Record<string, unknown>)[field.name] as string | undefined) ?? toolIds[0] ?? '';
-      const pickedDescriptor = catalogue.find((t) => t.id === pickedToolId);
-      const activeToolIds = new Set(activeTools.filter((t) => t.kind === 'tooling-picker').map((t) => t.toolId));
-      const versionInherited = activeToolIds.has(pickedToolId);
-      const versionKey = `${pickedToolId}_version`;
-      const versionValue =
-        ((form.data as Record<string, unknown>)[versionKey] as string | undefined) ?? pickedDescriptor?.supported_versions[0] ?? '';
-      const labelFor = (v: string) => (pickedDescriptor ? `${pickedDescriptor.label} ${v}` : v);
-
-      return (
-        <FormField key={`field-${field.name}`}>
-          {field.label && <Label htmlFor={field.name}>{field.label}</Label>}
-          <Select
-            value={pickedToolId}
-            onValueChange={(v) => {
-              form.setData(field.name, v);
-              if (activeToolIds.has(v)) return;
-              const nextDescriptor = catalogue.find((t) => t.id === v);
-              const nextVersion = nextDescriptor?.supported_versions[0] ?? '';
-              if (nextVersion) form.setData(`${v}_version`, nextVersion);
-            }}
-          >
-            <SelectTrigger id={field.name}>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {toolIds.map((id) => {
-                  const d = catalogue.find((t) => t.id === id);
-                  return (
-                    <SelectItem key={id} value={id}>
-                      {field.optionLabels?.[id] ?? d?.label ?? id}
-                    </SelectItem>
-                  );
-                })}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-          <InputError message={(form.errors as Record<string, string | undefined>)[field.name]} />
-
-          {!versionInherited && pickedDescriptor && (
-            <div className="mt-3 space-y-2">
-              <Label htmlFor={`${pickedToolId}-selector-version`}>{pickedDescriptor.label} Version</Label>
-              <Select key={pickedToolId} value={versionValue} onValueChange={(v) => form.setData(versionKey, v)}>
-                <SelectTrigger id={`${pickedToolId}-selector-version`}>
-                  <SelectValue placeholder={`Select ${pickedDescriptor.label} version`} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {pickedDescriptor.supported_versions.map((v) => (
-                      <SelectItem key={v} value={v}>
-                        {labelFor(v)}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-              <InputError message={(form.errors as Record<string, string | undefined>)[versionKey]} />
-            </div>
-          )}
-        </FormField>
-      );
-    }
-
-    if (field.name === 'database') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="database">Database</Label>
-          <DatabaseSelect
-            id="database"
-            key={`field-${field.name}`}
-            name="database"
-            serverId={parseInt(form.data.server)}
-            value={form.data.database as string}
-            onValueChange={(value) => form.setData('database', value)}
-            createWithUser={true}
-            defaultCharset={field.componentProps?.defaultCharset as string | undefined}
-            defaultCollation={field.componentProps?.defaultCollation as string | undefined}
-          />
-          <InputError message={form.errors.database as string | undefined} />
-        </FormField>
-      );
-    }
-
-    if (field.name === 'database_user') {
-      return (
-        <FormField key={`field-${field.name}`}>
-          <Label htmlFor="database-user">Database user</Label>
-          <DatabaseUserSelect
-            id="database-user"
-            key={`field-${field.name}`}
-            name="database_user"
-            serverId={parseInt(form.data.server)}
-            value={form.data.database_user as string}
-            onValueChange={(value) => form.setData('database_user', value)}
-            create={false}
-          />
-          <InputError message={form.errors.database_user as string | undefined} />
-        </FormField>
-      );
-    }
-
     return (
       <DynamicField
         key={`field-${field.name}`}
@@ -465,85 +317,370 @@ export default function CreateSite({
     );
   };
 
+  // Group presets by category
+  const groupedPresets = useMemo(() => {
+    const groups: Record<string, SiteTypePreset[]> = {
+      php: [],
+      javascript: [],
+      static: [],
+      other: [],
+    };
+
+    SITE_TYPE_PRESETS.forEach((preset) => {
+      // Include preset if backend supports its actual type or if standard
+      if (groups[preset.category]) {
+        groups[preset.category].push(preset);
+      }
+    });
+
+    return groups;
+  }, []);
+
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="w-full lg:max-w-3xl">
-        <SheetHeader>
-          <SheetTitle>Create site</SheetTitle>
-          <SheetDescription>Fill in the details to create a new site.</SheetDescription>
-        </SheetHeader>
-        <Form id="create-site-form" className="p-4" onSubmit={submit}>
-          <FormFields>
-            {server === undefined && (
-              <FormField>
-                <Label htmlFor="server">Server</Label>
-                <ServerSelect value={form.data.server} onValueChange={(value) => form.setData('server', value ? value.id.toString() : '')} />
-                <InputError message={form.errors.server} />
-              </FormField>
-            )}
+      <SheetContent className="w-full lg:max-w-2xl overflow-y-auto max-h-screen p-0 flex flex-col">
+        {/* STEP 1: SELECT SITE TYPE */}
+        {step === 1 && (
+          <div className="flex flex-col h-full">
+            <SheetHeader className="p-6 pb-4 border-b">
+              <SheetTitle className="text-xl font-bold tracking-tight">Create a new site</SheetTitle>
+              <SheetDescription className="text-xs text-muted-foreground mt-1">
+                Select the type of site you want to create. Each type has different configurations and features.
+              </SheetDescription>
+            </SheetHeader>
 
-            {form.data.server && (
-              <>
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              {Object.entries(groupedPresets).map(([categoryKey, presets]) => {
+                if (presets.length === 0) return null;
+
+                return (
+                  <div key={categoryKey} className="space-y-2">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
+                      {CATEGORY_TITLES[categoryKey] || categoryKey}
+                    </h3>
+                    <div className="divide-y divide-border/40 rounded-xl border bg-card overflow-hidden">
+                      {presets.map((preset) => (
+                        <button
+                          key={preset.key}
+                          type="button"
+                          onClick={() => selectSiteType(preset)}
+                          className="w-full flex items-center justify-between p-3.5 hover:bg-muted/50 transition-colors text-left group cursor-pointer"
+                        >
+                          <div className="flex items-center gap-3.5 min-w-0">
+                            <div className="size-8 flex items-center justify-center shrink-0">
+                              {getSiteTypeIcon(preset.key, 28)}
+                            </div>
+                            <div className="min-w-0">
+                              <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                                {preset.label}
+                              </span>
+                              {preset.description && (
+                                <p className="text-xs text-muted-foreground truncate">{preset.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          <ChevronRightIcon className="size-4 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <SheetFooter className="p-4 border-t bg-muted/20">
+              <SheetClose asChild>
+                <Button variant="outline" size="sm" className="text-xs">
+                  Cancel
+                </Button>
+              </SheetClose>
+            </SheetFooter>
+          </div>
+        )}
+
+        {/* STEP 2: INSTALL SITE APPLICATION FORM */}
+        {step === 2 && (
+          <div className="flex flex-col h-full">
+            <SheetHeader className="p-6 pb-4 border-b">
+              <div className="flex items-center justify-between gap-4 mb-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep(1)}
+                  className="h-8 -ml-2 gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                >
+                  <ArrowLeftIcon className="size-3.5" />
+                  <span>Change type</span>
+                </Button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className="size-8 flex items-center justify-center shrink-0">
+                  {getSiteTypeIcon(selectedPreset.key, 32)}
+                </div>
+                <div>
+                  <SheetTitle className="text-lg font-bold">Install a {selectedPreset.label} application</SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground">
+                    Configure repository, runtime, domain, and database settings
+                  </SheetDescription>
+                </div>
+              </div>
+            </SheetHeader>
+
+            <Form id="create-site-form" className="p-6 flex-1 overflow-y-auto space-y-5" onSubmit={submit}>
+              <FormFields className="space-y-4">
+                {/* Server Selection (if not fixed) */}
+                {server === undefined && (
+                  <FormField>
+                    <Label htmlFor="server">Server</Label>
+                    <ServerSelect
+                      value={form.data.server}
+                      onValueChange={(value) => form.setData('server', value ? value.id.toString() : '')}
+                    />
+                    <InputError message={form.errors.server} />
+                  </FormField>
+                )}
+
+                {/* Domain Picker */}
                 <FormField>
-                  <Label htmlFor="type">Site Type</Label>
-                  <Select value={form.data.type} onValueChange={(value) => form.setData('type', value)}>
-                    <SelectTrigger id="type">
-                      <SelectValue placeholder="Select site type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {Object.entries(configs.site.types).map(([key, type]) => (
-                          <SelectItem key={`type-${key}`} value={key}>
-                            {type.label}
-                          </SelectItem>
-                        ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                  <InputError message={form.errors.type} />
+                  <DomainPicker
+                    value={domainPickerValue}
+                    onChange={handleDomainChange}
+                    serverIp={server?.ip}
+                    error={form.errors.domain}
+                  />
                 </FormField>
 
-                <FormField>
-                  <DomainPicker value={domainPickerValue} onChange={handleDomainChange} serverIp={server?.ip} error={form.errors.domain} />
-                </FormField>
+                {/* Source Control Provider & Repository (Mockup Layout) */}
+                {supportsSourceControl && (
+                  <div className="space-y-3 rounded-xl border bg-muted/15 p-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1.4fr] items-end gap-2 sm:gap-3">
+                      <FormField className="w-full">
+                        <Label htmlFor="source_control" className="text-xs">
+                          Source control provider
+                        </Label>
+                        <SourceControlSelect
+                          id="source_control"
+                          value={form.data.source_control}
+                          onValueChange={(value) => form.setData('source_control', value)}
+                        />
+                        <InputError message={form.errors.source_control} />
+                      </FormField>
 
+                      <div className="hidden sm:flex items-center justify-center pb-2 text-muted-foreground font-mono text-lg">
+                        /
+                      </div>
+
+                      <FormField className="w-full">
+                        <Label htmlFor="repository" className="text-xs">
+                          Repository
+                        </Label>
+                        <SelectRepo
+                          sourceControlId={form.data.source_control}
+                          value={form.data.repository}
+                          onValueChange={(value) => form.setData('repository', value)}
+                          placeholder="owner/repository"
+                        />
+                        <InputError message={form.errors.repository} />
+                      </FormField>
+                    </div>
+
+                    <FormField>
+                      <Label htmlFor="branch" className="text-xs">
+                        Branch
+                      </Label>
+                      <SelectBranch
+                        sourceControlId={form.data.source_control}
+                        repository={form.data.repository}
+                        value={form.data.branch}
+                        onValueChange={(value) => form.setData('branch', value)}
+                        placeholder="e.g. main, master, develop"
+                      />
+                      <InputError message={form.errors.branch} />
+                    </FormField>
+                  </div>
+                )}
+
+                {/* PHP Version */}
+                {isPhpType && (
+                  <FormField>
+                    <Label htmlFor="php_version">PHP Version</Label>
+                    <ServiceVersionSelect
+                      id="php_version"
+                      serverId={parseInt(form.data.server || server?.id?.toString() || '0')}
+                      service="php"
+                      value={form.data.php_version}
+                      onValueChange={(value) => form.setData('php_version', value)}
+                      autoSelectSingle
+                    />
+                    <InputError message={form.errors.php_version} />
+                  </FormField>
+                )}
+
+                {/* CONNECT TO DATABASE SECTION (Mockup Layout) */}
+                <div className="rounded-xl border bg-card p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="connect-db-toggle" className="text-sm font-semibold cursor-pointer">
+                        Connect to database
+                      </Label>
+                      <p className="text-xs text-muted-foreground">Select or create a new database to connect to your site.</p>
+                    </div>
+                    <Switch
+                      id="connect-db-toggle"
+                      checked={form.data.connect_database}
+                      onCheckedChange={(checked) => form.setData('connect_database', checked)}
+                    />
+                  </div>
+
+                  {form.data.connect_database && (
+                    <div className="pt-2 border-t space-y-3 mt-3 animate-in fade-in-50 duration-200">
+                      {/* Database Server Selector (if multiple servers available) */}
+                      {dbServers.length > 1 && (
+                        <FormField>
+                          <Label htmlFor="database_server_id" className="text-xs">
+                            Database Server
+                          </Label>
+                          <Select
+                            value={form.data.database_server_id}
+                            onValueChange={(val) => form.setData('database_server_id', val)}
+                          >
+                            <SelectTrigger id="database_server_id" className="h-9 text-xs">
+                              <SelectValue placeholder="Select database server" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectGroup>
+                                {dbServers.map((s) => (
+                                  <SelectItem key={`db-srv-${s.id}`} value={s.id.toString()} className="text-xs">
+                                    <span className="font-medium">{s.name}</span>
+                                    <span className="text-muted-foreground ml-1.5 font-mono text-[11px]">({s.ip})</span>
+                                    {s.is_current && (
+                                      <Badge variant="outline" className="ml-2 text-[10px] h-4">
+                                        Current
+                                      </Badge>
+                                    )}
+                                  </SelectItem>
+                                ))}
+                              </SelectGroup>
+                            </SelectContent>
+                          </Select>
+                          <InputError message={form.errors.database_server_id} />
+                        </FormField>
+                      )}
+
+                      {/* Action Mode: New vs Existing Database */}
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant={form.data.database_action === 'new' ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-7 text-xs flex-1"
+                          onClick={() => form.setData('database_action', 'new')}
+                        >
+                          Create new database
+                        </Button>
+                        <Button
+                          type="button"
+                          variant={form.data.database_action === 'existing' ? 'default' : 'outline'}
+                          size="sm"
+                          className="h-7 text-xs flex-1"
+                          onClick={() => form.setData('database_action', 'existing')}
+                        >
+                          Select existing database
+                        </Button>
+                      </div>
+
+                      {form.data.database_action === 'new' ? (
+                        <FormField>
+                          <Label htmlFor="database_name" className="text-xs">
+                            Database Name <span className="text-muted-foreground font-normal">(Optional)</span>
+                          </Label>
+                          <Input
+                            id="database_name"
+                            name="database_name"
+                            placeholder="e.g. forge or leave blank for auto-name"
+                            value={form.data.database_name}
+                            onChange={(e) => form.setData('database_name', e.target.value)}
+                            className="h-9 text-xs"
+                          />
+                          <p className="text-[11px] text-muted-foreground mt-1">
+                            A dedicated database user and secure password will be generated and injected into your site's .env automatically.
+                          </p>
+                        </FormField>
+                      ) : (
+                        <FormField>
+                          <Label htmlFor="database_id" className="text-xs">
+                            Existing Database
+                          </Label>
+                          <DatabaseSelect
+                            id="database_id"
+                            serverId={parseInt(form.data.database_server_id || server?.id?.toString() || '0')}
+                            value={form.data.database_id}
+                            onValueChange={(value) => form.setData('database_id', value)}
+                            createWithUser={false}
+                          />
+                          <InputError message={form.errors.database_id} />
+                        </FormField>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {/* Primary custom fields for the selected type */}
                 {primaryFields.map((config) => getFormField(config))}
 
+                {/* Collapsible Advanced Settings */}
                 {advancedFields.length > 0 && (
-                  <div className="pt-2">
+                  <div className="pt-1">
                     <button
                       type="button"
                       onClick={() => setShowAdvanced(!showAdvanced)}
-                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors"
+                      className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium transition-colors cursor-pointer py-1"
                     >
-                      <ChevronRight className={`size-3.5 transition-transform duration-200 ${showAdvanced ? 'rotate-90' : ''}`} />
+                      <ChevronRightIcon
+                        className={cn('size-3.5 transition-transform duration-200', showAdvanced && 'rotate-90')}
+                      />
                       <span>{showAdvanced ? 'Hide advanced settings' : 'Advanced settings (Package manager, Node.js, Web directory)'}</span>
                     </button>
 
                     {showAdvanced && (
-                      <div className="mt-3 space-y-4 rounded-lg border border-dashed p-4 bg-muted/20">
+                      <div className="mt-3 space-y-4 rounded-xl border border-dashed p-4 bg-muted/15 animate-in fade-in-50 duration-200">
                         {advancedFields.map((config) => getFormField(config))}
                       </div>
                     )}
                   </div>
                 )}
-              </>
-            )}
-          </FormFields>
-        </Form>
-        <SheetFooter>
-          <div className="flex items-center gap-2">
-            <Button type="submit" form="create-site-form" disabled={form.processing || !form.data.server}>
-              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />} Create
-            </Button>
-            <SheetClose asChild>
-              <Button variant="outline" disabled={form.processing}>
-                Cancel
+              </FormFields>
+            </Form>
+
+            <SheetFooter className="p-4 border-t bg-muted/20 flex items-center justify-between">
+              <Button type="button" variant="outline" size="sm" onClick={() => setStep(1)} disabled={form.processing} className="text-xs">
+                <ArrowLeftIcon className="size-3.5 mr-1" />
+                Back
               </Button>
-            </SheetClose>
+
+              <div className="flex items-center gap-2">
+                <SheetClose asChild>
+                  <Button variant="ghost" size="sm" disabled={form.processing} className="text-xs">
+                    Cancel
+                  </Button>
+                </SheetClose>
+                <Button
+                  type="submit"
+                  form="create-site-form"
+                  disabled={form.processing || (!server && !form.data.server)}
+                  size="sm"
+                  className="text-xs"
+                >
+                  {form.processing && <LoaderCircleIcon className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                  Create site
+                </Button>
+              </div>
+            </SheetFooter>
           </div>
-        </SheetFooter>
+        )}
       </SheetContent>
     </Sheet>
   );

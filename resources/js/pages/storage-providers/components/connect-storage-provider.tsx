@@ -38,6 +38,7 @@ const S3_PRESETS = [
   {
     id: 'hetzner',
     label: 'Hetzner',
+    defaultName: 'Hetzner Storage',
     apiUrl: 'https://fsn1.your-objectstorage.com',
     region: 'eu-central',
     hint: 'Endpoint: https://fsn1.your-objectstorage.com (or hel1, nbg1) | Network zone: eu-central',
@@ -45,6 +46,7 @@ const S3_PRESETS = [
   {
     id: 'aws',
     label: 'AWS S3',
+    defaultName: 'AWS S3 Storage',
     apiUrl: '',
     region: 'us-east-1',
     hint: 'Standard AWS S3 (API URL is left empty, Region: e.g. us-east-1, eu-west-1)',
@@ -52,6 +54,7 @@ const S3_PRESETS = [
   {
     id: 'digitalocean',
     label: 'DigitalOcean',
+    defaultName: 'DigitalOcean Spaces',
     apiUrl: 'https://fra1.digitaloceanspaces.com',
     region: 'fra1',
     hint: 'Endpoint: https://{region}.digitaloceanspaces.com | Region: e.g. fra1, nyc3, ams3',
@@ -59,6 +62,7 @@ const S3_PRESETS = [
   {
     id: 'cloudflare',
     label: 'Cloudflare R2',
+    defaultName: 'Cloudflare R2',
     apiUrl: 'https://<account_id>.r2.cloudflarestorage.com',
     region: 'auto',
     hint: 'Endpoint: https://<account_id>.r2.cloudflarestorage.com | Region: auto',
@@ -66,6 +70,7 @@ const S3_PRESETS = [
   {
     id: 'custom',
     label: 'Custom S3',
+    defaultName: 'S3 Storage',
     apiUrl: '',
     region: '',
     hint: '',
@@ -106,13 +111,16 @@ export default function ConnectStorageProvider({
 
   const selectPreset = (preset: (typeof S3_PRESETS)[number]) => {
     setActivePreset(preset.id);
-    if (preset.id !== 'custom') {
-      form.setData((prev) => ({
+    form.setData((prev) => {
+      const isNameEmptyOrDefault =
+        prev.name === '' || S3_PRESETS.some((p) => p.defaultName === prev.name);
+      return {
         ...prev,
-        api_url: preset.apiUrl,
-        region: preset.region,
-      }));
-    }
+        name: isNameEmptyOrDefault ? preset.defaultName : prev.name,
+        api_url: preset.id !== 'custom' ? preset.apiUrl : prev.api_url,
+        region: preset.id !== 'custom' ? preset.region : prev.region,
+      };
+    });
   };
 
   const submit: FormEventHandler = (e) => {
@@ -207,7 +215,15 @@ export default function ConnectStorageProvider({
           <DialogTitle>Connect to storage provider</DialogTitle>
           <DialogDescription className="sr-only">Connect to a new storage provider</DialogDescription>
         </DialogHeader>
-        <Form id="create-storage-provider-form" onSubmit={submit} className="p-4 space-y-4">
+        <Form
+          id="create-storage-provider-form"
+          onSubmit={submit}
+          className="p-4 space-y-4"
+          autoComplete="off"
+          data-1p-ignore="true"
+          data-lpignore="true"
+          data-bwignore="true"
+        >
           <FormFields>
             <FormField>
               <Label htmlFor="provider">Provider</Label>
@@ -284,6 +300,12 @@ export default function ConnectStorageProvider({
                 type="text"
                 name="name"
                 id="name"
+                autoComplete="off"
+                data-1p-ignore="true"
+                data-lpignore="true"
+                data-bwignore="true"
+                data-form-type="other"
+                spellCheck={false}
                 placeholder="e.g. Hetzner Storage or Backups"
                 value={form.data.name}
                 onChange={(e) => form.setData('name', e.target.value)}

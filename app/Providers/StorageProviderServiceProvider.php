@@ -54,11 +54,11 @@ class StorageProviderServiceProvider extends ServiceProvider
                     DynamicField::make('key')
                         ->text()
                         ->label('Access Key')
-                        ->placeholder('e.g. H2T4WXEB3RFBS8YGWV5U'),
+                        ->placeholder('e.g. AKIAIOSFODNN7EXAMPLE'),
                     DynamicField::make('secret')
                         ->passwordWithToggle()
                         ->label('Secret Key')
-                        ->placeholder('e.g. uwEJcxpl...'),
+                        ->placeholder('e.g. wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY'),
                     DynamicField::make('region')
                         ->text()
                         ->label('Region')
@@ -66,7 +66,7 @@ class StorageProviderServiceProvider extends ServiceProvider
                     DynamicField::make('bucket')
                         ->text()
                         ->label('Bucket Name')
-                        ->placeholder('e.g. testfatih'),
+                        ->placeholder('e.g. imgserver'),
                     DynamicField::make('path')
                         ->text()
                         ->label('Path')
