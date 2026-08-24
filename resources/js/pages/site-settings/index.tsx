@@ -30,9 +30,9 @@ import { useDialog } from '@/hooks/use-dialog';
 
 function Field({ label, children, className }: { label: ReactNode; children: ReactNode; className?: string }) {
   return (
-    <div className={cn('flex items-center justify-between gap-3 border-b p-3', className)}>
+    <div className={cn('flex items-center justify-between gap-3 border-b p-2 text-sm', className)}>
       <span className="shrink-0">{label}</span>
-      <div className="flex min-w-0 items-center justify-end gap-2">{children}</div>
+      <div className="flex min-w-0 items-center justify-end gap-1.5">{children}</div>
     </div>
   );
 }
@@ -66,7 +66,7 @@ export default function SiteSettings() {
             </div>
           </CardHeader>
           <CardContent className="bg-background p-0">
-            <div>
+            <div className="grid grid-cols-1 sm:grid-cols-2">
               <Field label="ID">
                 <span className="text-muted-foreground">{page.props.site.id}</span>
               </Field>
@@ -75,7 +75,7 @@ export default function SiteSettings() {
                 <Badge variant={page.props.site.status_color}>{page.props.site.status}</Badge>
               </Field>
 
-              <Field label="Domain">
+              <Field label="Domain" className="sm:col-span-2">
                 <a href={page.props.site.url} target="_blank" className="text-muted-foreground truncate hover:underline">
                   {page.props.site.domain}
                 </a>
@@ -121,11 +121,11 @@ export default function SiteSettings() {
                 )}
               </Field>
 
-              <Field label="Repository">
+              <Field label="Repository" className="sm:col-span-2">
                 <span className="text-muted-foreground truncate">{page.props.site.repository || '-'}</span>
               </Field>
 
-              <Field label="Path">
+              <Field label="Path" className="sm:col-span-2">
                 <CopyableBadge text={page.props.site.path} />
               </Field>
 
@@ -205,7 +205,7 @@ export default function SiteSettings() {
                 )}
               </Field>
 
-              <Field label="Created at" className="border-b-0">
+              <Field label="Created at" className="sm:col-span-2 sm:border-b-0">
                 <span className="text-muted-foreground">
                   <DateTime date={page.props.site.created_at} />
                 </span>

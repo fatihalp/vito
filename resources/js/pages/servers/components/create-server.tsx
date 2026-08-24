@@ -56,6 +56,11 @@ type PlanOption = {
 
 const normalizePlan = (plan: string | PlanOption): PlanOption => (typeof plan === 'string' ? { label: plan, available: true } : plan);
 
+const randomSuffix = (length = 4): string => Math.random().toString(36).slice(2, 2 + length);
+
+const generateServerName = (role: string, stage: string, region: string): string =>
+  [role, region, stage, randomSuffix()].filter(Boolean).join('-');
+
 type CreateServerForm = {
   role: ServerRole;
   provider: string;
@@ -293,6 +298,14 @@ export default function CreateServer({
     e.preventDefault();
     form.post(route('servers'));
   };
+
+  const [nameEdited, setNameEdited] = useState(false);
+  useEffect(() => {
+    if (nameEdited) {
+      return;
+    }
+    form.setData('name', generateServerName(form.data.role, form.data.stage, form.data.region));
+  }, [form.data.role, form.data.stage, form.data.region, nameEdited]);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const copyToClipboard = () => {
@@ -645,12 +658,21 @@ export default function CreateServer({
                 </Select>
                 <InputError message={form.errors.stage} />
               </FormField>
-              <FormField className="col-span-2">
+              <FormField>
                 <Label htmlFor="name">Server Name</Label>
-                <Input id="name" type="text" autoComplete="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
+                <Input
+                  id="name"
+                  type="text"
+                  autoComplete="name"
+                  value={form.data.name}
+                  onChange={(e) => {
+                    setNameEdited(true);
+                    form.setData('name', e.target.value);
+                  }}
+                />
                 <InputError message={form.errors.name} />
               </FormField>
-              <FormField className="col-span-2">
+              <FormField>
                 <Label htmlFor="os">Operating System</Label>
                 <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
                   <SelectTrigger id="os">

@@ -11,7 +11,6 @@ import Layout from '@/layouts/app/layout';
 import { BookOpenIcon, EyeIcon, PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Badge } from '@/components/ui/badge';
 import { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 
@@ -21,51 +20,24 @@ type Page = {
   configs: Configs;
 };
 
-const performanceCell = ({ row, value }: CellRenderProps) => {
-  const performance = row.performance as { label: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; stale: boolean } | undefined;
+const metricCell = (threshold: number) =>
+  function MetricCell({ value }: CellRenderProps) {
+    const numeric = typeof value === 'number' ? value : null;
 
-  if (value === null || value === undefined || !performance) {
-    return <span className="text-muted-foreground text-xs">—</span>;
-  }
+    if (numeric === null) {
+      return <span className="text-muted-foreground text-xs">—</span>;
+    }
 
-  if (performance.stale) {
     return (
-      <div className="flex items-center gap-2">
-        <span className="size-2 rounded-full bg-amber-500" />
-        <span className="text-muted-foreground font-mono text-xs">Stale (5m+)</span>
-      </div>
+      <span className={cn('font-mono text-sm', numeric > threshold ? 'font-semibold text-rose-500' : 'text-foreground')}>
+        {numeric.toFixed(1)}%
+      </span>
     );
-  }
+  };
 
-  const cpu = typeof row.cpu_usage_percent === 'number' ? row.cpu_usage_percent : null;
-  const ram = typeof row.memory_used_percent === 'number' ? row.memory_used_percent : null;
-  const disk = typeof row.disk_used_percent === 'number' ? row.disk_used_percent : null;
-
-  return (
-    <div className="flex items-center gap-3 font-mono text-xs">
-      <div className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[11px]">CPU</span>
-        <span className={cn('font-medium', cpu !== null && cpu > 80 ? 'font-semibold text-rose-500' : 'text-foreground')}>
-          {cpu !== null ? `${cpu.toFixed(1)}%` : '—'}
-        </span>
-      </div>
-      <span className="text-muted-foreground/30">•</span>
-      <div className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[11px]">RAM</span>
-        <span className={cn('font-medium', ram !== null && ram > 85 ? 'font-semibold text-rose-500' : 'text-foreground')}>
-          {ram !== null ? `${ram.toFixed(1)}%` : '—'}
-        </span>
-      </div>
-      <span className="text-muted-foreground/30">•</span>
-      <div className="flex items-center gap-1.5">
-        <span className="text-muted-foreground text-[11px]">Disk</span>
-        <span className={cn('font-medium', disk !== null && disk > 90 ? 'font-semibold text-rose-500' : 'text-foreground')}>
-          {disk !== null ? `${disk.toFixed(1)}%` : '—'}
-        </span>
-      </div>
-    </div>
-  );
-};
+const cpuCell = metricCell(80);
+const ramCell = metricCell(85);
+const diskCell = metricCell(90);
 
 const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
   const str = `${String(roleValue || '')} ${String(roleLabel || '')}`.toLowerCase();
@@ -195,7 +167,9 @@ export default function Servers() {
         <VitoTable
           tableData={page.props.servers}
           cellRenderers={{
-            performance_score: performanceCell,
+            cpu_usage_percent: cpuCell,
+            memory_used_percent: ramCell,
+            disk_used_percent: diskCell,
             role: roleCell,
             stage: stageCell,
             warnings: warningsCell,

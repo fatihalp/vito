@@ -190,7 +190,7 @@ export default function SiteSelect({
                       className="flex items-center justify-between gap-2"
                     >
                       <div className="flex min-w-0 items-center gap-2">
-                        <span className="truncate">{site.domain}</span>
+                        <span className={cn('truncate', isOtherServer && 'text-muted-foreground')}>{site.domain}</span>
                         {showServerName && (
                           <Badge variant="outline" className="text-muted-foreground h-4 shrink-0 px-1.5 py-0 text-[10px] font-normal">
                             {site.server?.name}
