@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Project;
 
 use App\Actions\Projects\InviteToProject;
 use App\Actions\Projects\GetProjectInvitees;
+use App\Actions\User\CreateUser;
 use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectInviteeResource;
 use App\Models\Project;
 use App\Models\UserProject;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -41,6 +43,20 @@ class ProjectUserController extends Controller
         app(InviteToProject::class)->invite($project, $request->input());
 
         return back()->with('success', __('The user has been invited to the project.'));
+    }
+
+    #[Post('/quick-create', name: 'projects.users.quick-create')]
+    public function quickCreate(Request $request, Project $project): JsonResponse
+    {
+        $this->authorize('update', $project);
+
+        $user = app(CreateUser::class)->create($request->all());
+
+        return response()->json([
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+        ]);
     }
 
     #[Delete('{id}', name: 'projects.users.destroy')]

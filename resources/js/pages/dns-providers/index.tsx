@@ -26,7 +26,7 @@ export default function DNSProviders() {
       <Head title="DNS Providers" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="DNS Providers" description="Here you can manage all of the DNS provider connections" />
+          <Heading title="DNS Providers" />
           <div className="flex items-center gap-2">
             <ConnectDNSProvider>
               <Button>Connect</Button>

@@ -27,7 +27,7 @@ export default function NotificationChannels() {
       <Head title="Notification Channels" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Notification Channels" description="Here you can manage all of the notification channel connections" />
+          <Heading title="Notification Channels" />
           <div className="flex items-center gap-2">
             <ConnectNotificationChannel>
               <Button>Connect</Button>

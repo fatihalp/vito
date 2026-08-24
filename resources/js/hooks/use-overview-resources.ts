@@ -12,12 +12,63 @@ export type OverviewSite = Pick<Site, 'id' | 'server_id' | 'domain' | 'status' |
   warnings: SiteWarning[];
 };
 
-type OverviewResources = {
-  servers: OverviewServer[];
-  sites: OverviewSite[];
+export type OverviewProject = {
+  id: number;
+  name: string;
+  users_count: number;
+  is_current: boolean;
+  created_at?: string;
 };
 
-const emptyResources: OverviewResources = { servers: [], sites: [] };
+export type OverviewProviderItem = {
+  id: number;
+  provider: string;
+  profile?: string;
+  username?: string;
+  connected: boolean;
+  created_at?: string;
+};
+
+export type OverviewBackup = {
+  id: number;
+  name: string;
+  server_id: number;
+  server_name?: string;
+  schedule?: string;
+  retention?: number;
+  created_at?: string;
+};
+
+export type OverviewDomain = {
+  id: number;
+  domain: string;
+  provider_name?: string;
+  created_at?: string;
+};
+
+export type OverviewResources = {
+  servers: OverviewServer[];
+  sites: OverviewSite[];
+  projects?: OverviewProject[];
+  server_providers?: OverviewProviderItem[];
+  source_controls?: OverviewProviderItem[];
+  storage_providers?: OverviewProviderItem[];
+  dns_providers?: OverviewProviderItem[];
+  backups?: OverviewBackup[];
+  domains?: OverviewDomain[];
+};
+
+const emptyResources: OverviewResources = {
+  servers: [],
+  sites: [],
+  projects: [],
+  server_providers: [],
+  source_controls: [],
+  storage_providers: [],
+  dns_providers: [],
+  backups: [],
+  domains: [],
+};
 const cacheLifetime = 60_000;
 const cache = new Map<string, { data: OverviewResources; expiresAt: number }>();
 const pendingRequests = new Map<string, Promise<OverviewResources>>();

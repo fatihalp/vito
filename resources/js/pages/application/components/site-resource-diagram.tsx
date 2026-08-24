@@ -29,6 +29,7 @@ import {
   LockIcon,
   SettingsIcon,
   LoaderCircleIcon,
+  ExternalLinkIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useDialog } from '@/hooks/use-dialog';
@@ -103,7 +104,10 @@ export default function SiteResourceDiagram({
   const hasCloudflare = Boolean(connectedCloudflare);
   const anyConnectedDns = dnsProviders.some((p) => p.connected);
 
-  
+  const isPrimaryProxied = Boolean(domainProxyStatus[site.domain]);
+  const totalProxiedCount = Object.values(domainProxyStatus).filter(Boolean).length;
+  const isAnyProxied = totalProxiedCount > 0;
+
   const customDomains = hostedDomains.filter(
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
   );

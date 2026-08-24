@@ -14,7 +14,7 @@ export default function Users() {
 
       <Container className="max-w-5xl space-y-6">
         <div className="flex items-start justify-between">
-          <Heading title="Users" description="Here you can manage all users and review role permissions" />
+          <Heading title="Users" />
           <UserForm>
             <Button>Create user</Button>
           </UserForm>

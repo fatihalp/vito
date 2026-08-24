@@ -25,7 +25,7 @@ export default function Plugins() {
 
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Plugins" description="Here you can install/uninstall plugins" />
+          <Heading title="Plugins" />
           <div className="flex items-center gap-2">
             <CheckForUpdates />
             <InstallDialog />

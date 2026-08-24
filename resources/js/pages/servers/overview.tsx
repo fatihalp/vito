@@ -65,12 +65,9 @@ export default function ServerOverview() {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4">
-          <div className="flex flex-col gap-1.5">
-            <CardTitle>Recent sites</CardTitle>
-            <CardDescription>Quickly return to the sites you used most recently.</CardDescription>
-          </div>
+          <CardTitle>Recent sites</CardTitle>
           <Button variant="outline" size="sm" asChild>
-            <Link href={route('sites', { server: server.id })}>View all</Link>
+            <Link href={route('sites', { server: server.id })}>All</Link>
           </Button>
         </CardHeader>
         <CardContent>

@@ -28,7 +28,7 @@ export default function ServerProviders() {
       <Head title="Server Providers" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Server Providers" description="Here you can manage all of the server provider connections" />
+          <Heading title="Server Providers" />
           <div className="flex items-center gap-2">
             <ConnectServerProvider>
               <Button>Connect</Button>

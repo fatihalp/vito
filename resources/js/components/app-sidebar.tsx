@@ -105,17 +105,6 @@ export function AppSidebar({
       icon: LayoutDashboardIcon,
     },
     {
-      title: 'Projects',
-      href: route('projects'),
-      onlyActivePath: route('projects'),
-      icon: ListIcon,
-    },
-    {
-      title: 'Networks',
-      href: route('networks'),
-      icon: NetworkIcon,
-    },
-    {
       title: 'Servers',
       href: route('servers'),
       icon: ServerIcon,
@@ -136,6 +125,12 @@ export function AppSidebar({
       onlyActivePath: route('users'),
       icon: UsersIcon,
       hidden: !page.props.auth.user?.is_admin,
+    },
+    {
+      title: 'Projects',
+      href: route('projects'),
+      onlyActivePath: route('projects'),
+      icon: ListIcon,
     },
     {
       title: 'Settings',

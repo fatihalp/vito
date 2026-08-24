@@ -5,7 +5,7 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { BookOpenIcon, EyeIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { useDialog } from '@/hooks/use-dialog';
 import { NetworkServerOption } from '@/types/network';
@@ -18,12 +18,12 @@ export default function Networks() {
   const dialog = useDialog();
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title="Networks" />
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Networks" description="Private networks connecting the servers in this project" />
+          <Heading title="Networks" />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -62,6 +62,6 @@ export default function Networks() {
           )}
         />
       </Container>
-    </Layout>
+    </SettingsLayout>
   );
 }

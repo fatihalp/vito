@@ -2,7 +2,7 @@ import Container from '@/components/container';
 import { DataTable } from '@/components/data-table';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
-import SettingsLayout from '@/layouts/settings/layout';
+import Layout from '@/layouts/app/layout';
 import { columns as projectColumns } from '@/pages/projects/components/columns';
 import { columns as invitationColumns } from '@/pages/projects/components/invitations';
 import ProjectForm from '@/pages/projects/components/project-form';
@@ -20,12 +20,12 @@ export default function Projects() {
   }>();
 
   return (
-    <SettingsLayout>
+    <Layout>
       <Head title="Projects" />
 
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Projects" description="Here you can manage your projects" />
+          <Heading title="Projects" />
           <div className="flex items-center gap-2">
             <ProjectForm>
               <Button>
@@ -56,6 +56,6 @@ export default function Projects() {
 
         <DataTable columns={projectColumns} paginatedData={page.props.projects} />
       </Container>
-    </SettingsLayout>
+    </Layout>
   );
 }

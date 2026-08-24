@@ -20,7 +20,7 @@ export default function RecentServersFlyout() {
           href={route('servers')}
           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
         >
-          <span>View all</span>
+          <span>All</span>
           <ArrowRightIcon className="size-3" />
         </Link>
       </div>

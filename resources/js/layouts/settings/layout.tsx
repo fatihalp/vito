@@ -9,6 +9,7 @@ import {
   GithubIcon,
   GlobeIcon,
   KeyIcon,
+  NetworkIcon,
   PlugIcon,
   WorkflowIcon,
 } from 'lucide-react';
@@ -44,6 +45,11 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'DNS Providers',
       href: route('dns-providers'),
       icon: GlobeIcon,
+    },
+    {
+      title: 'Networks',
+      href: route('networks'),
+      icon: NetworkIcon,
     },
     {
       title: 'Notification Channels',

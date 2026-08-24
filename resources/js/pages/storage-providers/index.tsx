@@ -28,7 +28,7 @@ export default function StorageProviders() {
       <Head title="Storage Providers" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Storage Providers" description="Here you can manage all of the storage provider connections" />
+          <Heading title="Storage Providers" />
           <div className="flex items-center gap-2">
             <ConnectStorageProvider>
               <Button>Connect</Button>

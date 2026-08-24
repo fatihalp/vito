@@ -22,7 +22,7 @@ export default function Domains() {
       <Head title="Domains" />
       <Container className="max-w-5xl">
         <div className="flex items-start justify-between">
-          <Heading title="Domains" description="All of the domains of your project listed here" />
+          <Heading title="Domains" />
           <div className="flex items-center gap-2">
             <AddDomain>
               <Button>

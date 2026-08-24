@@ -22,37 +22,35 @@ function ProjectActions({ project }: { project: Project }) {
   const dialog = useDialog();
 
   return (
-    <div className="flex items-center gap-2">
-      <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" onClick={() => dialog.projectUsers.open({ project })}>
-        <UsersIcon className="size-3.5" />
-        <span>{project.role === 'user' ? 'View access' : 'Manage access'}</span>
-      </Button>
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <TableActionTrigger />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="start">
-          <ProjectForm project={project}>
-            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
-          </ProjectForm>
-          {project.role !== 'owner' && (
-            <LeaveProject project={project}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Leave project</DropdownMenuItem>
-            </LeaveProject>
-          )}
-          {project.role === 'owner' && (
-            <>
-              <DropdownMenuSeparator />
-              <DeleteProject project={project}>
-                <DropdownMenuItem onSelect={(e) => e.preventDefault()} variant="destructive">
-                  Delete Project
-                </DropdownMenuItem>
-              </DeleteProject>
-            </>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </div>
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <TableActionTrigger />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <ProjectForm project={project}>
+          <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Edit</DropdownMenuItem>
+        </ProjectForm>
+        <DropdownMenuItem onSelect={() => dialog.projectUsers.open({ project })}>
+          <UsersIcon className="size-3.5 mr-2" />
+          <span>{project.role === 'user' ? 'View access' : 'Manage access'}</span>
+        </DropdownMenuItem>
+        {project.role !== 'owner' && (
+          <LeaveProject project={project}>
+            <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Leave project</DropdownMenuItem>
+          </LeaveProject>
+        )}
+        {project.role === 'owner' && (
+          <>
+            <DropdownMenuSeparator />
+            <DeleteProject project={project}>
+              <DropdownMenuItem onSelect={(e) => e.preventDefault()} variant="destructive">
+                Delete Project
+              </DropdownMenuItem>
+            </DeleteProject>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }
 
@@ -63,9 +61,14 @@ export const columns: ColumnDef<Project>[] = [
     enableColumnFilter: true,
     enableSorting: true,
     cell: ({ row }) => {
+      const users = row.original.users?.filter((u) => u.type === 'user') ?? [];
+      const count = users.length;
+
       return (
-        <div className="flex items-center space-x-1">
-          <span>{row.original.name}</span> <CurrentProject project={row.original} />
+        <div className="flex items-center space-x-1.5">
+          <span className="font-medium">{row.original.name}</span>
+          <span className="text-muted-foreground text-xs font-normal">({count})</span>
+          <CurrentProject project={row.original} />
         </div>
       );
     },
