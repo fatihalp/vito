@@ -139,15 +139,6 @@ export function AppSidebar({
     },
   ];
 
-  const footerNavItems: NavItem[] = [
-    {
-      title: 'Vito Logs',
-      href: route('log-viewer.index'),
-      icon: LogsIcon,
-      hidden: !page.props.auth.user?.is_admin,
-    },
-  ];
-
   return (
     <Sidebar
       id="app-navigation"
@@ -221,18 +212,6 @@ export function AppSidebar({
           </SidebarGroup>
         </SidebarContent>
         <SidebarFooter className="hidden md:flex">
-          <SidebarMenu>
-            {footerNavItems.map((item) => (
-              <SidebarMenuItem key={`${item.title}-${item.href}`} hidden={item.hidden}>
-                <SidebarMenuButton asChild tooltip={item.title}>
-                  <a href={item.href} target="_blank" rel="noopener noreferrer">
-                    {item.icon && <Icon iconNode={item.icon} />}
-                    <span>{item.title}</span>
-                  </a>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            ))}
-          </SidebarMenu>
           <NavUser />
         </SidebarFooter>
       </Sidebar>

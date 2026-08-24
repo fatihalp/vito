@@ -5,7 +5,7 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { BookOpenIcon, PlusIcon } from 'lucide-react';
 import { Backup } from '@/types/backup';
 import { VitoTable } from '@/components/vito-table';
@@ -23,7 +23,7 @@ export default function Backups() {
   const page = usePage<Page>();
   const dialog = useDialog();
 
-  const Comp = page.props.server ? ServerLayout : Layout;
+  const Comp = page.props.server ? ServerLayout : SettingsLayout;
 
   return (
     <Comp>

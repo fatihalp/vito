@@ -5,7 +5,7 @@ import Heading from '@/components/heading';
 import { BreadcrumbHeader } from '@/components/breadcrumb-header';
 import { VitoTable } from '@/components/vito-table';
 import { BreadcrumbItem } from '@/types';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Workflow } from '@/types/workflow';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
@@ -28,13 +28,13 @@ export default function Workflows() {
   ];
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title={`History of ${page.props.workflow.name}`} />
 
       <Container className="max-w-5xl">
         <HeaderContainer>
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
-            <Heading title={`History of ${page.props.workflow.name}`} description="Here you can see a list of executions" />
+            <Heading title={`History of ${page.props.workflow.name}`} />
           </BreadcrumbHeader>
         </HeaderContainer>
 
@@ -46,6 +46,6 @@ export default function Workflows() {
           }}
         />
       </Container>
-    </Layout>
+    </SettingsLayout>
   );
 }

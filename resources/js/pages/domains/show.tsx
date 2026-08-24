@@ -10,7 +10,7 @@ import { BreadcrumbItem } from '@/types';
 import { DNSRecord } from '@/types/dns-record';
 import { Domain } from '@/types/domain';
 import { PlusIcon } from 'lucide-react';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { getColumns } from './components/record-columns';
 import SyncRecords from './components/sync-records';
 import { useConfigs } from '@/stores/bootstrap-store';
@@ -43,12 +43,12 @@ export default function DomainShow() {
   ];
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title={`DNS Records - ${page.props.domain.domain}`} />
       <Container className="max-w-5xl">
         <HeaderContainer>
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
-            <Heading title={`DNS Records for ${page.props.domain.domain}`} description="Manage DNS records for this domain" />
+            <Heading title={`DNS Records for ${page.props.domain.domain}`} />
           </BreadcrumbHeader>
           <div className="flex items-center gap-2">
             <SyncRecords domain={page.props.domain} />
@@ -60,6 +60,6 @@ export default function DomainShow() {
         </HeaderContainer>
         <DataTable columns={columns} data={page.props.records} />
       </Container>
-    </Layout>
+    </SettingsLayout>
   );
 }

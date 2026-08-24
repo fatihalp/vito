@@ -282,25 +282,28 @@ function RecentDomainsList({ domains }: { domains: OverviewDomain[] }) {
 
 export default function Overview() {
   const page = usePage<SharedData>();
-  const project = page.props.auth.currentProject;
   const [recentServerIds, setRecentServerIds] = useState<number[]>([]);
   const [recentSiteIds, setRecentSiteIds] = useState<number[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
-    if (!project) {
+    const userId = page.props.auth?.user?.id;
+    if (!userId) {
       setRecentServerIds([]);
       setRecentSiteIds([]);
       setHistoryLoaded(true);
       return;
     }
 
-    setRecentServerIds(serverHelper.getRecentServers(page.props.auth.user.id, project.id, 25).map((server) => server.id));
-    setRecentSiteIds(siteHelper.getRecentProjectSites(page.props.auth.user.id, project.id, 25).map((site) => site.id));
-    setHistoryLoaded(true);
-  }, [page.props.auth.user.id, project]);
+    const allServers = serverHelper.getAllRecentServers(userId, 25).map((server) => server.id);
+    const allSites = siteHelper.getAllRecentSites(userId, 25).map((site) => site.id);
 
-  const resources = useOverviewResources(project?.id, recentServerIds, recentSiteIds, historyLoaded);
+    setRecentServerIds(allServers);
+    setRecentSiteIds(allSites);
+    setHistoryLoaded(true);
+  }, [page.props.auth?.user?.id]);
+
+  const resources = useOverviewResources(undefined, recentServerIds, recentSiteIds, historyLoaded);
   const servers = resources.data?.servers ?? [];
   const sites = resources.data?.sites ?? [];
   const projects = resources.data?.projects ?? [];
@@ -311,20 +314,23 @@ export default function Overview() {
   const backups = resources.data?.backups ?? [];
   const domains = resources.data?.domains ?? [];
 
-  const recentServers = recentServerIds
+  const matchedRecentServers = recentServerIds
     .map((id) => servers.find((server) => server.id === id))
-    .filter((server): server is OverviewServer => server !== undefined)
-    .slice(0, 3);
-  const recentSites = recentSiteIds
+    .filter((server): server is OverviewServer => server !== undefined);
+  const otherServers = servers.filter((server) => !recentServerIds.includes(server.id));
+  const recentServers = [...matchedRecentServers, ...otherServers].slice(0, 3);
+
+  const matchedRecentSites = recentSiteIds
     .map((id) => sites.find((site) => site.id === id))
-    .filter((site): site is OverviewSite => site !== undefined)
-    .slice(0, 3);
+    .filter((site): site is OverviewSite => site !== undefined);
+  const otherSites = sites.filter((site) => !recentSiteIds.includes(site.id));
+  const recentSites = [...matchedRecentSites, ...otherSites].slice(0, 3);
 
   return (
     <Layout>
       <Head title="Overview" />
       <Container className="max-w-6xl space-y-6">
-        <Heading title={project?.name ?? 'Overview'} />
+        <Heading title="Overview" />
 
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {/* Recent servers */}
@@ -339,7 +345,7 @@ export default function Overview() {
           {/* Recent sites */}
           <QuickAccessCard
             title="Recent sites"
-            viewAllHref={route('sites.all', { project: project?.id ?? 'all' })}
+            viewAllHref={route('sites.all', { project: 'all' })}
             emptyText="No sites found."
           >
             {resources.isLoading ? (

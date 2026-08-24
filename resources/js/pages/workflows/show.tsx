@@ -1,5 +1,5 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Workflow } from '@/types/workflow';
 import { useAppearance } from '@/hooks/use-appearance';
 import {
@@ -171,7 +171,7 @@ export default function Show() {
   };
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title={`Workflow - ${page.props.workflow.name}`} />
       <div className="bg-accent relative h-full w-full border-none">
         <div className="bg-background absolute top-0 left-0 z-10 m-2 flex items-center justify-between gap-2 rounded-lg border p-3">
@@ -217,6 +217,6 @@ export default function Show() {
           <Controls position="bottom-right" />
         </ReactFlow>
       </div>
-    </Layout>
+    </SettingsLayout>
   );
 }

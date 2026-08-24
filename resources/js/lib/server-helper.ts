@@ -49,6 +49,33 @@ const serverHelper = {
   getRecentServers(userId: number, projectId: number, limit = 3): RecentServer[] {
     return readRecentServers(userId, projectId).slice(0, limit);
   },
+  getAllRecentServers(userId: number, limit = 25): RecentServer[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+    try {
+      const all: RecentServer[] = [];
+      const seen = new Set<number>();
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key?.startsWith(`recent-servers:${userId}:`)) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const list = JSON.parse(stored) as RecentServer[];
+            for (const item of list) {
+              if (item.last_used_at >= Date.now() - recentHistoryTtl && !seen.has(item.id)) {
+                seen.add(item.id);
+                all.push(item);
+              }
+            }
+          }
+        }
+      }
+      return all.sort((a, b) => b.last_used_at - a.last_used_at).slice(0, limit);
+    } catch {
+      return [];
+    }
+  },
   removeRecentServer(userId: number, projectId: number, serverId: number): void {
     const recentServers = readRecentServers(userId, projectId).filter((server) => server.id !== serverId);
     writeRecentServers(userId, projectId, recentServers);

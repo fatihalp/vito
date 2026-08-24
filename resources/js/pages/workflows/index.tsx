@@ -7,7 +7,7 @@ import { DownloadIcon, PlusIcon, SparklesIcon, UploadIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Workflow } from '@/types/workflow';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import CreateWorkflow from './components/create-workflow';
 import Run from '@/pages/workflows/components/run';
 import DeleteWorkflow from '@/pages/workflows/components/delete-workflow';
@@ -23,12 +23,12 @@ export default function Workflows() {
   const dialog = useDialog();
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title={`Workflows`} />
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Workflows" description="Workflows are chained scripts that will run in the defined order" />
+          <Heading title="Workflows" />
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={() => dialog.workflowTemplates.open({})}>
               <SparklesIcon className="size-4" />
@@ -80,6 +80,6 @@ export default function Workflows() {
           }}
         />
       </Container>
-    </Layout>
+    </SettingsLayout>
   );
 }

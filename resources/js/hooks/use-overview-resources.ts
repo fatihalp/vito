@@ -118,22 +118,22 @@ function requestResources(signature: string, serverIdsKey: string, siteIdsKey: s
 }
 
 export function useOverviewResources(
-  projectId: number | undefined,
-  serverIds: number[],
-  siteIds: number[],
+  projectId?: number | null | undefined,
+  serverIds: number[] = [],
+  siteIds: number[] = [],
   enabled = true,
   fallbackServerId?: number,
 ) {
   const serverIdsKey = serverIds.join(',');
   const siteIdsKey = siteIds.join(',');
-  const signature = `${projectId ?? ''}|${serverIdsKey}|${siteIdsKey}|${fallbackServerId ?? ''}`;
+  const signature = `${projectId ?? 'all'}|${serverIdsKey}|${siteIdsKey}|${fallbackServerId ?? ''}`;
   const [state, setState] = useState<ResourceState>({ signature: '', isError: false });
   const requestId = useRef(0);
 
   const fetchResources = useCallback(async (force = false) => {
     const currentRequestId = ++requestId.current;
 
-    if (!enabled || projectId === undefined) {
+    if (!enabled) {
       setState({ signature, data: emptyResources, isError: false });
       return;
     }
@@ -167,7 +167,7 @@ export function useOverviewResources(
 
   return {
     data: state.signature === signature ? state.data : undefined,
-    isLoading: enabled && projectId !== undefined && (state.signature !== signature || (!state.data && !state.isError)),
+    isLoading: enabled && (state.signature !== signature || (!state.data && !state.isError)),
     isError: state.signature === signature && state.isError,
     refetch: () => fetchResources(true),
   };

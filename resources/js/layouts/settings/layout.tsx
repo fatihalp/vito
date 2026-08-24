@@ -9,8 +9,10 @@ import {
   GithubIcon,
   GlobeIcon,
   KeyIcon,
+  LogsIcon,
   NetworkIcon,
   PlugIcon,
+  ShieldCheckIcon,
   WorkflowIcon,
 } from 'lucide-react';
 import { ReactNode } from 'react';
@@ -91,6 +93,19 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'GitHub App',
       href: route('github-app'),
       icon: GithubIcon,
+      hidden: !isAdmin,
+    },
+    {
+      title: 'Vito Settings',
+      href: route('vito-settings'),
+      icon: ShieldCheckIcon,
+      hidden: !isAdmin,
+    },
+    {
+      title: 'Logs',
+      href: route('log-viewer.index'),
+      icon: LogsIcon,
+      external: true,
       hidden: !isAdmin,
     },
   ];

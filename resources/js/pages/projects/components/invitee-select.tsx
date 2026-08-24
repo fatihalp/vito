@@ -5,18 +5,20 @@ import { cn } from '@/lib/utils';
 import { ProjectInvitee } from '@/types/project-user';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, UserPlusIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export default function InviteeSelect({
   projectId,
   value,
   onValueChange,
+  onCreateUserRequest,
   id,
 }: {
   projectId: number;
   value: number | null;
   onValueChange: (user: ProjectInvitee) => void;
+  onCreateUserRequest?: (email: string) => void;
   id?: string;
 }) {
   const [open, setOpen] = useState(false);
@@ -42,8 +44,13 @@ export default function InviteeSelect({
   useEffect(() => {
     if (value === null) {
       setSelectedUser(null);
+    } else if (selectedUser && selectedUser.id !== value) {
+      const matched = users.find((u) => u.id === value);
+      if (matched) {
+        setSelectedUser(matched);
+      }
     }
-  }, [value]);
+  }, [value, selectedUser, users]);
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -61,7 +68,30 @@ export default function InviteeSelect({
         <Command shouldFilter={false}>
           <CommandInput placeholder="Enter the user's exact email..." value={query} onValueChange={setQuery} />
           <CommandList>
-            <CommandEmpty>{isFetching ? 'Searching...' : 'No users found.'}</CommandEmpty>
+            <CommandEmpty className="p-3 text-center text-xs">
+              {isFetching ? (
+                <span className="text-muted-foreground">Searching...</span>
+              ) : (
+                <div className="flex flex-col items-center gap-2">
+                  <span className="text-muted-foreground">No users found.</span>
+                  {onCreateUserRequest && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 text-xs gap-1"
+                      onClick={() => {
+                        setOpen(false);
+                        onCreateUserRequest(query);
+                      }}
+                    >
+                      <UserPlusIcon className="size-3.5" />
+                      <span>Create user</span>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </CommandEmpty>
             <CommandGroup>
               {users.map((user) => (
                 <CommandItem

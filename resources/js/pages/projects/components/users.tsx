@@ -3,12 +3,14 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { useDialog } from '@/hooks/use-dialog';
+import QuickCreateUserDialog from '@/pages/projects/components/quick-create-user-dialog';
 import { SharedData } from '@/types';
 import { Project } from '@/types/project';
 import { ProjectUser } from '@/types/project-user';
 import { usePage } from '@inertiajs/react';
 import { ColumnDef } from '@tanstack/react-table';
-import { TrashIcon } from 'lucide-react';
+import { TrashIcon, UserPlusIcon } from 'lucide-react';
+import { useState } from 'react';
 
 function RemoveUserAction({ user }: { user: ProjectUser }) {
   const dialog = useDialog();
@@ -89,25 +91,45 @@ export default function Users({
   project: Project;
 }) {
   const dialog = useDialog();
+  const [showQuickCreate, setShowQuickCreate] = useState(false);
   const canManageAccess = project.role === 'owner' || project.role === 'admin';
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-2xl" onCloseAutoFocus={(e) => e.preventDefault()}>
-        <SheetHeader>
-          <SheetTitle>Project users</SheetTitle>
-          <SheetDescription className="sr-only">Here you can manage project users</SheetDescription>
-        </SheetHeader>
-        <div className="p-4">
-          <DataTable columns={canManageAccess ? columns : columns.filter((column) => column.id !== 'actions')} data={project.users || []} />
-        </div>
-        <SheetFooter>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
-            {canManageAccess && <Button onClick={() => dialog.projectInvite.open({ project })}>Invite user</Button>}
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent className="sm:max-w-2xl" onCloseAutoFocus={(e) => e.preventDefault()}>
+          <SheetHeader>
+            <SheetTitle>Project users</SheetTitle>
+            <SheetDescription className="sr-only">Here you can manage project users</SheetDescription>
+          </SheetHeader>
+          <div className="p-4">
+            <DataTable columns={canManageAccess ? columns : columns.filter((column) => column.id !== 'actions')} data={project.users || []} />
           </div>
-        </SheetFooter>
-      </SheetContent>
-    </Sheet>
+          <SheetFooter>
+            <div className="flex items-center justify-between w-full">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+              {canManageAccess && (
+                <div className="flex items-center gap-2">
+                  <Button variant="outline" onClick={() => setShowQuickCreate(true)}>
+                    <UserPlusIcon className="size-3.5 mr-1.5" />
+                    Create user
+                  </Button>
+                  <Button onClick={() => dialog.projectInvite.open({ project })}>Invite user</Button>
+                </div>
+              )}
+            </div>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
+
+      <QuickCreateUserDialog
+        open={showQuickCreate}
+        onOpenChange={setShowQuickCreate}
+        projectId={project.id}
+        onUserCreated={() => {
+          dialog.projectInvite.open({ project });
+        }}
+      />
+    </>
   );
 }

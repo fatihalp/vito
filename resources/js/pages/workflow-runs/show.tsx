@@ -2,7 +2,7 @@ import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import { BreadcrumbHeader } from '@/components/breadcrumb-header';
-import Layout from '@/layouts/app/layout';
+import SettingsLayout from '@/layouts/settings/layout';
 import { Head, usePage } from '@inertiajs/react';
 import Logs from './components/logs';
 import { WorkflowRun } from '@/types/workflow-run';
@@ -20,7 +20,6 @@ export default function Show() {
 
   const [workflowRun, setWorkflowRun] = useState<WorkflowRun>(page.props.workflowRun);
 
-  
   useSocketListener(
     useCallback(
       (event) => {
@@ -49,18 +48,18 @@ export default function Show() {
   ];
 
   return (
-    <Layout>
+    <SettingsLayout>
       <Head title={`Workflow [${page.props.workflow.name}]`} />
       <Container className="max-w-5xl">
         <HeaderContainer>
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
-            <Heading title={`Workflow [${page.props.workflow.name}]`} description="Here you can see the result of your workflow's execution" />
+            <Heading title={`Workflow [${page.props.workflow.name}]`} />
           </BreadcrumbHeader>
           <Badge variant={workflowRun.status_color}>{workflowRun.status}</Badge>
         </HeaderContainer>
 
         <Logs workflowRun={workflowRun} />
       </Container>
-    </Layout>
+    </SettingsLayout>
   );
 }

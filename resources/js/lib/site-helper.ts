@@ -90,6 +90,33 @@ const siteHelper = {
   getRecentProjectSites(userId: number, projectId: number, limit = 3): RecentSite[] {
     return readRecentSites(recentProjectSitesKey(userId, projectId)).slice(0, limit);
   },
+  getAllRecentSites(userId: number, limit = 25): RecentSite[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+    try {
+      const all: RecentSite[] = [];
+      const seen = new Set<number>();
+      for (let index = 0; index < localStorage.length; index += 1) {
+        const key = localStorage.key(index);
+        if (key?.startsWith(`recent-project-sites:${userId}:`)) {
+          const stored = localStorage.getItem(key);
+          if (stored) {
+            const list = JSON.parse(stored) as RecentSite[];
+            for (const item of list) {
+              if (item.last_used_at >= Date.now() - recentHistoryTtl && !seen.has(item.id)) {
+                seen.add(item.id);
+                all.push(item);
+              }
+            }
+          }
+        }
+      }
+      return all.sort((a, b) => b.last_used_at - a.last_used_at).slice(0, limit);
+    } catch {
+      return [];
+    }
+  },
   removeRecentSite(userId: number, projectId: number, serverId: number, siteId: number): void {
     const recentSites = readRecentSites(recentSitesKey(userId, serverId)).filter((site) => site.id !== siteId);
     writeRecentSites(recentSitesKey(userId, serverId), recentSites);
