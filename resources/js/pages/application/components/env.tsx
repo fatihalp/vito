@@ -67,7 +67,79 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  
+  const duplicateKeys = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const variable of variables) {
+      const trimmed = variable.key.trim();
+      if (!trimmed) continue;
+      counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
+    }
+    const dupes = new Set<string>();
+    for (const [key, count] of counts) {
+      if (count > 1) dupes.add(key);
+    }
+    return dupes;
+  }, [variables]);
+
+  const hasDuplicates = duplicateKeys.size > 0;
+
+  const form = useForm<{ path: string }>({ path: defaultEnvPath(site) });
+
+  const query = useQuery({
+    queryKey: ['siteEnv', site.id, committedPath],
+    queryFn: async () => {
+      const response = await axios.get(route('application.env', { server: site.server_id, site: site.id }), {
+        params: { env: committedPath },
+      });
+      setCanEdit(response.data?.can_edit ?? false);
+      setRawContent(response.data?.env ?? '');
+      setVariables(toVariables(response.data?.variables ?? [], false));
+      setVariablesDirty(false);
+      return response.data;
+    },
+    retry: false,
+    enabled: open,
+    refetchOnWindowFocus: false,
+  });
+
+  useEffect(() => {
+    if (monaco) {
+      registerDotEnvLanguage(monaco);
+    }
+  }, [monaco]);
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (nextOpen) {
+      const path = defaultEnvPath(site);
+      form.setData('path', path);
+      form.clearErrors();
+      setCommittedPath(path);
+      setMode('variables');
+      setVariablesDirty(false);
+      setUploadError(null);
+      setCanEdit(undefined);
+    }
+  };
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (canEdit !== true || form.data.path !== committedPath) {
+      return;
+    }
+    if (mode === 'variables' && (hasDuplicates || variables.length === 0)) {
+      return;
+    }
+    form.transform(() =>
+      mode === 'variables'
+        ? { variables: variables.map((v) => ({ key: v.key, value: v.value, is_secret: v.isSecret })), path: committedPath }
+        : { env: rawContent, path: committedPath },
+    );
+    form.put(route('application.update-env', { server: site.server_id, site: site.id }), {
+      preserveScroll: true,
+      onSuccess: () => setOpen(false),
+    });
+  };
 
   const queryError = useMemo(() => (query.isError ? errorMessage(query.error, 'Failed to read the .env file') : null), [query.isError, query.error]);
 
@@ -253,7 +325,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="flex flex-col overflow-hidden sm:max-w-4xl">
+      <SheetContent className="flex flex-col overflow-hidden sm:max-w-4xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
           <SheetTitle>Environment Variables</SheetTitle>
           <SheetDescription>Manage environment variables for your application.</SheetDescription>
