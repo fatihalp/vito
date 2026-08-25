@@ -19,7 +19,11 @@ export default function ChangeSourceControl({ site, children }: { site: Site; ch
       {(form) => (
         <>
           <Label htmlFor="source_control">Source control</Label>
-          <SourceControlSelect value={form.data.source_control} onValueChange={(value) => form.setData('source_control', value)} />
+          <SourceControlSelect
+            value={form.data.source_control}
+            onValueChange={(value) => form.setData('source_control', value)}
+            serverId={site.server_id}
+          />
           <InputError message={form.errors.source_control} />
         </>
       )}

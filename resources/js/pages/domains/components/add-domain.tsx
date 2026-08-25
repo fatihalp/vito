@@ -19,6 +19,8 @@ import { Form, FormField, FormFields } from '@/components/ui/form';
 import ConnectDNSProvider from '@/pages/dns-providers/components/connect-dns-provider';
 import axios from 'axios';
 import { DNSProvider } from '@/types/dns-provider';
+import { errorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 
 type Domain = {
   id: string;
@@ -50,7 +52,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
       const response = await axios.get(route(routeName, providerId));
       setAvailableDomains(response.data || []);
     } catch (error) {
-      console.error('Failed to fetch domains:', error);
+      toast.error(errorMessage(error, 'Failed to fetch domains.'));
       setAvailableDomains([]);
     } finally {
       setLoadingDomains(false);
@@ -70,8 +72,12 @@ export default function AddDomain({ children }: { children: ReactNode }) {
   };
 
   const fetchProviders = async () => {
-    const response = await axios.get(route('dns-providers.json'));
-    setDNSProviders(response.data as DNSProvider[]);
+    try {
+      const response = await axios.get(route('dns-providers.json'));
+      setDNSProviders(response.data as DNSProvider[]);
+    } catch (error) {
+      toast.error(errorMessage(error, 'Failed to fetch DNS providers.'));
+    }
   };
 
   const submit: FormEventHandler = (e) => {

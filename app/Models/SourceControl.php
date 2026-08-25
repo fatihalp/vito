@@ -46,21 +46,35 @@ class SourceControl extends AbstractModel
         return $this->provider === self::PROVIDER_GITHUB_APP;
     }
 
-    
-    public static function siteValidationRules(Server $server): array
+
+    public static function usableForSitesProviders(): array
     {
-        
         $providers = config('source-control.providers', []);
 
-        $usableProviders = array_keys(array_filter(
+        return array_keys(array_filter(
             $providers,
             fn (array $config): bool => (bool) ($config['usable_for_sites'] ?? true),
         ));
+    }
 
+
+    public static function usableForServer(Server $server): Builder
+    {
+        return static::query()
+            ->whereIn('provider', self::usableForSitesProviders())
+            ->where('user_id', $server->user_id)
+            ->where(function (Builder $query) use ($server): void {
+                $query->where('project_id', $server->project_id)->orWhereNull('project_id');
+            });
+    }
+
+
+    public static function siteValidationRules(Server $server): array
+    {
         return [
             'required',
             Rule::exists('source_controls', 'id')
-                ->whereIn('provider', $usableProviders)
+                ->whereIn('provider', self::usableForSitesProviders())
                 ->where(function ($query) use ($server): void {
                     $query->where('user_id', $server->user_id)
                         ->where(function ($q) use ($server): void {

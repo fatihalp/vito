@@ -17,6 +17,8 @@ import FormSuccessful from '@/components/form-successful';
 import { useSslMatching } from '@/pages/hosted-domains/hooks/use-ssl-matching';
 import ConnectDNSProvider from '@/pages/dns-providers/components/connect-dns-provider';
 import axios from 'axios';
+import { errorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 
 type CreateForm = {
   domain: string;
@@ -131,7 +133,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
         form.setData('provider_domain_id', domains[0].id);
       }
     } catch (error) {
-      console.error('Failed to fetch provider domains:', error);
+      toast.error(errorMessage(error, 'Failed to fetch provider domains.'));
       setAvailableDomains([]);
     } finally {
       setLoadingDomains(false);
@@ -154,7 +156,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
         setMode('manual');
       }
     } catch (error) {
-      console.error('Failed to fetch DNS providers:', error);
+      toast.error(errorMessage(error, 'Failed to fetch DNS providers.'));
       setMode('manual');
     } finally {
       setLoadingProviders(false);

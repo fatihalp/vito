@@ -11,15 +11,17 @@ import { WifiIcon } from 'lucide-react';
 export default function SourceControlSelect({
   value,
   onValueChange,
+  serverId,
   ...props
 }: {
   value: string;
   onValueChange: (value: string) => void;
+  serverId?: number;
 } & SelectTriggerProps) {
   const query = useQuery<SourceControl[]>({
-    queryKey: ['sourceControl'],
+    queryKey: ['sourceControl', serverId],
     queryFn: async () => {
-      return (await axios.get(route('source-controls.json'))).data;
+      return (await axios.get(route('source-controls.json'), { params: serverId ? { server: serverId } : {} })).data;
     },
   });
 

@@ -451,6 +451,7 @@ export default function CreateSite({
                           id="source_control"
                           value={form.data.source_control}
                           onValueChange={(value) => form.setData('source_control', value)}
+                          serverId={form.data.server ? parseInt(form.data.server) : server?.id}
                         />
                         <InputError message={form.errors.source_control} />
                       </FormField>

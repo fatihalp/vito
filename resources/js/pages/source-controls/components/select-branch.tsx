@@ -3,6 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Combobox } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface SelectBranchProps {
   sourceControlId: string;
@@ -39,6 +40,11 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
         }),
       );
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to fetch branches.');
+      }
+
       setBranches(data);
 
       if (data.length === 1) {
@@ -47,7 +53,7 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
         onValueChange('');
       }
     } catch (error) {
-      console.error('Failed to fetch branches:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch branches.');
       setBranches([]);
     } finally {
       setGettingBranches(false);

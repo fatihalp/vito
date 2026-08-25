@@ -7,6 +7,7 @@ use App\Actions\SourceControl\ConnectSourceControl;
 use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
 use App\Http\Resources\SourceControlResource;
+use App\Models\Server;
 use App\Models\SourceControl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -42,9 +43,20 @@ class SourceControlController extends Controller
     }
 
     #[Get('/json', name: 'source-controls.json')]
-    public function json(): ResourceCollection
+    public function json(Request $request): ResourceCollection
     {
         $this->authorize('viewAny', SourceControl::class);
+
+        $serverId = $request->integer('server');
+
+        if ($serverId) {
+            $server = Server::query()->findOrFail($serverId);
+            $this->authorize('view', $server);
+
+            $sourceControls = SourceControl::usableForServer($server)->get();
+
+            return SourceControlResource::collection($sourceControls);
+        }
 
         $user = user();
         $sourceControls = SourceControl::getByProjectId($user->current_project_id, $user)

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { Combobox } from '@/components/ui/combobox';
+import { toast } from 'sonner';
 
 interface SelectRepoProps {
   sourceControlId: string;
@@ -34,13 +35,18 @@ export default function SelectRepo({ sourceControlId, value, onValueChange, plac
     try {
       const response = await fetch(route(routeName, { source_control: sourceControlId }));
       const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data?.message || 'Failed to fetch repositories.');
+      }
+
       setRepos(data);
 
       if (data.length > 0 && !data.includes(value)) {
         onValueChange('');
       }
     } catch (error) {
-      console.error('Failed to fetch repos:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch repositories.');
       setRepos([]);
     } finally {
       setGettingRepos(false);

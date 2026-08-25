@@ -18,6 +18,7 @@ import { EnvVariable } from '@/types/env';
 import EnvVariableRow from './env-variable-row';
 import { generateUniqueKey } from '@/lib/env';
 import { cn, rowId } from '@/lib/utils';
+import { errorMessage } from '@/lib/errors';
 
 type ParsedVariable = { key: string; value: string; is_secret: boolean; managed_by?: string };
 
@@ -39,16 +40,6 @@ const preserveManagedVariables = (next: EnvVariable[], current: EnvVariable[]): 
   const nextKeys = new Set(next.map((variable) => variable.key));
 
   return [...merged, ...Array.from(managed.values()).filter((variable) => !nextKeys.has(variable.key))];
-};
-
-const errorMessage = (error: unknown, fallback: string): string => {
-  if (axios.isAxiosError(error)) {
-    return error.response?.data?.message ?? error.response?.data?.error ?? fallback;
-  }
-  if (error instanceof Error) {
-    return error.message;
-  }
-  return fallback;
 };
 
 export default function Env({ site, children }: { site: Site; children: ReactNode }) {
