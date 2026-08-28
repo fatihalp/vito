@@ -18,6 +18,7 @@ import {
   MousePointerClickIcon,
   NetworkIcon,
   RotateCcwIcon,
+  ScrollTextIcon,
   Settings2Icon,
   ShieldIcon,
   UsersIcon,
@@ -31,6 +32,8 @@ import { Site } from '@/types/site';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import RecentSitesFlyout from '@/layouts/server/components/recent-sites-flyout';
 import siteHelper from '@/lib/site-helper';
+import serverHelper from '@/lib/server-helper';
+import { findActiveServerNavPage } from '@/lib/server-nav-pages';
 import { SharedData } from '@/types';
 
 export default function ServerLayout({ children }: { children: ReactNode }) {
@@ -47,6 +50,18 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       siteHelper.storeSite(page.props.site, page.props.auth.user.id, server.project_id);
     }
   }, [page.props.site?.id, page.props.auth?.user?.id, server.project_id]);
+
+  useEffect(() => {
+    const userId = page.props.auth?.user?.id;
+    if (page.props.site || !userId) {
+      return;
+    }
+
+    const activePage = findActiveServerNavPage(page.url.split('?')[0], server.id);
+    if (activePage) {
+      serverHelper.recordVisitedServerPage(userId, server.id, activePage.key);
+    }
+  }, [page.url, page.props.site, page.props.auth?.user?.id, server.id]);
 
   if (typeof window === 'undefined') {
     return null;
@@ -192,7 +207,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           title: 'Service logs',
           href: route('logs.services', { server: serverId }),
           onlyActivePath: route('logs.services', { server: serverId }),
-          icon: CogIcon,
+          icon: ScrollTextIcon,
         },
         {
           title: 'Custom logs',

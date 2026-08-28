@@ -19,11 +19,6 @@ class ProjectOverviewServerResource extends JsonResource
             'status' => $this->status->getText(),
             'status_color' => $this->status->getColor(),
             'warnings' => $this->getWarnings(),
-            'counts' => [
-                'cronjobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),
-                'services' => (int) ($this->services_count ?? $this->services()->count()),
-                'backups' => (int) ($this->backups_count ?? $this->backups()->count()),
-            ],
         ];
     }
 }

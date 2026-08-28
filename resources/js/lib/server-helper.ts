@@ -4,9 +4,16 @@ export type RecentServer = Pick<Server, 'id'> & { last_used_at: number };
 
 const recentServersLimit = 25;
 const recentHistoryTtl = 30 * 24 * 60 * 60 * 1000;
+const serverPageVisitsLimit = 10;
+
+type ServerPageVisit = { key: string; last_used_at: number };
 
 function recentServersKey(userId: number, projectId: number): string {
   return `recent-servers:${userId}:${projectId}`;
+}
+
+function serverPageVisitsKey(userId: number, serverId: number): string {
+  return `server-page-visits:${userId}:${serverId}`;
 }
 
 function readRecentServers(userId: number, projectId: number): RecentServer[] {
@@ -84,12 +91,44 @@ const serverHelper = {
     try {
       for (let index = localStorage.length - 1; index >= 0; index -= 1) {
         const key = localStorage.key(index);
-        if (key?.startsWith(`recent-servers:${userId}:`)) {
+        if (key?.startsWith(`recent-servers:${userId}:`) || key?.startsWith(`server-page-visits:${userId}:`)) {
           localStorage.removeItem(key);
         }
       }
     } catch {
       return;
+    }
+  },
+  recordVisitedServerPage(userId: number, serverId: number, pageKey: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const key = serverPageVisitsKey(userId, serverId);
+      const stored = localStorage.getItem(key);
+      const visits: ServerPageVisit[] = stored ? (JSON.parse(stored) as ServerPageVisit[]) : [];
+      const next = [{ key: pageKey, last_used_at: Date.now() }, ...visits.filter((visit) => visit.key !== pageKey)].slice(
+        0,
+        serverPageVisitsLimit,
+      );
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      return;
+    }
+  },
+  getRecentVisitedServerPages(userId: number, serverId: number, limit = 3): string[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    try {
+      const stored = localStorage.getItem(serverPageVisitsKey(userId, serverId));
+      const visits = stored ? (JSON.parse(stored) as ServerPageVisit[]) : [];
+
+      return visits.slice(0, limit).map((visit) => visit.key);
+    } catch {
+      return [];
     }
   },
 };

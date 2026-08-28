@@ -7,16 +7,15 @@ import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMe
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import siteHelper from '@/lib/site-helper';
 import serverHelper from '@/lib/server-helper';
+import { SERVER_NAV_PAGES } from '@/lib/server-nav-pages';
 import Layout from '@/layouts/app/layout';
 import { SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
   ArrowRightIcon,
   BoxIcon,
-  ClockIcon,
   CloudIcon,
   CloudUploadIcon,
-  CogIcon,
   EyeOffIcon,
   FolderGit2Icon,
   GlobeIcon,
@@ -104,19 +103,14 @@ function StatusBadge({ status, color }: { status: string; color: 'gray' | 'succe
 
 type QuickLink = { key: string; label: string; href: string; icon: LucideIcon };
 
-const SERVER_QUICK_LINK_DEFS: Array<{ key: keyof NonNullable<OverviewServer['counts']>; label: string; routeName: string; icon: LucideIcon }> = [
-  { key: 'cronjobs', label: 'CronJobs', routeName: 'cronjobs', icon: ClockIcon },
-  { key: 'services', label: 'Services', routeName: 'services', icon: CogIcon },
-  { key: 'backups', label: 'Backups', routeName: 'backups', icon: CloudUploadIcon },
-];
-
-function serverQuickLinks(server: OverviewServer): QuickLink[] {
-  return SERVER_QUICK_LINK_DEFS.filter((def) => (server.counts?.[def.key] ?? 0) > 0).map((def) => ({
-    key: def.key,
-    label: def.label,
-    href: route(def.routeName, { server: server.id }),
-    icon: def.icon,
-  }));
+function serverQuickLinks(server: OverviewServer, userId: number): QuickLink[] {
+  return serverHelper
+    .getRecentVisitedServerPages(userId, server.id, 3)
+    .map((key): QuickLink | null => {
+      const page = SERVER_NAV_PAGES.find((candidate) => candidate.key === key);
+      return page ? { key, label: page.label, href: route(page.routeName, { server: server.id }), icon: page.icon } : null;
+    })
+    .filter((link): link is QuickLink => link !== null);
 }
 
 const SITE_PAGE_META: Record<string, { label: string; routeName: string; icon: LucideIcon }> = {
@@ -376,11 +370,11 @@ export default function Overview() {
                     icon={ServerIcon}
                     title={server.name}
                     subtitle={<span className="font-mono">{server.ip}</span>}
-                    quickLinks={serverQuickLinks(server)}
+                    quickLinks={serverQuickLinks(server, userId)}
                     right={
                       <>
                         <IssueIndicator count={issueCount(server.status, server.status_color, server.warnings)} />
-                        <StatusBadge status={server.status} color={server.status_color} />
+                        {server.status !== 'ready' && <StatusBadge status={server.status} color={server.status_color} />}
                       </>
                     }
                   />
@@ -408,7 +402,7 @@ export default function Overview() {
                     right={
                       <>
                         <IssueIndicator count={issueCount(site.status, site.status_color, site.warnings)} />
-                        <StatusBadge status={site.status} color={site.status_color} />
+                        {site.status !== 'ready' && <StatusBadge status={site.status} color={site.status_color} />}
                       </>
                     }
                   />

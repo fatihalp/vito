@@ -37,10 +37,7 @@ class GetOverviewResources
             $this->projectIds = $user->allProjects()->pluck('projects.id')->all();
         }
 
-        $servers = $this->recent(
-            $this->scopeToProjects(Server::query())->with('latestMetric')->withCount(['cronJobs', 'services', 'backups']),
-            $serverIds
-        );
+        $servers = $this->recent($this->scopeToProjects(Server::query())->with('latestMetric'), $serverIds);
         $sites = $this->recent($this->siteQuery(), $siteIds, $fallbackServerId);
 
         return [
