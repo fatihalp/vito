@@ -138,6 +138,7 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
   const sslExpiringWarning = warnings.find((w) => w.key === 'ssl_expiring');
   const needsFirstDeployWarning = warnings.find((w) => w.key === 'needs_first_deploy');
   const composerInstallFailedWarning = warnings.find((w) => w.key === 'composer_install_failed');
+  const appDebugEnabledWarning = warnings.find((w) => w.key === 'app_debug_enabled');
   const workerWarnings = warnings.filter((w): w is Extract<SiteWarning, { key: 'worker_not_running' }> => w.key === 'worker_not_running');
 
   const items: BannerItem[] = [];
@@ -288,6 +289,26 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
         <Link href={route('application', { server: site.server_id, site: site.id })}>
           <Button variant="outline" size="sm">
             Go to Application
+          </Button>
+        </Link>
+      ),
+    });
+  }
+
+  if (appDebugEnabledWarning) {
+    items.push({
+      key: 'app-debug-enabled',
+      title: 'APP_DEBUG is not disabled on this production server',
+      description: (
+        <>
+          This server's environment stage is <strong>Production</strong>, but <code>APP_DEBUG</code> is missing or not set to <code>false</code> in
+          this site's <code>.env</code>. Leaving debug mode on in production can leak sensitive data in error pages.
+        </>
+      ),
+      action: (
+        <Link href={route('application', { server: site.server_id, site: site.id })}>
+          <Button variant="outline" size="sm">
+            Review .env
           </Button>
         </Link>
       ),

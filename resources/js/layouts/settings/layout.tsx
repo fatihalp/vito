@@ -12,6 +12,7 @@ import {
   LogsIcon,
   NetworkIcon,
   PlugIcon,
+  SearchIcon,
   ShieldCheckIcon,
   WorkflowIcon,
 } from 'lucide-react';
@@ -99,6 +100,12 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'Vito Settings',
       href: route('vito-settings'),
       icon: ShieldCheckIcon,
+      hidden: !isAdmin,
+    },
+    {
+      title: 'Env Anahtarı Ara',
+      href: route('env-search'),
+      icon: SearchIcon,
       hidden: !isAdmin,
     },
     {

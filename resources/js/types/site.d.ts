@@ -93,6 +93,7 @@ export type SiteWarning =
   | { key: 'ssl_expiring'; count: number; domains: string[]; earliest_expiry: string }
   | { key: 'needs_first_deploy' }
   | { key: 'composer_install_failed' }
+  | { key: 'app_debug_enabled' }
   | {
       key: 'worker_not_running';
       worker_id: number;

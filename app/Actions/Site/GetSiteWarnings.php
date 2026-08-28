@@ -6,8 +6,10 @@ use App\Enums\DeploymentStatus;
 use App\Enums\HostedDomainStatus;
 use App\Enums\SslStatus;
 use App\Enums\WorkerStatus;
+use App\Helpers\EnvParser;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
+use Illuminate\Support\Facades\Cache;
 
 class GetSiteWarnings
 {
@@ -67,6 +69,10 @@ class GetSiteWarnings
             $warnings[] = ['key' => 'composer_install_failed'];
         }
 
+        if ($site->server->stage === 'prod' && $site->typeOrNull()?->language() === 'php' && ! $this->appDebugDisabled($site)) {
+            $warnings[] = ['key' => 'app_debug_enabled'];
+        }
+
         if ($site->relationLoaded('workers')) {
             $bootstrapId = $site->bootstrapWorkerId();
 
@@ -92,5 +98,14 @@ class GetSiteWarnings
         }
 
         return $warnings;
+    }
+
+    private function appDebugDisabled(Site $site): bool
+    {
+        return Cache::remember("site:{$site->id}:app-debug-disabled", 60, function () use ($site): bool {
+            $variable = collect(EnvParser::parse($site->getEnv()))->firstWhere('key', 'APP_DEBUG');
+
+            return ($variable['value'] ?? null) === 'false';
+        });
     }
 }
