@@ -11,6 +11,7 @@ import type { Site } from '@/types/site';
 import { Link, router, usePage } from '@inertiajs/react';
 import { ChevronDownIcon, ChevronLeftIcon, ExternalLinkIcon, LoaderCircleIcon, ServerIcon } from 'lucide-react';
 import { useEffect } from 'react';
+import siteHelper from '@/lib/site-helper';
 
 type SiteNavItem = {
   title: string;
@@ -19,6 +20,21 @@ type SiteNavItem = {
   activePrefixes?: string[];
   count?: number | null;
 };
+
+function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
+  const routeParams = { server: server.id, site: site.id };
+  const applicationHref = route('application', routeParams);
+  const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
+
+  return [
+    { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
+    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts.resources },
+    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts.domains },
+    { title: 'Commands', href: route('commands', routeParams), count: site.counts.commands },
+    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts.workers },
+    { title: 'Settings', href: route('site-settings', routeParams) },
+  ];
+}
 
 function isActive(currentPath: string, item: SiteNavItem): boolean {
   const path = new URL(item.href, 'http://localhost').pathname;
@@ -36,6 +52,7 @@ export function SiteHeaderNav() {
   const initialServer = page.props.server;
   const site = useRealtimeRecord<Site>(initialSite, 'site');
   const server = useRealtimeRecord<Server>(initialServer, 'server');
+  const userId = page.props.auth?.user?.id;
 
   useEffect(() => {
     if (initialSite?.status === 'installing' && site && (site.status === 'ready' || site.status === 'installation_failed')) {
@@ -43,22 +60,26 @@ export function SiteHeaderNav() {
     }
   }, [site?.status, initialSite?.status]);
 
+  useEffect(() => {
+    if (!site || !server || !userId) {
+      return;
+    }
+
+    const currentPath = page.url.split('?')[0];
+    const activeItem = buildPrimaryItems(server, site).find((item) => isActive(currentPath, item));
+
+    if (activeItem) {
+      siteHelper.recordVisitedSitePage(userId, site.id, activeItem.title);
+    }
+  }, [page.url, site, server, userId]);
+
   if (!site || !server) {
     return null;
   }
 
   const currentPath = page.url.split('?')[0];
   const routeParams = { server: server.id, site: site.id };
-  const applicationHref = route('application', routeParams);
-  const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
-  const primaryItems: SiteNavItem[] = [
-    { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts.resources },
-    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts.domains },
-    { title: 'Commands', href: route('commands', routeParams), count: site.counts.commands },
-    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts.workers },
-    { title: 'Settings', href: route('site-settings', routeParams) },
-  ];
+  const primaryItems: SiteNavItem[] = buildPrimaryItems(server, site);
   const otherItems: SiteNavItem[] = [
     { title: 'Features', href: route('site-features', routeParams) },
     { title: 'Tooling', href: route('site-tooling', routeParams) },

@@ -5,9 +5,16 @@ export type RecentSite = Pick<Site, 'id' | 'server_id'> & { last_used_at: number
 const currentSiteKey = 'site';
 const recentSitesLimit = 25;
 const recentHistoryTtl = 30 * 24 * 60 * 60 * 1000;
+const sitePageVisitsLimit = 10;
+
+type SitePageVisit = { key: string; last_used_at: number };
 
 function recentSitesKey(userId: number, serverId: number): string {
   return `recent-sites:${userId}:${serverId}`;
+}
+
+function sitePageVisitsKey(userId: number, siteId: number): string {
+  return `site-page-visits:${userId}:${siteId}`;
 }
 
 function recentProjectSitesKey(userId: number, projectId: number): string {
@@ -132,12 +139,48 @@ const siteHelper = {
     const projectSites = readRecentSites(recentProjectSitesKey(userId, projectId)).filter((site) => site.server_id !== serverId);
     writeRecentSites(recentProjectSitesKey(userId, projectId), projectSites);
   },
+  recordVisitedSitePage(userId: number, siteId: number, pageKey: string): void {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    try {
+      const key = sitePageVisitsKey(userId, siteId);
+      const stored = localStorage.getItem(key);
+      const visits: SitePageVisit[] = stored ? (JSON.parse(stored) as SitePageVisit[]) : [];
+      const next = [{ key: pageKey, last_used_at: Date.now() }, ...visits.filter((visit) => visit.key !== pageKey)].slice(
+        0,
+        sitePageVisitsLimit,
+      );
+      localStorage.setItem(key, JSON.stringify(next));
+    } catch {
+      return;
+    }
+  },
+  getRecentVisitedSitePages(userId: number, siteId: number, limit = 3): string[] {
+    if (typeof window === 'undefined') {
+      return [];
+    }
+
+    try {
+      const stored = localStorage.getItem(sitePageVisitsKey(userId, siteId));
+      const visits = stored ? (JSON.parse(stored) as SitePageVisit[]) : [];
+
+      return visits.slice(0, limit).map((visit) => visit.key);
+    } catch {
+      return [];
+    }
+  },
   clearRecentSites(userId: number): void {
     try {
       localStorage.removeItem(currentSiteKey);
       for (let index = localStorage.length - 1; index >= 0; index -= 1) {
         const key = localStorage.key(index);
-        if (key?.startsWith(`recent-sites:${userId}:`) || key?.startsWith(`recent-project-sites:${userId}:`)) {
+        if (
+          key?.startsWith(`recent-sites:${userId}:`) ||
+          key?.startsWith(`recent-project-sites:${userId}:`) ||
+          key?.startsWith(`site-page-visits:${userId}:`)
+        ) {
           localStorage.removeItem(key);
         }
       }

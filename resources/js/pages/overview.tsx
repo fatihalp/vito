@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { DropdownMenu, DropdownMenuCheckboxItem, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import siteHelper from '@/lib/site-helper';
 import serverHelper from '@/lib/server-helper';
 import Layout from '@/layouts/app/layout';
@@ -11,18 +12,24 @@ import { SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
   ArrowRightIcon,
+  BoxIcon,
+  ClockIcon,
   CloudIcon,
   CloudUploadIcon,
+  CogIcon,
   EyeOffIcon,
   FolderGit2Icon,
   GlobeIcon,
   LayoutGridIcon,
+  ListEndIcon,
   type LucideIcon,
   ServerIcon,
+  Settings2Icon,
+  TerminalIcon,
   TriangleAlertIcon,
 } from 'lucide-react';
 import { ReactNode, useEffect, useState } from 'react';
-import { type OverviewProviderItem, useOverviewResources } from '@/hooks/use-overview-resources';
+import { type OverviewProviderItem, type OverviewServer, type OverviewSite, useOverviewResources } from '@/hooks/use-overview-resources';
 
 const WIDGETS = [
   { key: 'servers', label: 'Recent servers' },
@@ -95,22 +102,83 @@ function StatusBadge({ status, color }: { status: string; color: 'gray' | 'succe
   );
 }
 
+type QuickLink = { key: string; label: string; href: string; icon: LucideIcon };
+
+const SERVER_QUICK_LINK_DEFS: Array<{ key: keyof NonNullable<OverviewServer['counts']>; label: string; routeName: string; icon: LucideIcon }> = [
+  { key: 'cronjobs', label: 'CronJobs', routeName: 'cronjobs', icon: ClockIcon },
+  { key: 'services', label: 'Services', routeName: 'services', icon: CogIcon },
+  { key: 'backups', label: 'Backups', routeName: 'backups', icon: CloudUploadIcon },
+];
+
+function serverQuickLinks(server: OverviewServer): QuickLink[] {
+  return SERVER_QUICK_LINK_DEFS.filter((def) => (server.counts?.[def.key] ?? 0) > 0).map((def) => ({
+    key: def.key,
+    label: def.label,
+    href: route(def.routeName, { server: server.id }),
+    icon: def.icon,
+  }));
+}
+
+const SITE_PAGE_META: Record<string, { label: string; routeName: string; icon: LucideIcon }> = {
+  Application: { label: 'Application', routeName: 'application', icon: LayoutGridIcon },
+  Resources: { label: 'Resources', routeName: 'site-resources', icon: BoxIcon },
+  Domains: { label: 'Domains', routeName: 'hosted-domains', icon: GlobeIcon },
+  Commands: { label: 'Commands', routeName: 'commands', icon: TerminalIcon },
+  Workers: { label: 'Workers', routeName: 'workers.site', icon: ListEndIcon },
+  Settings: { label: 'Settings', routeName: 'site-settings', icon: Settings2Icon },
+};
+
+function siteQuickLinks(site: OverviewSite, userId: number): QuickLink[] {
+  const routeParams = { server: site.server_id, site: site.id };
+
+  return siteHelper
+    .getRecentVisitedSitePages(userId, site.id, 3)
+    .map((key): QuickLink | null => {
+      const meta = SITE_PAGE_META[key];
+      return meta ? { key, label: meta.label, href: route(meta.routeName, routeParams), icon: meta.icon } : null;
+    })
+    .filter((link): link is QuickLink => link !== null);
+}
+
 function ResourceRow({
   href,
   icon: Icon,
   title,
   subtitle,
   right,
+  quickLinks,
 }: {
   href: string;
   icon: LucideIcon;
   title: string;
   subtitle?: ReactNode;
   right?: ReactNode;
+  quickLinks?: QuickLink[];
 }) {
+  if (!quickLinks || quickLinks.length === 0) {
+    return (
+      <Link href={href} className="hover:bg-muted/50 flex items-center justify-between gap-4 px-3.5 py-2.5 transition-colors" prefetch>
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+            <Icon className="text-muted-foreground size-4" />
+          </div>
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate text-sm font-medium">{title}</span>
+            {subtitle && <span className="text-muted-foreground truncate text-[11px]">{subtitle}</span>}
+          </div>
+        </div>
+        <div className="flex shrink-0 items-center gap-2">
+          {right}
+          <ArrowRightIcon className="text-muted-foreground size-3.5" />
+        </div>
+      </Link>
+    );
+  }
+
   return (
-    <Link href={href} className="hover:bg-muted/50 flex items-center justify-between gap-4 px-3.5 py-2.5 transition-colors" prefetch>
-      <div className="flex min-w-0 items-center gap-3">
+    <div className="hover:bg-muted/50 group relative flex items-center justify-between gap-4 px-3.5 py-2.5 transition-colors">
+      <Link href={href} className="absolute inset-0" aria-label={title} prefetch />
+      <div className="pointer-events-none flex min-w-0 items-center gap-3">
         <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
           <Icon className="text-muted-foreground size-4" />
         </div>
@@ -119,11 +187,27 @@ function ResourceRow({
           {subtitle && <span className="text-muted-foreground truncate text-[11px]">{subtitle}</span>}
         </div>
       </div>
-      <div className="flex shrink-0 items-center gap-2">
+      <div className="flex shrink-0 items-center gap-1.5">
+        <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
+          {quickLinks.map((link) => (
+            <Tooltip key={link.key}>
+              <TooltipTrigger asChild>
+                <Link
+                  href={link.href}
+                  aria-label={link.label}
+                  className="hover:bg-background text-muted-foreground hover:text-foreground relative z-10 flex size-6 items-center justify-center rounded-md transition-colors"
+                >
+                  <link.icon className="size-3.5" />
+                </Link>
+              </TooltipTrigger>
+              <TooltipContent>{link.label}</TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
         {right}
         <ArrowRightIcon className="text-muted-foreground size-3.5" />
       </div>
-    </Link>
+    </div>
   );
 }
 
@@ -164,7 +248,7 @@ function QuickAccessCard({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex flex-1 flex-col justify-center p-0">
+      <CardContent className="flex flex-1 flex-col p-0">
         {loading || count === 0 ? (
           <div className="text-muted-foreground py-8 text-center text-xs">{loading ? 'Loading...' : emptyText}</div>
         ) : (
@@ -292,6 +376,7 @@ export default function Overview() {
                     icon={ServerIcon}
                     title={server.name}
                     subtitle={<span className="font-mono">{server.ip}</span>}
+                    quickLinks={serverQuickLinks(server)}
                     right={
                       <>
                         <IssueIndicator count={issueCount(server.status, server.status_color, server.warnings)} />
@@ -319,6 +404,7 @@ export default function Overview() {
                     icon={GlobeIcon}
                     title={site.domain}
                     subtitle={site.server_name}
+                    quickLinks={siteQuickLinks(site, userId)}
                     right={
                       <>
                         <IssueIndicator count={issueCount(site.status, site.status_color, site.warnings)} />

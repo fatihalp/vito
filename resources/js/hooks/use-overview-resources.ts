@@ -3,7 +3,7 @@ import type { Site, SiteWarning } from '@/types/site';
 import axios from 'axios';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-export type OverviewServer = Pick<Server, 'id' | 'project_id' | 'name' | 'ip' | 'status' | 'status_color'> & {
+export type OverviewServer = Pick<Server, 'id' | 'project_id' | 'name' | 'ip' | 'status' | 'status_color' | 'counts'> & {
   warnings: ServerWarning[];
 };
 
