@@ -81,7 +81,7 @@ class ConnectSiteResource
         }
 
         if ($type === SiteResourceType::STORAGE) {
-            return $this->connectStorage($site, (int) $data['storage_provider_id']);
+            return $this->connectStorage($site, (int) $data['storage_provider_id'], $isAdmin);
         }
 
         $serverQuery = Server::query();
@@ -253,12 +253,14 @@ class ConnectSiteResource
         }
     }
 
-    private function connectStorage(Site $site, int $storageProviderId): SiteResource
+    private function connectStorage(Site $site, int $storageProviderId, bool $isAdmin): SiteResource
     {
         $storageProvider = StorageProvider::query()
-            ->where(function ($query) use ($site): void {
-                $query->where('project_id', $site->server->project_id)
-                    ->orWhereNull('project_id');
+            ->where(function ($query) use ($site, $isAdmin): void {
+                if (! $isAdmin) {
+                    $query->where('project_id', $site->server->project_id)
+                        ->orWhereNull('project_id');
+                }
             })
             ->findOrFail($storageProviderId);
 
