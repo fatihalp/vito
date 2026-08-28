@@ -1,6 +1,7 @@
-import { FormEvent, useState } from 'react';
-import { Head, Link, router, usePage } from '@inertiajs/react';
-import { SearchIcon, ServerIcon } from 'lucide-react';
+import { FormEvent, useEffect, useRef, useState } from 'react';
+import { Head, Link } from '@inertiajs/react';
+import axios from 'axios';
+import { LoaderCircleIcon, SearchIcon, ServerIcon } from 'lucide-react';
 import SettingsLayout from '@/layouts/settings/layout';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -8,6 +9,7 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { errorMessage } from '@/lib/errors';
 
 type EnvSearchResult = {
   site_id: number;
@@ -18,21 +20,71 @@ type EnvSearchResult = {
   value: string | null;
 };
 
-type Page = {
-  key: string;
-  results: EnvSearchResult[] | null;
-};
+type SearchStatus =
+  | { status: 'pending' }
+  | { status: 'done'; results: EnvSearchResult[] }
+  | { status: 'failed'; error: string }
+  | { status: 'not_found' };
+
+const POLL_INTERVAL_MS = 1500;
 
 export default function EnvSearch() {
-  const page = usePage<Page>();
-  const [key, setKey] = useState(page.props.key ?? '');
+  const [key, setKey] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [results, setResults] = useState<EnvSearchResult[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const submit = (e: FormEvent) => {
+  useEffect(() => {
+    return () => {
+      if (pollTimer.current) {
+        clearTimeout(pollTimer.current);
+      }
+    };
+  }, []);
+
+  const poll = (searchId: string) => {
+    pollTimer.current = setTimeout(async () => {
+      try {
+        const response = await axios.get<SearchStatus>(route('env-search.status', { searchId }));
+        const data = response.data;
+
+        if (data.status === 'done') {
+          setResults(data.results);
+          setSearching(false);
+        } else if (data.status === 'failed') {
+          setError(data.error || 'Arama başarısız oldu.');
+          setSearching(false);
+        } else if (data.status === 'not_found') {
+          setError('Arama sonucu bulunamadı.');
+          setSearching(false);
+        } else {
+          poll(searchId);
+        }
+      } catch (e) {
+        setError(errorMessage(e, 'Arama sırasında bir hata oluştu.'));
+        setSearching(false);
+      }
+    }, POLL_INTERVAL_MS);
+  };
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (key.trim() === '') {
+    if (key.trim() === '' || searching) {
       return;
     }
-    router.get(route('env-search'), { key: key.trim() }, { preserveState: true, preserveScroll: true });
+
+    setSearching(true);
+    setError(null);
+    setResults(null);
+
+    try {
+      const response = await axios.post<{ search_id: string }>(route('env-search.search'), { key: key.trim() });
+      poll(response.data.search_id);
+    } catch (e) {
+      setError(errorMessage(e, 'Arama başlatılamadı.'));
+      setSearching(false);
+    }
   };
 
   return (
@@ -58,12 +110,26 @@ export default function EnvSearch() {
               autoFocus
             />
           </div>
-          <Button type="submit">Ara</Button>
+          <Button type="submit" disabled={searching}>
+            {searching && <LoaderCircleIcon className="size-3.5 animate-spin" />}
+            {searching ? 'Aranıyor...' : 'Ara'}
+          </Button>
         </form>
 
-        {page.props.results === null ? (
+        {error && <p className="text-destructive text-sm">{error}</p>}
+
+        {!searching && results === null && !error && (
           <p className="text-muted-foreground text-sm">Bir anahtar girip aramayı başlatın.</p>
-        ) : (
+        )}
+
+        {searching && results === null && (
+          <p className="text-muted-foreground flex items-center gap-2 text-sm">
+            <LoaderCircleIcon className="size-3.5 animate-spin" />
+            Sunuculardaki .env dosyaları taranıyor, bu biraz zaman alabilir...
+          </p>
+        )}
+
+        {results !== null && (
           <div className="overflow-hidden rounded-md border shadow-2xs">
             <Table>
               <TableHeader>
@@ -74,14 +140,14 @@ export default function EnvSearch() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {page.props.results.length === 0 ? (
+                {results.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} className="text-muted-foreground text-center">
                       Erişilebilir site bulunamadı.
                     </TableCell>
                   </TableRow>
                 ) : (
-                  page.props.results.map((result) => (
+                  results.map((result) => (
                     <TableRow key={result.site_id}>
                       <TableCell>
                         <Link

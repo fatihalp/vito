@@ -103,7 +103,7 @@ class GetSiteWarnings
     private function appDebugDisabled(Site $site): bool
     {
         return Cache::remember("site:{$site->id}:app-debug-disabled", 60, function () use ($site): bool {
-            $variable = collect(EnvParser::parse($site->getEnv()))->firstWhere('key', 'APP_DEBUG');
+            $variable = collect(EnvParser::parse($site->getEnv(timeout: 8)))->firstWhere('key', 'APP_DEBUG');
 
             return ($variable['value'] ?? null) === 'false';
         });

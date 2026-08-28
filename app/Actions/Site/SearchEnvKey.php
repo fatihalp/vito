@@ -22,7 +22,7 @@ class SearchEnvKey
             ->get();
 
         return $sites->map(function (Site $site) use ($validated): array {
-            $variables = EnvParser::parse($site->getEnv());
+            $variables = EnvParser::parse($site->getEnv(timeout: 8));
             $match = collect($variables)->firstWhere('key', $validated['key']);
 
             return [

@@ -487,10 +487,10 @@ class Site extends AbstractModel
     }
 
     
-    public function getEnv(?string $path = null): string
+    public function getEnv(?string $path = null, int $timeout = 0): string
     {
         try {
-            return $this->server->os()->readFile($this->resolveEnvPath($path));
+            return $this->server->os()->readFile($this->resolveEnvPath($path), $timeout);
         } catch (SSHError) {
             return '';
         }

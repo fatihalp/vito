@@ -197,12 +197,13 @@ class OS
     }
 
     
-    public function readFile(string $path): string
+    public function readFile(string $path, int $timeout = 0): string
     {
         return trim($this->server->ssh()->exec(
-            view('ssh.os.read-file', [
+            command: view('ssh.os.read-file', [
                 'path' => $path,
-            ])
+            ]),
+            timeout: $timeout,
         ));
     }
 
