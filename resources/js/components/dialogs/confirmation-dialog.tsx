@@ -62,14 +62,19 @@ export default function ConfirmationDialog({
       <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="sr-only">{description ?? title}</DialogDescription>
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription className="sr-only">{title}</DialogDescription>
+          )}
         </DialogHeader>
-        <div className="space-y-2 p-4">
-          {description && <p>{description}</p>}
-          {errors.map((error) => (
-            <InputError key={error} message={error} />
-          ))}
-        </div>
+        {errors.length > 0 && (
+          <div className="space-y-2 p-4">
+            {errors.map((error) => (
+              <InputError key={error} message={error} />
+            ))}
+          </div>
+        )}
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline">Cancel</Button>

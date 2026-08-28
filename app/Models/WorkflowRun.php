@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\Storage;
 
 class WorkflowRun extends Model
 {
-    
+    public const string PENDING_LOG_MESSAGE = "This job hasn't started yet. It's queued and will begin automatically.";
+
+
     use HasFactory;
 
     protected $fillable = [
@@ -69,7 +71,7 @@ class WorkflowRun extends Model
     public function getLogContent(): string
     {
         if (empty($this->log_disk) || empty($this->log_path) || ! Storage::disk($this->log_disk)->exists($this->log_path)) {
-            return "Log file doesn't exist or is empty!";
+            return self::PENDING_LOG_MESSAGE;
         }
 
         return Storage::disk($this->log_disk)->get($this->log_path);

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
+import { appendLogContent } from '@/lib/log';
 
 type UseLogContentOptions = {
   
@@ -62,7 +63,7 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
 
         const buf = (event.data as { content?: string }).content;
         if (buf) {
-          setContent((prev) => prev + buf);
+          setContent((prev) => appendLogContent(prev, buf));
         }
       },
       [], 

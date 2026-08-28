@@ -10,6 +10,7 @@ import { ChevronRightIcon, LogsIcon, RefreshCwIcon, XIcon } from 'lucide-react';
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSocketListener } from '@/hooks/use-socket-events';
+import { appendLogContent } from '@/lib/log';
 
 function InstantLogContent({ serverId, logId }: { serverId: number; logId: number }) {
   const [content, setContent] = useState('Loading...');
@@ -36,7 +37,7 @@ function InstantLogContent({ serverId, logId }: { serverId: number; logId: numbe
       if (!event.data || (event.data as { id?: number }).id !== logIdRef.current) return;
       const buf = (event.data as { content?: string }).content;
       if (buf) {
-        setContent((prev) => prev + buf);
+        setContent((prev) => appendLogContent(prev, buf));
       }
     }, []),
   );

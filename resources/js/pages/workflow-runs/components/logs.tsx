@@ -3,6 +3,7 @@ import { WorkflowRun } from '@/types/workflow-run';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
+import { appendLogContent } from '@/lib/log';
 
 export default function Logs({ workflowRun }: { workflowRun: WorkflowRun }) {
   const [content, setContent] = useState('');
@@ -43,7 +44,7 @@ export default function Logs({ workflowRun }: { workflowRun: WorkflowRun }) {
 
       const buf = (event.data as { content?: string }).content;
       if (buf) {
-        setContent((prev) => prev + buf);
+        setContent((prev) => appendLogContent(prev, buf));
       }
     }, []),
   );

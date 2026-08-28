@@ -21,7 +21,9 @@ use Throwable;
 
 class ServerLog extends AbstractModel
 {
-    
+    public const string PENDING_LOG_MESSAGE = "This job hasn't started yet. It's queued and will begin automatically.";
+
+
     use HasFactory;
 
     private static ?int $networkContext = null;
@@ -150,7 +152,7 @@ class ServerLog extends AbstractModel
         if ($this->is_remote) {
             $content = $this->server->os()->tail($this->name, $lines ?? 150);
 
-            return trim($content) === OS::FILE_NOT_FOUND ? "Log file doesn't exist or is empty!" : $content;
+            return trim($content) === OS::FILE_NOT_FOUND ? self::PENDING_LOG_MESSAGE : $content;
         }
 
         if (Storage::disk($this->disk)->exists($this->name)) {
@@ -163,7 +165,7 @@ class ServerLog extends AbstractModel
             return $content ?? 'Empty log file!';
         }
 
-        return "Log file doesn't exist or is empty!";
+        return self::PENDING_LOG_MESSAGE;
     }
 
     public static function log(Server $server, string $type, string $content, ?Site $site = null): ServerLog
