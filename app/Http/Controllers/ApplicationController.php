@@ -53,36 +53,39 @@ class ApplicationController extends Controller
 
         $site->ensureDeploymentScriptsExist();
 
-        $deploymentScript = $site->deploymentScript;
-        $buildScript = $site->buildScript;
-        $preFlightScript = $site->preFlightScript;
-
-        $type = $site->type();
-        $bootstrapWorker = $type instanceof AbstractProxiedSiteType ? $type->bootstrapWorker() : null;
-        $overview = app(GetSiteOverview::class)->get($site);
-
-        $user = user();
-        $dnsProviders = DNSProvider::getByProjectId($user->current_project_id, $user)
-            ->where('connected', true)
-            ->get();
-
-        $domainProxyStatus = app(ResolveDomainProxyStatuses::class)->resolve($site);
-
         return Inertia::render('application/index', [
-            'deployments' => DeploymentTable::make($site->deployments())->overview(),
-            'deploymentScript' => new DeploymentScriptResource($deploymentScript),
-            'buildScript' => $buildScript ? new DeploymentScriptResource($buildScript) : null,
-            'preFlightScript' => $preFlightScript ? new DeploymentScriptResource($preFlightScript) : null,
-            'loadBalancerServers' => LoadBalancerServerResource::collection($site->loadBalancerServers),
-            'worker' => $bootstrapWorker ? new WorkerResource($bootstrapWorker) : null,
-            'overviewWorkers' => WorkerResource::collection($overview['workers']),
-            'overviewWorkersCount' => $overview['workers_count'],
-            'overviewCronJobs' => CronJobResource::collection($overview['cron_jobs']),
-            'overviewCronJobsCount' => $overview['cron_jobs_count'],
-            'resources' => SiteResourceResource::collection($site->resources()->with(['server', 'storageProvider'])->get()),
-            'hostedDomains' => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()),
-            'dnsProviders' => DNSProviderResource::collection($dnsProviders),
-            'domainProxyStatus' => $domainProxyStatus,
+            'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
+            'deploymentScript' => Inertia::defer(fn () => new DeploymentScriptResource($site->deploymentScript), 'deployments'),
+            'buildScript' => Inertia::defer(fn () => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null, 'deployments'),
+            'preFlightScript' => Inertia::defer(fn () => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null, 'deployments'),
+            'loadBalancerServers' => Inertia::defer(fn () => LoadBalancerServerResource::collection($site->loadBalancerServers), 'deployments'),
+            'worker' => Inertia::defer(function () use ($site) {
+                $type = $site->type();
+                return $type instanceof AbstractProxiedSiteType && $type->bootstrapWorker()
+                    ? new WorkerResource($type->bootstrapWorker())
+                    : null;
+            }, 'deployments'),
+            'overviewWorkers' => Inertia::defer(function () use ($site) {
+                return WorkerResource::collection(app(GetSiteOverview::class)->get($site)['workers']);
+            }, 'overview'),
+            'overviewWorkersCount' => Inertia::defer(function () use ($site) {
+                return app(GetSiteOverview::class)->get($site)['workers_count'];
+            }, 'overview'),
+            'overviewCronJobs' => Inertia::defer(function () use ($site) {
+                return CronJobResource::collection(app(GetSiteOverview::class)->get($site)['cron_jobs']);
+            }, 'overview'),
+            'overviewCronJobsCount' => Inertia::defer(function () use ($site) {
+                return app(GetSiteOverview::class)->get($site)['cron_jobs_count'];
+            }, 'overview'),
+            'resources' => Inertia::defer(fn () => SiteResourceResource::collection($site->resources()->with(['server', 'storageProvider'])->get()), 'diagram'),
+            'hostedDomains' => Inertia::defer(fn () => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()), 'diagram'),
+            'dnsProviders' => Inertia::defer(function () {
+                $user = user();
+                return DNSProviderResource::collection(
+                    DNSProvider::getByProjectId($user->current_project_id, $user)->where('connected', true)->get()
+                );
+            }, 'diagram'),
+            'domainProxyStatus' => Inertia::defer(fn () => app(ResolveDomainProxyStatuses::class)->resolve($site), 'diagram'),
         ]);
     }
 

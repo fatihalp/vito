@@ -15,6 +15,7 @@ import { Link, usePage } from '@inertiajs/react';
 import { ArrowRightIcon, GlobeIcon, LogsIcon, TerminalSquareIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { type OverviewSite, useOverviewResources } from '@/hooks/use-overview-resources';
+import { RecentSitesSkeleton } from '@/components/page-skeleton';
 
 export default function ServerOverview() {
   const page = usePage<SharedData & { server: Server }>();
@@ -79,7 +80,7 @@ export default function ServerOverview() {
               </Button>
             </div>
           ) : resources.isLoading ? (
-            <div className="text-muted-foreground px-6 py-12 text-center text-sm">Loading recent sites...</div>
+            <RecentSitesSkeleton />
           ) : recentSites.length > 0 ? (
             <div className="divide-y">
               {recentSites.map((site) => (

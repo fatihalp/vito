@@ -79,7 +79,7 @@ class ServerController extends Controller
 
         return Inertia::render('servers/show', [
             'logs' => $server->isInstalling()
-                ? ServerLogResource::collection($server->logs()->latest()->simplePaginate(config('web.pagination_size'), pageName: 'logsPage'))
+                ? Inertia::defer(fn () => ServerLogResource::collection($server->logs()->latest()->simplePaginate(config('web.pagination_size'), pageName: 'logsPage')))
                 : null,
         ]);
     }
