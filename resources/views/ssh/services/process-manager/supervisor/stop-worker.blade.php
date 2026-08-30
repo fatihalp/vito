@@ -6,3 +6,5 @@ echo "$output"
 if echo "$output" | grep ': ERROR' | grep -qvE 'not running'; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
+sudo supervisorctl clear {{ $id }}:* > /dev/null 2>&1 || true
+

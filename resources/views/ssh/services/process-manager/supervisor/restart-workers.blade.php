@@ -5,6 +5,7 @@ fi
 if ! sudo supervisorctl update {{ (int) $id }}; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
+sudo supervisorctl clear {{ (int) $id }}:* > /dev/null 2>&1 || true
 @endforeach
 if ! output=$(sudo supervisorctl restart {{ collect($ids)->map(fn ($id) => (int) $id.':*')->implode(' ') }} 2>&1); then
     echo "$output"

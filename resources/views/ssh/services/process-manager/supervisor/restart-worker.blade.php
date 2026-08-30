@@ -4,6 +4,7 @@ fi
 if ! sudo supervisorctl update {{ $id }}; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
+sudo supervisorctl clear {{ $id }}:* > /dev/null 2>&1 || true
 if ! output=$(sudo supervisorctl restart {{ $id }}:* 2>&1); then
     echo "$output"
     echo 'VITO_SSH_ERROR' && exit 1
