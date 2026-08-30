@@ -2,7 +2,7 @@
 
 namespace App\Actions\HostedDomain;
 
-use App\Rules\DomainRule;
+use App\ValidationRules\DomainRule;
 
 use App\Actions\Domain\CreateDnsARecordForServer;
 use App\Enums\HostedDomainStatus;
