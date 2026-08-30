@@ -114,9 +114,12 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function restart(int $id, ?int $siteId = null): void
     {
+        $worker = $this->service->server->workers()->find($id);
+
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.restart-worker', [
                 'id' => $id,
+                'logFile' => $worker?->getLogFile(),
             ]),
             'restart-worker',
             $siteId
@@ -126,9 +129,12 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function stop(int $id, ?int $siteId = null): void
     {
+        $worker = $this->service->server->workers()->find($id);
+
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.stop-worker', [
                 'id' => $id,
+                'logFile' => $worker?->getLogFile(),
             ]),
             'stop-worker',
             $siteId
@@ -138,9 +144,12 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function start(int $id, ?int $siteId = null): void
     {
+        $worker = $this->service->server->workers()->find($id);
+
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.start-worker', [
                 'id' => $id,
+                'logFile' => $worker?->getLogFile(),
             ]),
             'start-worker',
             $siteId
