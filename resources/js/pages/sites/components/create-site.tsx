@@ -336,13 +336,13 @@ export default function CreateSite({
               })}
             </div>
 
-            <SheetFooter className="p-4 border-t bg-muted/20">
+            <div className="p-4 sm:p-5 border-t bg-muted/20 flex flex-row items-center justify-end gap-3 mt-auto">
               <SheetClose asChild>
-                <Button variant="outline" size="sm" className="text-xs">
+                <Button type="button" variant="outline" className="h-10 px-5 text-sm font-medium cursor-pointer">
                   Cancel
                 </Button>
               </SheetClose>
-            </SheetFooter>
+            </div>
           </div>
         )}
 
@@ -362,13 +362,13 @@ export default function CreateSite({
                 </Button>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="size-8 flex items-center justify-center shrink-0">
-                  {getSiteTypeIcon(selectedPreset.key, 32)}
+              <div className="flex items-center gap-3.5">
+                <div className="size-10 flex items-center justify-center shrink-0 rounded-lg bg-muted/30 p-1">
+                  {getSiteTypeIcon(selectedPreset.key, 36)}
                 </div>
                 <div>
-                  <SheetTitle className="text-lg font-bold">Install a {selectedPreset.label} application</SheetTitle>
-                  <SheetDescription className="text-xs text-muted-foreground">
+                  <SheetTitle className="text-xl font-bold tracking-tight">Install a {selectedPreset.label} application</SheetTitle>
+                  <SheetDescription className="text-xs text-muted-foreground mt-0.5">
                     Configure repository, runtime, and domain settings
                   </SheetDescription>
                 </div>
@@ -487,15 +487,26 @@ export default function CreateSite({
               </FormFields>
             </Form>
 
-            <SheetFooter className="p-4 border-t bg-muted/20 flex items-center justify-between">
-              <Button type="button" variant="outline" size="sm" onClick={() => setStep(1)} disabled={form.processing} className="text-xs">
-                <ArrowLeftIcon className="size-3.5 mr-1" />
-                Back
+            <div className="p-4 sm:p-5 border-t bg-muted/20 flex flex-row items-center justify-between gap-4 mt-auto">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setStep(1)}
+                disabled={form.processing}
+                className="h-10 px-4 gap-2 text-sm font-medium cursor-pointer"
+              >
+                <ArrowLeftIcon className="size-4" />
+                <span>Back</span>
               </Button>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <SheetClose asChild>
-                  <Button variant="ghost" size="sm" disabled={form.processing} className="text-xs">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    disabled={form.processing}
+                    className="h-10 px-4 text-sm font-medium cursor-pointer text-muted-foreground hover:text-foreground"
+                  >
                     Cancel
                   </Button>
                 </SheetClose>
@@ -503,14 +514,13 @@ export default function CreateSite({
                   type="submit"
                   form="create-site-form"
                   disabled={form.processing || (!server && !form.data.server)}
-                  size="sm"
-                  className="text-xs"
+                  className="h-10 px-6 text-sm font-semibold cursor-pointer shadow-sm"
                 >
-                  {form.processing && <LoaderCircleIcon className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-                  Create site
+                  {form.processing && <LoaderCircleIcon className="mr-2 h-4 w-4 animate-spin" />}
+                  <span>Create site</span>
                 </Button>
               </div>
-            </SheetFooter>
+            </div>
           </div>
         )}
       </SheetContent>
