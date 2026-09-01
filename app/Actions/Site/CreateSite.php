@@ -133,25 +133,6 @@ class CreateSite
 
             DB::commit();
 
-            if (! empty($input['connect_database'])) {
-                $dbServerId = (int) ($input['database_server_id'] ?? $server->id);
-                $dbPayload = [
-                    'type' => 'database',
-                    'server_id' => $dbServerId,
-                ];
-                if (! empty($input['database_id'])) {
-                    $dbPayload['database_id'] = (int) $input['database_id'];
-                }
-                if (! empty($input['database_name'])) {
-                    $dbPayload['database_name'] = $input['database_name'];
-                }
-                try {
-                    app(\App\Actions\SiteResource\ConnectSiteResource::class)->connect($site, $dbPayload);
-                } catch (\Throwable $e) {
-                    \Illuminate\Support\Facades\Log::warning('Failed to connect database on site creation: '.$e->getMessage());
-                }
-            }
-
             dispatch(new CreateJob($site));
 
             return $site;
@@ -192,10 +173,6 @@ class CreateSite
             'provider_domain_id' => ['nullable', 'string'],
             'create_dns_record' => ['nullable', 'boolean'],
             'dns_record_proxied' => ['nullable', 'boolean'],
-            'connect_database' => ['nullable', 'boolean'],
-            'database_server_id' => ['nullable', 'integer', 'exists:servers,id'],
-            'database_id' => ['nullable', 'integer'],
-            'database_name' => ['nullable', 'string', 'max:64'],
         ];
 
         Validator::make($input, array_merge($rules, $this->typeRules($server, $input)))->validate();

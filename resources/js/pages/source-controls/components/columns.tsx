@@ -55,6 +55,42 @@ export const columns: ColumnDef<SourceControl>[] = [
     enableSorting: true,
   },
   {
+    accessorKey: 'user',
+    header: 'User',
+    enableColumnFilter: true,
+    enableSorting: false,
+    cell: ({ row }) => {
+      const user = row.original.user;
+      if (!user) {
+        return <span className="text-muted-foreground text-xs">-</span>;
+      }
+
+      return (
+        <div className="flex items-center gap-1.5" title={user.email}>
+          <span className="text-sm font-medium">{user.name}</span>
+          {user.email && <span className="text-xs text-muted-foreground">({user.email})</span>}
+        </div>
+      );
+    },
+  },
+  {
+    accessorKey: 'project',
+    header: 'Project',
+    enableColumnFilter: true,
+    enableSorting: false,
+    cell: ({ row }) => {
+      if (row.original.global || !row.original.project_id) {
+        return <Badge variant="outline">Global</Badge>;
+      }
+
+      return (
+        <span className="text-sm font-medium">
+          {row.original.project?.name ?? `Project #${row.original.project_id}`}
+        </span>
+      );
+    },
+  },
+  {
     accessorKey: 'global',
     header: 'Global',
     enableColumnFilter: true,

@@ -27,17 +27,21 @@ export function RecentSitesSkeleton() {
 
 export function SiteResourceDiagramSkeleton() {
   return (
-    <Card>
-      <CardHeader className="flex-row items-center gap-3">
-        <Skeleton className="size-9 rounded-lg" />
-        <div className="flex flex-col gap-2">
-          <Skeleton className="h-4 w-32" />
-          <Skeleton className="h-3 w-48" />
+    <Card className="border-border/60 shadow-xs">
+      <div className="flex items-center justify-between gap-3 px-4 py-2.5">
+        <div className="flex items-center gap-2.5">
+          <Skeleton className="size-7 rounded-md" />
+          <Skeleton className="h-4 w-36" />
+          <div className="hidden sm:flex items-center gap-1.5">
+            <Skeleton className="h-5 w-20 rounded-md" />
+            <Skeleton className="h-5 w-16 rounded-md" />
+          </div>
         </div>
-      </CardHeader>
-      <CardContent>
-        <Skeleton className="h-[180px] w-full rounded-lg" />
-      </CardContent>
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-7 w-20 rounded-md" />
+          <Skeleton className="size-4 rounded-full" />
+        </div>
+      </div>
     </Card>
   );
 }

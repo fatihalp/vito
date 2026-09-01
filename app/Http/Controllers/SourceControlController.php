@@ -34,7 +34,10 @@ class SourceControlController extends Controller
         $this->authorize('viewAny', SourceControl::class);
 
         $user = user();
-        $sourceControls = SourceControl::getByProjectId($user->current_project_id, $user)
+        $sourceControls = SourceControl::query()
+            ->when(! $user->isAdmin(), fn ($query) => $query->where('user_id', $user->id))
+            ->with(['user', 'project'])
+            ->latest()
             ->simplePaginate(config('web.pagination_size'), pageName: 'sourceControlsPage');
 
         return Inertia::render('source-controls/index', [
@@ -53,13 +56,14 @@ class SourceControlController extends Controller
             $server = Server::query()->findOrFail($serverId);
             $this->authorize('view', $server);
 
-            $sourceControls = SourceControl::usableForServer($server)->get();
+            $sourceControls = SourceControl::usableForServer($server)->with('user')->get();
 
             return SourceControlResource::collection($sourceControls);
         }
 
         $user = user();
         $sourceControls = SourceControl::getByProjectId($user->current_project_id, $user)
+            ->with('user')
             ->get();
 
         return SourceControlResource::collection($sourceControls);

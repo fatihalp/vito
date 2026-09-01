@@ -17,7 +17,7 @@ class SourceControlPolicy
 
     public function view(User $user, SourceControl $sourceControl): bool
     {
-        return $user->id === $sourceControl->user_id;
+        return $user->isAdmin() || $user->id === $sourceControl->user_id;
     }
 
     public function create(User $user): bool
@@ -27,7 +27,7 @@ class SourceControlPolicy
 
     public function update(User $user, SourceControl $sourceControl): bool
     {
-        return $user->id === $sourceControl->user_id;
+        return $user->isAdmin() || $user->id === $sourceControl->user_id;
     }
 
     public function delete(User $user, SourceControl $sourceControl): bool
@@ -36,6 +36,6 @@ class SourceControlPolicy
             return false;
         }
 
-        return $user->id === $sourceControl->user_id;
+        return $user->isAdmin() || $user->id === $sourceControl->user_id;
     }
 }

@@ -19,6 +19,8 @@ class SourceControlResource extends JsonResource
 
         $data = [
             'id' => $this->id,
+            'user' => new UserResource($this->whenLoaded('user')),
+            'project' => new ProjectResource($this->whenLoaded('project')),
             'project_id' => $this->project_id,
             'user_id' => $this->user_id,
             'global' => is_null($this->project_id),
