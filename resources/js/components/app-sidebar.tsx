@@ -152,7 +152,7 @@ export function AppSidebar({
           secondNavOpen ? 'w-[calc(var(--sidebar-width-icon)_+_1px)]!' : 'w-full!',
         )}
       >
-        <SidebarHeader className="min-h-12 justify-center border-b">
+        <SidebarHeader className="min-h-10 justify-center border-b px-2.5">
           <div className="flex items-center justify-between gap-2 group-data-[state=collapsed]:justify-center">
             <Link
               href={route('overview')}
@@ -161,7 +161,7 @@ export function AppSidebar({
               aria-label={`Vito ${page.props.version}`}
             >
               <AppLogo />
-              <span className="truncate font-semibold">Vito</span>
+              <span className="truncate font-semibold text-sm">Vito</span>
             </Link>
             <div className="flex shrink-0 items-center gap-1">
               {hasSecondNav && !secondNavOpen && onSecondNavOpenChange && (
@@ -226,14 +226,14 @@ export function AppSidebar({
           aria-hidden={!secondNavOpen}
           className={cn('flex flex-1', !secondNavOpen && 'hidden')}
         >
-          <SidebarHeader className="min-h-12 justify-center border-b px-3 py-2">
+          <SidebarHeader className="min-h-10 justify-center border-b px-2.5 py-1.5">
             <div className="flex min-w-0 items-center justify-between gap-2">
               {secondNavTitle && (
                 <div className="min-w-0">
                   {secondNavSubtitle && (
-                    <span className="text-muted-foreground block text-[10px] font-medium tracking-wider uppercase">{secondNavSubtitle}</span>
+                    <span className="text-muted-foreground block text-[9px] font-medium tracking-wider uppercase">{secondNavSubtitle}</span>
                   )}
-                  <span className="truncate text-sm font-semibold" title={secondNavTitle}>
+                  <span className="truncate text-xs font-semibold" title={secondNavTitle}>
                     {secondNavTitle}
                   </span>
                 </div>

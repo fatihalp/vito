@@ -176,27 +176,25 @@ export default function SourceControls() {
             </SelectContent>
           </Select>
 
-          {page.props.users && page.props.users.length > 1 && (
-            <Select
-              value={userId}
-              onValueChange={(val) => {
-                setUserId(val);
-                updateFilters({ user_id: val });
-              }}
-            >
-              <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder="All Users" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                {page.props.users.map((u) => (
-                  <SelectItem key={u.id} value={String(u.id)}>
-                    {u.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          )}
+          <Select
+            value={userId}
+            onValueChange={(val) => {
+              setUserId(val);
+              updateFilters({ user_id: val });
+            }}
+          >
+            <SelectTrigger className="w-[160px]">
+              <SelectValue placeholder="All Users" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Users</SelectItem>
+              {page.props.users?.map((u) => (
+                <SelectItem key={u.id} value={String(u.id)}>
+                  {u.name || u.email}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
           {hasActiveFilters && (
             <Button variant="ghost" size="sm" onClick={resetFilters} className="h-9 px-2 text-muted-foreground hover:text-foreground">

@@ -8,6 +8,13 @@ use Illuminate\Contracts\Pagination\Paginator;
 
 abstract class AbstractTable extends BaseTable
 {
+    protected string $paginationMethod = 'full';
+
+    public function getPerPageParam(): string
+    {
+        return $this->identifier ? "{$this->identifier}PerPage" : 'per_page';
+    }
+
     public function resolvePerPage(): int
     {
         $param = $this->getPerPageParam();
@@ -17,7 +24,7 @@ abstract class AbstractTable extends BaseTable
             return $requested;
         }
 
-        return $this->perPage ?? (int) config('web.pagination_size', 10);
+        return $this->perPage ?? (int) config('web.pagination_size', 25);
     }
 
     protected function paginateQuery(): Paginator|LengthAwarePaginator

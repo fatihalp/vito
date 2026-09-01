@@ -40,6 +40,26 @@ function SortIndicator({ sortKey }: { sortKey: string }) {
   );
 }
 
+function getPaginationPages(currentPage: number, lastPage?: number): (number | 'ellipsis')[] {
+  if (!lastPage || lastPage <= 1) {
+    return [currentPage || 1];
+  }
+
+  if (lastPage <= 7) {
+    return Array.from({ length: lastPage }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis', lastPage];
+  }
+
+  if (currentPage >= lastPage - 3) {
+    return [1, 'ellipsis', lastPage - 4, lastPage - 3, lastPage - 2, lastPage - 1, lastPage];
+  }
+
+  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', lastPage];
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   paginatedData?: PaginatedData<TData>;
@@ -85,7 +105,6 @@ export function DataTable<TData, TValue>({
 
   const extraClasses = modal && 'border-none shadow-none';
 
-  
   const [isInitialSearch, setIsInitialSearch] = useState(true);
   const [searchQuery, setSearchQuery] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -107,8 +126,49 @@ export function DataTable<TData, TValue>({
     if (paginatedData?.meta?.per_page) {
       return String(paginatedData.meta.per_page);
     }
-    return '10';
+    return '25';
   }, [paginatedData?.meta?.per_page]);
+
+  const currentPage = paginatedData?.meta?.current_page || 1;
+  const lastPage = paginatedData?.meta?.last_page;
+  const pageNumbers = useMemo(() => getPaginationPages(currentPage, lastPage), [currentPage, lastPage]);
+
+  const goToPage = (pageNumber: number) => {
+    if (onPageChange) {
+      onPageChange(pageNumber);
+      return;
+    }
+
+    if (typeof window === 'undefined') return;
+    const url = new URL(window.location.href);
+
+    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
+    let pageParamSet = false;
+    for (const p of pageParams) {
+      if (url.searchParams.has(p)) {
+        url.searchParams.set(p, String(pageNumber));
+        pageParamSet = true;
+      }
+    }
+    if (!pageParamSet) {
+      url.searchParams.set('page', String(pageNumber));
+    }
+
+    if (searchQuery) {
+      url.searchParams.set('search', searchQuery);
+    }
+
+    const currentParams = new URLSearchParams(window.location.search);
+    const sortBy = currentParams.get('sort_by');
+    const sortDir = currentParams.get('sort_dir');
+    const perPage = currentParams.get('per_page');
+
+    if (sortBy) url.searchParams.set('sort_by', sortBy);
+    if (sortDir) url.searchParams.set('sort_dir', sortDir);
+    if (perPage) url.searchParams.set('per_page', perPage);
+
+    router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
+  };
 
   const handlePerPageChange = (newPerPage: string) => {
     if (typeof window === 'undefined') return;
@@ -346,44 +406,80 @@ export function DataTable<TData, TValue>({
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => paginatedData.links.first && handlePageChange(paginatedData.links.first)}
-                  disabled={!paginatedData.links.first || isFetching}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => goToPage(1)}
+                  disabled={currentPage <= 1 || isFetching}
+                  title="First page"
                 >
                   <ChevronsLeft className="h-4 w-4" />
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => paginatedData.links.prev && handlePageChange(paginatedData.links.prev)}
-                  disabled={!paginatedData.links.prev || isFetching}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={currentPage <= 1 || isFetching}
+                  title="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <div className="flex items-center text-sm font-medium whitespace-nowrap">
-                  Page {paginatedData.meta.current_page}
-                  {paginatedData.meta.last_page && ` of ${paginatedData.meta.last_page}`}
+                <div className="flex items-center space-x-1">
+                  {pageNumbers.map((p, idx) => {
+                    if (p === 'ellipsis') {
+                      return (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="flex h-8 w-8 items-center justify-center text-xs text-muted-foreground select-none"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isCurrent = p === currentPage;
+
+                    return (
+                      <Button
+                        key={p}
+                        variant={isCurrent ? 'default' : 'outline'}
+                        size="sm"
+                        className={cn(
+                          'h-8 min-w-8 px-2.5 text-xs font-medium cursor-pointer',
+                          isCurrent && 'pointer-events-none font-semibold',
+                        )}
+                        onClick={() => goToPage(p)}
+                        disabled={isFetching}
+                      >
+                        {p}
+                      </Button>
+                    );
+                  })}
                 </div>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => paginatedData.links.next && handlePageChange(paginatedData.links.next)}
-                  disabled={!paginatedData.links.next || isFetching}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.next) || isFetching}
+                  title="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => paginatedData.links.last && handlePageChange(paginatedData.links.last)}
-                  disabled={!paginatedData.links.last || isFetching}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => goToPage(lastPage || currentPage + 1)}
+                  disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.last) || isFetching}
+                  title="Last page"
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </Button>

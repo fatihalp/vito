@@ -20,6 +20,26 @@ import {
 } from 'lucide-react';
 import { orderTableColumns } from '@/lib/table-columns';
 
+function getPaginationPages(currentPage: number, lastPage?: number): (number | 'ellipsis')[] {
+  if (!lastPage || lastPage <= 1) {
+    return [currentPage || 1];
+  }
+
+  if (lastPage <= 7) {
+    return Array.from({ length: lastPage }, (_, i) => i + 1);
+  }
+
+  if (currentPage <= 4) {
+    return [1, 2, 3, 4, 5, 'ellipsis', lastPage];
+  }
+
+  if (currentPage >= lastPage - 3) {
+    return [1, 'ellipsis', lastPage - 4, lastPage - 3, lastPage - 2, lastPage - 1, lastPage];
+  }
+
+  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', lastPage];
+}
+
 interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   tableData: InertiaTableData;
   children?: ReactNode;
@@ -81,6 +101,10 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
     ...props,
   });
 
+  const currentPage = tableData?.meta?.current_page || 1;
+  const lastPage = tableData?.meta?.last_page;
+  const pageNumbers = useMemo(() => getPaginationPages(currentPage, lastPage), [currentPage, lastPage]);
+
   const currentPerPage = useMemo(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
@@ -93,7 +117,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
     if (tableData?.meta?.per_page) {
       return String(tableData.meta.per_page);
     }
-    return '10';
+    return '25';
   }, [orderedTableData.identifier, tableData?.meta?.per_page]);
 
   const handlePerPageChange = (newPerPage: string) => {
@@ -220,44 +244,84 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                 </Select>
               </div>
 
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-1">
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => tableData.links.first && onPageChange(1)}
-                  disabled={!tableData.links.first || processing}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => onPageChange(1)}
+                  disabled={currentPage <= 1 || isProcessing}
+                  title="First page"
                 >
                   <ChevronsLeft className="h-4 w-4" />
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(tableData.meta.current_page - 1)}
-                  disabled={!tableData.links.prev || processing}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => onPageChange(currentPage - 1)}
+                  disabled={currentPage <= 1 || isProcessing}
+                  title="Previous page"
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
 
-                <div className="flex items-center text-sm font-medium whitespace-nowrap">
-                  Page {tableData.meta.current_page}
-                  {tableData.meta.last_page && ` of ${tableData.meta.last_page}`}
+                <div className="flex items-center space-x-1">
+                  {pageNumbers.map((p, idx) => {
+                    if (p === 'ellipsis') {
+                      return (
+                        <span
+                          key={`ellipsis-${idx}`}
+                          className="flex h-8 w-8 items-center justify-center text-xs text-muted-foreground select-none"
+                        >
+                          ...
+                        </span>
+                      );
+                    }
+
+                    const isCurrent = p === currentPage;
+
+                    return (
+                      <Button
+                        key={p}
+                        variant={isCurrent ? 'default' : 'outline'}
+                        size="sm"
+                        className={cn(
+                          'h-8 min-w-8 px-2.5 text-xs font-medium cursor-pointer',
+                          isCurrent && 'pointer-events-none font-semibold',
+                        )}
+                        onClick={() => onPageChange(p)}
+                        disabled={isProcessing}
+                      >
+                        {p}
+                      </Button>
+                    );
+                  })}
                 </div>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => onPageChange(tableData.meta.current_page + 1)}
-                  disabled={!tableData.links.next || processing}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => onPageChange(currentPage + 1)}
+                  disabled={
+                    (lastPage ? currentPage >= lastPage : !tableData.links?.next) || isProcessing
+                  }
+                  title="Next page"
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
 
                 <Button
                   variant="outline"
-                  size="sm"
-                  onClick={() => tableData.meta.last_page && onPageChange(tableData.meta.last_page)}
-                  disabled={!tableData.links.last || processing}
+                  size="icon"
+                  className="h-8 w-8 cursor-pointer"
+                  onClick={() => onPageChange(lastPage || currentPage + 1)}
+                  disabled={
+                    (lastPage ? currentPage >= lastPage : !tableData.links?.last) || isProcessing
+                  }
+                  title="Last page"
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </Button>

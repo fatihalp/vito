@@ -97,8 +97,8 @@ export default function Layout({
           onOpenChange={setPrimaryNavOpen}
           style={
             {
-              '--primary-sidebar-width': '12rem',
-              '--sidebar-width': hasSecondNav && secondNavOpen ? '28rem' : '12rem',
+              '--primary-sidebar-width': '9.5rem',
+              '--sidebar-width': hasSecondNav && secondNavOpen ? '21.5rem' : '9.5rem',
             } as CSSProperties
           }
         >

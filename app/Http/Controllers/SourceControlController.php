@@ -78,15 +78,10 @@ class SourceControlController extends Controller
                 'name' => 'profile',
                 'global' => 'project_id',
             ])
-            ->simplePaginate(pageName: 'sourceControlsPage');
+            ->paginate(pageName: 'sourceControlsPage');
 
-        $projects = $user->isAdmin()
-            ? Project::query()->orderBy('name')->get()
-            : $user->allProjects()->sortBy('name')->values();
-
-        $users = $user->isAdmin()
-            ? User::query()->orderBy('name')->get()
-            : collect([$user]);
+        $projects = Project::query()->orderBy('name')->get(['id', 'name']);
+        $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
 
         $providers = [
             ['value' => 'all', 'label' => 'All Providers'],
@@ -99,8 +94,8 @@ class SourceControlController extends Controller
 
         return Inertia::render('source-controls/index', [
             'sourceControls' => SourceControlResource::collection($sourceControls),
-            'projects' => ProjectResource::collection($projects),
-            'users' => UserResource::collection($users),
+            'projects' => ProjectResource::collection($projects)->resolve(),
+            'users' => UserResource::collection($users)->resolve(),
             'providers' => $providers,
             'filters' => [
                 'search' => $request->input('search', ''),

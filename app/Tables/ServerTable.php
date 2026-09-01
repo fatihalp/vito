@@ -21,7 +21,6 @@ class ServerTable extends Table
 
     protected function query(): void
     {
-        $this->perPage = 20;
         $cpuSubquery = $this->metricSubquery('cpu_usage_percent');
         $memorySubquery = $this->metricSubquery(
             'CASE WHEN memory_total > 0 THEN ROUND(memory_used * 100.0 / memory_total, 1) ELSE NULL END'

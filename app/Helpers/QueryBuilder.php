@@ -51,7 +51,7 @@ class QueryBuilder
         return $this;
     }
 
-    public function resolvePerPage(?string $pageName = null, int $default = 10): int
+    public function resolvePerPage(?string $pageName = null, int $default = 25): int
     {
         $pageParam = $pageName ? "{$pageName}PerPage" : 'per_page';
         $requested = (int) (request()->input($pageParam) ?? request()->input('per_page') ?? request()->input('perPage'));
