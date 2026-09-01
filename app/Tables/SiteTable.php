@@ -42,12 +42,12 @@ class SiteTable extends Table
 
         return [
             ...$columns,
-            Column::make('id', 'ID')->sortable(),
             TextColumn::make('domain', $this->server ? 'Domain' : 'Site')->sortable(),
             BadgeColumn::make('user', 'User')->variant('outline')->sortable(),
             BadgeColumn::make('type', 'Type')->variant('outline')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
+            Column::make('id', 'ID')->sortable(),
             Column::data('server_id'),
             Column::data('server_name', fn (Site $site) => $site->server->name),
             Column::data('warnings', fn (Site $site) => $site->getWarnings()),

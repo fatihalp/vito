@@ -34,12 +34,6 @@ function Delete({ ssl }: { ssl: SSL }) {
 
 export const columns: ColumnDef<SSL>[] = [
   {
-    accessorKey: 'id',
-    header: 'ID',
-    enableColumnFilter: false,
-    enableSorting: true,
-  },
-  {
     accessorKey: 'type',
     header: 'Type',
     enableColumnFilter: true,
@@ -128,6 +122,12 @@ export const columns: ColumnDef<SSL>[] = [
     cell: ({ row }) => {
       return <Badge variant={row.original.status_color}>{row.original.status}</Badge>;
     },
+  },
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    enableColumnFilter: false,
+    enableSorting: true,
   },
   {
     id: 'actions',

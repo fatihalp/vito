@@ -58,6 +58,10 @@ class DeploymentTable extends Table
     protected function columns(): array
     {
         return [
+            Column::make('commit', 'Commit'),
+            DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
+            EnumColumn::make('status', 'Status')->sortable(! $this->overview),
+            Column::make('release', 'Release'),
             TextColumn::make('id', 'ID')
                 ->sortable(! $this->overview)
                 ->link('application.deployments.show', [
@@ -65,10 +69,6 @@ class DeploymentTable extends Table
                     'site' => ':site_id',
                     'deployment' => ':id',
                 ]),
-            Column::make('commit', 'Commit'),
-            DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
-            EnumColumn::make('status', 'Status')->sortable(! $this->overview),
-            Column::make('release', 'Release'),
             Column::data('site_id'),
             Column::data('server_id', fn (Deployment $deployment) => $deployment->site->server_id),
             Column::data('active'),

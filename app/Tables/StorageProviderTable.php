@@ -20,7 +20,6 @@ class StorageProviderTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
             TextColumn::make('provider', 'Provider')->sortable(),
             TextColumn::make('name', 'Name')
                 ->value(fn ($m) => $m->profile)
@@ -35,6 +34,7 @@ class StorageProviderTable extends Table
             Column::data('editable_data', fn ($m) => $m->editableDataFor(user())),
             Column::data('global_color', fn ($m) => $m->project_id === null ? 'success' : 'danger'),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
+            Column::make('id', 'ID')->sortable(),
             ActionsColumn::make(),
         ];
     }

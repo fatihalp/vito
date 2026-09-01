@@ -41,14 +41,9 @@ const deployedAtCell = ({ row, value }: CellRenderProps) => {
   if (!dateStr) return <span className="text-muted-foreground">—</span>;
 
   return (
-    <div className="flex flex-col min-w-[130px] leading-tight">
-      <span className="text-xs font-medium text-foreground">
-        <DateTime date={dateStr} relative />
-      </span>
-      <span className="text-[11px] text-muted-foreground font-mono mt-0.5">
-        <DateTime date={dateStr} />
-      </span>
-    </div>
+    <span className="text-xs font-medium text-foreground cursor-default">
+      <DateTime date={dateStr} relative />
+    </span>
   );
 };
 

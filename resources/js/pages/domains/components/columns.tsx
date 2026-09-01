@@ -31,13 +31,6 @@ function Remove({ domain }: { domain: Domain }) {
 
 export const columns: ColumnDef<Domain>[] = [
   {
-    accessorKey: 'id',
-    header: 'ID',
-    enableColumnFilter: true,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
     accessorKey: 'domain',
     header: 'Domain',
     enableColumnFilter: true,
@@ -66,6 +59,13 @@ export const columns: ColumnDef<Domain>[] = [
     cell: ({ row }) => {
       return <DateTime date={row.original.created_at} />;
     },
+  },
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    enableColumnFilter: true,
+    enableSorting: true,
+    enableHiding: true,
   },
   {
     id: 'actions',

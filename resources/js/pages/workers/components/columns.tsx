@@ -79,14 +79,6 @@ function Actions({ worker }: { worker: Worker }) {
 function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Worker>[] {
   return [
     {
-      id: 'actions',
-      enableColumnFilter: false,
-      enableSorting: false,
-      cell: ({ row }) => {
-        return <Actions worker={row.original} />;
-      },
-    },
-    {
       accessorKey: 'name',
       header: 'Worker',
       enableColumnFilter: true,
@@ -147,6 +139,14 @@ function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Wo
             <ErrorIndicator error={row.original.error} label={`Worker "${row.original.name}" error`} />
           </div>
         );
+      },
+    },
+    {
+      id: 'actions',
+      enableColumnFilter: false,
+      enableSorting: false,
+      cell: ({ row }) => {
+        return <Actions worker={row.original} />;
       },
     },
   ];

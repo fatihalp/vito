@@ -36,13 +36,6 @@ function Delete({ sourceControl }: { sourceControl: SourceControl }) {
 
 export const columns: ColumnDef<SourceControl>[] = [
   {
-    accessorKey: 'id',
-    header: 'ID',
-    enableColumnFilter: true,
-    enableSorting: true,
-    enableHiding: true,
-  },
-  {
     accessorKey: 'provider',
     header: 'Provider',
     enableColumnFilter: true,
@@ -107,6 +100,13 @@ export const columns: ColumnDef<SourceControl>[] = [
     cell: ({ row }) => {
       return <DateTime date={row.original.created_at} />;
     },
+  },
+  {
+    accessorKey: 'id',
+    header: 'ID',
+    enableColumnFilter: true,
+    enableSorting: true,
+    enableHiding: true,
   },
   {
     id: 'actions',

@@ -20,9 +20,9 @@ class WorkflowRunTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
             EnumColumn::make('status', 'Status')->sortable(),
+            Column::make('id', 'ID')->sortable(),
             Column::data('workflow_id'),
         ];
     }

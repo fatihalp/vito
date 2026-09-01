@@ -161,7 +161,7 @@ export default function AppWithDeployment() {
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
                           <Link href={route('application.environment', { server: page.props.server.id, site: site.id })}>
                             <FileCode2Icon className="size-4" />
-                            <span>Environment (.env)</span>
+                            <span>Env</span>
                           </Link>
                         </Button>
                         <DropdownMenu modal={false}>

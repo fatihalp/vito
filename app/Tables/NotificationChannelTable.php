@@ -20,7 +20,6 @@ class NotificationChannelTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
             TextColumn::make('provider', 'Provider')->sortable(),
             TextColumn::make('name', 'Name')
                 ->value(fn ($m) => $m->label)
@@ -34,6 +33,7 @@ class NotificationChannelTable extends Table
             Column::data('global', fn ($m) => $m->project_id === null),
             Column::data('global_color', fn ($m) => $m->project_id === null ? 'success' : 'danger'),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
+            Column::make('id', 'ID')->sortable(),
             ActionsColumn::make(),
         ];
     }

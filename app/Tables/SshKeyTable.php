@@ -19,9 +19,9 @@ class SshKeyTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
             TextColumn::make('name', 'Name')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
+            Column::make('id', 'ID')->sortable(),
             ActionsColumn::make(),
         ];
     }

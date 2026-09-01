@@ -2,13 +2,17 @@ import { Head, Link, router, usePage } from '@inertiajs/react';
 
 import { type Configs } from '@/types';
 
+import { TableActionTrigger } from '@/components/table-action-trigger';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { useDialog } from '@/hooks/use-dialog';
+import { asRow } from '@/lib/inertia-table';
 import { VitoTable } from '@/components/vito-table';
 import Heading from '@/components/heading';
 import CreateServer from '@/pages/servers/components/create-server';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import Layout from '@/layouts/app/layout';
-import { BookOpenIcon, EyeIcon, PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
+import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect } from 'react';
@@ -138,6 +142,8 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
 export default function Servers() {
   const page = usePage<Page>();
 
+  const dialog = useDialog();
+
   useEffect(() => {
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
@@ -174,16 +180,71 @@ export default function Servers() {
             stage: stageCell,
             warnings: warningsCell,
           }}
-          actions={(row: Row) => (
-            <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" asChild>
-                <Link href={route('servers.show', { server: row.id })} prefetch>
-                  <EyeIcon className="size-3.5" />
-                  <span>Manage</span>
-                </Link>
-              </Button>
-            </div>
-          )}
+          actions={(row: Row) => {
+            const server = asRow<{ id: number; name: string; status: string }>(row, ['id', 'name', 'status']);
+            return (
+              <div className="flex items-center gap-2">
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <TableActionTrigger />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem asChild>
+                      <Link href={route('servers.show', { server: server.id })}>
+                        Manage
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('server-settings', { server: server.id })}>
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('servers.console', { server: server.id })}>
+                        Console
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('services', { server: server.id })}>
+                        Services
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('sites', { server: server.id })}>
+                        Sites
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('databases', { server: server.id })}>
+                        Databases
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link href={route('server-logs', { server: server.id })}>
+                        Logs
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onSelect={() =>
+                        dialog.confirm.open({
+                          title: `Restart ${server.name}?`,
+                          description:
+                            'Are you sure you want to restart this server? Sites and services hosted on this server will be unavailable while it restarts. Connections in flight will be dropped.',
+                          variant: 'destructive',
+                          confirmLabel: 'Restart',
+                          method: 'post',
+                          url: route('servers.reboot', { server: server.id }),
+                        })
+                      }
+                    >
+                      Restart server
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            );
+          }}
         />
       </Container>
     </Layout>

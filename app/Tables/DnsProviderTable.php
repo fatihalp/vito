@@ -20,7 +20,6 @@ class DnsProviderTable extends Table
     protected function columns(): array
     {
         return [
-            Column::make('id', 'ID')->sortable(),
             TextColumn::make('provider', 'Provider')->sortable(),
             TextColumn::make('name', 'Name')->sortable(),
             BadgeColumn::make('scope_label', 'Scope')
@@ -32,6 +31,7 @@ class DnsProviderTable extends Table
             Column::data('connected'),
             Column::data('editable_data', fn ($m) => $m->editableDataFor(user())),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
+            Column::make('id', 'ID')->sortable(),
             ActionsColumn::make(),
         ];
     }
