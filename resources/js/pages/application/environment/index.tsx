@@ -396,13 +396,14 @@ function EnvironmentEditorContent() {
                 </div>
               )}
 
-              <div className="h-[calc(100vh-240px)] min-h-[550px] w-full flex-1">
+              <div className="w-full flex-1" style={{ minHeight: 550 }}>
                 {query.isPending ? (
-                  <div className="h-full flex items-center justify-center">
+                  <div className="flex items-center justify-center" style={{ height: 'calc(100vh - 240px)', minHeight: 550 }}>
                     <LoaderCircleIcon className="size-8 animate-spin text-muted-foreground" />
                   </div>
                 ) : (
                   <Editor
+                    height="calc(100vh - 240px)"
                     defaultLanguage="dotenv"
                     value={rawContent}
                     onChange={(value) => {
@@ -410,7 +411,6 @@ function EnvironmentEditorContent() {
                       setRawDirty(true);
                     }}
                     theme={getActualAppearance() === 'dark' ? 'vs-dark' : 'vs'}
-                    className="h-full w-full"
                     options={{
                       fontSize: 14,
                       lineNumbers: 'on',

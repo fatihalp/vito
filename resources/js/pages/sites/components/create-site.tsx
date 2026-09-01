@@ -1,5 +1,5 @@
 import { ReactNode, useState, FormEventHandler, useEffect, useMemo } from 'react';
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -7,8 +7,10 @@ import {
   ArrowLeftIcon,
   ChevronRightIcon,
   LoaderCircleIcon,
+  TriangleAlertIcon,
 } from 'lucide-react';
-import { useForm, usePage } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import axios from 'axios';
 import InputError from '@/components/ui/input-error';
 import { useConfigs } from '@/stores/bootstrap-store';
@@ -23,7 +25,6 @@ import SelectBranch from '@/pages/source-controls/components/select-branch';
 import DomainPicker, { DomainPickerValue, emptyDomainPickerValue } from '@/pages/sites/components/domain-picker';
 import { getSiteTypeIcon } from '@/components/icons/framework-icons';
 import { cn } from '@/lib/utils';
-import { SharedData } from '@/types';
 
 type SiteCreationDefaults = {
   php_version: string | null;
@@ -45,42 +46,6 @@ type CreateSiteForm = {
   [key: string]: string | number | boolean | string[] | undefined;
 };
 
-type SiteTypePreset = {
-  key: string;
-  actualType: string;
-  label: string;
-  category: 'php' | 'javascript' | 'static' | 'other';
-  description: string;
-  defaults?: Record<string, unknown>;
-};
-
-const SITE_TYPE_PRESETS: SiteTypePreset[] = [
-  { key: 'laravel', actualType: 'laravel', label: 'Laravel', category: 'php', description: 'The PHP framework for web artisans' },
-  { key: 'symfony', actualType: 'php', label: 'Symfony', category: 'php', description: 'High-performance PHP framework', defaults: { web_directory: 'public' } },
-  { key: 'statamic', actualType: 'laravel', label: 'Statamic', category: 'php', description: 'Flat-first, Git-powered CMS for Laravel', defaults: { web_directory: 'public' } },
-  { key: 'wordpress', actualType: 'wordpress', label: 'WordPress', category: 'php', description: 'The world’s most popular blogging & CMS platform' },
-  { key: 'phpmyadmin', actualType: 'phpmyadmin', label: 'phpMyAdmin', category: 'php', description: 'Web interface for MySQL & MariaDB administration' },
-  { key: 'php', actualType: 'php', label: 'PHP', category: 'php', description: 'Standard PHP application with repository deployment' },
-  { key: 'phpblank', actualType: 'phpblank', label: 'PHP Blank', category: 'php', description: 'Empty PHP site without Git repository' },
-
-  { key: 'nextjs', actualType: 'nodesite', label: 'Next.js', category: 'javascript', description: 'React framework for production-grade web apps' },
-  { key: 'nuxtjs', actualType: 'nodesite', label: 'Nuxt.js', category: 'javascript', description: 'Intuitive Vue framework for web applications' },
-  { key: 'node', actualType: 'nodesite', label: 'Node.js', category: 'javascript', description: 'Node.js server runtime application' },
-  { key: 'bun', actualType: 'bunsite', label: 'Bun', category: 'javascript', description: 'All-in-one JavaScript runtime & toolkit' },
-
-  { key: 'html', actualType: 'blank', label: 'HTML', category: 'static', description: 'Static HTML, CSS, and client-side JavaScript' },
-
-  { key: 'loadbalancer', actualType: 'loadbalancer', label: 'Load Balancer', category: 'other', description: 'Distribute HTTP/HTTPS traffic across multiple servers' },
-  { key: 'blank', actualType: 'blank', label: 'Other', category: 'other', description: 'Blank site configured as custom reverse proxy' },
-];
-
-const CATEGORY_TITLES: Record<string, string> = {
-  php: 'PHP',
-  javascript: 'JavaScript',
-  static: 'Static',
-  other: 'Other',
-};
-
 export default function CreateSite({
   server,
   defaultOpen,
@@ -93,10 +58,8 @@ export default function CreateSite({
   children: ReactNode;
 }) {
   const configs = useConfigs()!;
-  const page = usePage<SharedData>();
   const [open, setOpen] = useState(defaultOpen || false);
   const [step, setStep] = useState<1 | 2>(1);
-  const [selectedPresetKey, setSelectedPresetKey] = useState<string>('laravel');
 
   useEffect(() => {
     if (defaultOpen !== undefined) {
@@ -138,30 +101,29 @@ export default function CreateSite({
     form.setData((data) => ({ ...data, ...next }));
   };
 
-  const selectSiteType = (preset: SiteTypePreset) => {
-    setSelectedPresetKey(preset.key);
-    const backendType = configs.site.types[preset.actualType] ? preset.actualType : preset.key;
-    form.setData((prev) => ({
-      ...prev,
-      type: backendType,
-      ...(preset.defaults || {}),
-    }));
+  const selectSiteType = (type: string) => {
+    form.setData('type', type);
     setStep(2);
   };
+
+  const currentTypeForm = configs.site.types[form.data.type]?.form ?? [];
+  const isPhpType = currentTypeForm.some((f) => f.name === 'php_version');
+  const usesSourceControlToggle = currentTypeForm.some((f) => f.name === 'use_source_control');
+  const supportsSourceControl =
+    currentTypeForm.some((f) => f.name === 'source_control' || f.name === 'repository') &&
+    (!usesSourceControlToggle || Boolean(form.data.use_source_control));
+  const inheritedVersionTools = useMemo(
+    () => currentTypeForm.filter((f) => f.type === 'tooling-picker').flatMap((f) => (Array.isArray(f.options) ? f.options : [])),
+    [currentTypeForm],
+  );
 
   const isAdvancedField = (field: DynamicFieldConfig) => {
     if (field.name === 'web_directory' || field.name === 'package_manager') {
       return true;
     }
-    if (['laravel', 'php', 'phpblank'].includes(form.data.type)) {
-      if (field.type === 'tooling' || field.type === 'tooling-selector') {
-        return true;
-      }
-    }
-    return false;
+    return isPhpType && (field.type === 'tooling' || field.type === 'tooling-selector');
   };
 
-  const currentTypeForm = configs.site.types[form.data.type]?.form ?? [];
   const primaryFields = useMemo(
     () =>
       currentTypeForm.filter(
@@ -169,9 +131,32 @@ export default function CreateSite({
           !isAdvancedField(f) &&
           !['source_control', 'repository', 'branch', 'php_version'].includes(f.name),
       ),
-    [currentTypeForm, form.data.type],
+    [currentTypeForm, isPhpType],
   );
-  const advancedFields = useMemo(() => currentTypeForm.filter((f) => isAdvancedField(f)), [currentTypeForm, form.data.type]);
+  const advancedFields = useMemo(() => currentTypeForm.filter((f) => isAdvancedField(f)), [currentTypeForm, isPhpType]);
+
+  const renderedErrorKeys = useMemo(() => {
+    const keys = new Set<string>([
+      'server',
+      'domain',
+      'dns_provider_id',
+      'provider_domain_id',
+      'create_dns_record',
+      'dns_record_proxied',
+      ...(supportsSourceControl ? ['source_control', 'repository', 'branch'] : []),
+      ...(isPhpType ? ['php_version'] : []),
+      ...currentTypeForm.map((f) => f.name),
+    ]);
+    currentTypeForm
+      .filter((f) => f.type === 'tooling-picker' || f.type === 'tooling-selector')
+      .flatMap((f) => (Array.isArray(f.options) ? f.options : []))
+      .forEach((toolId) => keys.add(`${toolId}_version`));
+    return keys;
+  }, [currentTypeForm, supportsSourceControl, isPhpType]);
+
+  const generalErrors = Object.entries(form.errors as Record<string, string | undefined>).filter(
+    ([key, message]) => Boolean(message) && !renderedErrorKeys.has(key),
+  );
 
   const hasAdvancedErrors = useMemo(() => {
     return advancedFields.some((f) => {
@@ -228,32 +213,7 @@ export default function CreateSite({
     }
   }, [form.data.type, form.data.use_source_control, form.setData, configs]);
 
-  type ActiveTool = { toolId: string; kind: 'tooling' | 'tooling-picker' | 'tooling-selector' };
-  const activeTools = useMemo<ActiveTool[]>(() => {
-    const typeConfig = configs.site.types[form.data.type];
-    const result: ActiveTool[] = [];
-    for (const f of typeConfig?.form ?? []) {
-      if (f.type !== 'tooling' && f.type !== 'tooling-picker' && f.type !== 'tooling-selector') continue;
-      const raw = f.options;
-      const ids = Array.isArray(raw) ? raw : raw ? Object.values(raw) : [];
-      for (const id of ids) result.push({ toolId: id, kind: f.type });
-    }
-    return result;
-  }, [configs, form.data.type]);
-
-  const currentTypeConfig = configs.site.types[form.data.type];
-  const selectedPreset = SITE_TYPE_PRESETS.find((p) => p.key === selectedPresetKey) || {
-    key: form.data.type,
-    actualType: form.data.type,
-    label: currentTypeConfig?.label || form.data.type,
-    category: 'other',
-    description: '',
-  };
-
-  const isPhpType = ['laravel', 'php', 'phpblank', 'wordpress', 'phpmyadmin'].includes(form.data.type) || selectedPreset.category === 'php';
-  const supportsSourceControl =
-    ['laravel', 'php', 'nodesite', 'bunsite'].includes(form.data.type) ||
-    currentTypeForm.some((f) => f.name === 'source_control' || f.name === 'repository');
+  const selectedTypeLabel = configs.site.types[form.data.type]?.label || form.data.type;
 
   const getFormField = (field: DynamicFieldConfig) => {
     return (
@@ -263,26 +223,11 @@ export default function CreateSite({
         onChange={(value) => form.setData(field.name, value)}
         config={field}
         error={(form.errors as Record<string, string | undefined>)[field.name]}
+        form={form}
+        inheritedVersionTools={inheritedVersionTools}
       />
     );
   };
-
-  const groupedPresets = useMemo(() => {
-    const groups: Record<string, SiteTypePreset[]> = {
-      php: [],
-      javascript: [],
-      static: [],
-      other: [],
-    };
-
-    SITE_TYPE_PRESETS.forEach((preset) => {
-      if (groups[preset.category]) {
-        groups[preset.category].push(preset);
-      }
-    });
-
-    return groups;
-  }, []);
 
   return (
     <Sheet open={open} onOpenChange={handleOpenChange}>
@@ -297,43 +242,23 @@ export default function CreateSite({
               </SheetDescription>
             </SheetHeader>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {Object.entries(groupedPresets).map(([categoryKey, presets]) => {
-                if (presets.length === 0) return null;
-
-                return (
-                  <div key={categoryKey} className="space-y-2">
-                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-1">
-                      {CATEGORY_TITLES[categoryKey] || categoryKey}
-                    </h3>
-                    <div className="divide-y divide-border/40 rounded-xl border bg-card overflow-hidden">
-                      {presets.map((preset) => (
-                        <button
-                          key={preset.key}
-                          type="button"
-                          onClick={() => selectSiteType(preset)}
-                          className="w-full flex items-center justify-between p-3.5 hover:bg-muted/50 transition-colors text-left group cursor-pointer"
-                        >
-                          <div className="flex items-center gap-3.5 min-w-0">
-                            <div className="size-8 flex items-center justify-center shrink-0">
-                              {getSiteTypeIcon(preset.key, 28)}
-                            </div>
-                            <div className="min-w-0">
-                              <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
-                                {preset.label}
-                              </span>
-                              {preset.description && (
-                                <p className="text-xs text-muted-foreground truncate">{preset.description}</p>
-                              )}
-                            </div>
-                          </div>
-                          <ChevronRightIcon className="size-4 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
-                        </button>
-                      ))}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="divide-y divide-border/40 rounded-xl border bg-card overflow-hidden">
+                {Object.entries(configs.site.types).map(([type, config]) => (
+                  <button
+                    key={type}
+                    type="button"
+                    onClick={() => selectSiteType(type)}
+                    className="w-full flex items-center justify-between p-3.5 hover:bg-muted/50 transition-colors text-left group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3.5 min-w-0">
+                      <div className="size-8 flex items-center justify-center shrink-0">{getSiteTypeIcon(type, 28)}</div>
+                      <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">{config.label}</span>
                     </div>
-                  </div>
-                );
-              })}
+                    <ChevronRightIcon className="size-4 text-muted-foreground/60 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0 ml-2" />
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="p-4 sm:p-5 border-t bg-muted/20 flex flex-row items-center justify-end gap-3 mt-auto">
@@ -364,10 +289,10 @@ export default function CreateSite({
 
               <div className="flex items-center gap-3.5">
                 <div className="size-10 flex items-center justify-center shrink-0 rounded-lg bg-muted/30 p-1">
-                  {getSiteTypeIcon(selectedPreset.key, 36)}
+                  {getSiteTypeIcon(form.data.type, 36)}
                 </div>
                 <div>
-                  <SheetTitle className="text-xl font-bold tracking-tight">Install a {selectedPreset.label} application</SheetTitle>
+                  <SheetTitle className="text-xl font-bold tracking-tight">Install a {selectedTypeLabel} application</SheetTitle>
                   <SheetDescription className="text-xs text-muted-foreground mt-0.5">
                     Configure repository, runtime, and domain settings
                   </SheetDescription>
@@ -377,6 +302,18 @@ export default function CreateSite({
 
             <Form id="create-site-form" className="p-6 flex-1 overflow-y-auto space-y-5" onSubmit={submit}>
               <FormFields className="space-y-4">
+                {generalErrors.length > 0 && (
+                  <Alert variant="destructive">
+                    <TriangleAlertIcon />
+                    <AlertTitle>Site could not be created</AlertTitle>
+                    <AlertDescription>
+                      {generalErrors.map(([key, message]) => (
+                        <p key={key}>{message}</p>
+                      ))}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
                 {server === undefined && (
                   <FormField>
                     <Label htmlFor="server">Server</Label>

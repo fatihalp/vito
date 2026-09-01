@@ -5,24 +5,37 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import InputError from '@/components/ui/input-error';
 import { FormField } from '@/components/ui/form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { TriangleAlertIcon } from 'lucide-react';
 import ServerProviderSelect from '@/pages/server-providers/components/server-provider-select';
+import { useConfigs } from '@/stores/bootstrap-store';
+
+type ToolingFormBridge = {
+  data: Record<string, unknown>;
+  errors: Partial<Record<string, string>>;
+  setData: (key: string, value: DynamicFieldValue) => void;
+};
 
 interface DynamicFieldProps {
   value: string | number | boolean | string[] | undefined;
   onChange: (value: string | number | boolean | string[]) => void;
   config: DynamicFieldConfig;
   error?: string;
+  form?: ToolingFormBridge;
+  inheritedVersionTools?: string[];
 }
 
-export default function DynamicField({ value, onChange, config, error }: DynamicFieldProps) {
+const toolIdsOf = (config: DynamicFieldConfig): string[] =>
+  Array.isArray(config.options) ? config.options : config.options ? Object.values(config.options) : [];
+
+export default function DynamicField({ value, onChange, config, error, form, inheritedVersionTools = [] }: DynamicFieldProps) {
   const defaultLabel = config.name.replaceAll('_', ' ');
   const label = config?.label || defaultLabel;
   const [initialValue, setInitialValue] = useState(false);
+  const catalogue = useConfigs()?.tooling ?? [];
 
   if (value === undefined || value === null) {
     value = config?.default ?? '';
@@ -172,6 +185,93 @@ export default function DynamicField({ value, onChange, config, error }: Dynamic
         />
         {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}
         <InputError message={error} />
+      </FormField>
+    );
+  }
+
+  if (config?.type === 'tooling-picker') {
+    const descriptor = catalogue.find((t) => t.id === toolIdsOf(config)[0]);
+    const versions = descriptor?.supported_versions ?? [];
+
+    return (
+      <FormField>
+        <Label htmlFor={`field-${config.name}`}>{label}</Label>
+        <Select value={(value as string) || versions[0] || ''} onValueChange={onChange}>
+          <SelectTrigger id={`field-${config.name}`}>
+            <SelectValue placeholder={`Select ${label}`} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {versions.map((v) => (
+                <SelectItem key={`${config.name}-${v}`} value={v}>
+                  {descriptor?.label} {v}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}
+        <InputError message={error} />
+      </FormField>
+    );
+  }
+
+  if (config?.type === 'tooling-selector') {
+    const ids = toolIdsOf(config);
+    const picked = (value as string) || ids[0] || '';
+    const descriptor = catalogue.find((t) => t.id === picked);
+    const versionKey = `${picked}_version`;
+    const showVersion = form !== undefined && descriptor !== undefined && !inheritedVersionTools.includes(picked);
+    const versionValue = (form?.data[versionKey] as string | undefined) || descriptor?.supported_versions[0] || '';
+
+    return (
+      <FormField>
+        <Label htmlFor={`field-${config.name}`}>{label}</Label>
+        <Select
+          value={picked}
+          onValueChange={(v) => {
+            onChange(v);
+            const next = catalogue.find((t) => t.id === v);
+            if (form && next && !inheritedVersionTools.includes(v) && !form.data[`${v}_version`]) {
+              form.setData(`${v}_version`, next.supported_versions[0] ?? '');
+            }
+          }}
+        >
+          <SelectTrigger id={`field-${config.name}`}>
+            <SelectValue placeholder={`Select ${label}`} />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectGroup>
+              {ids.map((id) => (
+                <SelectItem key={`${config.name}-${id}`} value={id}>
+                  {config.optionLabels?.[id] ?? catalogue.find((t) => t.id === id)?.label ?? id}
+                </SelectItem>
+              ))}
+            </SelectGroup>
+          </SelectContent>
+        </Select>
+        {config.description && <p className="text-muted-foreground text-xs">{config.description}</p>}
+        <InputError message={error} />
+        {showVersion && (
+          <div className="flex flex-col gap-2 pt-2">
+            <Label htmlFor={`field-${versionKey}`}>{descriptor.label} Version</Label>
+            <Select value={versionValue} onValueChange={(v) => form.setData(versionKey, v)}>
+              <SelectTrigger id={`field-${versionKey}`}>
+                <SelectValue placeholder={`Select ${descriptor.label} version`} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {descriptor.supported_versions.map((v) => (
+                    <SelectItem key={`${versionKey}-${v}`} value={v}>
+                      {descriptor.label} {v}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+            <InputError message={form.errors[versionKey]} />
+          </div>
+        )}
       </FormField>
     );
   }

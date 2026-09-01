@@ -15,6 +15,7 @@ fi
 if [ "{{ $isIsolated }}" == "true" ]; then
     mv wp-cli.phar /home/{{ $isolatedUsername }}/bin/
     ln -sf /home/{{ $isolatedUsername }}/bin/wp-cli.phar /home/{{ $isolatedUsername }}/bin/wp
+    export PATH="/home/{{ $isolatedUsername }}/bin:$PATH"
 else
     if ! sudo mv wp-cli.phar /usr/local/bin/wp; then
         echo 'VITO_SSH_ERROR' && exit 1

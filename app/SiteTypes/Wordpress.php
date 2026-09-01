@@ -54,8 +54,11 @@ class Wordpress extends PHPSite
                 'required',
                 Rule::exists('databases', 'id')->where(fn ($query) => $query->where('server_id', $this->site->server_id)),
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    if (! $this->site->server->database()) {
+                    $database = $this->site->server->database();
+                    if (! $database) {
                         $fail(__('Database is not installed'));
+                    } elseif (! in_array($database->name, ['mysql', 'mariadb'], true)) {
+                        $fail(__('WordPress requires a MySQL or MariaDB database service.'));
                     }
                 },
             ],

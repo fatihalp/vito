@@ -136,6 +136,9 @@ class CreateSite
             dispatch(new CreateJob($site));
 
             return $site;
+        } catch (ValidationException $e) {
+            DB::rollBack();
+            throw $e;
         } catch (Exception $e) {
             DB::rollBack();
             throw ValidationException::withMessages([

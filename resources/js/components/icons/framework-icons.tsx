@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { cn } from '@/lib/utils';
-import { NetworkIcon, ServerIcon, FileCode2Icon } from 'lucide-react';
+import { NetworkIcon, FileCode2Icon } from 'lucide-react';
 
 export interface IconProps extends React.SVGProps<SVGSVGElement> {
   className?: string;
@@ -299,6 +299,7 @@ export function getSiteTypeIcon(typeKey: string, size = 24, className?: string) 
     case 'php':
     case 'phpsite':
     case 'phpblank':
+    case 'php-blank':
       return <PhpIcon size={size} className={className} />;
     case 'nextjs':
     case 'next':
@@ -317,6 +318,7 @@ export function getSiteTypeIcon(typeKey: string, size = 24, className?: string) 
     case 'static':
       return <Html5Icon size={size} className={className} />;
     case 'loadbalancer':
+    case 'load-balancer':
       return <LoadBalancerIcon size={size} className={className} />;
     case 'blank':
     default:
