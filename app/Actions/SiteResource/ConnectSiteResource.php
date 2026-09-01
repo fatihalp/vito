@@ -70,6 +70,7 @@ class ConnectSiteResource
             ],
             'database_id' => ['nullable', 'integer'],
             'database_name' => ['nullable', 'string', 'max:64'],
+            'confirm_overwrite' => ['nullable', 'boolean'],
         ]);
 
         $data = $validator->validate();
@@ -81,7 +82,7 @@ class ConnectSiteResource
         }
 
         if ($type === SiteResourceType::STORAGE) {
-            return $this->connectStorage($site, (int) $data['storage_provider_id'], $isAdmin);
+            return $this->connectStorage($site, (int) $data['storage_provider_id'], $isAdmin, ! empty($data['confirm_overwrite']));
         }
 
         $serverQuery = Server::query();
@@ -105,14 +106,16 @@ class ConnectSiteResource
         }
 
         return match ($type) {
-            SiteResourceType::DATABASE => $this->connectDatabase($site, $server, $data),
-            SiteResourceType::CACHE => $this->connectCache($site, $server),
+            SiteResourceType::DATABASE => $this->connectDatabase($site, $server, $data, ! empty($data['confirm_overwrite'])),
+            SiteResourceType::CACHE => $this->connectCache($site, $server, ! empty($data['confirm_overwrite'])),
         };
     }
 
-    private function connectDatabase(Site $site, Server $server, array $options = []): SiteResource
+    private function connectDatabase(Site $site, Server $server, array $options = [], bool $confirmOverwrite = false): SiteResource
     {
-        $this->checkExistingDatabaseConfiguration($site);
+        if (! $confirmOverwrite) {
+            $this->checkExistingDatabaseConfiguration($site);
+        }
 
         $isLocal = $server->id === $site->server_id;
 
@@ -207,8 +210,12 @@ class ConnectSiteResource
         }
     }
 
-    private function connectCache(Site $site, Server $server): SiteResource
+    private function connectCache(Site $site, Server $server, bool $confirmOverwrite = false): SiteResource
     {
+        if (! $confirmOverwrite) {
+            $this->checkExistingCacheConfiguration($site);
+        }
+
         $isLocal = $server->id === $site->server_id;
 
         $service = $server->memoryDatabase();
@@ -255,8 +262,12 @@ class ConnectSiteResource
         }
     }
 
-    private function connectStorage(Site $site, int $storageProviderId, bool $isAdmin): SiteResource
+    private function connectStorage(Site $site, int $storageProviderId, bool $isAdmin, bool $confirmOverwrite = false): SiteResource
     {
+        if (! $confirmOverwrite) {
+            $this->checkExistingStorageConfiguration($site);
+        }
+
         $storageProvider = StorageProvider::query()
             ->where(function ($query) use ($site, $isAdmin): void {
                 if (! $isAdmin) {
@@ -392,44 +403,115 @@ class ConnectSiteResource
         }
     }
 
-    private function checkExistingDatabaseConfiguration(Site $site): void
+    private function getSiteEnvMap(Site $site): array
     {
         try {
             $rawEnv = $site->getEnv($site->resolveEnvPath(), timeout: 8);
             if (empty($rawEnv)) {
-                return;
+                return [];
             }
 
             $parsed = EnvParser::parse($rawEnv);
-            $envMap = collect($parsed)->pluck('value', 'key')->filter(fn ($v) => $v !== '' && $v !== null)->all();
 
-            $dbDatabase = trim((string) ($envMap['DB_DATABASE'] ?? ''));
-            $dbUsername = trim((string) ($envMap['DB_USERNAME'] ?? ''));
-            $dbHost = trim((string) ($envMap['DB_HOST'] ?? ''));
-            $dbPassword = trim((string) ($envMap['DB_PASSWORD'] ?? ''));
-
-            $hasDbConfig = (! empty($dbDatabase) && ! in_array(strtolower($dbDatabase), ['null', '""', "''"]))
-                || (! empty($dbUsername) && ! in_array(strtolower($dbUsername), ['null', '""', "''"]))
-                || (! empty($dbPassword))
-                || (! empty($dbHost) && ! in_array(strtolower($dbHost), ['127.0.0.1', 'localhost', 'null', '""', "''"]));
-
-            if ($hasDbConfig) {
-                $details = [];
-                foreach (['DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME'] as $k) {
-                    if (! empty($envMap[$k])) {
-                        $details[] = "{$k}={$envMap[$k]}";
-                    }
-                }
-                $detailsStr = implode(', ', $details);
-
-                throw ValidationException::withMessages([
-                    'server_id' => "Existing database configuration found ({$detailsStr}). Connecting a new database resource will overwrite all current DB_* settings in your .env file. If you want to keep the existing configuration, cancel this operation.",
-                ]);
-            }
-        } catch (ValidationException $e) {
-            throw $e;
+            return collect($parsed)->pluck('value', 'key')->filter(fn ($v) => $v !== '' && $v !== null)->all();
         } catch (\Throwable) {
-            // Ignore connection errors
+            return [];
+        }
+    }
+
+    private function checkExistingDatabaseConfiguration(Site $site): void
+    {
+        $envMap = $this->getSiteEnvMap($site);
+        if (empty($envMap)) {
+            return;
+        }
+
+        $dbDatabase = trim((string) ($envMap['DB_DATABASE'] ?? ''));
+        $dbUsername = trim((string) ($envMap['DB_USERNAME'] ?? ''));
+        $dbHost = trim((string) ($envMap['DB_HOST'] ?? ''));
+        $dbPassword = trim((string) ($envMap['DB_PASSWORD'] ?? ''));
+
+        $hasDbConfig = (! empty($dbDatabase) && ! in_array(strtolower($dbDatabase), ['null', '""', "''"]))
+            || (! empty($dbUsername) && ! in_array(strtolower($dbUsername), ['null', '""', "''"]))
+            || (! empty($dbPassword))
+            || (! empty($dbHost) && ! in_array(strtolower($dbHost), ['127.0.0.1', 'localhost', 'null', '""', "''"]));
+
+        if ($hasDbConfig) {
+            $details = [];
+            foreach (['DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME'] as $k) {
+                if (! empty($envMap[$k])) {
+                    $details[] = "{$k}={$envMap[$k]}";
+                }
+            }
+            $detailsStr = implode(', ', $details);
+
+            throw ValidationException::withMessages([
+                'server_id' => "Existing database configuration found ({$detailsStr}). Connecting a new database resource will overwrite your current DB_* settings in your .env file. If you want to proceed, confirm to overwrite.",
+            ]);
+        }
+    }
+
+    private function checkExistingCacheConfiguration(Site $site): void
+    {
+        $envMap = $this->getSiteEnvMap($site);
+        if (empty($envMap)) {
+            return;
+        }
+
+        $redisHost = trim((string) ($envMap['REDIS_HOST'] ?? ''));
+        $redisPassword = trim((string) ($envMap['REDIS_PASSWORD'] ?? ''));
+        $cacheStore = strtolower(trim((string) ($envMap['CACHE_STORE'] ?? $envMap['CACHE_DRIVER'] ?? '')));
+        $queueConn = strtolower(trim((string) ($envMap['QUEUE_CONNECTION'] ?? '')));
+
+        $hasRedisConfig = (! empty($redisPassword) && ! in_array(strtolower($redisPassword), ['null', '""', "''"]))
+            || (! empty($redisHost) && ! in_array(strtolower($redisHost), ['127.0.0.1', 'localhost', 'null', '""', "''"]))
+            || ($cacheStore === 'redis')
+            || ($queueConn === 'redis');
+
+        if ($hasRedisConfig) {
+            $details = [];
+            foreach (['REDIS_HOST', 'REDIS_PORT', 'REDIS_CLIENT', 'CACHE_STORE', 'QUEUE_CONNECTION'] as $k) {
+                if (! empty($envMap[$k])) {
+                    $details[] = "{$k}={$envMap[$k]}";
+                }
+            }
+            $detailsStr = implode(', ', $details);
+
+            throw ValidationException::withMessages([
+                'server_id' => "Existing Redis/Cache configuration found ({$detailsStr}). Connecting a new cache resource will overwrite your current REDIS_* / CACHE_* settings in your .env file. If you want to proceed, confirm to overwrite.",
+            ]);
+        }
+    }
+
+    private function checkExistingStorageConfiguration(Site $site): void
+    {
+        $envMap = $this->getSiteEnvMap($site);
+        if (empty($envMap)) {
+            return;
+        }
+
+        $awsBucket = trim((string) ($envMap['AWS_BUCKET'] ?? ''));
+        $awsKey = trim((string) ($envMap['AWS_ACCESS_KEY_ID'] ?? ''));
+        $awsEndpoint = trim((string) ($envMap['AWS_ENDPOINT'] ?? ''));
+        $fsDisk = strtolower(trim((string) ($envMap['FILESYSTEM_DISK'] ?? '')));
+
+        $hasStorageConfig = (! empty($awsBucket) && ! in_array(strtolower($awsBucket), ['null', '""', "''"]))
+            || (! empty($awsKey) && ! in_array(strtolower($awsKey), ['null', '""', "''"]))
+            || (! empty($awsEndpoint) && ! in_array(strtolower($awsEndpoint), ['null', '""', "''"]))
+            || ($fsDisk === 's3');
+
+        if ($hasStorageConfig) {
+            $details = [];
+            foreach (['FILESYSTEM_DISK', 'AWS_BUCKET', 'AWS_DEFAULT_REGION', 'AWS_ENDPOINT'] as $k) {
+                if (! empty($envMap[$k])) {
+                    $details[] = "{$k}={$envMap[$k]}";
+                }
+            }
+            $detailsStr = implode(', ', $details);
+
+            throw ValidationException::withMessages([
+                'storage_provider_id' => "Existing storage configuration found ({$detailsStr}). Connecting a new storage resource will overwrite your current AWS_* / FILESYSTEM_* settings in your .env file. If you want to proceed, confirm to overwrite.",
+            ]);
         }
     }
 }

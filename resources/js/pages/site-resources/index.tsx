@@ -53,10 +53,11 @@ export default function SiteResources() {
   const installForm = useForm<{ name: string; version: string }>({ name: '', version: '' });
   const connectedTypes = new Set(page.props.resources.map((resource) => resource.type_value));
   const availableTypes = resourceTypes.filter((type) => !connectedTypes.has(type.value));
-  const form = useForm<{ type: ResourceType | ''; server_id: string; storage_provider_id: string }>({
+  const form = useForm<{ type: ResourceType | ''; server_id: string; storage_provider_id: string; confirm_overwrite: boolean }>({
     type: '',
     server_id: '',
     storage_provider_id: '',
+    confirm_overwrite: false,
   });
   const selectedDefinition = resourceTypes.find((type) => type.value === form.data.type);
   const hasServiceForType = (server: (typeof page.props.servers)[number]) =>
@@ -94,11 +95,36 @@ export default function SiteResources() {
     return () => window.clearInterval(interval);
   }, [page.props.resources]);
 
-  const connect = () => {
-    form.post(route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }), {
+  const connect = (overwrite = false) => {
+    const payload = overwrite ? { ...form.data, confirm_overwrite: true } : form.data;
+    router.post(route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }), payload, {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
+      },
+      onError: (errors) => {
+        form.setError(errors as Record<string, string>);
+        const serverError = typeof errors.server_id === 'string' ? errors.server_id : '';
+        const storageError = typeof errors.storage_provider_id === 'string' ? errors.storage_provider_id : '';
+        const overwriteError = [serverError, storageError].find((msg) =>
+          msg.includes('Existing database configuration found') ||
+          msg.includes('Existing Redis/Cache configuration found') ||
+          msg.includes('Existing storage configuration found')
+        );
+
+        if (!overwrite && overwriteError) {
+          form.clearErrors('server_id');
+          form.clearErrors('storage_provider_id');
+          dialog.confirm.open({
+            title: 'Existing configuration found',
+            description: overwriteError,
+            variant: 'destructive',
+            confirmLabel: 'Overwrite settings',
+            method: 'post',
+            url: route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }),
+            data: { ...form.data, confirm_overwrite: true },
+          });
+        }
       },
     });
   };
