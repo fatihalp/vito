@@ -70,7 +70,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
             "/etc/supervisor/conf.d/{$worker->id}.conf",
             view('ssh.services.process-manager.supervisor.worker', [
                 'name' => (string) $worker->id,
-                'directory' => $worker->site?->path,
+                'directory' => $worker->workingDirectory(),
                 'command' => $worker->command,
                 'user' => $worker->user,
                 'autoStart' => var_export($worker->auto_start, true),
@@ -114,12 +114,13 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function restart(int $id, ?int $siteId = null): void
     {
-        $worker = $this->service->server->workers()->find($id);
+        $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.restart-worker', [
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
+                'user' => $worker?->user,
             ]),
             'restart-worker',
             $siteId
@@ -129,12 +130,13 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function stop(int $id, ?int $siteId = null): void
     {
-        $worker = $this->service->server->workers()->find($id);
+        $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.stop-worker', [
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
+                'user' => $worker?->user,
             ]),
             'stop-worker',
             $siteId
@@ -144,12 +146,13 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function start(int $id, ?int $siteId = null): void
     {
-        $worker = $this->service->server->workers()->find($id);
+        $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.start-worker', [
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
+                'user' => $worker?->user,
             ]),
             'start-worker',
             $siteId
@@ -229,10 +232,19 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     }
 
     
-    public function getLogs(string $user, string $logPath): string
+    public function getLogs(string $user, string $logPath, int $lines = 100): string
     {
+        $lines = max(1, min($lines, 10000));
+
         return $this->service->server->ssh($user)->exec(
-            "tail -100 $logPath"
+            "tail -n {$lines} {$logPath}"
+        );
+    }
+
+    public function clearLogs(string $user, string $logPath): void
+    {
+        $this->service->server->ssh()->exec(
+            "sudo truncate -s 0 {$logPath}"
         );
     }
 

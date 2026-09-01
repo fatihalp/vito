@@ -8,6 +8,7 @@ import { useDialog } from '@/hooks/use-dialog';
 import { asRow } from '@/lib/inertia-table';
 import { Download, View } from '@/pages/server-logs/components/columns';
 import { Deployment } from '@/types/deployment';
+import DateTime from '@/components/date-time';
 
 const commitCell = ({ row }: CellRenderProps) => {
   const commit = (row.commit_data ?? {}) as Deployment['commit_data'];
@@ -35,6 +36,22 @@ const releaseCell = ({ row }: CellRenderProps) => (
   </div>
 );
 
+const deployedAtCell = ({ row, value }: CellRenderProps) => {
+  const dateStr = String(row.created_at || value || '');
+  if (!dateStr) return <span className="text-muted-foreground">—</span>;
+
+  return (
+    <div className="flex flex-col min-w-[130px] leading-tight">
+      <span className="text-xs font-medium text-foreground">
+        <DateTime date={dateStr} relative />
+      </span>
+      <span className="text-[11px] text-muted-foreground font-mono mt-0.5">
+        <DateTime date={dateStr} />
+      </span>
+    </div>
+  );
+};
+
 export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
   const dialog = useDialog();
 
@@ -42,7 +59,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
     <VitoTable
       tableData={deployments}
       showPagination={showPagination}
-      cellRenderers={{ commit: commitCell, release: releaseCell }}
+      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell }}
       actions={(row: Row) => {
         const deployment = asRow<Deployment>(row, ['id', 'site_id', 'server_id']);
 

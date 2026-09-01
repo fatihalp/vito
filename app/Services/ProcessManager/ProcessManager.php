@@ -27,5 +27,7 @@ interface ProcessManager extends ServiceInterface
     
     public function statuses(): array;
 
-    public function getLogs(string $user, string $logPath): string;
+    public function getLogs(string $user, string $logPath, int $lines = 100): string;
+
+    public function clearLogs(string $user, string $logPath): void;
 }

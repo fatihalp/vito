@@ -19,7 +19,9 @@ class Worker extends AbstractModel
     protected $fillable = [
         'server_id',
         'site_id',
+        'name',
         'command',
+        'directory',
         'user',
         'auto_start',
         'auto_restart',
@@ -28,7 +30,6 @@ class Worker extends AbstractModel
         'redirect_stderr',
         'stdout_logfile',
         'status',
-        'name',
     ];
 
     protected $casts = [
@@ -128,5 +129,18 @@ class Worker extends AbstractModel
         }
 
         return $this->site->bootstrapWorkerId() === $this->id;
+    }
+
+    public function workingDirectory(): ?string
+    {
+        if (! empty($this->directory)) {
+            if ($this->site && ! str_starts_with($this->directory, '/')) {
+                return rtrim($this->site->path, '/').'/'.ltrim($this->directory, '/');
+            }
+
+            return $this->directory;
+        }
+
+        return $this->site?->path;
     }
 }

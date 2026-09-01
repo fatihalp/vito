@@ -423,9 +423,7 @@ class ConnectSiteResource
                 $detailsStr = implode(', ', $details);
 
                 throw ValidationException::withMessages([
-                    'server_id' => __('Bu sitede mevcut veritabanı yapılandırması bulundu (:details). Otomatik veritabanı bağlamadan önce mevcut DB ayarlarını kontrol ediniz veya .env dosyasından kaldırınız.', [
-                        'details' => $detailsStr ?: 'DB_DATABASE / DB_USERNAME',
-                    ]),
+                    'server_id' => "Existing database configuration found ({$detailsStr}). Connecting a new database resource will overwrite all current DB_* settings in your .env file. If you want to keep the existing configuration, cancel this operation.",
                 ]);
             }
         } catch (ValidationException $e) {

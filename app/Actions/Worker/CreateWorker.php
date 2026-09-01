@@ -32,6 +32,7 @@ class CreateWorker
             'site_id' => $siteId,
             'name' => $input['name'],
             'command' => $input['command'],
+            'directory' => ! empty($input['directory']) ? trim($input['directory']) : null,
             'user' => $input['user'],
             'auto_start' => $input['auto_start'] ? 1 : 0,
             'auto_restart' => $input['auto_restart'] ? 1 : 0,
@@ -90,6 +91,11 @@ class CreateWorker
             ],
             'command' => [
                 'required',
+            ],
+            'directory' => [
+                'nullable',
+                'string',
+                'max:500',
             ],
             'user' => [
                 'required',

@@ -121,9 +121,11 @@ export default function DeploymentShow() {
               </div>
             )}
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1.5" title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>
               <Clock3Icon className="size-3.5" />
-              <DateTime date={deployment.created_at} />
+              <span>
+                <DateTime date={deployment.created_at} relative /> (<DateTime date={deployment.created_at} />)
+              </span>
             </div>
 
             <div className="flex items-center gap-1.5">

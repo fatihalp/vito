@@ -10,6 +10,7 @@ import { Card } from '@/components/ui/card';
 import LogOutput from '@/components/log-output';
 import { useDialog } from '@/hooks/use-dialog';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Server } from '@/types/server';
 import { Worker } from '@/types/worker';
 import {
@@ -24,9 +25,19 @@ import {
   RefreshCwIcon,
   RotateCwIcon,
   TerminalIcon,
+  Trash2Icon,
   XCircleIcon,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+
+const LINE_OPTIONS = [
+  { value: '100', label: '100 satır' },
+  { value: '250', label: '250 satır' },
+  { value: '500', label: '500 satır' },
+  { value: '1000', label: '1000 satır' },
+  { value: '2500', label: '2500 satır' },
+  { value: '5000', label: '5000 satır' },
+];
 
 function StatusIcon({ status }: { status?: string }) {
   if (status === 'running') {
@@ -49,13 +60,16 @@ function WorkerLogContent() {
   const { server } = page.props;
   const worker = useRealtimeRecord<Worker>(page.props.worker, 'worker')!;
   const [autoRefresh, setAutoRefresh] = useState(true);
+  const [lines, setLines] = useState('100');
   const [isActionProcessing, setIsActionProcessing] = useState<string | null>(null);
   const dialog = useDialog();
 
   const query = useQuery({
-    queryKey: ['workerLog', worker.id],
+    queryKey: ['workerLog', worker.id, lines],
     queryFn: async () => {
-      const response = await axios.get(route('workers.logs', { server: server.id, worker: worker.id }));
+      const response = await axios.get(route('workers.logs', { server: server.id, worker: worker.id }), {
+        params: { lines },
+      });
       return response.data.logs as string;
     },
     refetchInterval: autoRefresh ? 2500 : false,
@@ -91,6 +105,17 @@ function WorkerLogContent() {
     }
 
     executeAction(type);
+  };
+
+  const handleClearLogs = () => {
+    dialog.confirm.open({
+      title: 'Clear logs',
+      description: 'Are you sure you want to clear all logs for this worker? This action cannot be undone.',
+      variant: 'destructive',
+      confirmLabel: 'Clear logs',
+      method: 'post',
+      url: route('workers.clear-logs', { server: server.id, worker: worker.id }),
+    });
   };
 
   const isStopped = worker.status === 'stopped';
@@ -224,9 +249,38 @@ function WorkerLogContent() {
           </div>
         </div>
 
+        {/* Log Controls Bar */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-xs">Satır:</span>
+            <Select value={lines} onValueChange={setLines}>
+              <SelectTrigger className="h-8 w-[130px] text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LINE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleClearLogs}
+            className="h-8 gap-1.5 cursor-pointer text-xs text-destructive hover:text-destructive"
+          >
+            <Trash2Icon className="size-3.5" />
+            <span>Clear logs</span>
+          </Button>
+        </div>
+
         {/* Full Height & Width Log Viewer */}
         <Card className="flex-1 overflow-hidden border flex flex-col min-h-[550px]">
-          <LogOutput className="h-[calc(100vh-240px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
+          <LogOutput className="h-[calc(100vh-290px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
             {query.isLoading && 'Loading worker logs...'}
             {query.isError && <span className="text-destructive">Failed to load worker logs.</span>}
             {!query.isLoading && !query.isError && (query.data || (

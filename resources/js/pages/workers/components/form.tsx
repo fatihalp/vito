@@ -56,6 +56,7 @@ export default function WorkerForm({
   const form = useForm<{
     name: string;
     command: string;
+    directory: string;
     user: string;
     auto_start: boolean;
     auto_restart: boolean;
@@ -65,6 +66,7 @@ export default function WorkerForm({
   }>({
     name: worker?.name || '',
     command: worker?.command || '',
+    directory: worker?.directory || '',
     user: worker?.user || defaultUser,
     auto_start: worker?.auto_start ?? true,
     auto_restart: worker?.auto_restart ?? true,
@@ -81,6 +83,7 @@ export default function WorkerForm({
         form.setData({
           name: worker.name || '',
           command: worker.command || '',
+          directory: worker.directory || '',
           user: worker.user || defaultUser,
           auto_start: worker.auto_start ?? true,
           auto_restart: worker.auto_restart ?? true,
@@ -93,6 +96,7 @@ export default function WorkerForm({
         form.setData({
           name: '',
           command: '',
+          directory: '',
           user: defaultUser,
           auto_start: true,
           auto_restart: true,
@@ -210,6 +214,21 @@ export default function WorkerForm({
                 placeholder={site ? 'php artisan queue:work' : ''}
               />
               <InputError message={form.errors.command} />
+            </FormField>
+
+            <FormField>
+              <Label htmlFor="directory">Directory</Label>
+              <Input
+                type="text"
+                id="directory"
+                value={form.data.directory}
+                onChange={(e) => form.setData('directory', e.target.value)}
+                placeholder={site ? site.path : '/path/to/directory (optional)'}
+              />
+              <p className="text-muted-foreground text-xs">
+                {site ? `Optional. Leave blank to run in the site root directory (${site.path}).` : 'Optional. Leave blank to run in the default directory.'}
+              </p>
+              <InputError message={form.errors.directory} />
             </FormField>
 
             {site && !worker && (

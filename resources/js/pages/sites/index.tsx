@@ -63,7 +63,7 @@ export default function Sites() {
   return (
     <Comp>
       <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
-      <Container className="max-w-5xl">
+      <Container className="max-w-none w-full">
         <div className="flex items-center justify-end">
           <div className="flex items-center gap-2">
             <CreateSite server={page.props.server}>

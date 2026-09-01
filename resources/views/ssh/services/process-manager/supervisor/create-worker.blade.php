@@ -6,7 +6,13 @@ if ! sudo touch {{ $logFile }}; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
 
-if ! sudo chown {{ $user }}:{{ $user }} {{ $logFile }}; then
+echo -e "\n======================================================\n[$(date '+%Y-%m-%d %H:%M:%S')] >>> WORKER CREATED & STARTED <<<\n======================================================\n" | sudo tee -a "{{ $logFile }}" > /dev/null 2>&1 || true
+
+if ! sudo chown -R {{ $user }}:{{ $user }} "$(dirname {{ $logFile }})"; then
+    echo 'VITO_SSH_ERROR' && exit 1
+fi
+
+if ! sudo chmod 664 "{{ $logFile }}"; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
 

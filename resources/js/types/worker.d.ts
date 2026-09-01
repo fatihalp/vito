@@ -4,6 +4,7 @@ export interface Worker {
   site_id: number | null;
   name: string;
   command: string;
+  directory?: string | null;
   user: string;
   auto_start: boolean;
   auto_restart: boolean;

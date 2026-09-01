@@ -222,15 +222,26 @@ class WorkerController extends Controller
     }
 
     #[Get('/workers/{worker}/logs', name: 'workers.logs')]
-    public function logs(Server $server, Worker $worker): JsonResponse
+    public function logs(Request $request, Server $server, Worker $worker): JsonResponse
     {
         $this->authorize('view', [$worker, $server]);
 
-        $logs = app(GetWorkerLogs::class)->getLogs($worker);
+        $lines = (int) $request->query('lines', 100);
+        $logs = app(GetWorkerLogs::class)->getLogs($worker, $lines);
 
         return response()->json([
             'logs' => $logs,
         ]);
+    }
+
+    #[Post('/workers/{worker}/clear-logs', name: 'workers.clear-logs')]
+    public function clearLogs(Server $server, Worker $worker): RedirectResponse
+    {
+        $this->authorize('update', [$worker, $server]);
+
+        app(GetWorkerLogs::class)->clear($worker);
+
+        return back()->with('success', 'Worker logs cleared.');
     }
 
     #[Delete('/{worker}/{site?}', name: 'workers.destroy')]

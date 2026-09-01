@@ -17,6 +17,7 @@ class WorkerResource extends JsonResource
             'site_id' => $this->site_id,
             'name' => $this->name,
             'command' => $this->command,
+            'directory' => $this->directory,
             'user' => $this->user,
             'auto_start' => $this->auto_start,
             'auto_restart' => $this->auto_restart,

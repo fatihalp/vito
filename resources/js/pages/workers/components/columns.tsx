@@ -99,9 +99,10 @@ function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Wo
             <span className="font-semibold text-xs leading-tight text-foreground truncate" title={row.original.name}>
               {row.original.name}
             </span>
-            <span className="text-[11px] text-muted-foreground truncate">
+            <span className="text-[11px] text-muted-foreground truncate" title={row.original.directory || undefined}>
               {row.original.user}
               {site ? ` • ${site.domain}` : ''}
+              {row.original.directory ? ` • ${row.original.directory}` : ''}
             </span>
           </div>
         );
