@@ -3,11 +3,11 @@ import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
-import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
+import { CheckIcon, ChevronsUpDownIcon, SettingsIcon } from 'lucide-react';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
-import { usePage } from '@inertiajs/react';
+import { Link, usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
 
 interface ServerSelectProps {
@@ -181,11 +181,27 @@ export default function ServerSelect({
                       key={`server-select-${server.id}`}
                       value={serverValue}
                       onSelect={() => handleSelect(server, serverValue)}
-                      className="truncate"
+                      className="group flex items-center justify-between gap-2 cursor-pointer"
                     >
-                      {server.name}
-                      {showIp && ` (${server.ip})`}
-                      <CheckIcon className={cn('ml-auto', selected === serverValue ? 'opacity-100' : 'opacity-0')} />
+                      <span className="truncate flex-1">
+                        {server.name}
+                        {showIp && ` (${server.ip})`}
+                      </span>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <Link
+                          href={route('server-settings', { server: server.id })}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpen(false);
+                          }}
+                          className="text-muted-foreground hover:text-foreground hover:bg-accent/80 p-1 rounded-sm transition-colors"
+                          title={`${server.name} settings`}
+                          aria-label={`${server.name} settings`}
+                        >
+                          <SettingsIcon className="size-3.5" />
+                        </Link>
+                        <CheckIcon className={cn('size-4', selected === serverValue ? 'opacity-100' : 'opacity-0')} />
+                      </div>
                     </CommandItem>
                   );
                 })}

@@ -112,6 +112,8 @@ class ConnectSiteResource
 
     private function connectDatabase(Site $site, Server $server, array $options = []): SiteResource
     {
+        $this->checkExistingDatabaseConfiguration($site);
+
         $isLocal = $server->id === $site->server_id;
 
         $service = $server->database();
@@ -387,6 +389,49 @@ class ConnectSiteResource
         if ($database) {
             $handler->delete($database->name);
             $database->delete();
+        }
+    }
+
+    private function checkExistingDatabaseConfiguration(Site $site): void
+    {
+        try {
+            $rawEnv = $site->getEnv($site->resolveEnvPath(), timeout: 8);
+            if (empty($rawEnv)) {
+                return;
+            }
+
+            $parsed = EnvParser::parse($rawEnv);
+            $envMap = collect($parsed)->pluck('value', 'key')->filter(fn ($v) => $v !== '' && $v !== null)->all();
+
+            $dbDatabase = trim((string) ($envMap['DB_DATABASE'] ?? ''));
+            $dbUsername = trim((string) ($envMap['DB_USERNAME'] ?? ''));
+            $dbHost = trim((string) ($envMap['DB_HOST'] ?? ''));
+            $dbPassword = trim((string) ($envMap['DB_PASSWORD'] ?? ''));
+
+            $hasDbConfig = (! empty($dbDatabase) && ! in_array(strtolower($dbDatabase), ['null', '""', "''"]))
+                || (! empty($dbUsername) && ! in_array(strtolower($dbUsername), ['null', '""', "''"]))
+                || (! empty($dbPassword))
+                || (! empty($dbHost) && ! in_array(strtolower($dbHost), ['127.0.0.1', 'localhost', 'null', '""', "''"]));
+
+            if ($hasDbConfig) {
+                $details = [];
+                foreach (['DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME'] as $k) {
+                    if (! empty($envMap[$k])) {
+                        $details[] = "{$k}={$envMap[$k]}";
+                    }
+                }
+                $detailsStr = implode(', ', $details);
+
+                throw ValidationException::withMessages([
+                    'server_id' => __('Bu sitede mevcut veritabanı yapılandırması bulundu (:details). Otomatik veritabanı bağlamadan önce mevcut DB ayarlarını kontrol ediniz veya .env dosyasından kaldırınız.', [
+                        'details' => $detailsStr ?: 'DB_DATABASE / DB_USERNAME',
+                    ]),
+                ]);
+            }
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable) {
+            // Ignore connection errors
         }
     }
 }

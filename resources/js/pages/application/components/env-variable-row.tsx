@@ -52,6 +52,10 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               value={variable.value}
               onChange={handleValueChange}
               disabled={isManaged}
+              autoComplete="new-password"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-bwignore="true"
               placeholder="Enter new value to change..."
               className="h-9 w-full pr-10"
             />
@@ -96,6 +100,10 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               onChange={handleValueChange}
               disabled={isManaged}
               readOnly={isMultiLine}
+              autoComplete="new-password"
+              data-1p-ignore="true"
+              data-lpignore="true"
+              data-bwignore="true"
               placeholder={isMultiLine ? 'Reveal to edit this value' : 'Enter value...'}
               title={isMultiLine ? 'This value spans several lines. Reveal it to edit.' : undefined}
               aria-describedby={isMultiLine ? hintId : undefined}
@@ -175,6 +183,13 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
             value={variable.key}
             onChange={handleKeyChange}
             placeholder="KEY"
+            autoComplete="new-password"
+            autoCorrect="off"
+            autoCapitalize="none"
+            spellCheck={false}
+            data-1p-ignore="true"
+            data-lpignore="true"
+            data-bwignore="true"
             className={cn(
               'font-mono',
               isManaged ? 'pr-36' : isExisting && variable.isSecret && !revealable ? 'pr-9' : '',

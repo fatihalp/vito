@@ -184,6 +184,16 @@ class ApplicationController extends Controller
 
     
 
+    #[Get('/environment', name: 'application.environment')]
+    public function environment(Server $server, Site $site): Response
+    {
+        $this->authorize('view', [$site, $server]);
+
+        return Inertia::render('application/environment/index', [
+            'defaultPath' => $site->type_data['env_path'] ?? ($site->path ? "{$site->path}/.env" : null),
+        ]);
+    }
+
     #[Get('/env', name: 'application.env')]
     public function env(Request $request, Server $server, Site $site): JsonResponse
     {

@@ -116,6 +116,15 @@ class ServiceController extends Controller
 
         app(Manage::class)->$action($service);
 
+        if (in_array($action, ['start', 'restart'])) {
+            return redirect()->route('logs.services', [
+                'server' => $server->id,
+                'service' => $service->type,
+            ])->with('success', __(":service is being {$action}ed.", [
+                'service' => $service->name,
+            ]));
+        }
+
         return back()->with('success', __(":service is being {$action}ed.", [
             'service' => $service->name,
         ]));
@@ -140,23 +149,23 @@ class ServiceController extends Controller
     }
 
     #[Post('/{service}/networking/enable', name: 'services.networking.enable')]
-    public function enableNetworking(Server $server, Service $service): HttpResponse
+    public function enableNetworking(Server $server, Service $service): RedirectResponse
     {
         $this->authorize('manageNetworking', $service);
 
         app(ToggleNetworking::class)->enable($service);
 
-        return response()->noContent();
+        return back()->with('info', __('Enabling remote networking for :service…', ['service' => $service->name]));
     }
 
     #[Post('/{service}/networking/disable', name: 'services.networking.disable')]
-    public function disableNetworking(Server $server, Service $service): HttpResponse
+    public function disableNetworking(Server $server, Service $service): RedirectResponse
     {
         $this->authorize('manageNetworking', $service);
 
         app(ToggleNetworking::class)->disable($service);
 
-        return response()->noContent();
+        return back()->with('info', __('Disabling remote networking for :service…', ['service' => $service->name]));
     }
 
     #[Post('/{service}/networking/secret', name: 'services.networking.secret.regenerate')]

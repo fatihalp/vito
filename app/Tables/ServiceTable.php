@@ -35,7 +35,7 @@ class ServiceTable extends Table
                 ->sortable(),
             DateTimeColumn::make('created_at', 'Installed at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
-            ComponentColumn::create('networked', 'Networked', 'ServiceNetworkedBadge')
+            ComponentColumn::create('networked', 'Remote Access', 'ServiceNetworkedBadge')
                 ->value(function (Service $service): string {
                     $handler = $service->hasHandler() ? $service->handler() : null;
 
@@ -43,11 +43,11 @@ class ServiceTable extends Table
                         return 'n/a';
                     }
 
-                    return match ($service->type_data['networking_effective'] ?? null) {
-                        true => 'yes',
-                        false => 'no',
-                        default => 'unknown',
-                    };
+                    if (isset($service->type_data['networking_effective']) && $service->type_data['networking_effective'] !== null) {
+                        return $service->type_data['networking_effective'] ? 'yes' : 'no';
+                    }
+
+                    return $handler->networkingEnabled() ? 'yes' : 'no';
                 }),
             Column::data('id'),
             Column::data('resource', fn (Service $service) => ServiceResource::make($service)),

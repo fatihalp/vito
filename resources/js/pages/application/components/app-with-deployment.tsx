@@ -12,6 +12,7 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CodeXmlIcon,
+  FileCode2Icon,
   GitBranchIcon,
   Globe2Icon,
   Layers3Icon,
@@ -157,6 +158,12 @@ export default function AppWithDeployment() {
                       <div className="flex shrink-0 items-center gap-2">
                         {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
                         <Deploy site={site} />
+                        <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
+                          <Link href={route('application.environment', { server: page.props.server.id, site: site.id })}>
+                            <FileCode2Icon className="size-4" />
+                            <span>Environment (.env)</span>
+                          </Link>
+                        </Button>
                         <DropdownMenu modal={false}>
                           <DropdownMenuTrigger asChild>
                             <Button variant="outline" className="p-0">
@@ -193,9 +200,11 @@ export default function AppWithDeployment() {
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Pre Flight Script</DropdownMenuItem>
                               </DeploymentScript>
                             )}
-                            <Env site={site}>
-                              <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Update .env</DropdownMenuItem>
-                            </Env>
+                            <DropdownMenuItem asChild>
+                              <Link href={route('application.environment', { server: page.props.server.id, site: site.id })}>
+                                Environment (.env)
+                              </Link>
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

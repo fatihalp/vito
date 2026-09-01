@@ -21,7 +21,7 @@ export default function LogOutput({ className, children }: { className?: string;
   };
 
   return (
-    <div className="relative w-full">
+    <div className="relative w-full h-full flex flex-col flex-1 min-h-0">
       <ScrollArea
         ref={scrollRef}
         className={cn(

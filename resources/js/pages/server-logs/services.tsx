@@ -47,7 +47,27 @@ export default function ServiceLogs() {
 
   const itemsByKey = useMemo(() => Object.fromEntries(catalogue.map((c) => [c.key, c])), [catalogue]);
 
-  const [selectedKey, setSelectedKey] = useState<string>('');
+  const initialKey = useMemo(() => {
+    if (typeof window === 'undefined') return catalogue[0]?.key ?? '';
+    const params = new URLSearchParams(window.location.search);
+    const keyParam = params.get('key');
+    if (keyParam && itemsByKey[keyParam]) return keyParam;
+
+    const serviceParam = params.get('service')?.toLowerCase();
+    if (serviceParam) {
+      const match = catalogue.find(
+        (c) =>
+          c.key.toLowerCase().includes(serviceParam) ||
+          c.service_label.toLowerCase().includes(serviceParam) ||
+          c.label.toLowerCase().includes(serviceParam),
+      );
+      if (match) return match.key;
+    }
+
+    return catalogue[0]?.key ?? '';
+  }, [catalogue, itemsByKey]);
+
+  const [selectedKey, setSelectedKey] = useState<string>(initialKey);
   const [lines, setLines] = useState<LineOption>('100');
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
@@ -288,7 +308,7 @@ function LogViewer({
   }
 
   return (
-    <ScrollArea className="bg-background h-[60vh] min-h-[400px] w-full">
+    <ScrollArea className="bg-background h-[calc(100vh-320px)] min-h-[500px] w-full">
       <div className="p-4 font-mono text-sm whitespace-pre-wrap">{content}</div>
       <ScrollBar orientation="vertical" />
       <ScrollBar orientation="horizontal" />

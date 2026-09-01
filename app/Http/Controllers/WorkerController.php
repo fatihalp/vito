@@ -152,8 +152,10 @@ class WorkerController extends Controller
 
         app(ManageWorker::class)->start($worker);
 
-        return back()
-            ->with('info', 'Worker is being started.');
+        return redirect()->route('workers.log', [
+            'server' => $server->id,
+            'worker' => $worker->id,
+        ])->with('info', 'Worker is being started.');
     }
 
     #[Post('/workers/{worker}/stop', name: 'workers.stop')]
@@ -174,8 +176,10 @@ class WorkerController extends Controller
 
         app(ManageWorker::class)->restart($worker);
 
-        return back()
-            ->with('info', 'Worker is being restarted.');
+        return redirect()->route('workers.log', [
+            'server' => $server->id,
+            'worker' => $worker->id,
+        ])->with('info', 'Worker is being restarted.');
     }
 
     #[Get('/workers/{worker}/env', name: 'workers.env')]
@@ -205,6 +209,16 @@ class WorkerController extends Controller
                 'Environment updated. The worker is restarting to apply the change.',
             ),
         };
+    }
+
+    #[Get('/workers/{worker}/log', name: 'workers.log')]
+    public function log(Server $server, Worker $worker): Response
+    {
+        $this->authorize('view', [$worker, $server]);
+
+        return Inertia::render('workers/log', [
+            'worker' => new WorkerResource($worker->loadMissing('site')),
+        ]);
     }
 
     #[Get('/workers/{worker}/logs', name: 'workers.logs')]

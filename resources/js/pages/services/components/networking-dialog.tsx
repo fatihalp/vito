@@ -352,7 +352,7 @@ export default function ServiceNetworkingDialog({
               onClick={() => toggle(networked ? 'disable' : 'enable')}
             >
               {(submitting || pending) && <LoaderCircleIcon className="animate-spin" />}
-              {networked ? 'Disable networking' : 'Enable networking'}
+              {networked ? 'Close Remote Access (Disable)' : 'Open to Remote (Enable)'}
             </Button>
           )}
         </DialogFooter>

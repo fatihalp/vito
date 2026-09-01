@@ -1,6 +1,7 @@
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Worker } from '@/types/worker';
 import { useDialog } from '@/hooks/use-dialog';
+import { Link } from '@inertiajs/react';
 
 export function WorkerAction({ type, worker }: { type: 'start' | 'stop' | 'restart'; worker: Worker }) {
   const dialog = useDialog();
@@ -25,9 +26,13 @@ export function WorkerAction({ type, worker }: { type: 'start' | 'stop' | 'resta
 }
 
 export function WorkerLogs({ worker }: { worker: Worker }) {
-  const dialog = useDialog();
-
-  return <DropdownMenuItem onSelect={() => dialog.workerLogs.open({ serverId: worker.server_id, workerId: worker.id })}>Logs</DropdownMenuItem>;
+  return (
+    <DropdownMenuItem asChild>
+      <Link href={route('workers.log', { server: worker.server_id, worker: worker.id })}>
+        Logs
+      </Link>
+    </DropdownMenuItem>
+  );
 }
 
 export function WorkerEnvironment({ worker }: { worker: Worker }) {
