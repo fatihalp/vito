@@ -5,7 +5,7 @@ namespace App\Tables;
 use Forjed\InertiaTable\Column;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
-use Forjed\InertiaTable\Table;
+use App\Tables\AbstractTable as Table;
 
 class WorkflowRunTable extends Table
 {

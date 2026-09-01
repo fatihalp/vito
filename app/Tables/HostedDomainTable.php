@@ -10,7 +10,7 @@ use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\BadgeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
-use Forjed\InertiaTable\Table;
+use App\Tables\AbstractTable as Table;
 
 class HostedDomainTable extends Table
 {

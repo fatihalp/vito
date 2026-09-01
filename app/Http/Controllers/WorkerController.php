@@ -13,6 +13,7 @@ use App\Actions\Worker\UpdateWorkerEnvironment;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
 use App\Enums\ServerRole;
 use App\Helpers\EnvParser;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\WorkerResource;
 use App\Models\Server;
 use App\Models\Site;
@@ -41,13 +42,13 @@ class WorkerController extends Controller
     {
         $this->authorize('viewAny', [Worker::class, $server]);
 
+        $query = $server->workers()->with('site:id,server_id,type_data');
+        $workers = QueryBuilder::for($query)
+            ->sortable('created_at', 'desc')
+            ->simplePaginate();
+
         return Inertia::render('workers/index', [
-            'workers' => WorkerResource::collection(
-                $server->workers()
-                    ->with('site:id,server_id,type_data')
-                    ->latest()
-                    ->simplePaginate(config('web.pagination_size'))
-            ),
+            'workers' => WorkerResource::collection($workers),
             'sites' => $server->sites()->select('id', 'domain')->get(),
         ]);
     }

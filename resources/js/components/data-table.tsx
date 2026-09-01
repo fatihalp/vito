@@ -13,6 +13,7 @@ import { router } from '@inertiajs/react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { PaginatedData } from '@/types';
 import { Input } from './ui/input';
@@ -63,7 +64,7 @@ export function DataTable<TData, TValue>({
   isFetching,
   isLoading,
   searchable,
-  sortable = false,
+  sortable = true,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
   
@@ -95,6 +96,67 @@ export function DataTable<TData, TValue>({
   });
   const [isSearching, setIsSearching] = useState(false);
 
+  const currentPerPage = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const fromUrl = params.get('per_page') || params.get('perPage');
+      if (fromUrl && ['10', '25', '50'].includes(fromUrl)) {
+        return fromUrl;
+      }
+    }
+    if (paginatedData?.meta?.per_page) {
+      return String(paginatedData.meta.per_page);
+    }
+    return '10';
+  }, [paginatedData?.meta?.per_page]);
+
+  const handlePerPageChange = (newPerPage: string) => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    url.searchParams.set('per_page', newPerPage);
+
+    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
+    let pageParamReset = false;
+    for (const p of pageParams) {
+      if (url.searchParams.has(p)) {
+        url.searchParams.set(p, '1');
+        pageParamReset = true;
+      }
+    }
+    if (!pageParamReset) {
+      url.searchParams.set('page', '1');
+    }
+
+    router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
+  };
+
+  const handleSort = (sortKey: string) => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    const params = url.searchParams;
+
+    const current = params.get('sort_by');
+    const currentDir = params.get('sort_dir') || 'desc';
+
+    if (current !== sortKey) {
+      params.set('sort_by', sortKey);
+      params.set('sort_dir', 'asc');
+    } else {
+      params.set('sort_dir', currentDir === 'asc' ? 'desc' : 'asc');
+    }
+
+    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
+    for (const p of pageParams) {
+      if (params.has(p)) {
+        params.set(p, '1');
+      }
+    }
+
+    router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
+  };
+
   const handlePageChange = (url: string) => {
     if (onPageChange) {
       
@@ -119,12 +181,16 @@ export function DataTable<TData, TValue>({
       const currentParams = new URLSearchParams(window.location.search);
       const sortBy = currentParams.get('sort_by');
       const sortDir = currentParams.get('sort_dir');
+      const perPage = currentParams.get('per_page');
 
       if (sortBy) {
         urlObj.searchParams.set('sort_by', sortBy);
       }
       if (sortDir) {
         urlObj.searchParams.set('sort_dir', sortDir);
+      }
+      if (perPage) {
+        urlObj.searchParams.set('per_page', perPage);
       }
 
       router.get(urlObj.toString(), {}, { preserveState: true, preserveScroll: true });
@@ -216,23 +282,7 @@ export function DataTable<TData, TValue>({
                         <button
                           type="button"
                           className="flex cursor-pointer items-center gap-2"
-                          onClick={() => {
-                            
-                            const url = new URL(window.location.href);
-                            const params = url.searchParams;
-
-                            const current = params.get('sort_by');
-                            const currentDir = params.get('sort_dir') || 'desc';
-
-                            if (current !== sortKey) {
-                              params.set('sort_by', sortKey);
-                              params.set('sort_dir', 'asc');
-                            } else {
-                              params.set('sort_dir', currentDir === 'asc' ? 'desc' : 'asc');
-                            }
-
-                            router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
-                          }}
+                          onClick={() => handleSort(sortKey)}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIndicator sortKey={sortKey} />
@@ -271,7 +321,7 @@ export function DataTable<TData, TValue>({
         </Table>
 
         {paginatedData && (
-          <div className="flex items-center justify-between border-t px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t px-4 py-3">
             <div className="text-muted-foreground flex items-center text-sm">
               {paginatedData.meta.from && paginatedData.meta.to && (
                 <span>
@@ -281,47 +331,63 @@ export function DataTable<TData, TValue>({
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginatedData.links.first && handlePageChange(paginatedData.links.first)}
-                disabled={!paginatedData.links.first || isFetching}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginatedData.links.prev && handlePageChange(paginatedData.links.prev)}
-                disabled={!paginatedData.links.prev || isFetching}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-
-              <div className="flex items-center text-sm font-medium">
-                Page {paginatedData.meta.current_page}
-                {paginatedData.meta.last_page && ` of ${paginatedData.meta.last_page}`}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm whitespace-nowrap">Rows per page</span>
+                <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={String(currentPerPage)} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginatedData.links.next && handlePageChange(paginatedData.links.next)}
-                disabled={!paginatedData.links.next || isFetching}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => paginatedData.links.first && handlePageChange(paginatedData.links.first)}
+                  disabled={!paginatedData.links.first || isFetching}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => paginatedData.links.last && handlePageChange(paginatedData.links.last)}
-                disabled={!paginatedData.links.last || isFetching}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => paginatedData.links.prev && handlePageChange(paginatedData.links.prev)}
+                  disabled={!paginatedData.links.prev || isFetching}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="flex items-center text-sm font-medium whitespace-nowrap">
+                  Page {paginatedData.meta.current_page}
+                  {paginatedData.meta.last_page && ` of ${paginatedData.meta.last_page}`}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => paginatedData.links.next && handlePageChange(paginatedData.links.next)}
+                  disabled={!paginatedData.links.next || isFetching}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => paginatedData.links.last && handlePageChange(paginatedData.links.last)}
+                  disabled={!paginatedData.links.last || isFetching}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         )}

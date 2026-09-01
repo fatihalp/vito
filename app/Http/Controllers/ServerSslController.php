@@ -6,6 +6,7 @@ use App\Actions\SSL\ActivateServerSsl;
 use App\Actions\SSL\CreateServerSsl;
 use App\Actions\SSL\DeleteSsl;
 use App\Enums\SslStatus;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\SslResource;
 use App\Models\Domain;
 use App\Models\Server;
@@ -38,10 +39,12 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
+        $ssls = QueryBuilder::for($server->ssls()->whereNull('site_id'))
+            ->sortable('created_at', 'desc')
+            ->simplePaginate();
+
         return Inertia::render('server-ssls/index', [
-            'ssls' => SslResource::collection(
-                $server->ssls()->whereNull('site_id')->latest()->simplePaginate(config('web.pagination_size'))
-            ),
+            'ssls' => SslResource::collection($ssls),
             'domains' => $domains,
         ]);
     }

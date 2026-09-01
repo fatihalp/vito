@@ -8,7 +8,7 @@ use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\CopyableColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
-use Forjed\InertiaTable\Table;
+use App\Tables\AbstractTable as Table;
 
 class NetworkPeerTable extends Table
 {

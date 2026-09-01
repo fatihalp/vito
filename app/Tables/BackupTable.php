@@ -11,7 +11,7 @@ use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\BadgeColumn;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
-use Forjed\InertiaTable\Table;
+use App\Tables\AbstractTable as Table;
 
 class BackupTable extends Table
 {

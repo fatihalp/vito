@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Domain\AddDomain;
 use App\Actions\Domain\GetAvailableDomains;
 use App\Actions\Domain\RemoveDomain;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\DNSRecordResource;
 use App\Http\Resources\DomainResource;
 use App\Models\DNSProvider;
@@ -33,7 +34,10 @@ class DomainController extends Controller
 
         $this->authorize('viewAny', [Domain::class, $user->currentProject]);
 
-        $domains = $user->currentProject->domains()->latest()->with('dnsProvider')->simplePaginate(config('web.pagination_size'));
+        $query = $user->currentProject->domains()->with('dnsProvider');
+        $domains = QueryBuilder::for($query)
+            ->sortable('created_at', 'desc')
+            ->simplePaginate();
 
         return Inertia::render('domains/index', [
             'domains' => DomainResource::collection($domains),

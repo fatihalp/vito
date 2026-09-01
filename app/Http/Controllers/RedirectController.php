@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Redirect\CreateRedirect;
 use App\Actions\Redirect\DeleteRedirect;
 use App\Actions\Redirect\UpdateRedirect;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\RedirectResource;
 use App\Models\Redirect;
 use App\Models\Server;
@@ -30,8 +31,12 @@ class RedirectController extends Controller
     {
         $this->authorize('viewAny', [Redirect::class, $site, $server]);
 
+        $redirects = QueryBuilder::for($site->redirects())
+            ->sortable('created_at', 'desc')
+            ->simplePaginate();
+
         return Inertia::render('redirects/index', [
-            'redirects' => RedirectResource::collection($site->redirects()->latest()->simplePaginate(config('web.pagination_size'))),
+            'redirects' => RedirectResource::collection($redirects),
         ]);
     }
 

@@ -6,6 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import {
   ChevronLeft,
@@ -79,6 +80,35 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
     renderCell: vitoCellRenderer as InertiaTableProps['renderCell'],
     ...props,
   });
+
+  const currentPerPage = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const perPageParam = orderedTableData.identifier ? `${orderedTableData.identifier}PerPage` : 'per_page';
+      const fromUrl = params.get(perPageParam) || params.get('per_page') || params.get('perPage');
+      if (fromUrl && ['10', '25', '50'].includes(fromUrl)) {
+        return fromUrl;
+      }
+    }
+    if (tableData?.meta?.per_page) {
+      return String(tableData.meta.per_page);
+    }
+    return '10';
+  }, [orderedTableData.identifier, tableData?.meta?.per_page]);
+
+  const handlePerPageChange = (newPerPage: string) => {
+    if (typeof window === 'undefined') return;
+
+    const url = new URL(window.location.href);
+    const perPageParam = orderedTableData.identifier ? `${orderedTableData.identifier}PerPage` : 'per_page';
+    const pageParam = orderedTableData.identifier ? `${orderedTableData.identifier}Page` : 'page';
+
+    url.searchParams.set(perPageParam, newPerPage);
+    url.searchParams.set('per_page', newPerPage);
+    url.searchParams.set(pageParam, '1');
+
+    router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
+  };
 
   const realtimePrefix = getRealtimePrefix(orderedTableData);
   useEffect(() => {
@@ -165,7 +195,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
         </Table>
 
         {showPagination && orderedTableData.meta && (
-          <div className="flex items-center justify-between border-t px-4 py-3">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t px-4 py-3">
             <div className="text-muted-foreground flex items-center text-sm">
               {tableData.meta.from && tableData.meta.to && (
                 <span>
@@ -175,47 +205,63 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
               )}
             </div>
 
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => tableData.links.first && onPageChange(1)}
-                disabled={!tableData.links.first || processing}
-              >
-                <ChevronsLeft className="h-4 w-4" />
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(tableData.meta.current_page - 1)}
-                disabled={!tableData.links.prev || processing}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-
-              <div className="flex items-center text-sm font-medium">
-                Page {tableData.meta.current_page}
-                {tableData.meta.last_page && ` of ${tableData.meta.last_page}`}
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm whitespace-nowrap">Rows per page</span>
+                <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
+                  <SelectTrigger className="h-8 w-[70px]">
+                    <SelectValue placeholder={String(currentPerPage)} />
+                  </SelectTrigger>
+                  <SelectContent side="top">
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(tableData.meta.current_page + 1)}
-                disabled={!tableData.links.next || processing}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </Button>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => tableData.links.first && onPageChange(1)}
+                  disabled={!tableData.links.first || processing}
+                >
+                  <ChevronsLeft className="h-4 w-4" />
+                </Button>
 
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => tableData.meta.last_page && onPageChange(tableData.meta.last_page)}
-                disabled={!tableData.links.last || processing}
-              >
-                <ChevronsRight className="h-4 w-4" />
-              </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(tableData.meta.current_page - 1)}
+                  disabled={!tableData.links.prev || processing}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+
+                <div className="flex items-center text-sm font-medium whitespace-nowrap">
+                  Page {tableData.meta.current_page}
+                  {tableData.meta.last_page && ` of ${tableData.meta.last_page}`}
+                </div>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => onPageChange(tableData.meta.current_page + 1)}
+                  disabled={!tableData.links.next || processing}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => tableData.meta.last_page && onPageChange(tableData.meta.last_page)}
+                  disabled={!tableData.links.last || processing}
+                >
+                  <ChevronsRight className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         )}

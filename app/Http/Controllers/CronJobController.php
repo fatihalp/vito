@@ -8,6 +8,7 @@ use App\Actions\CronJob\DisableCronJob;
 use App\Actions\CronJob\EditCronJob;
 use App\Actions\CronJob\EnableCronJob;
 use App\Actions\CronJob\SyncCronJobs;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\CronJobResource;
 use App\Models\CronJob;
 use App\Models\Server;
@@ -34,8 +35,12 @@ class CronJobController extends Controller
     {
         $this->authorize('viewAny', [CronJob::class, $server]);
 
+        $cronjobs = QueryBuilder::for($server->cronJobs()->where('hidden', false))
+            ->sortable('created_at', 'desc')
+            ->simplePaginate();
+
         return Inertia::render('cronjobs/index', [
-            'cronjobs' => CronJobResource::collection($server->cronJobs()->where('hidden', false)->latest()->simplePaginate(config('web.pagination_size'))),
+            'cronjobs' => CronJobResource::collection($cronjobs),
             'sites' => $server->sites()->select('id', 'domain')->get(),
         ]);
     }

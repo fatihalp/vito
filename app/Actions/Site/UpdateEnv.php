@@ -53,13 +53,34 @@ class UpdateEnv
             $variables = $this->managedEnvironment->enforce($site, $variables);
         }
 
-        $content = $hasVariables
-            ? EnvParser::stringify($variables)
-            : ($hasManagedVariables
-                ? $this->managedEnvironment->enforceRaw($site, trim((string) ($input['env'] ?? null)))
-                : trim((string) ($input['env'] ?? null)));
+        if ($hasVariables) {
+            $existingRaw = $site->getEnv($path);
+            if ($existingRaw !== '') {
+                $liveParsed = EnvParser::parse($existingRaw);
+                $liveKeys = array_column($liveParsed, 'key');
+                $incomingKeys = array_column($variables, 'key');
+                $removedKeys = array_diff($liveKeys, $incomingKeys);
 
-        if (! $hasVariables) {
+                $patchValues = [];
+                foreach ($variables as $var) {
+                    $patchValues[$var['key']] = $var['value'];
+                }
+                foreach ($removedKeys as $removedKey) {
+                    $patchValues[$removedKey] = null;
+                }
+
+                $content = EnvParser::patch($existingRaw, $patchValues);
+                if ($hasManagedVariables) {
+                    $content = $this->managedEnvironment->enforceRaw($site, $content);
+                }
+            } else {
+                $content = EnvParser::stringify($variables);
+            }
+        } else {
+            $content = $hasManagedVariables
+                ? $this->managedEnvironment->enforceRaw($site, trim((string) ($input['env'] ?? null)))
+                : trim((string) ($input['env'] ?? null));
+
             $variables = $this->resolveVariables($site, ['env' => $content], $path, false);
         }
 

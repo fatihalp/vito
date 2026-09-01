@@ -48,7 +48,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   const [open, setOpen] = useState(false);
   const [variables, setVariables] = useState<EnvVariable[]>([]);
   const [rawContent, setRawContent] = useState('');
-  const [mode, setMode] = useState<'variables' | 'classic'>('variables');
+  const [mode, setMode] = useState<'variables' | 'classic'>('classic');
   const [variablesDirty, setVariablesDirty] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [canEdit, setCanEdit] = useState<boolean | undefined>(undefined);
@@ -106,7 +106,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
       form.setData('path', path);
       form.clearErrors();
       setCommittedPath(path);
-      setMode('variables');
+      setMode('classic');
       setVariablesDirty(false);
       setUploadError(null);
       setCanEdit(undefined);
@@ -388,18 +388,12 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
             )}
             {mode === 'classic' ? (
               <div className="flex min-h-0 flex-1 flex-col gap-4">
-                <Alert className="shrink-0">
-                  <InfoIcon className="size-4" />
-                  <AlertDescription>
-                    {variables.some((variable) => variable.managedBy)
-                      ? 'This file contains resource-managed variables. Saving rewrites the variable list and discards comments.'
-                      : 'Comments are shown here, but the variables form cannot store them - they are discarded once you edit a variable or save from that form.'}
-                  </AlertDescription>
-                </Alert>
                 {variables.some((variable) => variable.managedBy) && (
                   <Alert className="shrink-0">
                     <InfoIcon className="size-4" />
-                    <AlertDescription>Resource-managed variables are restored automatically when this file is saved.</AlertDescription>
+                    <AlertDescription>
+                      Resource-managed variables (e.g. database, cache) are automatically synchronized with connected resources.
+                    </AlertDescription>
                   </Alert>
                 )}
                 <div className="min-h-0 flex-1">

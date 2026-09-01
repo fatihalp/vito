@@ -6,9 +6,14 @@ use App\Actions\GithubApp\EditGithubAppSourceControl;
 use App\Actions\SourceControl\ConnectSourceControl;
 use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
+use App\Helpers\QueryBuilder;
+use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SourceControlResource;
+use App\Http\Resources\UserResource;
+use App\Models\Project;
 use App\Models\Server;
 use App\Models\SourceControl;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -29,19 +34,80 @@ class SourceControlController extends Controller
 {
 
     #[Get('/', name: 'source-controls')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
         $this->authorize('viewAny', SourceControl::class);
 
         $user = user();
-        $sourceControls = SourceControl::query()
+        $query = SourceControl::query()
             ->when(! $user->isAdmin(), fn ($query) => $query->where('user_id', $user->id))
-            ->with(['user', 'project'])
-            ->latest()
-            ->simplePaginate(config('web.pagination_size'), pageName: 'sourceControlsPage');
+            ->with(['user', 'project']);
+
+        if ($provider = $request->input('provider')) {
+            if ($provider !== 'all') {
+                $query->where('provider', $provider);
+            }
+        }
+
+        if ($projectId = $request->input('project_id')) {
+            if ($projectId === 'global') {
+                $query->whereNull('project_id');
+            } elseif ($projectId !== 'all') {
+                $query->where('project_id', (int) $projectId);
+            }
+        }
+
+        if ($userId = $request->input('user_id')) {
+            if ($userId !== 'all') {
+                $query->where('user_id', (int) $userId);
+            }
+        }
+
+        if ($search = $request->input('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('profile', 'like', "%{$search}%")
+                    ->orWhere('provider', 'like', "%{$search}%")
+                    ->orWhere('external_identifier', 'like', "%{$search}%")
+                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
+                    ->orWhereHas('project', fn ($p) => $p->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        $sourceControls = QueryBuilder::for($query)
+            ->sortable('created_at', 'desc', [
+                'name' => 'profile',
+                'global' => 'project_id',
+            ])
+            ->simplePaginate(pageName: 'sourceControlsPage');
+
+        $projects = $user->isAdmin()
+            ? Project::query()->orderBy('name')->get()
+            : $user->allProjects()->sortBy('name')->values();
+
+        $users = $user->isAdmin()
+            ? User::query()->orderBy('name')->get()
+            : collect([$user]);
+
+        $providers = [
+            ['value' => 'all', 'label' => 'All Providers'],
+            ['value' => 'github', 'label' => 'GitHub'],
+            ['value' => 'github-app', 'label' => 'GitHub App'],
+            ['value' => 'gitlab', 'label' => 'GitLab'],
+            ['value' => 'bitbucket', 'label' => 'Bitbucket'],
+            ['value' => 'custom', 'label' => 'Custom'],
+        ];
 
         return Inertia::render('source-controls/index', [
             'sourceControls' => SourceControlResource::collection($sourceControls),
+            'projects' => ProjectResource::collection($projects),
+            'users' => UserResource::collection($users),
+            'providers' => $providers,
+            'filters' => [
+                'search' => $request->input('search', ''),
+                'provider' => $request->input('provider', 'all'),
+                'project_id' => $request->input('project_id', 'all'),
+                'user_id' => $request->input('user_id', 'all'),
+            ],
         ]);
     }
 

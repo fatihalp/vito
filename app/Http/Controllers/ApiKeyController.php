@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\ApiKey\CreateApiKey;
+use App\Helpers\QueryBuilder;
 use App\Http\Resources\ApiKeyResource;
 use App\Http\Resources\ProjectResource;
 use App\Models\PersonalAccessToken;
@@ -26,8 +27,17 @@ class ApiKeyController extends Controller
     {
         $this->authorize('viewAny', PersonalAccessToken::class);
 
+        $tokens = QueryBuilder::for(user()->tokens())
+            ->sortable('created_at', 'desc', [
+                'name' => 'name',
+                'last_used_at' => 'last_used_at',
+                'expires_at' => 'expires_at',
+                'created_at' => 'created_at',
+            ])
+            ->simplePaginate();
+
         return Inertia::render('api-keys/index', [
-            'apiKeys' => ApiKeyResource::collection(user()->tokens()->simplePaginate(config('web.pagination_size'))),
+            'apiKeys' => ApiKeyResource::collection($tokens),
             'projects' => ProjectResource::collection(user()->projects()->get()),
         ]);
     }

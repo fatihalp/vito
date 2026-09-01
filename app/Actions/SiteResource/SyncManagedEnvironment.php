@@ -33,7 +33,7 @@ class SyncManagedEnvironment
     public function sync(Site $site, ?SiteResource $removed = null): void
     {
         $path = $site->resolveEnvPath();
-        $raw = $site->server->os()->readFile($path);
+        $raw = $site->getEnv($path);
         $changes = [];
 
         if ($removed) {

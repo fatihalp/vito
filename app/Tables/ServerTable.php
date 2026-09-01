@@ -10,7 +10,7 @@ use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\LinkColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
-use Forjed\InertiaTable\Table;
+use App\Tables\AbstractTable as Table;
 use Illuminate\Database\Eloquent\Builder;
 
 class ServerTable extends Table
