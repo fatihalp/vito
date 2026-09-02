@@ -15,6 +15,7 @@ import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
+import { Checkbox } from '@/components/ui/checkbox';
 import { LoaderCircleIcon } from 'lucide-react';
 import { Site } from '@/types/site';
 import siteHelper from '@/lib/site-helper';
@@ -24,6 +25,7 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
   const page = usePage<SharedData>();
   const form = useForm({
     domain: '',
+    force: false as boolean,
   });
 
   const submit = (e: FormEvent) => {
@@ -58,6 +60,16 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
               <Label htmlFor="domain">Domain</Label>
               <Input id="domain" value={form.data.domain} onChange={(e) => form.setData('domain', e.target.value)} />
               <InputError message={form.errors.domain} />
+            </FormField>
+            <FormField>
+              <div className="flex items-center gap-2">
+                <Checkbox id="force" name="force" checked={form.data.force} onClick={() => form.setData('force', !form.data.force)} />
+                <Label htmlFor="force">Force delete</Label>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Remove the site from Vito even if cleaning it up on the server fails (unreachable server, already removed files).
+              </p>
+              <InputError message={form.errors.force} />
             </FormField>
           </FormFields>
         </Form>
