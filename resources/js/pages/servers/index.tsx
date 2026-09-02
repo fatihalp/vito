@@ -181,7 +181,7 @@ export default function Servers() {
             warnings: warningsCell,
           }}
           actions={(row: Row) => {
-            const server = asRow<{ id: number; name: string; status: string }>(row, ['id', 'name', 'status']);
+            const server = asRow<{ id: number; name: string }>(row, ['id', 'name']);
             return (
               <div className="flex items-center gap-2">
                 <DropdownMenu modal={false}>
@@ -200,7 +200,7 @@ export default function Servers() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={route('servers.console', { server: server.id })}>
+                      <Link href={route('console', { server: server.id })}>
                         Console
                       </Link>
                     </DropdownMenuItem>
@@ -220,7 +220,7 @@ export default function Servers() {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
-                      <Link href={route('server-logs', { server: server.id })}>
+                      <Link href={route('logs', { server: server.id })}>
                         Logs
                       </Link>
                     </DropdownMenuItem>
