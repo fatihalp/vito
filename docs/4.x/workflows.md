@@ -12,7 +12,7 @@ Vito provides a variety of built-in actions that you can use to create your work
 
 - Create Server: Create a new server on a cloud provider.
 - Install Service: Install a service on a server.
-- Create Site: Create a new site on a server (PHP, PHP Blank, Laravel, WordPress, PHPMyAdmin, Node.js and Load Balancer site types each have their own action).
+- Create Site: Create a new site on a server (PHP, PHP Blank, Laravel, PHPMyAdmin, Node.js and Load Balancer site types each have their own action).
 - Create Database and Create Database User: Create a new database and database user on a server.
 - Create DNS Record and Delete DNS Record: Manage DNS records on a connected hosted domain.
 - Deploy Site: Run the deployment script to deploy your website.

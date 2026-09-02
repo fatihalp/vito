@@ -18,7 +18,6 @@ use App\WorkflowActions\Site\CreateNodeJsSite;
 use App\WorkflowActions\Site\CreatePHPBlankSite;
 use App\WorkflowActions\Site\CreatePHPMyAdminSite;
 use App\WorkflowActions\Site\CreatePHPSite;
-use App\WorkflowActions\Site\CreateWordpressSite;
 use App\WorkflowActions\Site\DeploySite;
 use Illuminate\Support\ServiceProvider;
 
@@ -65,11 +64,6 @@ class WorkflowServiceProvider extends ServiceProvider
             ->label('Create PHP Blank Site')
             ->category('site')
             ->handler(CreatePHPBlankSite::class)
-            ->register();
-        RegisterWorkflowAction::make('create-wordpress-site')
-            ->label('Create WordPress Site')
-            ->category('site')
-            ->handler(CreateWordpressSite::class)
             ->register();
         RegisterWorkflowAction::make('create-phpmyadmin-site')
             ->label('Create PHPMyAdmin Site')

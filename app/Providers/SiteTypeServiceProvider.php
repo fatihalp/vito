@@ -19,7 +19,6 @@ use App\SiteTypes\NodeSite;
 use App\SiteTypes\PHPBlank;
 use App\SiteTypes\PHPMyAdmin;
 use App\SiteTypes\PHPSite;
-use App\SiteTypes\Wordpress;
 use App\Tooling\NodeTooling;
 use App\Tooling\PnpmTooling;
 use App\Tooling\YarnTooling;
@@ -39,7 +38,6 @@ class SiteTypeServiceProvider extends ServiceProvider
         $this->blank();
         $this->loadBalancer();
         $this->phpMyAdmin();
-        $this->wordpress();
     }
 
     private function php(): void
@@ -214,45 +212,6 @@ class SiteTypeServiceProvider extends ServiceProvider
                 DynamicField::make('php_version')
                     ->component()
                     ->label('PHP Version'),
-            ]))
-            ->register();
-    }
-
-    public function wordpress(): void
-    {
-        RegisterSiteType::make(Wordpress::id())
-            ->label('WordPress')
-            ->handler(Wordpress::class)
-            ->form(DynamicForm::make([
-                DynamicField::make('php_version')
-                    ->component()
-                    ->label('PHP Version'),
-                DynamicField::make('title')
-                    ->text()
-                    ->label('Site Title')
-                    ->placeholder('My WordPress Site'),
-                DynamicField::make('username')
-                    ->text()
-                    ->label('Admin Username')
-                    ->placeholder('admin'),
-                DynamicField::make('password')
-                    ->text()
-                    ->label('Admin Password'),
-                DynamicField::make('email')
-                    ->text()
-                    ->label('Admin Email'),
-                DynamicField::make('database')
-                    ->text()
-                    ->label('Database Name')
-                    ->placeholder('wordpress')
-                    ->componentProps(['defaultCharset' => 'utf8mb4', 'defaultCollation' => 'utf8mb4_0900_ai_ci']),
-                DynamicField::make('database_user')
-                    ->text()
-                    ->label('Database User')
-                    ->placeholder('wp_user'),
-                DynamicField::make('database_password')
-                    ->text()
-                    ->label('Database Password'),
             ]))
             ->register();
     }

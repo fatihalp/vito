@@ -13,7 +13,6 @@ types for provide more features out of the box for some specific PHP application
 - Node.js
 - Bun
 - Blank (Reverse Proxy)
-- WordPress
 - PHPMyAdmin
 - Load Balancer
 
@@ -58,16 +57,6 @@ manage the application worker, from the [Application](./application#reverse-prox
 The Blank site type runs your server as a reverse proxy in front of any application listening on a local port — useful
 for languages or runtimes that Vito doesn't have a dedicated site type for. You choose the port to proxy to and an
 optional start command, and you can optionally deploy the site from a Git repository.
-
-### WordPress
-
-Vito installs WordPress easily by just submitting a form. You don't need to download WordPress and upload it to your
-server.
-
-:::info
-Additional to the PHP site type requirements, You also need to have Mysql service in
-the [Services](../servers/services) section.
-:::
 
 ### PHPMyAdmin
 

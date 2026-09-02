@@ -42,8 +42,8 @@ Aliases are managed as alias [domains](./domains.md) once the site is created.
 
 ### Site type fields
 
-Every site type has its own fields that you need to fill in. For example, if you select the WordPress site type, you
-will need to provide the WordPress admin username and password.
+Every site type has its own fields that you need to fill in. For example, if you select the Laravel site type, you
+will need to provide the repository and branch to deploy from.
 
 ### User
 

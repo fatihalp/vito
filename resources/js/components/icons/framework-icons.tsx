@@ -79,26 +79,6 @@ export function StatamicIcon({ className, size = 24, ...props }: IconProps) {
   );
 }
 
-export function WordPressIcon({ className, size = 24, ...props }: IconProps) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      width={size}
-      height={size}
-      className={cn('shrink-0 rounded-md', className)}
-      fill="none"
-      {...props}
-    >
-      <rect width="24" height="24" rx="5" fill="#21759B" />
-      <circle cx="12" cy="12" r="8.5" stroke="#FFFFFF" strokeWidth="1.2" fill="none" />
-      <path
-        d="M6 12c0 2.4 1.4 4.5 3.4 5.5L6.3 9.4C6.1 10.2 6 11.1 6 12zm7.4 5.3l2.8-8c0-.1 0-.2-.1-.2h-1.6c-.1 0-.2.1-.1.2l2.3 6.6-1.8 1.4zm-4.3-.2l-2.4-7c0-.1 0-.2.1-.2h1.6c.1 0 .2.1.2.2l1.7 5.2.9-2.8-.7-2.4c0-.1 0-.2.1-.2h1.5c.1 0 .2.1.2.2l1.6 5.2 1.3-4.2c.4-.3.9-.5 1.5-.5.1 0 .3 0 .4.1L15.3 17c-.9.6-2.1 1-3.3 1-1.1 0-2.1-.3-2.9-.9z"
-        fill="#FFFFFF"
-      />
-    </svg>
-  );
-}
-
 export function PhpMyAdminIcon({ className, size = 24, ...props }: IconProps) {
   return (
     <svg
@@ -252,7 +232,7 @@ export function Html5Icon({ className, size = 24, ...props }: IconProps) {
   );
 }
 
-export function LoadBalancerIcon({ className, size = 24, ...props }: IconProps) {
+export function LoadBalancerIcon({ className, size = 24 }: IconProps) {
   return (
     <div
       className={cn(
@@ -260,14 +240,13 @@ export function LoadBalancerIcon({ className, size = 24, ...props }: IconProps) 
         className,
       )}
       style={{ width: size, height: size }}
-      {...props}
     >
       <NetworkIcon className="size-3.5 text-white" />
     </div>
   );
 }
 
-export function OtherIcon({ className, size = 24, ...props }: IconProps) {
+export function OtherIcon({ className, size = 24 }: IconProps) {
   return (
     <div
       className={cn(
@@ -275,7 +254,6 @@ export function OtherIcon({ className, size = 24, ...props }: IconProps) {
         className,
       )}
       style={{ width: size, height: size }}
-      {...props}
     >
       <FileCode2Icon className="size-3.5 text-white" />
     </div>
@@ -292,8 +270,6 @@ export function getSiteTypeIcon(typeKey: string, size = 24, className?: string) 
       return <SymfonyIcon size={size} className={className} />;
     case 'statamic':
       return <StatamicIcon size={size} className={className} />;
-    case 'wordpress':
-      return <WordPressIcon size={size} className={className} />;
     case 'phpmyadmin':
       return <PhpMyAdminIcon size={size} className={className} />;
     case 'php':
