@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import type { ComponentType } from 'react';
 import { router } from '@inertiajs/react';
 import { useDialogStore } from '@/stores/dialog-store';
@@ -23,6 +23,8 @@ export default function DialogHost() {
   }
 
   return (
-    <Component key={`${active.key}:${instanceId}`} open onOpenChange={(o: boolean) => !o && useDialogStore.getState().close()} {...active.props} />
+    <Suspense fallback={null}>
+      <Component key={`${active.key}:${instanceId}`} open onOpenChange={(o: boolean) => !o && useDialogStore.getState().close()} {...active.props} />
+    </Suspense>
   );
 }

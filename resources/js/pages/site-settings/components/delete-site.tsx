@@ -50,8 +50,8 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
         </DialogHeader>
 
         <p className="p-4">
-          Are you sure you want to delete this site: <strong>{site.domain}</strong>? All resources associated with this site will be deleted and this
-          action cannot be undone.
+          Are you sure you want to delete this site: <strong>{site.domain}</strong>? The site and its files will be deleted and this action cannot be
+          undone. Databases and database users are kept — delete them from the Databases page if you no longer need them.
         </p>
 
         <Form id="delete-site-form" onSubmit={submit} className="p-4">

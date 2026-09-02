@@ -1,5 +1,6 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { route } from 'ziggy-js';
+import { resolvePage } from '@/lib/resolve-page';
 
 
 
@@ -7,8 +8,10 @@ import { route } from 'ziggy-js';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Vito';
 
+const pages = import.meta.glob(['./pages/**/*.tsx', '!./pages/**/components/**']);
+
 createInertiaApp({
-  pages: './pages',
+  resolve: (name) => resolvePage(pages, name),
   title: (title) => `${title} - ${appName}`,
   setup: ({ App, props }) => {
     const ziggy = (
