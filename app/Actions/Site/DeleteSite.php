@@ -21,15 +21,17 @@ class DeleteSite
     {
         $this->validate($site, $input);
 
+        $force = (bool) ($input['force'] ?? false);
+
         if ($site->sourceControl && isset($site->type_data['deploy_key_id'])) {
-            $site->sourceControl->provider()->deleteDeployKey(
+            $this->step($site, $force, 'delete-deploy-key', fn () => $site->sourceControl->provider()->deleteDeployKey(
                 $site->type_data['deploy_key_id'],
                 $site->repository,
-            );
+            ));
         }
 
         if (! $site->isIsolated()) {
-            $site->webserver()->deleteSite($site);
+            $this->step($site, $force, 'delete-vhost', fn () => $site->webserver()->deleteSite($site));
             $this->deleteRow($site);
 
             return;
@@ -47,20 +49,20 @@ class DeleteSite
         }
 
         try {
-            $site->webserver()->deleteSite($site);
+            $this->step($site, $force, 'delete-vhost', fn () => $site->webserver()->deleteSite($site));
 
             if ($site->type()->language() === 'php' && ! $site->fpmPoolSharedWithSiblings()) {
                 
                 $phpService = $site->server->php();
                 
                 $php = $phpService->handler();
-                $php->removeFpmPool($site->user, $site->php_version, $site->id);
+                $this->step($site, $force, 'remove-fpm-pool', fn () => $php->removeFpmPool($site->user, $site->php_version, $site->id));
             }
 
             $isLastSibling = ! $site->userSharedWithSiblings();
 
             if ($isLastSibling) {
-                $site->server->os()->deleteIsolatedUser($site->user);
+                $this->step($site, $force, 'delete-isolated-user', fn () => $site->server->os()->deleteIsolatedUser($site->user));
             }
 
             $this->deleteRow($site);
@@ -70,6 +72,27 @@ class DeleteSite
             }
         } finally {
             $lock->release();
+        }
+    }
+
+    /**
+     * Runs a teardown step, swallowing failures when the site is force deleted.
+     */
+    private function step(Site $site, bool $force, string $name, callable $callback): void
+    {
+        try {
+            $callback();
+        } catch (Throwable $e) {
+            if (! $force) {
+                throw $e;
+            }
+
+            Log::warning('Site teardown step failed, continuing with force delete', [
+                'site_id' => $site->id,
+                'server_id' => $site->server_id,
+                'step' => $name,
+                'exception' => $e->getMessage(),
+            ]);
         }
     }
 
@@ -103,6 +126,10 @@ class DeleteSite
             'domain' => [
                 'required',
                 Rule::in($site->domain),
+            ],
+            'force' => [
+                'nullable',
+                'boolean',
             ],
         ])->validate();
     }

@@ -1,7 +1,7 @@
-sudo rm -rf {{ $path }}
+sudo rm -rf {!! escapeshellarg($path) !!}
 
-sudo rm /etc/nginx/sites-available/{{ $domain }}
+sudo rm -f {!! escapeshellarg('/etc/nginx/sites-available/'.$domain) !!}
 
-sudo rm /etc/nginx/sites-enabled/{{ $domain }}
+sudo rm -f {!! escapeshellarg('/etc/nginx/sites-enabled/'.$domain) !!}
 
 echo "Site deleted"
