@@ -47,8 +47,17 @@ class SiteSettingController extends Controller
 {
 
     #[Get('/', name: 'site-settings')]
-    public function index(Server $server, Site $site): Response
+    public function index(Server $server, Site $site): Response|RedirectResponse
     {
+        $this->authorize('view', [$site, $server]);
+
+        if ($site->isInstalling()) {
+            return redirect()->route('application', ['server' => $server->id, 'site' => $site->id])
+                ->with('warning', $site->isInstallationFailed()
+                    ? 'Site settings are unavailable because installation failed. Resolve the installation error and retry the installation.'
+                    : 'Site settings will be available after installation completes. Please wait for the installation to finish.');
+        }
+
         return Inertia::render('site-settings/index', [
             'sourceControl' => $site->sourceControl ? SourceControlResource::make($site->sourceControl) : null,
         ]);

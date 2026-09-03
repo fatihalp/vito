@@ -27,25 +27,25 @@ class ServerLogPolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 
     public function update(User $user, ServerLog $serverLog): bool
     {
         $server = $serverLog->server;
 
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 
     public function delete(User $user, ServerLog $serverLog): bool
     {
         $server = $serverLog->server;
 
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 
     public function deleteMany(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 }

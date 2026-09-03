@@ -16,17 +16,15 @@ class CommandPolicy
 
     public function viewAny(User $user, Site $site, Server $server): bool
     {
-        return $this->hasReadAccess($user, $server->project) &&
+        return $this->hasServerReadAccess($user, $server) &&
             $site->server_id === $server->id &&
-            $server->isReady() &&
             $site->isReady();
     }
 
     public function view(User $user, Command $command, Site $site, Server $server): bool
     {
-        return $this->hasReadAccess($user, $server->project) &&
+        return $this->hasServerReadAccess($user, $server) &&
             $site->server_id === $server->id &&
-            $server->isReady() &&
             $site->isReady() &&
             $command->site_id === $site->id;
     }

@@ -186,7 +186,7 @@ export default function SiteResources() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title={`Resources${typeof resourcesCount === 'number' && resourcesCount > 0 ? ` (${resourcesCount})` : ''}`} />
-          <SiteBanners site={page.props.site} compact />
+          {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
         </HeaderContainer>
 
         {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}

@@ -150,6 +150,10 @@ class ServerLog extends AbstractModel
     public function getContent(?int $lines = null): ?string
     {
         if ($this->is_remote) {
+            if (! $this->server->isReady()) {
+                return 'Live logs are unavailable while the server is offline.';
+            }
+
             $content = $this->server->os()->tail($this->name, $lines ?? 150);
 
             return trim($content) === OS::FILE_NOT_FOUND ? self::PENDING_LOG_MESSAGE : $content;

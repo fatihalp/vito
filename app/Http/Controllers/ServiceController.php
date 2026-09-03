@@ -58,6 +58,10 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', [Service::class, $server]);
 
+        if (! $server->isReady()) {
+            return response()->json([]);
+        }
+
         $services = $server->services()->whereIn('status', ['ready', 'stopped', 'failed', 'disabled'])->get();
 
         $result = [];

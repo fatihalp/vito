@@ -14,6 +14,10 @@ class ReadServiceLog
     
     public function run(Server $server, array $input): array
     {
+        if (! $server->isReady()) {
+            throw ValidationException::withMessages(['server' => 'Live logs are unavailable while the server is offline.']);
+        }
+
         $data = Validator::make($input, [
             'key' => ['required', 'string', 'max:200'],
             'lines' => ['nullable', 'integer', 'min:50', 'max:2000'],

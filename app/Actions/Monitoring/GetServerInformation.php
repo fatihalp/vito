@@ -9,6 +9,10 @@ class GetServerInformation
 {
     public function handle(Server $server): array
     {
+        if (! $server->isReady()) {
+            return ['error' => 'Server information is unavailable while the server is offline. Reconnect the server to refresh live data.'];
+        }
+
         try {
             $script = <<<'BASH'
 echo "___SECTION_CPU___"

@@ -44,6 +44,7 @@ interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   tableData: InertiaTableData;
   children?: ReactNode;
   showPagination?: boolean;
+  toolbar?: ReactNode;
 }
 
 function getRealtimePrefix(tableData: InertiaTableData): string | undefined {
@@ -88,7 +89,7 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
   return defaultRender();
 }
 
-export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, ...props }: VitoTableProps) {
+export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, ...props }: VitoTableProps) {
   const orderedTableData = useMemo(
     () => ({ ...tableData, columns: orderTableColumns(tableData.columns, (column) => column.name) }),
     [tableData],
@@ -156,10 +157,21 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
 
   return (
     <div>
-      {orderedTableData.searchable && (
-        <div className="mb-4 flex items-center gap-2">
-          <Input placeholder="Search..." className="max-w-sm" value={searchTerm} onChange={(e) => onSearch(e.target.value)} />
-          {processing && <LoaderCircleIcon className="text-muted-foreground animate-spin" />}
+      {(orderedTableData.searchable || toolbar) && (
+        <div className={cn('mb-4 flex items-center gap-2', toolbar && 'mb-3 flex-wrap')}>
+          {orderedTableData.searchable && (
+            <>
+              <Input
+                placeholder="Search..."
+                aria-label="Search table"
+                className={cn('max-w-sm', toolbar && 'min-w-48 flex-1')}
+                value={searchTerm}
+                onChange={(e) => onSearch(e.target.value)}
+              />
+              {processing && <LoaderCircleIcon className="text-muted-foreground shrink-0 animate-spin" />}
+            </>
+          )}
+          {toolbar}
         </div>
       )}
 

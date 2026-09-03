@@ -51,7 +51,9 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        $site->ensureDeploymentScriptsExist();
+        if ($server->isReady()) {
+            $site->ensureDeploymentScriptsExist();
+        }
 
         return Inertia::render('application/index', [
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),

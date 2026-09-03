@@ -18,6 +18,10 @@ class DownloadServiceLog
     
     public function run(Server $server, array $input): StreamedResponse
     {
+        if (! $server->isReady()) {
+            throw ValidationException::withMessages(['server' => 'Live logs cannot be downloaded while the server is offline.']);
+        }
+
         $data = Validator::make($input, [
             'key' => ['required', 'string', 'max:200'],
         ])->validate();

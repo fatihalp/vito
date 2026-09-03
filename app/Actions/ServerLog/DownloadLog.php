@@ -5,6 +5,7 @@ namespace App\Actions\ServerLog;
 use App\Models\ServerLog;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DownloadLog
@@ -12,6 +13,10 @@ class DownloadLog
     public function download(ServerLog $log): StreamedResponse
     {
         if ($log->is_remote) {
+            if (! $log->server->isReady()) {
+                throw ValidationException::withMessages(['server' => 'Live logs cannot be downloaded while the server is offline.']);
+            }
+
             $tmpName = $log->server->id.'-'.strtotime('now').'-'.$log->type.'.log';
             $tmpPath = Storage::disk('local')->path($tmpName);
 

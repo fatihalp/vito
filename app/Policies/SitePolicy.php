@@ -18,8 +18,7 @@ class SitePolicy
 
     public function viewAny(User $user, Server $server): bool
     {
-        return $this->hasReadAccess($user, $server->project)
-            && $server->isReady()
+        return $this->hasServerReadAccess($user, $server)
             && $server->role === ServerRole::APP
             && $server->webserver();
     }
@@ -28,9 +27,8 @@ class SitePolicy
     {
         $siteServer = $site->server;
 
-        return $this->hasReadAccess($user, $siteServer->project)
+        return $this->hasServerReadAccess($user, $siteServer)
             && $site->server_id === $server->id
-            && $siteServer->isReady()
             && $siteServer->role === ServerRole::APP
             && $siteServer->webserver();
     }

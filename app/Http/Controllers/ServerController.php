@@ -130,7 +130,7 @@ class ServerController extends Controller
     #[Post('/{server}/start', name: 'servers.start')]
     public function start(Server $server): RedirectResponse
     {
-        $this->authorize('update', $server);
+        $this->authorize('start', $server);
 
         app(StartServer::class)->start($server);
 

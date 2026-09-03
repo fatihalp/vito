@@ -9,6 +9,14 @@ class GetServerProcesses
 {
     public function handle(Server $server): array
     {
+        if (! $server->isReady()) {
+            return [
+                'processes' => [],
+                'users' => [],
+                'error' => 'Live processes are unavailable while the server is offline. Reconnect the server to refresh live data.',
+            ];
+        }
+
         try {
             $output = $server->ssh()->exec("ps -eo pid,user,ni,pcpu,pmem,args --sort=-pcpu 2>/dev/null || ps aux 2>/dev/null");
             return $this->parseOutput($output);

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\ServerStatus;
 use App\Models\Project;
 use App\Models\Server;
 use App\Models\User;
@@ -28,12 +29,17 @@ class ServerPolicy
 
     public function update(User $user, Server $server): bool
     {
+        return $this->hasWriteAccess($user, $server->project) && $server->status !== ServerStatus::DISCONNECTED;
+    }
+
+    public function start(User $user, Server $server): bool
+    {
         return $this->hasWriteAccess($user, $server->project);
     }
 
     public function delete(User $user, Server $server): bool
     {
-        return $this->hasOwnerAccess($user, $server->project);
+        return $this->hasOwnerAccess($user, $server->project) && $server->status !== ServerStatus::DISCONNECTED;
     }
 
     public function manage(User $user, Server $server): bool

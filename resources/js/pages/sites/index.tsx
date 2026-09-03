@@ -62,47 +62,47 @@ export default function Sites() {
   return (
     <Comp>
       <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
-      <Container className="max-w-none w-full">
-        <div className="flex items-center justify-end">
-          <div className="flex items-center gap-2">
-            <CreateSite server={page.props.server}>
-              <Button>
-                <PlusIcon />
-                <span className="hidden lg:block">Create site</span>
-              </Button>
-            </CreateSite>
-          </div>
-        </div>
-
-        {!page.props.server && (
-          <div className="flex items-center gap-3">
-            <span className="text-muted-foreground text-sm">Project</span>
-            <Select
-              value={page.props.siteScope ?? page.props.auth.currentProject?.id.toString()}
-              onValueChange={(project) => {
-                const url = new URL(window.location.href);
-                url.searchParams.set('project', project);
-                url.searchParams.delete('page');
-                router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
-              }}
-            >
-              <SelectTrigger className="w-64" aria-label="Filter sites by project">
-                <SelectValue placeholder="Select a project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Projects</SelectItem>
-                {(page.props.auth.user.projects ?? []).map((project) => (
-                  <SelectItem key={project.id} value={project.id.toString()}>
-                    {project.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
+      <Container className="w-full max-w-none py-3">
         <VitoTable
           tableData={page.props.sites}
+          toolbar={
+            <>
+              {!page.props.server && (
+                <div className="flex items-center gap-2">
+                  <span className="text-muted-foreground text-sm">Project</span>
+                  <Select
+                    value={page.props.siteScope ?? page.props.auth.currentProject?.id.toString()}
+                    onValueChange={(project) => {
+                      const url = new URL(window.location.href);
+                      url.searchParams.set('project', project);
+                      url.searchParams.delete('page');
+                      router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                    }}
+                  >
+                    <SelectTrigger className="w-40 sm:w-48" aria-label="Filter sites by project">
+                      <SelectValue placeholder="Select a project" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Projects</SelectItem>
+                      {(page.props.auth.user.projects ?? []).map((project) => (
+                        <SelectItem key={project.id} value={project.id.toString()}>
+                          {project.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="ml-auto">
+                <CreateSite server={page.props.server}>
+                  <Button>
+                    <PlusIcon />
+                    Create site
+                  </Button>
+                </CreateSite>
+              </div>
+            </>
+          }
           cellRenderers={{
             ...(page.props.server ? {} : { domain: siteCell }),
             status: statusCell,

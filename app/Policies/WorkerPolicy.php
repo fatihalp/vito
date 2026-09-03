@@ -16,15 +16,13 @@ class WorkerPolicy
 
     public function viewAny(User $user, Server $server, ?Site $site = null): bool
     {
-        return $this->hasReadAccess($user, $server->project) &&
-            $server->isReady() &&
+        return $this->hasServerReadAccess($user, $server) &&
             $server->processManager();
     }
 
     public function view(User $user, Worker $worker, Server $server, ?Site $site = null): bool
     {
-        return $this->hasReadAccess($user, $server->project) &&
-            $server->isReady() &&
+        return $this->hasServerReadAccess($user, $server) &&
             $worker->server_id === $server->id &&
             $server->processManager();
     }

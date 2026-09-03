@@ -22,12 +22,15 @@ import {
   Settings2Icon,
   ShieldIcon,
   UsersIcon,
+  WifiOffIcon,
 } from 'lucide-react';
 import { ReactNode, useEffect } from 'react';
 import { Server } from '@/types/server';
 import ServerHeader from '@/pages/servers/components/header';
 import Layout from '@/layouts/app/layout';
-import { usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { toast } from 'sonner';
 import { Site } from '@/types/site';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import RecentSitesFlyout from '@/layouts/server/components/recent-sites-flyout';
@@ -43,13 +46,31 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   }>();
 
   const server = useRealtimeRecord<Server>(page.props.server, 'server')!;
-  const isMenuDisabled = server.status !== 'ready';
+  const isOffline = server.status === 'disconnected';
+  const isMenuDisabled = !['ready', 'updating', 'disconnected'].includes(server.status);
+
+  useEffect(() => {
+    if (!isOffline) return;
+
+    const serverPath = new URL(route('servers.show', { server: server.id })).pathname;
+
+    return router.on('before', (event) => {
+      const { method, url } = event.detail.visit;
+      if (method === 'get' || (url.pathname !== serverPath && !url.pathname.startsWith(`${serverPath}/`))) return;
+
+      const action = url.pathname.slice(serverPath.length);
+      if (['/switch', '/status', '/start'].includes(action) || /^\/sites\/\d+\/switch$/.test(action)) return;
+
+      event.preventDefault();
+      toast.warning('This server is offline. Saved data is available in read-only mode. Start or reconnect the server before making changes.');
+    });
+  }, [isOffline, server.id]);
 
   useEffect(() => {
     if (page.props.site && page.props.auth?.user?.id && server.project_id) {
       siteHelper.storeSite(page.props.site, page.props.auth.user.id, server.project_id);
     }
-  }, [page.props.site?.id, page.props.auth?.user?.id, server.project_id]);
+  }, [page.props.site, page.props.auth?.user?.id, server.project_id]);
 
   useEffect(() => {
     const userId = page.props.auth?.user?.id;
@@ -251,6 +272,18 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       secondNavSubtitle={viewingSite ? undefined : 'Server'}
     >
       {!viewingSite && <ServerHeader server={server} />}
+
+      {isOffline && (
+        <div className="px-4 pt-4">
+          <Alert>
+            <WifiOffIcon />
+            <AlertTitle>Server offline — read-only mode</AlertTitle>
+            <AlertDescription>
+              You can view saved data. Creating, editing and deleting are unavailable until the server reconnects. Live server data cannot be refreshed.
+            </AlertDescription>
+          </Alert>
+        </div>
+      )}
 
       <div>{children}</div>
     </Layout>

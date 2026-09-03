@@ -19,7 +19,7 @@ class SiteResourcePolicy
 
     public function create(User $user, Site $site, Server $server): bool
     {
-        return $site->server_id === $server->id && $this->hasWriteAccess($user, $server->project) && $site->isReady();
+        return $site->server_id === $server->id && $this->hasWriteAccess($user, $server->project) && $server->isReady() && $site->isReady();
     }
 
     public function view(User $user, SiteResource $resource, Site $site, Server $server): bool
@@ -33,6 +33,6 @@ class SiteResourcePolicy
     {
         return $resource->site_id === $site->id &&
             $site->server_id === $server->id &&
-            $this->hasWriteAccess($user, $server->project);
+            $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 }

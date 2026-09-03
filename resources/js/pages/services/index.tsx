@@ -80,6 +80,7 @@ function LiveStatusBadge({ serviceId, liveStatuses }: { serviceId: number; liveS
 export default function ServicesIndex() {
   const page = usePage<Page>();
   const { server, services, refreshing } = page.props;
+  const isOffline = server.status === 'disconnected';
 
   const form = useForm({});
   const [liveStatuses, setLiveStatuses] = useState<Record<number, LiveStatus>>({});
@@ -94,14 +95,16 @@ export default function ServicesIndex() {
         setLiveStatuses(data);
       }
     } catch {
+      return;
     }
   }, [server.id]);
 
   useEffect(() => {
+    if (isOffline) return;
     fetchLiveStatuses();
     const interval = setInterval(fetchLiveStatuses, 10_000);
     return () => clearInterval(interval);
-  }, [fetchLiveStatuses]);
+  }, [fetchLiveStatuses, isOffline]);
 
   useEffect(() => {
     if (!refreshing) return;
@@ -123,12 +126,12 @@ export default function ServicesIndex() {
         <HeaderContainer>
           <Heading title="Services" description="Here you can manage server's services" />
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={refresh} disabled={busy}>
+            <Button variant="outline" onClick={refresh} disabled={busy || isOffline}>
               <RefreshCwIcon className={cn(busy && 'animate-spin')} />
               <span className="hidden lg:block">Refresh</span>
             </Button>
             <InstallService>
-              <Button>
+              <Button disabled={isOffline}>
                 <PlusIcon />
                 <span className="hidden lg:block">Install</span>
               </Button>
@@ -142,8 +145,14 @@ export default function ServicesIndex() {
             const service = asRow<{ resource: Service }>(row, ['resource']).resource;
             return (
               <div className="flex items-center gap-3">
-                <ServiceActions service={service} />
-                <LiveStatusBadge serviceId={service.id} liveStatuses={liveStatuses} />
+                {isOffline ? (
+                  <span className="text-muted-foreground text-xs">Live status unavailable</span>
+                ) : (
+                  <>
+                    <ServiceActions service={service} />
+                    <LiveStatusBadge serviceId={service.id} liveStatuses={liveStatuses} />
+                  </>
+                )}
               </div>
             );
           }}

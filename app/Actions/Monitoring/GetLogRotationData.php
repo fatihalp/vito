@@ -23,9 +23,9 @@ class GetLogRotationData
         $pathsStr = implode(' ', $paths);
 
         try {
-            $output = $server->ssh()->exec(
+            $output = $server->isReady() ? $server->ssh()->exec(
                 "for f in {$pathsStr}; do if [ -f \"\$f\" ]; then stat --format=\"%n %s\" \"\$f\" 2>/dev/null || echo \"\$f 0\"; else echo \"\$f -1\"; fi; done"
-            );
+            ) : '';
         } catch (Throwable) {
             $output = '';
         }

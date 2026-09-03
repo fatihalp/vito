@@ -15,14 +15,14 @@ class BackupFilePolicy
 
     public function viewAny(User $user, Backup $backup): bool
     {
-        return $this->hasReadAccess($user, $backup->server->project) && $backup->server->isReady();
+        return $this->hasServerReadAccess($user, $backup->server);
     }
 
     public function view(User $user, BackupFile $backupFile): bool
     {
         $server = $backupFile->backup->server;
 
-        return $this->hasReadAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerReadAccess($user, $server);
     }
 
     public function create(User $user, Backup $backup): bool

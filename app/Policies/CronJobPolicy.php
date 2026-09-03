@@ -16,15 +16,14 @@ class CronJobPolicy
 
     public function viewAny(User $user, Server $server, ?Site $site = null): bool
     {
-        return $this->hasReadAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerReadAccess($user, $server);
     }
 
     public function view(User $user, CronJob $cronjob, Server $server, ?Site $site = null): bool
     {
         $cronJobServer = $cronjob->server;
 
-        return $this->hasReadAccess($user, $cronJobServer->project) &&
-            $cronJobServer->isReady() &&
+        return $this->hasServerReadAccess($user, $cronJobServer) &&
             $cronjob->server_id === $server->id;
     }
 
