@@ -230,8 +230,8 @@ function EnvironmentEditorContent() {
         );
         setRawContent(response.data?.env ?? '');
         setMode('classic');
-      } catch (error) {
-        // Error handling if stringify fails
+      } catch {
+        void 0;
       } finally {
         setIsSwitching(false);
       }
@@ -266,8 +266,8 @@ function EnvironmentEditorContent() {
       );
       setVariablesDirty(false);
       setMode('variables');
-    } catch (error) {
-      // Error handling if parse fails
+    } catch {
+      void 0;
     } finally {
       setIsSwitching(false);
     }

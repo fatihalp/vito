@@ -17,6 +17,24 @@ class ServerTable extends Table
 
     protected array $tableSettings = ['realtime' => 'server'];
 
+    protected string $groupBy = 'none';
+
+    protected string $scope = 'all';
+
+    public function withGrouping(string $groupBy): static
+    {
+        $this->groupBy = $groupBy;
+
+        return $this;
+    }
+
+    public function withScope(string $scope): static
+    {
+        $this->scope = $scope;
+
+        return $this;
+    }
+
     protected function query(): void
     {
         $cpuSubquery = $this->metricSubquery('cpu_usage_percent');
@@ -32,12 +50,29 @@ class ServerTable extends Table
             ->selectSub($cpuSubquery, 'cpu_usage_percent')
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
-            ->with('latestMetric');
+            ->with(['latestMetric', 'project']);
+
+        if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
+            $this->query
+                ->orderBy(
+                    \App\Models\Project::select('projects.name')
+                        ->whereColumn('projects.id', 'servers.project_id')
+                        ->limit(1)
+                )
+                ->orderBy('servers.name');
+        }
     }
 
     protected function columns(): array
     {
+        $columns = [];
+
+        if ($this->scope === 'all') {
+            $columns[] = Column::make('project.name', 'Project');
+        }
+
         return [
+            ...$columns,
             Column::data('id'),
             LinkColumn::make('name', 'Name')->sortable()->route('servers.show', ['server' => ':id']),
             EnumColumn::make('role', 'Type')->sortable(),
@@ -50,6 +85,8 @@ class ServerTable extends Table
                 ->value(fn (Server $server) => $server->getWarnings()),
             Column::data('updates'),
             Column::data('role_value', fn (Server $server) => $server->role->value),
+            Column::data('project_id', fn (Server $server) => $server->project_id),
+            Column::data('project_name', fn (Server $server) => $server->project?->name),
         ];
     }
 

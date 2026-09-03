@@ -9,7 +9,7 @@
 
 ## Stack
 
-Laravel 13 (L10 structure), PHP 8.4, Inertia v2, React 19, Tailwind v4, Pest 5 / PHPUnit 13
+Laravel 13 (L10 structure), PHP 8.4, Inertia v2, React 19, Tailwind v4
 
 ## Laravel Boost MCP Tools
 
@@ -93,13 +93,3 @@ Vito has a specific architecture. Match these patterns exactly:
 - SSH scripts for remote servers are Blade templates in `resources/views/ssh/`.
 - Validate and sanitize any user input that lands in an SSH command or template.
 - When running as a different user, `cd`/`sudo` must run as the target user, not the login user.
-
-## Code Review
-
-- `/review-pr [target-branch]` runs the three project reviewer agents (`php-laravel-reviewer`, `frontend-reviewer`, `security-reviewer`) against the current branch's diff and returns prioritised findings.
-- Auto-detects PR target via `gh` if a PR is open; otherwise prompts for the target branch.
-
-## Git
-
-- Use `gh` CLI for issues/PRs.
-- Don't change dependencies or create new base folders without approval.

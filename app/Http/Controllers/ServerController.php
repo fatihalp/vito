@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Server\CreateServer;
 use App\Actions\Server\DeleteServer;
+use App\Actions\Server\GetAccessibleServers;
 use App\Actions\Server\GetServers;
 use App\Actions\Server\RebootServer;
 use App\Actions\Server\StartServer;
@@ -35,16 +36,25 @@ class ServerController extends Controller
 {
 
     #[Get('/', name: 'servers')]
-    public function index(): Response
+    public function index(Request $request): Response
     {
-        $project = user()->currentProject;
+        $this->authorize('viewAny', [Server::class]);
 
-        $this->authorize('viewAny', [Server::class, $project]);
+        $result = app(GetAccessibleServers::class)->get(user(), $request->input());
+
+        $serverProviders = $result['scope'] === 'all'
+            ? ServerProvider::query()->whereIn('project_id', user()->allProjects()->pluck('id'))->get()
+            : ServerProvider::getByProjectId((int) $result['scope'], user())->get();
 
         return Inertia::render('servers/index', [
-            'servers' => ServerTable::make($project->servers())->simplePaginate(),
+            'servers' => ServerTable::make($result['query'])
+                ->withGrouping($result['groupBy'])
+                ->withScope($result['scope'])
+                ->simplePaginate(),
             'public_key' => __('servers.create.public_key_text', ['public_key' => get_public_key_content()]),
-            'server_providers' => ServerProviderResource::collection(ServerProvider::getByProjectId($project->id, user())->get()),
+            'server_providers' => ServerProviderResource::collection($serverProviders),
+            'serverScope' => $result['scope'],
+            'groupBy' => $result['groupBy'],
         ]);
     }
 
@@ -63,7 +73,10 @@ class ServerController extends Controller
     #[Post('/', name: 'servers.store')]
     public function store(Request $request): RedirectResponse
     {
-        $project = user()->currentProject;
+        $projectId = $request->input('project_id');
+        $project = $projectId
+            ? user()->allProjects()->where('projects.id', (int) $projectId)->firstOrFail()
+            : user()->currentProject;
 
         $this->authorize('create', [Server::class, $project]);
 

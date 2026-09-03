@@ -12,8 +12,12 @@ class ServerPolicy
 {
     use HasRolePolicies;
 
-    public function viewAny(User $user, Project $project): bool
+    public function viewAny(User $user, ?Project $project = null): bool
     {
+        if (! $project) {
+            return $user->allProjects()->exists();
+        }
+
         return $this->hasReadAccess($user, $project);
     }
 

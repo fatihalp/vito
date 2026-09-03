@@ -96,7 +96,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
   const orderedTableData = useMemo(() => {
     let cols = orderTableColumns(tableData.columns, (column) => column.name);
     if (groupBy === 'project') {
-      cols = cols.filter((c) => c.name !== 'server.project.name');
+      cols = cols.filter((c) => c.name !== 'server.project.name' && c.name !== 'project.name');
     }
     return { ...tableData, columns: cols };
   }, [tableData, groupBy]);
@@ -220,13 +220,13 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                 if (groupBy && groupBy !== 'none') {
                   const currentKey =
                     groupBy === 'project'
-                      ? String(row.project_name || row['server.project.name'] || 'Unknown Project')
+                      ? String(row.project_name || row['server.project.name'] || row['project.name'] || 'Unknown Project')
                       : String(row.server_name || 'Unknown Server');
 
                   const prevRow = rowIndex > 0 ? orderedTableData.data[rowIndex - 1] : null;
                   const prevKey = prevRow
                     ? (groupBy === 'project'
-                        ? String(prevRow.project_name || prevRow['server.project.name'] || 'Unknown Project')
+                        ? String(prevRow.project_name || prevRow['server.project.name'] || prevRow['project.name'] || 'Unknown Project')
                         : String(prevRow.server_name || 'Unknown Server'))
                     : null;
 
@@ -234,10 +234,14 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                     const groupCount = orderedTableData.data.filter((r) => {
                       const k =
                         groupBy === 'project'
-                          ? String(r.project_name || r['server.project.name'] || 'Unknown Project')
+                          ? String(r.project_name || r['server.project.name'] || r['project.name'] || 'Unknown Project')
                           : String(r.server_name || 'Unknown Server');
                       return k === currentKey;
                     }).length;
+
+                    const itemLabel = 'ip' in row
+                      ? (groupCount === 1 ? 'server' : 'servers')
+                      : (groupCount === 1 ? 'site' : 'sites');
 
                     groupHeader = (
                       <TableRow
@@ -253,7 +257,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                             )}
                             <span>{currentKey}</span>
                             <Badge variant="outline" className="text-xs font-normal">
-                              {groupCount} {groupCount === 1 ? 'site' : 'sites'}
+                              {groupCount} {itemLabel}
                             </Badge>
                           </div>
                         </TableCell>

@@ -1,6 +1,6 @@
 import { Head, router, usePage } from '@inertiajs/react';
 
-import { type Configs } from '@/types';
+import { type Configs, type SharedData } from '@/types';
 
 import { asRow } from '@/lib/inertia-table';
 import { VitoTable } from '@/components/vito-table';
@@ -8,6 +8,7 @@ import Heading from '@/components/heading';
 import CreateServer from '@/pages/servers/components/create-server';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/layouts/app/layout';
 import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
@@ -19,6 +20,8 @@ type Page = {
   servers: InertiaTableData;
   public_key: string;
   configs: Configs;
+  serverScope?: string;
+  groupBy?: 'none' | 'project';
 };
 
 const metricCell = (threshold: number) =>
@@ -137,7 +140,7 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
 };
 
 export default function Servers() {
-  const page = usePage<Page>();
+  const page = usePage<Page & SharedData>();
 
   useEffect(() => {
     const interval = window.setInterval(() => {
@@ -167,6 +170,60 @@ export default function Servers() {
         </div>
         <VitoTable
           tableData={page.props.servers}
+          groupBy={page.props.groupBy}
+          toolbar={
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm">Project</span>
+                <Select
+                  value={page.props.serverScope ?? 'all'}
+                  onValueChange={(project) => {
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('project', project);
+                    url.searchParams.delete('page');
+                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                  }}
+                >
+                  <SelectTrigger className="w-40 sm:w-48" aria-label="Filter servers by project">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {(page.props.auth.user.projects ?? []).map((project) => (
+                      <SelectItem key={project.id} value={project.id.toString()}>
+                        {project.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground text-sm">Group by</span>
+                <Select
+                  value={page.props.groupBy ?? 'none'}
+                  onValueChange={(groupBy) => {
+                    const url = new URL(window.location.href);
+                    if (groupBy === 'none') {
+                      url.searchParams.delete('group_by');
+                    } else {
+                      url.searchParams.set('group_by', groupBy);
+                    }
+                    url.searchParams.delete('page');
+                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                  }}
+                >
+                  <SelectTrigger className="w-40 sm:w-48" aria-label="Group servers by">
+                    <SelectValue placeholder="No grouping" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No grouping</SelectItem>
+                    <SelectItem value="project">Group by Project</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          }
           cellRenderers={{
             cpu_usage_percent: cpuCell,
             memory_used_percent: ramCell,

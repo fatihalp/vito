@@ -75,9 +75,6 @@ class DeleteSite
         }
     }
 
-    /**
-     * Runs a teardown step, swallowing failures when the site is force deleted.
-     */
     private function step(Site $site, bool $force, string $name, callable $callback): void
     {
         try {

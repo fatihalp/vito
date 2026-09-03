@@ -11,9 +11,9 @@ import { ProjectSelect } from '@/components/project-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 
 export function ProjectSwitch() {
-  const page = usePage<SharedData & { siteScope?: string }>();
+  const page = usePage<SharedData & { siteScope?: string; serverScope?: string }>();
   const { auth } = page.props;
-  const isAllProjects = page.props.siteScope === 'all';
+  const isAllProjects = page.props.siteScope === 'all' || page.props.serverScope === 'all';
   const [open, setOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
   const [selected, setSelected] = useState<string>(isAllProjects ? 'all' : (auth.currentProject?.id?.toString() ?? ''));
@@ -33,7 +33,11 @@ export function ProjectSwitch() {
   const handleAllProjects = () => {
     setSelected('all');
     setOpen(false);
-    router.get(route('sites.all', { project: 'all' }));
+    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/servers')) {
+      router.get(route('servers', { project: 'all' }));
+    } else {
+      router.get(route('sites.all', { project: 'all' }));
+    }
   };
 
   const header = (
