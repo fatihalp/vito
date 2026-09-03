@@ -6,11 +6,10 @@ use App\Enums\DeploymentStatus;
 use App\Models\Server;
 use App\Models\Site;
 use Forjed\InertiaTable\Column;
-use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\BadgeColumn;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
-use Forjed\InertiaTable\Columns\TextColumn;
+use Forjed\InertiaTable\Columns\LinkColumn;
 use App\Tables\AbstractTable as Table;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -48,7 +47,9 @@ class SiteTable extends Table
 
         return [
             ...$columns,
-            TextColumn::make('domain', $this->server ? 'Domain' : 'Site')->sortable(),
+            LinkColumn::make('domain', $this->server ? 'Domain' : 'Site')
+                ->sortable()
+                ->route('application', ['server' => ':server_id', 'site' => ':id']),
             BadgeColumn::make('user', 'User')->variant('outline')->sortable(),
             BadgeColumn::make('type', 'Type')->variant('outline')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable(),
@@ -57,7 +58,6 @@ class SiteTable extends Table
             Column::data('server_id'),
             Column::data('server_name', fn (Site $site) => $site->server->name),
             Column::data('warnings', fn (Site $site) => $site->getWarnings()),
-            ActionsColumn::make(),
         ];
     }
 

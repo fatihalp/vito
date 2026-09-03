@@ -200,7 +200,16 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
               orderedTableData.data.map((row, rowIndex) => (
                 <TableRow
                   key={row.id}
-                  onClick={() => props.onRowClick?.(row)}
+                  onClick={(event) => {
+                    if (
+                      event.defaultPrevented ||
+                      (event.target instanceof Element &&
+                        event.target.closest('a, button, input, select, textarea, [role="button"], [role="combobox"], [role="menuitem"]'))
+                    ) {
+                      return;
+                    }
+                    props.onRowClick?.(row);
+                  }}
                   className={cn(props.onRowClick && 'hover:bg-muted/50 cursor-pointer', props.rowClassName?.(row, rowIndex))}
                 >
                   {columns.map((col) => (

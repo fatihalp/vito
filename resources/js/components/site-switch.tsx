@@ -3,7 +3,7 @@ import { type Site } from '@/types/site';
 import { router, useForm, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronsUpDownIcon, GlobeIcon, PlusIcon } from 'lucide-react';
+import { ChevronsUpDownIcon, GlobeIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import CreateSite from '@/pages/sites/components/create-site';
@@ -26,7 +26,7 @@ export function SiteSwitch() {
   useEffect(() => {
     const site = page.props.site || null;
     setSelected(site?.id?.toString() ?? '');
-  }, [page.props.site?.id, page.props.server?.id]);
+  }, [page.props.site, page.props.server?.id]);
 
   useEffect(() => {
     if (page.props.site) {
@@ -39,7 +39,7 @@ export function SiteSwitch() {
       siteHelper.storeSite(undefined);
       setSelected('');
     }
-  }, [page.props.server?.id, storedSite]);
+  }, [page.props.server, storedSite]);
 
   const handleSiteChange = (value: string, site: Site) => {
     if (!site || !site.id || !site.server_id) {
@@ -61,11 +61,7 @@ export function SiteSwitch() {
         onSelect={() => {
           setOpen(false);
           setPrimaryNavOpen(false);
-          if (page.props.server?.id) {
-            router.visit(route('sites', { server: page.props.server.id }));
-          } else {
-            router.visit(route('sites.all'));
-          }
+          router.visit(route('sites.all', { project: 'all' }));
         }}
         className="gap-0"
       >
@@ -97,7 +93,7 @@ export function SiteSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Switch site. Current site: ${currentSite?.domain ?? 'none'}`}
+      aria-label={`Search all sites. Current site: ${currentSite?.domain ?? 'none'}`}
     >
       {currentSite ? (
         <>
@@ -109,9 +105,9 @@ export function SiteSwitch() {
       ) : (
         <>
           <Avatar className="size-6 rounded-sm">
-            <AvatarFallback className="rounded-sm">S</AvatarFallback>
+            <AvatarFallback className="rounded-sm"><SearchIcon className="size-4" /></AvatarFallback>
           </Avatar>
-          <span className="hidden sm:flex">Select a site</span>
+          <span className="hidden sm:flex">Search sites...</span>
         </>
       )}
       <ChevronsUpDownIcon size={5} />
@@ -119,19 +115,17 @@ export function SiteSwitch() {
   );
 
   return (
-    page.props.server && (
-      <div className="flex items-center">
-        <SiteSelect
-          currentServerId={page.props.server.id}
-          value={selected}
-          onValueChangeAdvanced={handleSiteChange}
-          trigger={trigger}
-          open={open}
-          onOpenChange={setOpen}
-          footer={footer}
-          prefetch
-        />
-      </div>
-    )
+    <div className="flex items-center">
+      <SiteSelect
+        currentServerId={page.props.server?.id}
+        value={selected}
+        onValueChangeAdvanced={handleSiteChange}
+        trigger={trigger}
+        open={open}
+        onOpenChange={setOpen}
+        footer={footer}
+        prefetch
+      />
+    </div>
   );
 }

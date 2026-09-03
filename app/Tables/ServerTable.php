@@ -5,8 +5,6 @@ namespace App\Tables;
 use App\Models\Metric;
 use App\Models\Server;
 use Forjed\InertiaTable\Column;
-use Forjed\InertiaTable\Columns\ActionsColumn;
-use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\LinkColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
@@ -52,7 +50,6 @@ class ServerTable extends Table
                 ->value(fn (Server $server) => $server->getWarnings()),
             Column::data('updates'),
             Column::data('role_value', fn (Server $server) => $server->role->value),
-            ActionsColumn::make(),
         ];
     }
 

@@ -169,7 +169,7 @@ export default function SiteSelect({
       <PopoverTrigger asChild>{trigger || defaultTrigger}</PopoverTrigger>
       <PopoverContent className="flex max-h-[400px] w-(--radix-popover-trigger-width) min-w-64 flex-col p-0" align="start">
         <Command shouldFilter={false} className="flex flex-col overflow-hidden">
-          <CommandInput placeholder="Search site..." value={query} onValueChange={setQuery} />
+          <CommandInput placeholder="Search by domain or server..." value={query} onValueChange={setQuery} />
           <CommandList data-slot="command-list" className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
             {sites.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">

@@ -4,12 +4,9 @@ import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
 import Layout from '@/layouts/app/layout';
 import Container from '@/components/container';
-import { TableActionTrigger } from '@/components/table-action-trigger';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useDialog } from '@/hooks/use-dialog';
 import { asRow } from '@/lib/inertia-table';
 import { Button } from '@/components/ui/button';
-import { CornerDownRightIcon, PlusIcon, ServerIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
 import CreateSite from '@/pages/sites/components/create-site';
 import { Badge } from '@/components/ui/badge';
@@ -26,21 +23,19 @@ type Page = {
 };
 
 const siteCell = ({ row, value }: CellRenderProps) => (
-  <div className="flex min-w-48 flex-col gap-1.5 py-1">
-    <Link
-      href={route('servers.show', { server: row.server_id as number })}
-      className="text-foreground flex items-center gap-2 font-medium hover:underline"
-    >
-      <ServerIcon className="text-muted-foreground size-4" />
-      {row.server_name as string}
-    </Link>
+  <div className="flex min-w-48 flex-wrap items-baseline gap-x-2 gap-y-1 py-1">
     <Link
       href={route('application', { server: row.server_id as number, site: row.id as number })}
-      className="text-muted-foreground hover:text-foreground flex items-center gap-2 pl-5 text-sm hover:underline"
+      className="text-foreground font-medium hover:underline"
       prefetch
     >
-      <CornerDownRightIcon className="size-3.5" />
       {String(value)}
+    </Link>
+    <Link
+      href={route('servers.show', { server: row.server_id as number })}
+      className="text-muted-foreground text-sm hover:underline"
+    >
+      ({row.server_name as string})
     </Link>
   </div>
 );
@@ -61,7 +56,6 @@ const statusCell = ({ row, value }: CellRenderProps) => {
 
 export default function Sites() {
   const page = usePage<Page & SharedData>();
-  const dialog = useDialog();
 
   const Comp = page.props.server ? ServerLayout : Layout;
 
@@ -113,55 +107,9 @@ export default function Sites() {
             ...(page.props.server ? {} : { domain: siteCell }),
             status: statusCell,
           }}
-          actions={(row: Row) => {
-            const site = asRow<{ id: number; server_id: number; domain: string }>(row, ['id', 'server_id', 'domain']);
-            return (
-              <div className="flex items-center gap-2">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <TableActionTrigger />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={route('application', { server: site.server_id, site: site.id })}>
-                        Manage
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>
-                        Deployments
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('application.environment', { server: site.server_id, site: site.id })}>
-                        Env
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('site-settings', { server: site.server_id, site: site.id })}>
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onSelect={() =>
-                        dialog.confirm.open({
-                          title: `Delete site [${site.domain}]`,
-                          description: `Are you sure you want to delete ${site.domain}? All files, configurations, and records associated with this site will be permanently deleted. This action cannot be undone.`,
-                          variant: 'destructive',
-                          confirmLabel: 'Delete',
-                          method: 'delete',
-                          url: route('sites.destroy', { server: site.server_id, site: site.id }),
-                        })
-                      }
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            );
+          onRowClick={(row: Row) => {
+            const site = asRow<{ id: number; server_id: number }>(row, ['id', 'server_id']);
+            router.visit(route('application', { server: site.server_id, site: site.id }));
           }}
         />
       </Container>

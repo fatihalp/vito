@@ -29,12 +29,8 @@ export function AppHeader({
             <ProjectSwitch />
             <SlashIcon className="text-muted-foreground size-3 shrink-0" />
             <ServerSwitch />
-            {page.props.server?.services['webserver'] && ['ready', 'updating'].includes(page.props.server.status) && (
-              <>
-                <SlashIcon className="text-muted-foreground size-3 shrink-0" />
-                <SiteSwitch />
-              </>
-            )}
+            <SlashIcon className="text-muted-foreground size-3 shrink-0" />
+            <SiteSwitch />
           </div>
         </div>
         <div className="flex items-center gap-2">

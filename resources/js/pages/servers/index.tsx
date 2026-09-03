@@ -1,10 +1,7 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, router, usePage } from '@inertiajs/react';
 
 import { type Configs } from '@/types';
 
-import { TableActionTrigger } from '@/components/table-action-trigger';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { useDialog } from '@/hooks/use-dialog';
 import { asRow } from '@/lib/inertia-table';
 import { VitoTable } from '@/components/vito-table';
 import Heading from '@/components/heading';
@@ -142,8 +139,6 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
 export default function Servers() {
   const page = usePage<Page>();
 
-  const dialog = useDialog();
-
   useEffect(() => {
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
@@ -180,70 +175,9 @@ export default function Servers() {
             stage: stageCell,
             warnings: warningsCell,
           }}
-          actions={(row: Row) => {
-            const server = asRow<{ id: number; name: string }>(row, ['id', 'name']);
-            return (
-              <div className="flex items-center gap-2">
-                <DropdownMenu modal={false}>
-                  <DropdownMenuTrigger asChild>
-                    <TableActionTrigger />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={route('servers.show', { server: server.id })}>
-                        Manage
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('server-settings', { server: server.id })}>
-                        Settings
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('console', { server: server.id })}>
-                        Console
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('services', { server: server.id })}>
-                        Services
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('sites', { server: server.id })}>
-                        Sites
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('databases', { server: server.id })}>
-                        Databases
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={route('logs', { server: server.id })}>
-                        Logs
-                      </Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onSelect={() =>
-                        dialog.confirm.open({
-                          title: `Restart ${server.name}?`,
-                          description:
-                            'Are you sure you want to restart this server? Sites and services hosted on this server will be unavailable while it restarts. Connections in flight will be dropped.',
-                          variant: 'destructive',
-                          confirmLabel: 'Restart',
-                          method: 'post',
-                          url: route('servers.reboot', { server: server.id }),
-                        })
-                      }
-                    >
-                      Restart server
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-            );
+          onRowClick={(row: Row) => {
+            const server = asRow<{ id: number }>(row, ['id']);
+            router.visit(route('servers.show', { server: server.id }));
           }}
         />
       </Container>
