@@ -9,22 +9,29 @@ use Illuminate\Support\Facades\Validator;
 
 class GetProjectInvitees
 {
-    
+    /**
+     * @param array<string, mixed> $input
+     * @return Collection<int, User>
+     */
     public function get(Project $project, array $input): Collection
     {
         $validated = Validator::make($input, [
             'query' => ['nullable', 'string', 'max:255'],
         ])->validate();
 
-        $query = trim($validated['query'] ?? '');
+        $search = trim($validated['query'] ?? '');
 
         return User::query()
-            ->when($query === '', fn ($users) => $users->whereKey([]))
             ->whereNotIn('id', $project->users()->whereNotNull('user_id')->select('user_id'))
             ->whereNotIn('email', $project->users()->whereNotNull('email')->select('email'))
-            ->where('email', $query)
+            ->when($search !== '', function ($users) use ($search): void {
+                $users->where(function ($q) use ($search): void {
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhere('email', 'like', "%{$search}%");
+                });
+            })
             ->orderBy('name')
-            ->limit(1)
+            ->limit(50)
             ->get();
     }
 }

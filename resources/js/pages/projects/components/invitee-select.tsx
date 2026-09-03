@@ -66,7 +66,7 @@ export default function InviteeSelect({
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command shouldFilter={false}>
-          <CommandInput placeholder="Enter the user's exact email..." value={query} onValueChange={setQuery} />
+          <CommandInput placeholder="Search user by name or email..." value={query} onValueChange={setQuery} />
           <CommandList>
             <CommandEmpty className="p-3 text-center text-xs">
               {isFetching ? (

@@ -25,12 +25,13 @@ class InviteToProject
 
         try {
             $project->users()->create([
+                'user_id' => $user->id,
                 'email' => $user->email,
                 'role' => UserRole::from($validated['role']),
             ]);
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages([
-                'user_id' => __('This user already has access or a pending invitation.'),
+                'user_id' => __('This user is already a member of this project.'),
             ]);
         }
 
@@ -68,7 +69,7 @@ class InviteToProject
                     if ($project->users()->where(function ($users) use ($user): void {
                         $users->where('user_id', $user->id)->orWhere('email', $user->email);
                     })->exists()) {
-                        $fail(__('This user already has access or a pending invitation.'));
+                        $fail(__('This user is already a member of this project.'));
                     }
                 },
             ],

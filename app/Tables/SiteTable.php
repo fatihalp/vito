@@ -19,9 +19,18 @@ class SiteTable extends Table
 
     protected ?Server $server = null;
 
+    protected string $groupBy = 'none';
+
     public function forServer(Server $server): static
     {
         $this->server = $server;
+
+        return $this;
+    }
+
+    public function withGrouping(string $groupBy): static
+    {
+        $this->groupBy = $groupBy;
 
         return $this;
     }
@@ -33,8 +42,28 @@ class SiteTable extends Table
             ->with(['server.project', 'isolatedUser', 'hostedDomains.ssl', 'workers'])
             ->withExists([
                 'deployments as has_finished_deployment' => fn (Builder $query) => $query->where('status', DeploymentStatus::FINISHED),
-            ])
-            ->latest();
+            ]);
+
+        if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
+            $this->query
+                ->orderBy(
+                    \App\Models\Project::select('projects.name')
+                        ->join('servers', 'servers.project_id', '=', 'projects.id')
+                        ->whereColumn('servers.id', 'sites.server_id')
+                        ->limit(1)
+                )
+                ->orderBy('domain');
+        } elseif ($this->groupBy === 'server' && ! request()->filled($this->getSortParam())) {
+            $this->query
+                ->orderBy(
+                    \App\Models\Server::select('servers.name')
+                        ->whereColumn('servers.id', 'sites.server_id')
+                        ->limit(1)
+                )
+                ->orderBy('domain');
+        } else {
+            $this->query->latest();
+        }
     }
 
     protected function columns(): array
@@ -57,6 +86,8 @@ class SiteTable extends Table
             Column::make('id', 'ID')->sortable(),
             Column::data('server_id'),
             Column::data('server_name', fn (Site $site) => $site->server->name),
+            Column::data('project_id', fn (Site $site) => $site->server->project_id),
+            Column::data('project_name', fn (Site $site) => $site->server->project?->name),
             Column::data('warnings', fn (Site $site) => $site->getWarnings()),
         ];
     }

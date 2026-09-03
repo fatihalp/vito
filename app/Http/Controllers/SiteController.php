@@ -34,11 +34,18 @@ class SiteController extends Controller
     public function index(Request $request): Response
     {
         $this->authorize('viewAny', user()->currentProject);
-        $sites = app(GetAccessibleSites::class)->get(user(), $request->input());
+        $result = app(GetAccessibleSites::class)->get(user(), $request->input());
+
+        $sites = SiteTable::make($result['query'])
+            ->withGrouping($result['groupBy'])
+            ->simplePaginate();
 
         return Inertia::render('sites/index', [
-            'sites' => SiteTable::make($sites['query'])->simplePaginate(),
-            'siteScope' => $sites['scope'],
+            'sites' => $sites,
+            'siteScope' => $result['scope'],
+            'serverScope' => $result['serverScope'],
+            'groupBy' => $result['groupBy'],
+            'servers' => $result['servers'],
         ]);
     }
 

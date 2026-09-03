@@ -42,7 +42,7 @@ class ProjectUserController extends Controller
 
         app(InviteToProject::class)->invite($project, $request->input());
 
-        return back()->with('success', __('The user has been invited to the project.'));
+        return back()->with('success', __('The user has been added to the project.'));
     }
 
     #[Post('/quick-create', name: 'projects.users.quick-create')]

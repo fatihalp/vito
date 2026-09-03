@@ -47,9 +47,9 @@ export default function Invite({
           <DialogHeader>
             <div className="flex items-start justify-between gap-4">
               <div>
-                <DialogTitle>Invite user to {project.name}</DialogTitle>
+                <DialogTitle>Add user to {project.name}</DialogTitle>
                 <DialogDescription>
-                  Select a Vito user and choose their role. They will be asked to accept the invitation.
+                  Select a Vito user and choose their role. The user will be added to the project immediately.
                 </DialogDescription>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function Invite({
             </DialogClose>
             <Button form="invite-form" type="submit" disabled={form.processing || form.data.user_id === null}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
-              Send invitation
+              Add user
             </Button>
           </DialogFooter>
         </DialogContent>

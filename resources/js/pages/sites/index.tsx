@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
@@ -16,10 +17,20 @@ import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-t
 import { SharedData } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+type ServerOption = {
+  id: number;
+  name: string;
+  project_id: number;
+  project_name?: string | null;
+};
+
 type Page = {
   server?: Server;
   sites: InertiaTableData;
   siteScope?: string;
+  serverScope?: string;
+  groupBy?: 'none' | 'project' | 'server';
+  servers?: ServerOption[];
 };
 
 const siteCell = ({ row, value }: CellRenderProps) => (
@@ -59,38 +70,116 @@ export default function Sites() {
 
   const Comp = page.props.server ? ServerLayout : Layout;
 
+  const filteredServers = useMemo(() => {
+    const all = page.props.servers ?? [];
+    const currentProject = page.props.siteScope;
+    if (!currentProject || currentProject === 'all') {
+      return all;
+    }
+    return all.filter((s) => s.project_id.toString() === currentProject);
+  }, [page.props.servers, page.props.siteScope]);
+
   return (
     <Comp>
       <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
       <Container className="w-full max-w-none py-3">
         <VitoTable
           tableData={page.props.sites}
+          groupBy={page.props.groupBy}
           toolbar={
             <>
               {!page.props.server && (
-                <div className="flex items-center gap-2">
-                  <span className="text-muted-foreground text-sm">Project</span>
-                  <Select
-                    value={page.props.siteScope ?? page.props.auth.currentProject?.id.toString()}
-                    onValueChange={(project) => {
-                      const url = new URL(window.location.href);
-                      url.searchParams.set('project', project);
-                      url.searchParams.delete('page');
-                      router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
-                    }}
-                  >
-                    <SelectTrigger className="w-40 sm:w-48" aria-label="Filter sites by project">
-                      <SelectValue placeholder="Select a project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Projects</SelectItem>
-                      {(page.props.auth.user.projects ?? []).map((project) => (
-                        <SelectItem key={project.id} value={project.id.toString()}>
-                          {project.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex flex-wrap items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm">Project</span>
+                    <Select
+                      value={page.props.siteScope ?? page.props.auth.currentProject?.id.toString()}
+                      onValueChange={(project) => {
+                        const url = new URL(window.location.href);
+                        url.searchParams.set('project', project);
+                        if (project !== 'all') {
+                          const currentServerId = url.searchParams.get('server');
+                          if (currentServerId && currentServerId !== 'all') {
+                            const match = (page.props.servers ?? []).find(
+                              (s) => s.id.toString() === currentServerId && s.project_id.toString() === project,
+                            );
+                            if (!match) {
+                              url.searchParams.delete('server');
+                            }
+                          }
+                        }
+                        url.searchParams.delete('page');
+                        router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                      }}
+                    >
+                      <SelectTrigger className="w-40 sm:w-48" aria-label="Filter sites by project">
+                        <SelectValue placeholder="Select a project" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Projects</SelectItem>
+                        {(page.props.auth.user.projects ?? []).map((project) => (
+                          <SelectItem key={project.id} value={project.id.toString()}>
+                            {project.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm">Server</span>
+                    <Select
+                      value={page.props.serverScope ?? 'all'}
+                      onValueChange={(server) => {
+                        const url = new URL(window.location.href);
+                        if (server === 'all') {
+                          url.searchParams.delete('server');
+                        } else {
+                          url.searchParams.set('server', server);
+                        }
+                        url.searchParams.delete('page');
+                        router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                      }}
+                    >
+                      <SelectTrigger className="w-40 sm:w-48" aria-label="Filter sites by server">
+                        <SelectValue placeholder="All Servers" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Servers</SelectItem>
+                        {filteredServers.map((server) => (
+                          <SelectItem key={server.id} value={server.id.toString()}>
+                            {server.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-muted-foreground text-sm">Group by</span>
+                    <Select
+                      value={page.props.groupBy ?? 'none'}
+                      onValueChange={(groupBy) => {
+                        const url = new URL(window.location.href);
+                        if (groupBy === 'none') {
+                          url.searchParams.delete('group_by');
+                        } else {
+                          url.searchParams.set('group_by', groupBy);
+                        }
+                        url.searchParams.delete('page');
+                        router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                      }}
+                    >
+                      <SelectTrigger className="w-40 sm:w-48" aria-label="Group sites by">
+                        <SelectValue placeholder="No grouping" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No grouping</SelectItem>
+                        <SelectItem value="project">Group by Project</SelectItem>
+                        <SelectItem value="server">Group by Server</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               )}
               <div className="ml-auto">

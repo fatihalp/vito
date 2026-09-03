@@ -62,7 +62,7 @@ class ApplicationController extends Controller
             'preFlightScript' => Inertia::defer(fn () => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null, 'deployments'),
             'loadBalancerServers' => Inertia::defer(fn () => LoadBalancerServerResource::collection($site->loadBalancerServers), 'deployments'),
             'worker' => Inertia::defer(function () use ($site) {
-                $type = $site->type();
+                $type = $site->typeOrNull();
                 return $type instanceof AbstractProxiedSiteType && $type->bootstrapWorker()
                     ? new WorkerResource($type->bootstrapWorker())
                     : null;

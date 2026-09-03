@@ -122,7 +122,7 @@ export default function QuickCreateUserDialog({
             <div>
               <DialogTitle>Quick create user</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                Create a new Vito account and immediately invite them to this project.
+                Create a new Vito account and immediately add them to this project.
               </DialogDescription>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useMemo } from 'react';
+import { Fragment, ReactNode, useEffect, useMemo } from 'react';
 import { useTable, type InertiaTableData, type InertiaTableProps, type CellRenderProps } from '@forjedio/inertia-table-react';
 import { Link, router } from '@inertiajs/react';
 import { SOCKET_EVENT, type SocketEventData } from '@/stores/socket-store';
@@ -16,7 +16,9 @@ import {
   ChevronsUpDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
+  FolderIcon,
   LoaderCircleIcon,
+  ServerIcon,
 } from 'lucide-react';
 import { orderTableColumns } from '@/lib/table-columns';
 
@@ -45,6 +47,7 @@ interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   children?: ReactNode;
   showPagination?: boolean;
   toolbar?: ReactNode;
+  groupBy?: 'project' | 'server' | 'none' | string | null;
 }
 
 function getRealtimePrefix(tableData: InertiaTableData): string | undefined {
@@ -89,11 +92,14 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
   return defaultRender();
 }
 
-export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, ...props }: VitoTableProps) {
-  const orderedTableData = useMemo(
-    () => ({ ...tableData, columns: orderTableColumns(tableData.columns, (column) => column.name) }),
-    [tableData],
-  );
+export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, groupBy, ...props }: VitoTableProps) {
+  const orderedTableData = useMemo(() => {
+    let cols = orderTableColumns(tableData.columns, (column) => column.name);
+    if (groupBy === 'project') {
+      cols = cols.filter((c) => c.name !== 'server.project.name');
+    }
+    return { ...tableData, columns: cols };
+  }, [tableData, groupBy]);
   const { columns, searchTerm, onSearch, onSort, getSortState, onPageChange, isProcessing } = useTable({
     tableData: orderedTableData,
     modal,
@@ -209,26 +215,76 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
           </TableHeader>
           <TableBody>
             {orderedTableData.data.length > 0 ? (
-              orderedTableData.data.map((row, rowIndex) => (
-                <TableRow
-                  key={row.id}
-                  onClick={(event) => {
-                    if (
-                      event.defaultPrevented ||
-                      (event.target instanceof Element &&
-                        event.target.closest('a, button, input, select, textarea, [role="button"], [role="combobox"], [role="menuitem"]'))
-                    ) {
-                      return;
-                    }
-                    props.onRowClick?.(row);
-                  }}
-                  className={cn(props.onRowClick && 'hover:bg-muted/50 cursor-pointer', props.rowClassName?.(row, rowIndex))}
-                >
-                  {columns.map((col) => (
-                    <TableCell key={col.id}>{col.renderCell(row, rowIndex)}</TableCell>
-                  ))}
-                </TableRow>
-              ))
+              orderedTableData.data.map((row, rowIndex) => {
+                let groupHeader: ReactNode = null;
+                if (groupBy && groupBy !== 'none') {
+                  const currentKey =
+                    groupBy === 'project'
+                      ? String(row.project_name || row['server.project.name'] || 'Unknown Project')
+                      : String(row.server_name || 'Unknown Server');
+
+                  const prevRow = rowIndex > 0 ? orderedTableData.data[rowIndex - 1] : null;
+                  const prevKey = prevRow
+                    ? (groupBy === 'project'
+                        ? String(prevRow.project_name || prevRow['server.project.name'] || 'Unknown Project')
+                        : String(prevRow.server_name || 'Unknown Server'))
+                    : null;
+
+                  if (currentKey !== prevKey) {
+                    const groupCount = orderedTableData.data.filter((r) => {
+                      const k =
+                        groupBy === 'project'
+                          ? String(r.project_name || r['server.project.name'] || 'Unknown Project')
+                          : String(r.server_name || 'Unknown Server');
+                      return k === currentKey;
+                    }).length;
+
+                    groupHeader = (
+                      <TableRow
+                        key={`group-header-${currentKey}-${rowIndex}`}
+                        className="bg-muted/40 hover:bg-muted/40 select-none border-y border-border"
+                      >
+                        <TableCell colSpan={columns.length} className="py-2.5 px-4">
+                          <div className="flex items-center gap-2 font-medium text-sm text-foreground">
+                            {groupBy === 'project' ? (
+                              <FolderIcon className="size-4 text-muted-foreground shrink-0" />
+                            ) : (
+                              <ServerIcon className="size-4 text-muted-foreground shrink-0" />
+                            )}
+                            <span>{currentKey}</span>
+                            <Badge variant="outline" className="text-xs font-normal">
+                              {groupCount} {groupCount === 1 ? 'site' : 'sites'}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
+                }
+
+                return (
+                  <Fragment key={row.id}>
+                    {groupHeader}
+                    <TableRow
+                      onClick={(event) => {
+                        if (
+                          event.defaultPrevented ||
+                          (event.target instanceof Element &&
+                            event.target.closest('a, button, input, select, textarea, [role="button"], [role="combobox"], [role="menuitem"]'))
+                        ) {
+                          return;
+                        }
+                        props.onRowClick?.(row);
+                      }}
+                      className={cn(props.onRowClick && 'hover:bg-muted/50 cursor-pointer', props.rowClassName?.(row, rowIndex))}
+                    >
+                      {columns.map((col) => (
+                        <TableCell key={col.id}>{col.renderCell(row, rowIndex)}</TableCell>
+                      ))}
+                    </TableRow>
+                  </Fragment>
+                );
+              })
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">

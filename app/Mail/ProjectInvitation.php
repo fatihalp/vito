@@ -22,8 +22,8 @@ class ProjectInvitation extends Mailable
     {
         return $this
             ->markdown('mail.project-invitation', [
-                'acceptUrl' => route('projects.invitations.accept', ['project' => $this->project]),
+                'acceptUrl' => route('projects'),
             ])
-            ->subject(__('Project Invitation'));
+            ->subject(__('Added to :project in Vito', ['project' => $this->project->name]));
     }
 }

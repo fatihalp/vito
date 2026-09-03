@@ -337,7 +337,16 @@ class Site extends AbstractModel
     public function type(): SiteType
     {
         $handlerClass = config('site.types.'.$this->type.'.handler');
-        if (! class_exists($handlerClass)) {
+
+        if (! $handlerClass) {
+            $handlerClass = match ($this->type) {
+                'wordpress' => config('site.types.php-blank.handler') ?? \App\SiteTypes\PHPBlank::class,
+                'nodejs' => config('site.types.node.handler') ?? \App\SiteTypes\NodeSite::class,
+                default => null,
+            };
+        }
+
+        if (! is_string($handlerClass) || ! class_exists($handlerClass)) {
             throw new RuntimeException("Site type handler class {$handlerClass} does not exist.");
         }
 
@@ -576,7 +585,7 @@ class Site extends AbstractModel
         $required = [];
 
         foreach ($this->siblingsSharingUser(includeSelf: true)->get() as $site) {
-            $type = $site->type();
+            $type = $site->typeOrNull();
             if (! $type instanceof AbstractSiteType) {
                 continue;
             }

@@ -114,7 +114,7 @@ export default function Users({
                     <UserPlusIcon className="size-3.5 mr-1.5" />
                     Create user
                   </Button>
-                  <Button onClick={() => dialog.projectInvite.open({ project })}>Invite user</Button>
+                  <Button onClick={() => dialog.projectInvite.open({ project })}>Add user</Button>
                 </div>
               )}
             </div>
