@@ -44,6 +44,7 @@ class RollbackJob implements ShouldQueue
             $this->deployment->activate();
             $this->deployment->status = DeploymentStatus::FINISHED;
             $this->deployment->save();
+            dispatch(new CheckAppDebugJob($site));
             $this->broadcastDeploymentUpdate();
         });
     }

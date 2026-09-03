@@ -1,7 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
-import { BookOpenIcon, CogIcon, DownloadIcon, EraserIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
+import { CogIcon, DownloadIcon, EraserIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
@@ -48,24 +48,23 @@ export default function ServiceLogs() {
   const itemsByKey = useMemo(() => Object.fromEntries(catalogue.map((c) => [c.key, c])), [catalogue]);
 
   const initialKey = useMemo(() => {
-    if (typeof window === 'undefined') return catalogue[0]?.key ?? '';
-    const params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(page.url.split('?')[1] ?? '');
     const keyParam = params.get('key');
     if (keyParam && itemsByKey[keyParam]) return keyParam;
 
     const serviceParam = params.get('service')?.toLowerCase();
     if (serviceParam) {
+      const serviceName = (server.services[serviceParam] ?? serviceParam).toLowerCase();
       const match = catalogue.find(
         (c) =>
-          c.key.toLowerCase().includes(serviceParam) ||
-          c.service_label.toLowerCase().includes(serviceParam) ||
-          c.label.toLowerCase().includes(serviceParam),
+          c.key.toLowerCase().split(':')[0] === serviceName ||
+          c.service_label.toLowerCase() === serviceName,
       );
-      if (match) return match.key;
+      return match?.key ?? '';
     }
 
     return catalogue[0]?.key ?? '';
-  }, [catalogue, itemsByKey]);
+  }, [catalogue, itemsByKey, page.url, server.services]);
 
   const [selectedKey, setSelectedKey] = useState<string>(initialKey);
   const [lines, setLines] = useState<LineOption>('100');
@@ -79,6 +78,10 @@ export default function ServiceLogs() {
   const abortRef = useRef<AbortController | null>(null);
 
   const selected = selectedKey ? itemsByKey[selectedKey] : undefined;
+
+  useEffect(() => {
+    setSelectedKey(initialKey);
+  }, [initialKey, page.url]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -178,6 +181,7 @@ export default function ServiceLogs() {
       catalogue.map((c) => ({
         value: c.key,
         label: `[${c.service_label}] ${c.label} (${c.display_target})`,
+        keywords: [c.service_label, c.label, c.display_target],
       })),
     [catalogue],
   );
@@ -204,9 +208,9 @@ export default function ServiceLogs() {
         ) : (
           <Card className="overflow-hidden">
             <CardHeader className="gap-3">
-              <div className="flex w-full items-center gap-2">
+              <div className="flex min-w-0 w-full items-center gap-2">
                 <CogIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
-                <div className="flex flex-1">
+                <div className="flex min-w-0 flex-1 [&_[role=combobox]]:min-w-0 [&_[role=combobox]>span]:truncate">
                   <Combobox
                     items={comboItems}
                     value={selectedKey}

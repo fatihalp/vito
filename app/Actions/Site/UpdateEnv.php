@@ -5,13 +5,17 @@ namespace App\Actions\Site;
 use App\Actions\SiteResource\SyncManagedEnvironment;
 use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
+use App\Jobs\Site\CheckAppDebugJob;
 use App\Models\Site;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
 class UpdateEnv
 {
-    public function __construct(private SyncManagedEnvironment $managedEnvironment) {}
+    public function __construct(
+        private SyncManagedEnvironment $managedEnvironment,
+        private CheckAppDebug $appDebug,
+    ) {}
 
     
     public function update(Site $site, array $input): void
@@ -89,6 +93,11 @@ class UpdateEnv
         $site->env_variables = $this->secretKeys($variables);
         $site->jsonUpdate('type_data', 'env_path', $path, save: false);
         $site->save();
+
+        if ($path === $site->resolveEnvPath()) {
+            $this->appDebug->forget($site);
+            dispatch(new CheckAppDebugJob($site));
+        }
     }
 
     

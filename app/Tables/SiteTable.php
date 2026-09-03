@@ -2,6 +2,7 @@
 
 namespace App\Tables;
 
+use App\Enums\DeploymentStatus;
 use App\Models\Server;
 use App\Models\Site;
 use Forjed\InertiaTable\Column;
@@ -29,7 +30,12 @@ class SiteTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with(['server.project', 'isolatedUser', 'hostedDomains.ssl', 'workers'])->latest();
+        $this->query
+            ->with(['server.project', 'isolatedUser', 'hostedDomains.ssl', 'workers'])
+            ->withExists([
+                'deployments as has_finished_deployment' => fn (Builder $query) => $query->where('status', DeploymentStatus::FINISHED),
+            ])
+            ->latest();
     }
 
     protected function columns(): array

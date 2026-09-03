@@ -51,6 +51,7 @@ class DeployJob implements ShouldQueue
 
             $this->deployment->status = DeploymentStatus::FINISHED;
             $this->deployment->save();
+            dispatch(new CheckAppDebugJob($site));
             $this->deployment->activate();
             $this->broadcastDeploymentUpdate();
             app(BroadcastSiteUpdate::class)->broadcast($site);
