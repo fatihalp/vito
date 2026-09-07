@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Actions\Database\CreateDatabase;
-use App\Actions\Database\DeleteDatabase;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;
@@ -11,8 +10,6 @@ use App\Models\Project;
 use App\Models\Server;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
-use Illuminate\Http\Response;
-use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -53,18 +50,6 @@ class DatabaseController extends Controller
         $this->validateRoute($project, $server, $database);
 
         return new DatabaseResource($database);
-    }
-
-    #[Delete('{database}', name: 'api.projects.servers.databases.delete', middleware: 'ability:write')]
-    public function delete(Project $project, Server $server, Database $database): Response
-    {
-        $this->authorize('delete', [$database, $server]);
-
-        $this->validateRoute($project, $server, $database);
-
-        app(DeleteDatabase::class)->delete($server, $database);
-
-        return response()->noContent();
     }
 
     private function validateRoute(Project $project, Server $server, ?Database $database = null): void

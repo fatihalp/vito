@@ -24,18 +24,6 @@ class Project extends Model
         'name',
     ];
 
-    public static function boot(): void
-    {
-        parent::boot();
-
-        static::deleting(function (Project $project): void {
-            $project->servers()->each(function ($server): void {
-                
-                $server->delete();
-            });
-        });
-    }
-
     
     public function servers(): HasMany
     {

@@ -54,7 +54,8 @@ class CreateDnsARecordForServer
                 'proxied' => (bool) ($input['dns_record_proxied'] ?? false),
             ]);
         } catch (ValidationException $e) {
-            if (str_contains(strtolower($e->getMessage()), 'already exists')) {
+            $messages = implode(' ', $e->errors()['record'] ?? []);
+            if (str_contains(strtolower($messages), 'already exists')) {
                 Log::info("DNS record for {$domainName} already exists on provider, proceeding.");
 
                 return;

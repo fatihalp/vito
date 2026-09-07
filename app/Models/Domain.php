@@ -29,6 +29,15 @@ class Domain extends AbstractModel
         'metadata' => 'array',
     ];
 
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function (Domain $domain): void {
+            $domain->records()->delete();
+        });
+    }
+
     
     public function dnsProvider(): BelongsTo
     {

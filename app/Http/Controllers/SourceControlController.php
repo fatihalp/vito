@@ -6,6 +6,7 @@ use App\Actions\GithubApp\EditGithubAppSourceControl;
 use App\Actions\SourceControl\ConnectSourceControl;
 use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
+use App\Actions\SourceControl\GetRepoVitoConfig;
 use App\Helpers\QueryBuilder;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SourceControlResource;
@@ -162,6 +163,19 @@ class SourceControlController extends Controller
         $this->authorize('view', $sourceControl);
 
         return response()->json($sourceControl->provider()->getBranches($repo, false));
+    }
+
+    #[Get('/{source_control}/vito-config/{repo}', name: 'source-controls.vito-config')]
+    #[Where('repo', '.*')]
+    public function vitoConfig(Request $request, SourceControl $sourceControl, string $repo, GetRepoVitoConfig $getRepoVitoConfig): JsonResponse
+    {
+        $this->authorize('view', $sourceControl);
+
+        return response()->json($getRepoVitoConfig->get(
+            $sourceControl,
+            $repo,
+            $request->input('branch')
+        ));
     }
 
     #[Post('/', name: 'source-controls.store')]

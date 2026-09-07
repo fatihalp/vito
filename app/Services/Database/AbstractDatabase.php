@@ -88,23 +88,9 @@ abstract class AbstractDatabase extends AbstractService implements Database
 
     public function deletionRules(): array
     {
-        return [
-            'service' => [
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    $hasDatabase = $this->service->server->databases()->exists();
-                    if ($hasDatabase) {
-                        $fail('You have database(s) on the server.');
-                    }
-                    $hasDatabaseUser = $this->service->server->databaseUsers()->exists();
-                    if ($hasDatabaseUser) {
-                        $fail('You have database user(s) on the server.');
-                    }
-                },
-            ],
-        ];
+        return [];
     }
 
-    
     public function uninstall(): void
     {
         $version = $this->service->version;
@@ -114,7 +100,6 @@ abstract class AbstractDatabase extends AbstractService implements Database
         $this->service->server->os()->cleanup();
     }
 
-    
     public function create(string $name, string $charset, string $collation): void
     {
         $this->service->server->ssh()->exec(
@@ -127,16 +112,7 @@ abstract class AbstractDatabase extends AbstractService implements Database
         );
     }
 
-    
-    public function delete(string $name): void
-    {
-        $this->service->server->ssh()->exec(
-            view($this->getScriptView('delete'), [
-                'name' => $name,
-            ]),
-            'delete-database'
-        );
-    }
+
 
     
     public function createUser(string $username, string $password, string $host): void

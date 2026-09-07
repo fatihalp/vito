@@ -52,22 +52,17 @@ class DeleteSite
             $this->step($site, $force, 'delete-vhost', fn () => $site->webserver()->deleteSite($site));
 
             if ($site->type()->language() === 'php' && ! $site->fpmPoolSharedWithSiblings()) {
-                
                 $phpService = $site->server->php();
-                
                 $php = $phpService->handler();
                 $this->step($site, $force, 'remove-fpm-pool', fn () => $php->removeFpmPool($site->user, $site->php_version, $site->id));
             }
 
             $isLastSibling = ! $site->userSharedWithSiblings();
 
-            if ($isLastSibling) {
-                $this->step($site, $force, 'delete-isolated-user', fn () => $site->server->os()->deleteIsolatedUser($site->user));
-            }
-
             $this->deleteRow($site);
 
             if ($isLastSibling) {
+                $this->step($site, $force, 'delete-isolated-user', fn () => $site->server->os()->deleteIsolatedUser($site->user));
                 $iuser?->delete();
             }
         } finally {

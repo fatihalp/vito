@@ -325,4 +325,40 @@ class Github extends AbstractSourceControlProvider
 
         return $allData;
     }
+
+    public function getFile(string $repo, string $path, ?string $branch = null): ?string
+    {
+        try {
+            $params = [];
+            if ($branch) {
+                $params['ref'] = $branch;
+            }
+
+            $response = $this->getClient()->get(
+                self::API_BASE_URL.'/repos/'.$repo.'/contents/'.ltrim($path, '/'),
+                $params
+            );
+
+            if (! $response->successful()) {
+                return null;
+            }
+
+            $content = $response->json('content');
+            if (is_string($content) && $response->json('encoding') === 'base64') {
+                $decoded = base64_decode($content, true);
+
+                return $decoded !== false ? $decoded : null;
+            }
+
+            return $response->body();
+        } catch (Throwable $e) {
+            Log::warning('Failed to fetch GitHub file content', [
+                'repo' => $repo,
+                'path' => $path,
+                'error' => $e->getMessage(),
+            ]);
+
+            return null;
+        }
+    }
 }

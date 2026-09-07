@@ -90,9 +90,6 @@ class Server extends AbstractModel
         'authentication',
     ];
 
-    public bool $deleteFromProvider = true;
-
-    
     protected array $networkDeparture = ['members' => [], 'networks' => []];
 
     public static function boot(): void
@@ -117,26 +114,28 @@ class Server extends AbstractModel
                         app(DisconnectSiteResource::class)->disconnect(
                             $resource,
                             removeFirewall: false,
-                            removeProvisioned: false,
                         );
                     });
                 $server->sites()->each(function ($site): void {
-                    
                     app(CleanupSiteResources::class)->cleanup($site);
                     $site->workers()->delete();
                     $site->ssls()->delete();
                     $site->deployments()->delete();
-                    $site->deploymentScript()->delete();
+                    $site->deploymentScripts()->delete();
+                    $site->redirects()->delete();
+                    $site->commands()->delete();
+                    $site->gitHook?->destroyHook();
                 });
                 $server->sites()->delete();
                 $server->logs()->each(function ($log): void {
-                    
                     $log->delete();
                 });
                 $server->backups()->each(function ($backup): void {
-                    
                     $backup->delete();
                 });
+                $server->metrics()->delete();
+                \App\Models\CommandExecution::where('server_id', $server->id)->delete();
+                \App\Models\File::where('server_id', $server->id)->delete();
                 $server->services()->delete();
                 $server->databases()->delete();
                 $server->databaseUsers()->delete();
@@ -150,9 +149,6 @@ class Server extends AbstractModel
                 }
                 if (File::exists($server->sshKey()['private_key_path'])) {
                     File::delete($server->sshKey()['private_key_path']);
-                }
-                if ($server->deleteFromProvider) {
-                    $server->provider()->delete();
                 }
                 DB::commit();
             } catch (Throwable $e) {

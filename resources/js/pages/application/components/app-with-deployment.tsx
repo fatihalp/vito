@@ -7,7 +7,6 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
-  BookOpenIcon,
   CalendarClockIcon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -25,10 +24,9 @@ import {
   ZapIcon,
   type LucideIcon,
 } from 'lucide-react';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent } from '@/components/ui/collapsible';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import DeploymentScript from '@/pages/application/components/deployment-script';
-import Env from '@/pages/application/components/env';
 import Deploy from '@/pages/application/components/deploy';
 import AutoDeployment from '@/pages/application/components/auto-deployment';
 import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-script';
@@ -45,7 +43,7 @@ import { DNSProvider } from '@/types/dns-provider';
 import SiteResourceDiagram from '@/pages/application/components/site-resource-diagram';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
-import { DeploymentsSkeleton, SiteDetailsSkeleton, SiteResourceDiagramSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
+import { DeploymentsSkeleton, SiteResourceDiagramSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
 
 function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (

@@ -1,6 +1,5 @@
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
-import type { Database } from '@/types/database';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -8,13 +7,8 @@ import CreateDatabase from '@/pages/databases/components/create-database';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
-import Delete from '@/pages/databases/components/delete';
-import { TableActionTrigger } from '@/components/table-action-trigger';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { PlusIcon } from 'lucide-react';
-
-import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
-import { asRow } from '@/lib/inertia-table';
+import type { InertiaTableData } from '@forjedio/inertia-table-react';
 import { useDialog } from '@/hooks/use-dialog';
 
 type Page = {
@@ -68,21 +62,7 @@ export default function Databases() {
           </div>
         </HeaderContainer>
 
-        <VitoTable
-          tableData={page.props.databases}
-          actions={(row: Row) => (
-            <div className="flex items-center gap-2">
-              <DropdownMenu modal={false}>
-                <DropdownMenuTrigger asChild>
-                  <TableActionTrigger />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start">
-                  <Delete database={asRow<Database>(row, ['id', 'name', 'server_id'])} />
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          )}
-        />
+        <VitoTable tableData={page.props.databases} />
       </Container>
     </ServerLayout>
   );

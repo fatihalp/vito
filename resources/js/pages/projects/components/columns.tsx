@@ -2,7 +2,6 @@ import DateTime from '@/components/date-time';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import DeleteProject from '@/pages/projects/components/delete-project';
 import ProjectForm from '@/pages/projects/components/project-form';
 import { SharedData } from '@/types';
 import type { Project } from '@/types/project';
@@ -38,16 +37,6 @@ function ProjectActions({ project }: { project: Project }) {
           <LeaveProject project={project}>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Leave project</DropdownMenuItem>
           </LeaveProject>
-        )}
-        {project.role === 'owner' && (
-          <>
-            <DropdownMenuSeparator />
-            <DeleteProject project={project}>
-              <DropdownMenuItem onSelect={(e) => e.preventDefault()} variant="destructive">
-                Delete Project
-              </DropdownMenuItem>
-            </DeleteProject>
-          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

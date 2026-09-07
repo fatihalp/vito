@@ -261,57 +261,6 @@ paths:
               schema:
                 $ref: '/api-docs/openapi/schemas/ErrorResponse.yaml'
 
-    delete:
-      summary: Delete database
-      description: Delete a database
-      tags:
-        - Databases
-      security:
-        - bearerAuth: []
-      parameters:
-        - name: project
-          in: path
-          required: true
-          description: Project ID
-          schema:
-            type: integer
-            example: 1
-        - name: server
-          in: path
-          required: true
-          description: Server ID
-          schema:
-            type: integer
-            example: 1
-        - name: database
-          in: path
-          required: true
-          description: Database ID
-          schema:
-            type: integer
-            example: 1
-      responses:
-        '204':
-          description: Database deleted successfully
-        '401':
-          description: Unauthorized
-          content:
-            application/json:
-              schema:
-                $ref: '/api-docs/openapi/schemas/ErrorResponse.yaml'
-        '403':
-          description: Forbidden
-          content:
-            application/json:
-              schema:
-                $ref: '/api-docs/openapi/schemas/ErrorResponse.yaml'
-        '404':
-          description: Database not found
-          content:
-            application/json:
-              schema:
-                $ref: '/api-docs/openapi/schemas/ErrorResponse.yaml'
-
   /api/projects/{project}/servers/{server}/database-users:
     get:
       summary: List database users

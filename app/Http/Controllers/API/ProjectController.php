@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\API;
 
 use App\Actions\Projects\CreateProject;
-use App\Actions\Projects\DeleteProject;
 use App\Actions\Projects\UpdateProject;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
@@ -12,7 +11,6 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
-use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -63,17 +61,5 @@ class ProjectController extends Controller
         $project = app(UpdateProject::class)->update($project, $request->all());
 
         return new ProjectResource($project);
-    }
-
-    #[Delete('api/projects/{project}', name: 'api.projects.delete', middleware: ['ability:write', 'can-see-project'])]
-    public function delete(Project $project): Response
-    {
-        $this->authorize('delete', $project);
-
-        app(DeleteProject::class)->delete(user(), $project, [
-            'name' => $project->name,
-        ]);
-
-        return response()->noContent();
     }
 }

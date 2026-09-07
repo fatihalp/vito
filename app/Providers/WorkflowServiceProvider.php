@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Plugins\RegisterWorkflowAction;
+use App\WorkflowActions\CronJob\CreateCronJob;
 use App\WorkflowActions\Database\CreateDatabase;
 use App\WorkflowActions\Database\CreateDatabaseUser;
 use App\WorkflowActions\Domain\CreateDNSRecord;
@@ -19,6 +20,7 @@ use App\WorkflowActions\Site\CreatePHPBlankSite;
 use App\WorkflowActions\Site\CreatePHPMyAdminSite;
 use App\WorkflowActions\Site\CreatePHPSite;
 use App\WorkflowActions\Site\DeploySite;
+use App\WorkflowActions\Worker\CreateWorker;
 use Illuminate\Support\ServiceProvider;
 
 class WorkflowServiceProvider extends ServiceProvider
@@ -33,6 +35,8 @@ class WorkflowServiceProvider extends ServiceProvider
         $this->general();
         $this->database();
         $this->domain();
+        $this->worker();
+        $this->cronjob();
     }
 
     private function server(): void
@@ -90,6 +94,11 @@ class WorkflowServiceProvider extends ServiceProvider
             ->category('site')
             ->handler(DeploySite::class)
             ->register();
+        RegisterWorkflowAction::make('connect-site-resource')
+            ->label('Connect Site Resource')
+            ->category('site')
+            ->handler(\App\WorkflowActions\SiteResource\ConnectSiteResource::class)
+            ->register();
     }
 
     private function general(): void
@@ -136,6 +145,24 @@ class WorkflowServiceProvider extends ServiceProvider
             ->label('Delete DNS Record')
             ->category('domain')
             ->handler(DeleteDNSRecord::class)
+            ->register();
+    }
+
+    private function worker(): void
+    {
+        RegisterWorkflowAction::make('create-worker')
+            ->label('Create Worker')
+            ->category('worker')
+            ->handler(CreateWorker::class)
+            ->register();
+    }
+
+    private function cronjob(): void
+    {
+        RegisterWorkflowAction::make('create-cron-job')
+            ->label('Create Cron Job')
+            ->category('cronjob')
+            ->handler(CreateCronJob::class)
             ->register();
     }
 }

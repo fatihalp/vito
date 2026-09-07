@@ -260,10 +260,34 @@ export function OtherIcon({ className, size = 24 }: IconProps) {
   );
 }
 
+export function VitoIcon({ className, size = 24, ...props }: IconProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width={size}
+      height={size}
+      className={cn('shrink-0 rounded-md', className)}
+      fill="none"
+      {...props}
+    >
+      <rect width="24" height="24" rx="5" fill="#6366F1" />
+      <path
+        d="M7 8l5 9 5-9"
+        stroke="#FFFFFF"
+        strokeWidth="2.2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export function getSiteTypeIcon(typeKey: string, size = 24, className?: string) {
   const normalized = (typeKey || '').toLowerCase();
 
   switch (normalized) {
+    case 'vito':
+      return <VitoIcon size={size} className={className} />;
     case 'laravel':
       return <LaravelIcon size={size} className={className} />;
     case 'symfony':

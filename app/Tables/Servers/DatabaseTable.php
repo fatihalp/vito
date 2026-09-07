@@ -3,7 +3,6 @@
 namespace App\Tables\Servers;
 
 use Forjed\InertiaTable\Column;
-use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
@@ -27,7 +26,6 @@ class DatabaseTable extends Table
             EnumColumn::make('status', 'Status')->sortable(),
             Column::data('id'),
             Column::data('server_id'),
-            ActionsColumn::make(),
         ];
     }
 }

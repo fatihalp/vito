@@ -33,6 +33,20 @@ class InstallService extends AbstractWorkflowAction
 
         $this->authorize('update', $server);
 
+        $type = config("service.services.{$input['name']}.type", $input['name']);
+        $existing = $server->service($type, $input['version'] ?? null);
+        if (! $existing && isset($input['name'])) {
+            $existing = $server->services()->where('name', $input['name'])->first();
+        }
+
+        if ($existing && $existing->status === \App\Enums\ServiceStatus::READY) {
+            return [
+                'server_id' => $server->id,
+                'service_id' => $existing->id,
+                'service_status' => $existing->status->value,
+            ];
+        }
+
         $service = app(Install::class)->install(
             $server,
             $input,

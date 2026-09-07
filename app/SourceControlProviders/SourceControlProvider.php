@@ -56,4 +56,6 @@ interface SourceControlProvider
     public function getRepos(bool $useCache = true): array;
 
     public function getBranches(string $repo, bool $useCache = true): array;
+
+    public function getFile(string $repo, string $path, ?string $branch = null): ?string;
 }

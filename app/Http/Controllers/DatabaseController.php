@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Database\CreateDatabase;
-use App\Actions\Database\DeleteDatabase;
 use App\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;
@@ -15,7 +14,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Patch;
@@ -95,16 +93,5 @@ class DatabaseController extends Controller
 
         return back()
             ->with('success', 'Databases synced successfully.');
-    }
-
-    #[Delete('/{database}', name: 'databases.destroy')]
-    public function destroy(Server $server, Database $database): RedirectResponse
-    {
-        $this->authorize('delete', [$database, $server]);
-
-        app(DeleteDatabase::class)->delete($server, $database);
-
-        return back()
-            ->with('success', 'Database deleted successfully.');
     }
 }

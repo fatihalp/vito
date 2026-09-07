@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\HasFeatures;
 
 use App\Actions\SiteResource\CleanupSiteResources;
+use App\Enums\CronjobStatus;
 use App\Enums\DeploymentStatus;
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
@@ -96,14 +97,27 @@ class Site extends AbstractModel
         static::deleting(function (Site $site): void {
             app(CleanupSiteResources::class)->cleanup($site);
             $site->workers()->each(function ($worker): void {
-                
                 $worker->delete();
             });
+            $site->cronJobs()->each(function (CronJob $cronJob) use ($site): void {
+                try {
+                    $cronJob->status = CronjobStatus::DELETING;
+                    $cronJob->save();
+                    $site->server->cron()->update($cronJob->user, CronJob::crontab($site->server, $cronJob->user));
+                } catch (\Throwable $e) {
+                    Log::warning('Failed to update crontab on site delete', ['error' => $e->getMessage()]);
+                } finally {
+                    $cronJob->delete();
+                }
+            });
+            $site->redirects()->delete();
+            $site->commands()->delete();
             $site->ssls()->each(function (Ssl $ssl) use ($site): void {
                 dispatch(new DeleteSslJob($site->server, $ssl))->onQueue('ssh');
             });
             $site->deployments()->delete();
-            $site->deploymentScript()->delete();
+            $site->deploymentScripts()->delete();
+            $site->logs()->update(['site_id' => null]);
             $site->gitHook?->destroyHook();
         });
 

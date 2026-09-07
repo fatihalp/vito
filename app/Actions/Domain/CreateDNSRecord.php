@@ -6,7 +6,6 @@ use App\Models\DNSRecord;
 use App\Models\Domain;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 
 class CreateDNSRecord
 {
@@ -19,7 +18,9 @@ class CreateDNSRecord
 
         try {
             $recordData = $provider->createRecord($domain->provider_domain_id, $input);
-        } catch (Throwable $e) {
+        } catch (ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
             throw ValidationException::withMessages([
                 'record' => [$e->getMessage()],
             ]);

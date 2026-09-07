@@ -243,14 +243,14 @@ export default function ServerSettings() {
 
                 <div className="flex items-center justify-between gap-4 px-6 py-4">
                   <div className="space-y-0.5">
-                    <p className="font-medium text-destructive text-sm">Delete Server</p>
+                    <p className="font-medium text-destructive text-sm">Remove Server</p>
                     <p className="text-muted-foreground text-xs">
-                      Permanently remove this server and all its data.
+                      Remove this server from Vito. The server remains running on your provider.
                     </p>
                   </div>
                   <DeleteServer server={server}>
                     <Button variant="destructive" size="sm" className="shrink-0">
-                      Delete
+                      Remove
                     </Button>
                   </DeleteServer>
                 </div>

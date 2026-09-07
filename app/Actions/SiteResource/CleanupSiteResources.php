@@ -13,7 +13,6 @@ class CleanupSiteResources
             app(DisconnectSiteResource::class)->disconnect(
                 $resource,
                 restoreEnvironment: false,
-                removeProvisioned: false,
             );
         });
     }

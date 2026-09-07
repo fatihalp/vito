@@ -19,6 +19,7 @@ use App\SiteTypes\NodeSite;
 use App\SiteTypes\PHPBlank;
 use App\SiteTypes\PHPMyAdmin;
 use App\SiteTypes\PHPSite;
+use App\SiteTypes\VitoSite;
 use App\Tooling\NodeTooling;
 use App\Tooling\PnpmTooling;
 use App\Tooling\YarnTooling;
@@ -30,9 +31,10 @@ class SiteTypeServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
+        $this->vito();
+        $this->laravel();
         $this->php();
         $this->phpBlank();
-        $this->laravel();
         $this->nodeSite();
         $this->bunSite();
         $this->blank();
@@ -212,6 +214,26 @@ class SiteTypeServiceProvider extends ServiceProvider
                 DynamicField::make('php_version')
                     ->component()
                     ->label('PHP Version'),
+            ]))
+            ->register();
+    }
+
+    private function vito(): void
+    {
+        RegisterSiteType::make(VitoSite::id())
+            ->label('Vito Config')
+            ->handler(VitoSite::class)
+            ->form(DynamicForm::make([
+                DynamicField::make('source_control')
+                    ->component()
+                    ->label('Source Control'),
+                DynamicField::make('repository')
+                    ->text()
+                    ->component()
+                    ->label('Repository'),
+                DynamicField::make('branch')
+                    ->component()
+                    ->default('main'),
             ]))
             ->register();
     }
