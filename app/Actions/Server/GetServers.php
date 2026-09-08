@@ -18,11 +18,8 @@ class GetServers
             $serversQuery->where('name', 'like', "%{$validated['query']}%");
         }
 
-        $page = $validated['page'] ?? 1;
-
         return $serversQuery
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+            ->forPage($validated['page'] ?? 1, $perPage)
             ->get();
     }
 

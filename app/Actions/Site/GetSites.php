@@ -21,11 +21,8 @@ class GetSites
             $sitesQuery->where('domain', 'like', "%{$validated['query']}%");
         }
 
-        $page = $validated['page'] ?? 1;
-
         return $sitesQuery
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+            ->forPage($validated['page'] ?? 1, $perPage)
             ->get();
     }
 
@@ -56,11 +53,8 @@ class GetSites
 
         $sitesQuery->orderBy('domain', 'asc');
 
-        $page = $validated['page'] ?? 1;
-
         return $sitesQuery
-            ->skip(($page - 1) * $perPage)
-            ->take($perPage)
+            ->forPage($validated['page'] ?? 1, $perPage)
             ->get();
     }
 

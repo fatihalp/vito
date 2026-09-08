@@ -1,7 +1,10 @@
+import { getQueryClient } from '@/lib/query-client';
+import type { SharedData } from '@/types';
 import type { Server, ServerWarning } from '@/types/server';
 import type { Site, SiteWarning } from '@/types/site';
+import { usePage } from '@inertiajs/react';
+import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 export type OverviewServer = Pick<Server, 'id' | 'project_id' | 'name' | 'ip' | 'status' | 'status_color'> & {
   warnings: ServerWarning[];
@@ -62,106 +65,42 @@ const emptyResources: OverviewResources = {
   backups: [],
   domains: [],
 };
-const cacheLifetime = 60_000;
-const cache = new Map<string, { data: OverviewResources; expiresAt: number }>();
-const pendingRequests = new Map<string, Promise<OverviewResources>>();
-
-type ResourceState = {
-  signature: string;
-  data?: OverviewResources;
-  isError: boolean;
-};
-
-function idsFromKey(key: string): number[] {
-  return key === '' ? [] : key.split(',').map(Number);
-}
-
-function requestResources(signature: string, serverIdsKey: string, siteIdsKey: string, fallbackServerId?: number): Promise<OverviewResources> {
-  const cached = cache.get(signature);
-  if (cached && cached.expiresAt > Date.now()) {
-    return Promise.resolve(cached.data);
-  }
-  if (cached) {
-    cache.delete(signature);
-  }
-
-  const pending = pendingRequests.get(signature);
-  if (pending) {
-    return pending;
-  }
-
-  const request = axios
-    .get<OverviewResources>(route('overview.resources'), {
-      params: {
-        servers: idsFromKey(serverIdsKey),
-        sites: idsFromKey(siteIdsKey),
-        fallback_server_id: fallbackServerId,
-      },
-    })
-    .then((response) => {
-      cache.set(signature, { data: response.data, expiresAt: Date.now() + cacheLifetime });
-
-      return response.data;
-    })
-    .finally(() => pendingRequests.delete(signature));
-
-  pendingRequests.set(signature, request);
-
-  return request;
-}
 
 export function useOverviewResources(
-  projectId?: number | null | undefined,
+  projectId?: number | null,
   serverIds: number[] = [],
   siteIds: number[] = [],
   enabled = true,
   fallbackServerId?: number,
 ) {
-  const serverIdsKey = serverIds.join(',');
-  const siteIdsKey = siteIds.join(',');
-  const signature = `${projectId ?? 'all'}|${serverIdsKey}|${siteIdsKey}|${fallbackServerId ?? ''}`;
-  const [state, setState] = useState<ResourceState>({ signature: '', isError: false });
-  const requestId = useRef(0);
-
-  const fetchResources = useCallback(async (force = false) => {
-    const currentRequestId = ++requestId.current;
-
-    if (!enabled) {
-      setState({ signature, data: emptyResources, isError: false });
-      return;
-    }
-
-    if (force) {
-      cache.delete(signature);
-    }
-
-    setState((current) => (current.signature === signature ? { ...current, isError: false } : { signature, isError: false }));
-
-    try {
-      const data = await requestResources(signature, serverIdsKey, siteIdsKey, fallbackServerId);
-
-      if (currentRequestId === requestId.current) {
-        setState({ signature, data, isError: false });
-      }
-    } catch {
-      if (currentRequestId === requestId.current) {
-        setState({ signature, isError: true });
-      }
-    }
-  }, [enabled, fallbackServerId, projectId, serverIdsKey, signature, siteIdsKey]);
-
-  useEffect(() => {
-    void fetchResources();
-
-    return () => {
-      requestId.current += 1;
-    };
-  }, [fetchResources]);
+  const { auth } = usePage<SharedData>().props;
+  const query = useQuery(
+    {
+      queryKey: ['overview.resources', projectId ?? 'all', serverIds, siteIds, fallbackServerId],
+      queryFn: async ({ signal }) => {
+        const response = await axios.get<OverviewResources>(route('overview.resources'), {
+          signal,
+          params: { servers: serverIds, sites: siteIds, fallback_server_id: fallbackServerId },
+        });
+        return response.data;
+      },
+      enabled,
+      staleTime: 60_000,
+      retry: false,
+      refetchOnWindowFocus: false,
+      refetchOnReconnect: false,
+    },
+    getQueryClient(auth.user.id),
+  );
 
   return {
-    data: state.signature === signature ? state.data : undefined,
-    isLoading: enabled && (state.signature !== signature || (!state.data && !state.isError)),
-    isError: state.signature === signature && state.isError,
-    refetch: () => fetchResources(true),
+    data: enabled ? query.data : emptyResources,
+    isLoading: enabled && query.isLoading,
+    isError: enabled && query.isError,
+    refetch: async () => {
+      if (enabled) {
+        await query.refetch({ cancelRefetch: false });
+      }
+    },
   };
 }

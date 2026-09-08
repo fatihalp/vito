@@ -2,15 +2,19 @@
 
 namespace App\Actions\SourceControl;
 
+use App\Actions\GithubApp\EditGithubAppSourceControl;
 use App\Models\SourceControl;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class EditSourceControl
 {
     
     public function edit(SourceControl $sourceControl, array $input): SourceControl
     {
+        if ($sourceControl->isGithubApp()) {
+            return app(EditGithubAppSourceControl::class)->edit($sourceControl, $input);
+        }
+
         Validator::make($input, array_merge(
             ['name' => ['required']],
             $sourceControl->provider()->editRules($input),

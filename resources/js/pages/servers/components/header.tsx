@@ -6,7 +6,8 @@ import { StatusRipple } from '@/components/status-ripple';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { router, useForm } from '@inertiajs/react';
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ConnectSshDialog from './connect-ssh-dialog';
 
@@ -29,15 +30,7 @@ export default function ServerHeader({ server: initialServer }: { server: Server
     statusForm.patch(route('servers.status', { server: server.id }));
   };
 
-  const [ipCopied, setIpCopied] = useState(false);
-  const copyIp = (ip: string) => {
-    navigator.clipboard.writeText(ip).then(() => {
-      setIpCopied(true);
-      setTimeout(() => {
-        setIpCopied(false);
-      }, 2000);
-    });
-  };
+  const { copied: ipCopied, copy: copyIp } = useClipboard();
 
   return (
     <div className="flex items-center justify-between border-b px-4 py-2">
@@ -76,9 +69,9 @@ export default function ServerHeader({ server: initialServer }: { server: Server
         </Tooltip>
         <Tooltip>
           <TooltipTrigger asChild>
-            <div className="cursor-pointer lg:inline-flex" onClick={() => copyIp(server.ip)}>
+            <button type="button" className="cursor-pointer lg:inline-flex" onClick={() => copyIp(server.ip)} aria-label="Copy server IP">
               {server.ip}
-            </div>
+            </button>
           </TooltipTrigger>
           <TooltipContent side="bottom">
             <span>Server IP</span>

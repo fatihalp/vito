@@ -73,17 +73,11 @@ export default function Layout({
   );
 
   useEffect(() => {
-    if (page.props.flash && page.props.flash.success) {
-      toast.success(<div className="flex items-center gap-2">{page.props.flash.success}</div>);
-    }
-    if (page.props.flash && page.props.flash.error) {
-      toast.error(<div className="flex items-center gap-2">{page.props.flash.error}</div>);
-    }
-    if (page.props.flash && page.props.flash.warning) {
-      toast.warning(<div className="flex items-center gap-2">{page.props.flash.warning}</div>);
-    }
-    if (page.props.flash && page.props.flash.info) {
-      toast.info(<div className="flex items-center gap-2">{page.props.flash.info}</div>);
+    for (const type of ['success', 'error', 'warning', 'info'] as const) {
+      const message = page.props.flash?.[type];
+      if (message) {
+        toast[type](<div className="flex items-center gap-2">{message}</div>);
+      }
     }
   }, [page.props.flash]);
 
@@ -123,7 +117,7 @@ export default function Layout({
                     <div>
                       <h2 className="text-lg font-semibold">Failed to load application data</h2>
                       <p className="text-muted-foreground mt-1 text-sm">
-                        We couldn't reach the server to load configuration. Check your connection and try again.
+                        Check your connection and try again.
                       </p>
                     </div>
                     <Button onClick={() => fetchBootstrap()}>Retry</Button>

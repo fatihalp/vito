@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { Head, usePage } from '@inertiajs/react';
 import { ChevronDownIcon, ChevronUpIcon, ClipboardIcon, CpuIcon, HardDriveIcon, ServerIcon } from 'lucide-react';
 import { Server } from '@/types/server';
@@ -107,14 +108,7 @@ function UsageBar({ percent, label, used, total }: { percent: number; label: str
 export default function Information() {
   const { server, info } = usePage<Page>().props;
   const [showRaw, setShowRaw] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  const copyRaw = () => {
-    navigator.clipboard.writeText(info.raw_report).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }).catch(() => {});
-  };
+  const { copied, copy } = useClipboard();
 
   if (info.error) {
     return (
@@ -122,7 +116,7 @@ export default function Information() {
         <Head title={`Server Information - ${server.name}`} />
         <Container className="max-w-5xl">
           <HeaderContainer>
-            <Heading title="Server Information" description="Hardware and system details for this server" />
+            <Heading title="Server Information" />
           </HeaderContainer>
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
             {info.error}
@@ -140,7 +134,7 @@ export default function Information() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Server Information" description="Hardware and system details for this server" />
+          <Heading title="Server Information" />
         </HeaderContainer>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -284,7 +278,7 @@ export default function Information() {
                 variant="ghost"
                 size="sm"
                 className="absolute right-2 top-2 h-6 px-2 text-[11px]"
-                onClick={copyRaw}
+                onClick={() => copy(info.raw_report)}
               >
                 <ClipboardIcon className="size-3 mr-1" />
                 {copied ? 'Copied' : 'Copy'}

@@ -3,13 +3,11 @@
 namespace App\Policies;
 
 use App\Enums\ServerRole;
-use App\Models\PersonalAccessToken;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\User;
 use App\Traits\HasRolePolicies;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Laravel\Sanctum\TransientToken;
 
 class SitePolicy
 {
@@ -66,11 +64,16 @@ class SitePolicy
 
     public function delete(User $user, Site $site, Server $server): bool
     {
-        $siteServer = $site->server;
+        return $this->update($user, $site, $server);
+    }
 
-        return $this->hasWriteAccess($user, $siteServer->project)
-            && $site->server_id === $server->id
-            && $siteServer->isReady()
-            && $siteServer->webserver();
+    public function viewTooling(User $user, Site $site, Server $server): bool
+    {
+        return $this->view($user, $site, $server) && $site->isReady() && $site->isIsolated();
+    }
+
+    public function manageTooling(User $user, Site $site, Server $server): bool
+    {
+        return $this->update($user, $site, $server) && $site->isReady() && $site->isIsolated();
     }
 }

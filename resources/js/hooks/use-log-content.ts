@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
 import { appendLogContent } from '@/lib/log';
@@ -23,8 +23,6 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
   const [content, setContent] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const logIdRef = useRef(logId);
-  logIdRef.current = logId;
 
   
   useEffect(() => {
@@ -32,17 +30,20 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
       return;
     }
 
+    const controller = new AbortController();
     setIsLoading(true);
     setError(null);
     setContent('');
 
     axios
-      .get(route('logs.show', { server: serverId, log: logId }))
+      .get(route('logs.show', { server: serverId, log: logId }), { signal: controller.signal })
       .then((response) => {
+        if (controller.signal.aborted) return;
         const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
         setContent(data);
       })
       .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
         if (axios.isAxiosError(err)) {
           setError(err.response?.data?.error || 'An error occurred while fetching the log');
         } else {
@@ -50,25 +51,22 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
         }
       })
       .finally(() => {
-        setIsLoading(false);
+        if (!controller.signal.aborted) setIsLoading(false);
       });
+
+    return () => controller.abort();
   }, [enabled, serverId, logId]);
 
   
-  useSocketListener(
-    useCallback(
-      (event) => {
-        if (event.type !== 'server-log.content') return;
-        if (!event.data || (event.data as { id?: number }).id !== logIdRef.current) return;
+  useSocketListener((event) => {
+    if (!enabled || event.type !== 'server-log.content') return;
+    if (!event.data || (event.data as { id?: number }).id !== logId) return;
 
-        const buf = (event.data as { content?: string }).content;
-        if (buf) {
-          setContent((prev) => appendLogContent(prev, buf));
-        }
-      },
-      [], 
-    ),
-  );
+    const buf = (event.data as { content?: string }).content;
+    if (buf) {
+      setContent((prev) => appendLogContent(prev, buf));
+    }
+  });
 
-  return { content, isLoading, error };
+  return { content, isLoading: enabled && !!logId && isLoading, error };
 }

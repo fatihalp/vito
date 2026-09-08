@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\GithubApp\EditGithubAppSourceControl;
 use App\Actions\SourceControl\ConnectSourceControl;
 use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
 use App\Actions\SourceControl\GetRepoVitoConfig;
-use App\Helpers\QueryBuilder;
+use App\Actions\SourceControl\GetSourceControls;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SourceControlResource;
 use App\Http\Resources\UserResource;
@@ -39,47 +38,7 @@ class SourceControlController extends Controller
     {
         $this->authorize('viewAny', SourceControl::class);
 
-        $user = user();
-        $query = SourceControl::query()
-            ->when(! $user->isAdmin(), fn ($query) => $query->where('user_id', $user->id))
-            ->with(['user', 'project']);
-
-        if ($provider = $request->input('provider')) {
-            if ($provider !== 'all') {
-                $query->where('provider', $provider);
-            }
-        }
-
-        if ($projectId = $request->input('project_id')) {
-            if ($projectId === 'global') {
-                $query->whereNull('project_id');
-            } elseif ($projectId !== 'all') {
-                $query->where('project_id', (int) $projectId);
-            }
-        }
-
-        if ($userId = $request->input('user_id')) {
-            if ($userId !== 'all') {
-                $query->where('user_id', (int) $userId);
-            }
-        }
-
-        if ($search = $request->input('search')) {
-            $query->where(function ($q) use ($search) {
-                $q->where('profile', 'like', "%{$search}%")
-                    ->orWhere('provider', 'like', "%{$search}%")
-                    ->orWhere('external_identifier', 'like', "%{$search}%")
-                    ->orWhereHas('user', fn ($u) => $u->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%"))
-                    ->orWhereHas('project', fn ($p) => $p->where('name', 'like', "%{$search}%"));
-            });
-        }
-
-        $sourceControls = QueryBuilder::for($query)
-            ->sortable('created_at', 'desc', [
-                'name' => 'profile',
-                'global' => 'project_id',
-            ])
-            ->paginate(pageName: 'sourceControlsPage');
+        $sourceControls = app(GetSourceControls::class)->get(user(), $request->all());
 
         $projects = Project::query()->orderBy('name')->get(['id', 'name']);
         $users = User::query()->orderBy('name')->get(['id', 'name', 'email']);
@@ -195,11 +154,7 @@ class SourceControlController extends Controller
     {
         $this->authorize('update', $sourceControl);
 
-        if ($sourceControl->isGithubApp()) {
-            app(EditGithubAppSourceControl::class)->edit($sourceControl, $request->all());
-        } else {
-            app(EditSourceControl::class)->edit($sourceControl, $request->all());
-        }
+        app(EditSourceControl::class)->edit($sourceControl, $request->all());
 
         return back()->with('success', 'Source control updated.');
     }

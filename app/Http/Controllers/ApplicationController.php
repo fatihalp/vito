@@ -31,7 +31,6 @@ use App\Tables\DeploymentTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -55,6 +54,11 @@ class ApplicationController extends Controller
             $site->ensureDeploymentScriptsExist();
         }
 
+        $overview = null;
+        $getOverview = function () use ($site, &$overview): array {
+            return $overview ??= app(GetSiteOverview::class)->get($site);
+        };
+
         return Inertia::render('application/index', [
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
             'deploymentScript' => Inertia::defer(fn () => new DeploymentScriptResource($site->deploymentScript), 'deployments'),
@@ -67,18 +71,10 @@ class ApplicationController extends Controller
                     ? new WorkerResource($type->bootstrapWorker())
                     : null;
             }, 'deployments'),
-            'overviewWorkers' => Inertia::defer(function () use ($site) {
-                return WorkerResource::collection(app(GetSiteOverview::class)->get($site)['workers']);
-            }, 'overview'),
-            'overviewWorkersCount' => Inertia::defer(function () use ($site) {
-                return app(GetSiteOverview::class)->get($site)['workers_count'];
-            }, 'overview'),
-            'overviewCronJobs' => Inertia::defer(function () use ($site) {
-                return CronJobResource::collection(app(GetSiteOverview::class)->get($site)['cron_jobs']);
-            }, 'overview'),
-            'overviewCronJobsCount' => Inertia::defer(function () use ($site) {
-                return app(GetSiteOverview::class)->get($site)['cron_jobs_count'];
-            }, 'overview'),
+            'overviewWorkers' => Inertia::defer(fn () => WorkerResource::collection($getOverview()['workers']), 'overview'),
+            'overviewWorkersCount' => Inertia::defer(fn () => $getOverview()['workers_count'], 'overview'),
+            'overviewCronJobs' => Inertia::defer(fn () => CronJobResource::collection($getOverview()['cron_jobs']), 'overview'),
+            'overviewCronJobsCount' => Inertia::defer(fn () => $getOverview()['cron_jobs_count'], 'overview'),
             'resources' => Inertia::defer(fn () => SiteResourceResource::collection($site->resources()->with(['server', 'storageProvider'])->get()), 'diagram'),
             'hostedDomains' => Inertia::defer(fn () => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()), 'diagram'),
             'dnsProviders' => Inertia::defer(function () {

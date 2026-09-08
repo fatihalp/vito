@@ -7,8 +7,6 @@ use App\Actions\Site\Tooling\InstallSiteTooling;
 use App\Actions\Site\Tooling\UninstallSiteTooling;
 use App\Models\Server;
 use App\Models\Site;
-use App\Tooling\ToolingRegistry;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -18,7 +16,6 @@ use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 #[Prefix('/servers/{server}/sites/{site}/tooling')]
 #[Middleware(['auth', 'has-project'])]
@@ -28,8 +25,7 @@ class SiteToolingController extends Controller
     #[Get('/', name: 'site-tooling')]
     public function index(Server $server, Site $site): Response
     {
-        $this->authorize('view', [$site, $server]);
-        $this->ensureReadyAndIsolated($server, $site);
+        $this->authorize('viewTooling', [$site, $server]);
 
         return Inertia::render('site-tooling/index', app(GetSiteTooling::class)->get($site));
     }
@@ -37,9 +33,7 @@ class SiteToolingController extends Controller
     #[Post('/{tool}', name: 'site-tooling.install')]
     public function install(Request $request, Server $server, Site $site, string $tool): RedirectResponse
     {
-        $this->authorize('update', [$site, $server]);
-        $this->ensureReadyAndIsolated($server, $site);
-        $this->ensureKnownTool($tool);
+        $this->authorize('manageTooling', [$site, $server]);
 
         app(InstallSiteTooling::class)->install($site, $tool, $request->all());
 
@@ -49,27 +43,10 @@ class SiteToolingController extends Controller
     #[Delete('/{tool}', name: 'site-tooling.uninstall')]
     public function uninstall(Server $server, Site $site, string $tool): RedirectResponse
     {
-        $this->authorize('update', [$site, $server]);
-        $this->ensureReadyAndIsolated($server, $site);
-        $this->ensureKnownTool($tool);
+        $this->authorize('manageTooling', [$site, $server]);
 
         app(UninstallSiteTooling::class)->uninstall($site, $tool);
 
         return back()->with('info', "Uninstalling {$tool}, please wait…");
-    }
-
-    
-    private function ensureReadyAndIsolated(Server $server, Site $site): void
-    {
-        if (! $site->isReady() || ! $site->isIsolated()) {
-            throw new AuthorizationException;
-        }
-    }
-
-    private function ensureKnownTool(string $tool): void
-    {
-        if (! ToolingRegistry::find($tool)) {
-            throw new NotFoundHttpException("Unknown tool: {$tool}");
-        }
     }
 }
