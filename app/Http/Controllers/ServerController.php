@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\Server\CreateServer;
 use App\Actions\Server\DeleteServer;
+use App\Actions\Server\ExecuteServerReboot;
 use App\Actions\Server\GetAccessibleServers;
 use App\Actions\Server\GetServers;
+use App\Actions\Server\ProbeServerConnection;
 use App\Actions\Server\RebootServer;
 use App\Actions\Server\StartServer;
 use App\Actions\Server\StopServer;
@@ -18,6 +20,7 @@ use App\Http\Resources\ServerResource;
 use App\Models\Server;
 use App\Models\ServerProvider;
 use App\Tables\ServerTable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -120,14 +123,42 @@ class ServerController extends Controller
             ]));
     }
 
+    #[Get('/{server}/restart', name: 'servers.restart')]
+    public function restart(Server $server): Response
+    {
+        $this->authorize('view', $server);
+
+        return Inertia::render('servers/restart', [
+            'server' => new ServerResource($server),
+        ]);
+    }
+
+    #[Post('/{server}/restart/trigger', name: 'servers.restart.trigger')]
+    public function triggerRestart(Server $server): JsonResponse
+    {
+        $this->authorize('reboot', $server);
+
+        $result = app(ExecuteServerReboot::class)->run($server);
+
+        return response()->json($result);
+    }
+
+    #[Post('/{server}/restart/probe', name: 'servers.restart.probe')]
+    public function probe(Server $server): JsonResponse
+    {
+        $this->authorize('view', $server);
+
+        $result = app(ProbeServerConnection::class)->probe($server);
+
+        return response()->json($result);
+    }
+
     #[Post('/{server}/reboot', name: 'servers.reboot')]
     public function reboot(Server $server): RedirectResponse
     {
-        $this->authorize('update', $server);
+        $this->authorize('reboot', $server);
 
-        app(RebootServer::class)->reboot($server);
-
-        return back()->with('success', 'Server is being rebooted.');
+        return redirect()->route('servers.restart', ['server' => $server->id, 'start' => 1]);
     }
 
     #[Post('/{server}/stop', name: 'servers.stop')]

@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Server, ServerWarning } from '@/types/server';
 import { BannerItem, WarningsBlock } from '@/components/banners';
 import { useDialog } from '@/hooks/use-dialog';
+import { Link } from '@inertiajs/react';
 
 export default function ServerBanners({ server }: { server: Server }) {
   const dialog = useDialog();
@@ -18,21 +19,10 @@ export default function ServerBanners({ server }: { server: Server }) {
       title: 'Restart required',
       description: 'The kernel or a critical package has been updated. Restart the server to complete the upgrade.',
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            dialog.confirm.open({
-              title: `Restart ${server.name}?`,
-              description:
-                'Are you sure you want to restart this server? Sites and services hosted on this server will be unavailable while it restarts. Connections in flight will be dropped.',
-              confirmLabel: 'Restart',
-              method: 'post',
-              url: route('servers.reboot', server.id),
-            })
-          }
-        >
-          Restart
+        <Button variant="outline" size="sm" asChild className="cursor-pointer">
+          <Link href={route('servers.restart', { server: server.id, start: 1 })}>
+            Restart
+          </Link>
         </Button>
       ),
     });
@@ -91,12 +81,14 @@ export default function ServerBanners({ server }: { server: Server }) {
     });
   }
 
-  if (server.status === 'disconnected' && server.can_power_manage === true) {
+  if (server.status === 'disconnected') {
     items.push({
       key: 'server-offline',
-      title: 'Server is offline / powered off',
-      description: `This server is currently disconnected or stopped on ${server.provider}. Start it to bring hosted sites and services back online.`,
-      action: (
+      title: 'Server is offline',
+      description: server.can_power_manage
+        ? `This server is disconnected or stopped on ${server.provider}. Start it to bring hosted sites and services back online.`
+        : 'This server is disconnected. Saved data is shown in read-only mode until the server reconnects.',
+      action: server.can_power_manage ? (
         <Button
           variant="outline"
           size="sm"
@@ -111,6 +103,12 @@ export default function ServerBanners({ server }: { server: Server }) {
           }
         >
           Start server
+        </Button>
+      ) : (
+        <Button variant="outline" size="sm" asChild>
+          <Link href={route('servers.restart', { server: server.id, start: 1 })}>
+            Restart
+          </Link>
         </Button>
       ),
     });

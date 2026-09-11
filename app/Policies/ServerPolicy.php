@@ -41,6 +41,11 @@ class ServerPolicy
         return $this->hasWriteAccess($user, $server->project);
     }
 
+    public function reboot(User $user, Server $server): bool
+    {
+        return $this->hasWriteAccess($user, $server->project);
+    }
+
     public function delete(User $user, Server $server): bool
     {
         return $this->hasOwnerAccess($user, $server->project) && $server->status !== ServerStatus::DISCONNECTED;

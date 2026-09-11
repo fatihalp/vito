@@ -2,7 +2,7 @@ import { Server } from '@/types/server';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon, MoreVerticalIcon, PowerOffIcon, PlayIcon, RefreshCwIcon } from 'lucide-react';
-import { useForm } from '@inertiajs/react';
+import { Link, useForm } from '@inertiajs/react';
 import { useDialog } from '@/hooks/use-dialog';
 
 function CheckForUpdates({ server }: { server: Server }) {
@@ -82,21 +82,11 @@ export default function ServerActions({ server }: { server: Server }) {
           </DropdownMenuItem>
         )}
 
-        <DropdownMenuItem
-          onSelect={() =>
-            dialog.confirm.open({
-              title: `Restart ${server.name}?`,
-              description:
-                'Are you sure you want to restart this server? Sites and services hosted on this server will be unavailable while it restarts. Connections in flight will be dropped.',
-              variant: 'destructive',
-              confirmLabel: 'Restart',
-              method: 'post',
-              url: route('servers.reboot', server.id),
-            })
-          }
-        >
-          <RefreshCwIcon className="size-4 mr-2" />
-          Restart
+        <DropdownMenuItem asChild>
+          <Link href={route('servers.restart', { server: server.id, start: 1 })} className="flex items-center w-full cursor-pointer">
+            <RefreshCwIcon className="size-4 mr-2" />
+            Restart
+          </Link>
         </DropdownMenuItem>
 
         {canPowerManage && !isDisconnected && (

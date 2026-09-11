@@ -1,3 +1,3 @@
-echo "Rebooting..."
+echo "Rebooting... Bye!"
 
 sudo reboot

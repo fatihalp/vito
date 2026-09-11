@@ -25,7 +25,8 @@ export function useMetrics(server: Server, filter?: MetricsFilter) {
       }
       return response.json();
     },
-    refetchInterval,
+    refetchInterval: server.status === 'disconnected' ? false : refetchInterval,
+    enabled: server.status !== 'disconnected',
     retry: false,
   });
 }

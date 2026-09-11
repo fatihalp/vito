@@ -271,6 +271,8 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   ];
 
   const viewingSite = !!page.props.site;
+  const isRestartPage = page.url.split('?')[0].endsWith('/restart');
+  const isOverviewPage = page.component === 'servers/show' || page.url.split('?')[0] === route('servers.show', { server: serverId });
 
   return (
     <Layout
@@ -281,7 +283,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     >
       {!viewingSite && <ServerHeader server={server} />}
 
-      {isOffline && (
+      {isOffline && !isRestartPage && !isOverviewPage && (
         <div className="px-4 pt-4">
           <Alert>
             <WifiOffIcon />

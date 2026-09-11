@@ -3,8 +3,18 @@ import { MetricsFilter } from '@/types/metric';
 import { ResourceUsageChart } from '@/pages/monitoring/components/resource-usage-chart';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useMetrics } from '@/pages/monitoring/components/use-metrics';
+import { WifiOffIcon } from 'lucide-react';
 
 export default function MetricsCards({ server, filter, metric }: { server: Server; filter?: MetricsFilter; metric?: string }) {
+  if (server.status === 'disconnected') {
+    return (
+      <div className="flex items-center gap-3 rounded-lg border border-dashed bg-muted/20 px-4 py-3.5 text-sm text-muted-foreground">
+        <WifiOffIcon className="size-4 shrink-0" />
+        <span>Live metrics are paused while the server is disconnected.</span>
+      </div>
+    );
+  }
+
   const query = useMetrics(server, filter);
   const history = query.data?.history ?? [];
 
@@ -32,7 +42,7 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
               dataKey="load"
               color="var(--color-chart-1)"
               chartData={history}
-              link={route('monitoring.show', { server: server.id, metric: 'load' })}
+              link={route('monitoring.processes', { server: server.id })}
               single={metric !== undefined}
             />
           )}
