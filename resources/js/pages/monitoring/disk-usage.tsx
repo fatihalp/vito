@@ -467,18 +467,18 @@ export default function DiskUsage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <Table className="table-fixed w-full">
                 <TableHeader className="bg-muted/5">
                   <TableRow className="h-7 border-b border-border/40 hover:bg-transparent">
                     <TableHead className="h-7 px-3 text-[11px]">Name</TableHead>
-                    <TableHead className="h-7 w-28 px-3 text-right text-[11px]">Size</TableHead>
+                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">Size</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     Array.from({ length: 6 }).map((_, i) => (
                       <TableRow key={i} className="h-8 border-b border-border/30">
-                        <TableCell className="px-3 py-1">
+                        <TableCell className="px-3 py-1 min-w-0 max-w-0 overflow-hidden">
                           <div className="flex items-center gap-2">
                             <Skeleton className="size-3.5 rounded shrink-0" />
                             <Skeleton
@@ -487,7 +487,7 @@ export default function DiskUsage() {
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-1 text-right">
+                        <TableCell className="px-3 py-1 text-right w-32 shrink-0">
                           <div className="flex justify-end">
                             <Skeleton className="h-3.5 w-12 rounded" />
                           </div>
@@ -507,12 +507,21 @@ export default function DiskUsage() {
                         onClick={() => handleNavigate(folder.path)}
                         className="h-8 border-b border-border/30 hover:bg-muted/25 transition-colors cursor-pointer group"
                       >
-                        <TableCell className="px-3 py-1">
-                          <div className="flex items-center gap-1.5 min-w-0" title={folder.path}>
+                        <TableCell className="px-3 py-1 min-w-0 max-w-0 overflow-hidden">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             <FolderIcon className="size-3.5 text-primary/70 shrink-0 group-hover:text-primary transition-colors" />
-                            <span className="font-mono text-xs font-medium text-foreground truncate group-hover:underline">
-                              {folder.name}/
-                            </span>
+                            <TooltipProvider delayDuration={200}>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="font-mono text-xs font-medium text-foreground truncate group-hover:underline block cursor-pointer">
+                                    {folder.name}/
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-md break-all font-mono text-xs">
+                                  {folder.path}
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                             <button
                               type="button"
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground/50 hover:text-foreground cursor-pointer ml-auto shrink-0"
@@ -530,7 +539,7 @@ export default function DiskUsage() {
                             </button>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-1 text-right">
+                        <TableCell className="px-3 py-1 text-right w-32 shrink-0">
                           <SizeCell size={folder.size} percentage={folder.percentage} />
                         </TableCell>
                       </TableRow>
@@ -554,29 +563,33 @@ export default function DiskUsage() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <Table>
+              <Table className="table-fixed w-full">
                 <TableHeader className="bg-muted/5">
                   <TableRow className="h-7 border-b border-border/40 hover:bg-transparent">
                     <TableHead className="h-7 px-3 text-[11px]">Name</TableHead>
-                    <TableHead className="h-7 w-28 px-3 text-right text-[11px]">Size</TableHead>
+                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">Size</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {loading ? (
                     Array.from({ length: 6 }).map((_, i) => (
-                      <TableRow key={i} className="h-8 border-b border-border/30">
-                        <TableCell className="px-3 py-1">
+                      <TableRow key={i} className="min-h-10 border-b border-border/30">
+                        <TableCell className="px-3 py-1.5 min-w-0 max-w-0 overflow-hidden">
                           <div className="flex items-center gap-2">
-                            <Skeleton className="size-3 rounded shrink-0" />
+                            <Skeleton className="size-3.5 rounded shrink-0" />
                             <div className="flex flex-col gap-1 w-full">
                               <Skeleton
                                 className="h-3 rounded"
                                 style={{ width: `${30 + ((i * 13) % 45)}%` }}
                               />
+                              <Skeleton
+                                className="h-2 rounded opacity-60"
+                                style={{ width: `${20 + ((i * 9) % 35)}%` }}
+                              />
                             </div>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-1 text-right">
+                        <TableCell className="px-3 py-1.5 text-right w-32 shrink-0">
                           <div className="flex justify-end">
                             <Skeleton className="h-3.5 w-12 rounded" />
                           </div>
@@ -593,24 +606,45 @@ export default function DiskUsage() {
                     data.files.map((file) => (
                       <TableRow
                         key={file.path}
-                        className="h-8 border-b border-border/30 hover:bg-muted/25 transition-colors group"
+                        className="min-h-10 border-b border-border/30 hover:bg-muted/25 transition-colors group"
                       >
-                        <TableCell className="px-3 py-1">
-                          <div className="flex items-center gap-1.5 min-w-0" title={file.path}>
-                            <FileIcon className="size-3 text-muted-foreground/60 shrink-0" />
-                            <div className="flex flex-col min-w-0">
-                              <span className="font-mono text-xs font-medium text-foreground truncate">
-                                {file.name}
-                              </span>
+                        <TableCell className="px-3 py-1.5 min-w-0 max-w-0 overflow-hidden">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <FileIcon className="size-3.5 text-muted-foreground/60 shrink-0 self-center" />
+                            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                              <TooltipProvider delayDuration={200}>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <span className="font-mono text-xs font-medium text-foreground truncate block select-all">
+                                      {file.name}
+                                    </span>
+                                  </TooltipTrigger>
+                                  <TooltipContent side="top" className="max-w-lg break-all font-mono text-xs">
+                                    <div className="space-y-1">
+                                      <div className="font-semibold text-foreground">{file.name}</div>
+                                      <div className="text-[11px] text-muted-foreground">{file.path}</div>
+                                    </div>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
                               {file.relative_dir && (
-                                <span className="font-mono text-[10px] text-muted-foreground/60 truncate">
-                                  {file.relative_dir}/
-                                </span>
+                                <TooltipProvider delayDuration={200}>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className="font-mono text-[10px] text-muted-foreground/70 truncate block">
+                                        {file.relative_dir}/
+                                      </span>
+                                    </TooltipTrigger>
+                                    <TooltipContent side="bottom" className="max-w-md break-all font-mono text-xs">
+                                      {file.relative_dir}/
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               )}
                             </div>
                             <button
                               type="button"
-                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground/50 hover:text-foreground cursor-pointer ml-auto shrink-0"
+                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground/50 hover:text-foreground cursor-pointer ml-auto shrink-0 self-center"
                               onClick={() => handleCopy(file.path)}
                               aria-label="Copy"
                             >
@@ -622,7 +656,7 @@ export default function DiskUsage() {
                             </button>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-1 text-right">
+                        <TableCell className="px-3 py-1.5 text-right w-32 shrink-0">
                           <SizeCell size={file.size} percentage={file.percentage} />
                         </TableCell>
                       </TableRow>

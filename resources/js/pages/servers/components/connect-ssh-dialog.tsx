@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Server } from '@/types/server';
 import { Link } from '@inertiajs/react';
-import { CopyIcon, KeyRoundIcon, ShieldCheckIcon, TerminalIcon } from 'lucide-react';
+import { CopyIcon, ExternalLinkIcon, KeyRoundIcon, ShieldCheckIcon, TerminalIcon } from 'lucide-react';
 import { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -22,6 +22,9 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
   const portFlag = server.port && server.port !== 22 ? ` -p ${server.port}` : '';
   const defaultCommand = `ssh ${selectedUser}@${server.ip}${portFlag}`;
   const customCommand = `ssh -i ${customKeyPath || '~/.ssh/id_ed25519'} ${selectedUser}@${server.ip}${portFlag}`;
+
+  const sshPort = server.port && server.port !== 22 ? `:${server.port}` : '';
+  const sshUrl = `ssh://${selectedUser}@${server.ip}${sshPort}`;
 
   const hostSlug = (server.name || 'vito-server')
     .toLowerCase()
@@ -82,9 +85,34 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
             </Badge>
           </div>
 
-          <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Quick connect</Label>
-            <CopyableField value={defaultCommand} className="h-9" />
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-muted-foreground text-xs">Quick connect</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 text-xs gap-1.5 px-2 cursor-pointer text-primary hover:text-primary"
+                asChild
+              >
+                <a href={sshUrl}>
+                  <TerminalIcon className="size-3.5" />
+                  <span>Open in Terminal</span>
+                  <ExternalLinkIcon className="size-3 opacity-60" />
+                </a>
+              </Button>
+            </div>
+            <div className="flex items-center gap-2">
+              <CopyableField value={defaultCommand} className="h-9 flex-1" />
+              <Button size="sm" className="h-9 gap-1.5 shrink-0 cursor-pointer" asChild>
+                <a href={sshUrl}>
+                  <TerminalIcon className="size-3.5" />
+                  <span>Launch Terminal</span>
+                </a>
+              </Button>
+            </div>
+            <p className="text-muted-foreground text-[11px]">
+              Single-click SSH for macOS (Terminal/iTerm) and Ubuntu/Linux.
+            </p>
           </div>
 
           <Tabs defaultValue="keys" className="w-full">
@@ -100,6 +128,7 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
                   const keyUser = key.user || selectedUser;
                   const keyCleanName = key.name.trim().replace(/\s+/g, '_');
                   const keyCommand = `ssh -i ~/.ssh/${keyCleanName} ${keyUser}@${server.ip}${portFlag}`;
+                  const keySshUrl = `ssh://${keyUser}@${server.ip}${sshPort}`;
 
                   return (
                     <div key={key.id} className="space-y-2 rounded-lg border p-3">
@@ -110,7 +139,15 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
                           user: {keyUser}
                         </Badge>
                       </div>
-                      <CopyableField value={keyCommand} />
+                      <div className="flex items-center gap-2">
+                        <CopyableField value={keyCommand} className="flex-1" />
+                        <Button size="sm" variant="outline" className="h-9 gap-1.5 shrink-0 cursor-pointer" asChild>
+                          <a href={keySshUrl} title="Open in Terminal">
+                            <TerminalIcon className="size-3.5" />
+                            <span>Terminal</span>
+                          </a>
+                        </Button>
+                      </div>
                     </div>
                   );
                 })

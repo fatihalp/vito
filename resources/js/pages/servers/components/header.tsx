@@ -1,5 +1,5 @@
 import { Server } from '@/types/server';
-import { CheckIcon, CloudIcon, KeyRoundIcon, LoaderCircleIcon, SlashIcon } from 'lucide-react';
+import { CheckIcon, CloudIcon, KeyRoundIcon, LoaderCircleIcon, SlashIcon, TerminalIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { StatusRipple } from '@/components/status-ripple';
@@ -99,6 +99,25 @@ export default function ServerHeader({ server: initialServer }: { server: Server
       </div>
 
       <div className="flex items-center gap-1.5">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground cursor-pointer"
+              asChild
+            >
+              <a
+                href={`ssh://${server.ssh_user || 'root'}@${server.ip}${server.port && server.port !== 22 ? `:${server.port}` : ''}`}
+              >
+                <TerminalIcon className="size-3" />
+                <span>SSH</span>
+              </a>
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">Open default terminal</TooltipContent>
+        </Tooltip>
+
         <ConnectSshDialog server={server}>
           <Button variant="ghost" size="sm" className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground">
             <KeyRoundIcon className="size-3" />

@@ -32,9 +32,11 @@ class GetDiskUsage
             $folderLimit = $limit + 1;
 
             $command = sprintf(
-                'echo "===FOLDERS===" && sudo du -xhd 1 --exclude=/proc --exclude=/sys --exclude=/dev --exclude=/run %s 2>/dev/null | sort -rh | head -n %d && echo "===FILES===" && sudo find %s -maxdepth 1 -xdev -type f -exec du -h {} + 2>/dev/null | sort -rh | head -n %d',
+                'echo "===FOLDERS===" && sudo du -xhd 1 --exclude=/proc --exclude=/sys --exclude=/dev --exclude=/run %s 2>/dev/null | sort -rh | head -n %d && echo "===FILES===" && files=$(sudo find %s -xdev -type f -size +10M -exec du -h {} + 2>/dev/null | sort -rh | head -n %d); if [ -z "$files" ]; then files=$(sudo find %s -xdev -type f -exec du -h {} + 2>/dev/null | sort -rh | head -n %d); fi; echo "$files"',
                 $escapedPath,
                 $folderLimit,
+                $escapedPath,
+                $limit,
                 $escapedPath,
                 $limit
             );
