@@ -71,7 +71,8 @@ function StatusDetail({ icon: Icon, label, enabled }: { icon: LucideIcon; label:
   );
 }
 
-function formatSiteType(type: string): string {
+function formatSiteType(type?: string): string {
+  if (!type) return '';
   return type
     .split('-')
     .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
@@ -239,7 +240,7 @@ export default function AppWithDeployment() {
                   </CardHeader>
                   <CardContent className="divide-y p-0">
                     {page.props.overviewWorkers && page.props.overviewWorkers.length > 0 ? (
-                      page.props.overviewWorkers.map((worker) => (
+                      page.props.overviewWorkers?.map((worker) => (
                         <div key={worker.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                           <div className="min-w-0">
                             <p className="truncate font-medium">{worker.name || worker.command}</p>
@@ -274,7 +275,7 @@ export default function AppWithDeployment() {
                   </CardHeader>
                   <CardContent className="divide-y p-0">
                     {page.props.overviewCronJobs && page.props.overviewCronJobs.length > 0 ? (
-                      page.props.overviewCronJobs.map((cronJob) => (
+                      page.props.overviewCronJobs?.map((cronJob) => (
                         <div key={cronJob.id} className="flex items-center justify-between gap-3 px-4 py-3 text-sm">
                           <div className="min-w-0">
                             <p className="truncate font-medium">{cronJob.name || cronJob.command}</p>

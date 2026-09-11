@@ -61,10 +61,12 @@ class ApplicationController extends Controller
 
         return Inertia::render('application/index', [
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
-            'deploymentScript' => Inertia::defer(fn () => new DeploymentScriptResource($site->deploymentScript), 'deployments'),
+            'deploymentScript' => Inertia::defer(fn () => $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null, 'deployments'),
             'buildScript' => Inertia::defer(fn () => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null, 'deployments'),
             'preFlightScript' => Inertia::defer(fn () => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null, 'deployments'),
-            'loadBalancerServers' => Inertia::defer(fn () => LoadBalancerServerResource::collection($site->loadBalancerServers), 'deployments'),
+            'loadBalancerServers' => $site->type === 'load-balancer'
+                ? LoadBalancerServerResource::collection($site->loadBalancerServers)
+                : [],
             'worker' => Inertia::defer(function () use ($site) {
                 $type = $site->typeOrNull();
                 return $type instanceof AbstractProxiedSiteType && $type->bootstrapWorker()

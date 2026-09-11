@@ -8,7 +8,7 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { BookOpenIcon, LoaderCircleIcon, XIcon } from 'lucide-react';
 import SiteBanners from '@/components/site-banners';
-import React, { FormEvent } from 'react';
+import React, { FormEvent, useEffect } from 'react';
 import { LoadBalancerServer } from '@/types/load-balancer-server';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -24,7 +24,7 @@ export default function LoadBalancer() {
   const page = usePage<{
     server: Server;
     site: Site;
-    loadBalancerServers: LoadBalancerServer[];
+    loadBalancerServers?: LoadBalancerServer[];
   }>();
 
   const form = useForm<{
@@ -38,8 +38,14 @@ export default function LoadBalancer() {
     }[];
   }>({
     method: 'round-robin',
-    servers: page.props.loadBalancerServers,
+    servers: page.props.loadBalancerServers ?? [],
   });
+
+  useEffect(() => {
+    if (page.props.loadBalancerServers) {
+      form.setData('servers', page.props.loadBalancerServers);
+    }
+  }, [page.props.loadBalancerServers]);
 
   const addServer = () => {
     const newServer: LoadBalancerServer = {
@@ -52,7 +58,7 @@ export default function LoadBalancer() {
       updated_at: '',
     };
 
-    form.setData('servers', [...form.data.servers, newServer]);
+    form.setData('servers', [...(form.data.servers ?? []), newServer]);
   };
 
   const submit = (e: FormEvent) => {
@@ -107,12 +113,12 @@ export default function LoadBalancer() {
                   <InputError message={form.errors.method} />
                 </FormField>
 
-                {form.data.servers.map((item, index) => (
+                {(form.data.servers ?? []).map((item, index) => (
                   <div key={`server-${index}`} className="relative rounded-md border border-dashed p-4">
                     <XIcon
                       className="text-muted-foreground hover:text-foreground absolute top-2 right-2 cursor-pointer"
                       onClick={() => {
-                        const updatedServers = [...form.data.servers];
+                        const updatedServers = [...(form.data.servers ?? [])];
                         updatedServers.splice(index, 1);
                         form.setData('servers', updatedServers);
                       }}
@@ -125,7 +131,7 @@ export default function LoadBalancer() {
                           value={item.ip}
                           valueBy="local_ip"
                           onValueChange={(server) => {
-                            const updatedServers = [...form.data.servers];
+                            const updatedServers = [...(form.data.servers ?? [])];
                             updatedServers[index] = {
                               ...updatedServers[index],
                               ip: server ? server.local_ip || '' : '',
