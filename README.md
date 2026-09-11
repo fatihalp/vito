@@ -95,7 +95,6 @@ Both scripts are fully editable per site from the Application page.
 - Vite
 - Prettier
 - Spatie
-- Opcodesio log viewer
 - Tightenco
 - InertiaTables (Forjedio)
 

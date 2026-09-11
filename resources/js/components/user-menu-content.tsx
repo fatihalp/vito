@@ -3,7 +3,7 @@ import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types/user';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, LogsIcon, Settings, ShieldCheckIcon } from 'lucide-react';
+import { LogOut, Settings, ShieldCheckIcon } from 'lucide-react';
 import AppearanceToggleTab from '@/components/appearance-tabs';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
 import { clearQueryClient } from '@/lib/query-client';
@@ -50,12 +50,6 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
                 <ShieldCheckIcon className="mr-2" />
                 Vito Settings
               </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <a className="flex items-center w-full" href={route('log-viewer.index')} target="_blank" rel="noopener noreferrer" onClick={cleanup}>
-                <LogsIcon className="mr-2 size-4" />
-                Logs
-              </a>
             </DropdownMenuItem>
           </>
         )}

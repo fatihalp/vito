@@ -9,7 +9,6 @@ import {
   GithubIcon,
   GlobeIcon,
   KeyIcon,
-  LogsIcon,
   NetworkIcon,
   PlugIcon,
   SearchIcon,
@@ -106,13 +105,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'Env Anahtarı Ara',
       href: route('env-search'),
       icon: SearchIcon,
-      hidden: !isAdmin,
-    },
-    {
-      title: 'Logs',
-      href: route('log-viewer.index'),
-      icon: LogsIcon,
-      external: true,
       hidden: !isAdmin,
     },
   ];
