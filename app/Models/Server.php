@@ -553,6 +553,10 @@ class Server extends AbstractModel
     
     public function getWarnings(): array
     {
+        if ($this->status === ServerStatus::DISCONNECTED) {
+            return [];
+        }
+
         $warnings = [];
 
         if ($this->updates > 0) {

@@ -2,6 +2,7 @@
 
 namespace App\Tables;
 
+use App\Enums\ServerStatus;
 use App\Models\Metric;
 use App\Models\Server;
 use Forjed\InertiaTable\Column;
@@ -87,6 +88,11 @@ class ServerTable extends Table
             Column::data('role_value', fn (Server $server) => $server->role->value),
             Column::data('project_id', fn (Server $server) => $server->project_id),
             Column::data('project_name', fn (Server $server) => $server->project?->name),
+            Column::data('status', fn (Server $server) => $server->status->value),
+            Column::data('status_color', fn (Server $server) => $server->status->getColor()),
+            Column::data('status_text', fn (Server $server) => $server->status->getText()),
+            Column::data('is_disconnected', fn (Server $server) => $server->status === ServerStatus::DISCONNECTED),
+            Column::data('is_ready', fn (Server $server) => $server->isReady()),
         ];
     }
 
@@ -100,6 +106,7 @@ class ServerTable extends Table
         return Metric::query()
             ->selectRaw($selectExpression)
             ->whereColumn('metrics.server_id', 'servers.id')
+            ->whereIn('servers.status', [ServerStatus::READY->value, ServerStatus::UPDATING->value])
             ->latest('metrics.created_at')
             ->limit(1);
     }

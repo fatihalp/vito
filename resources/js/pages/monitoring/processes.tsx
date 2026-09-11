@@ -3,7 +3,6 @@ import { Head, usePage } from '@inertiajs/react';
 import { AlertCircleIcon, RefreshCwIcon, SearchIcon, SkullIcon } from 'lucide-react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
-import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
@@ -13,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useDialog } from '@/hooks/use-dialog';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 type Process = {
   pid: number;
@@ -147,21 +146,32 @@ export default function Processes() {
       <Head title={`Processes - ${server.name}`} />
 
       <Container className="max-w-6xl">
-        <HeaderContainer>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Heading title="Process Manager" description="Running processes on this server, sorted by CPU usage" />
-          <div className="flex flex-wrap items-center gap-2">
+
+          <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
             <div className="relative">
               <SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
               <Input
                 placeholder="Filter command or PID..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="h-8 w-44 pl-8 text-xs"
+                className="h-8 w-36 sm:w-44 pl-8 pr-6 text-xs bg-muted/30 border-muted-foreground/20 focus:bg-background transition-colors"
               />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => setSearch('')}
+                  className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs leading-none"
+                  aria-label="Clear filter"
+                >
+                  ✕
+                </button>
+              )}
             </div>
 
             <Select value={selectedUser} onValueChange={setSelectedUser}>
-              <SelectTrigger className="h-8 w-32 text-xs">
+              <SelectTrigger className="h-8 w-28 text-xs bg-muted/30 border-muted-foreground/20 hover:bg-muted/50">
                 <SelectValue placeholder="All users" />
               </SelectTrigger>
               <SelectContent>
@@ -175,14 +185,19 @@ export default function Processes() {
             </Select>
 
             {selectedUser !== 'all' && (
-              <Button variant="destructive" size="sm" className="h-8 text-xs" onClick={killUserProcesses}>
+              <Button variant="destructive" size="sm" className="h-8 px-2 text-xs gap-1" onClick={killUserProcesses}>
                 <SkullIcon className="size-3.5" />
-                Kill {selectedUser}'s
+                <span className="hidden sm:inline">Kill {selectedUser}'s</span>
+                <span className="sm:hidden">Kill</span>
               </Button>
             )}
 
             <Select value={interval} onValueChange={setIntervalValue}>
-              <SelectTrigger className="h-8 w-28 text-xs">
+              <SelectTrigger
+                className="h-8 w-[95px] text-xs bg-muted/30 border-muted-foreground/20 hover:bg-muted/50 gap-1 px-2"
+                aria-label="Auto refresh"
+              >
+                {interval !== '0' && <span className="size-1.5 rounded-full bg-emerald-500 shrink-0 animate-pulse" />}
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -194,12 +209,25 @@ export default function Processes() {
               </SelectContent>
             </Select>
 
-            <Button variant="outline" size="sm" className="h-8 px-2.5 text-xs" onClick={fetchProcesses} disabled={loading}>
-              <RefreshCwIcon className={cn('size-3.5', loading && 'animate-spin')} />
-              Refresh
-            </Button>
+            <TooltipProvider delayDuration={0}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="size-8 shrink-0 bg-muted/30 border-muted-foreground/20 text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
+                    onClick={fetchProcesses}
+                    disabled={loading}
+                    aria-label="Refresh processes"
+                  >
+                    <RefreshCwIcon className={cn('size-3.5', loading && 'animate-spin')} />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Refresh processes</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
-        </HeaderContainer>
+        </div>
 
         {data.error && (
           <div className="mb-4 flex items-center justify-between rounded-lg border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
@@ -217,10 +245,10 @@ export default function Processes() {
           </div>
         )}
 
-        <div className="overflow-hidden rounded-md border shadow-2xs">
+        <div className="overflow-hidden rounded-lg border border-border/60 bg-card">
           <Table>
-            <TableHeader>
-              <TableRow className="h-8 hover:bg-transparent">
+            <TableHeader className="bg-muted/20">
+              <TableRow className="h-8 hover:bg-transparent border-b border-border/60">
                 <TableHead className="h-8 w-8 px-2 text-center text-xs">#</TableHead>
                 <TableHead className="h-8 w-16 px-2 text-xs">PID</TableHead>
                 <TableHead className="h-8 w-24 px-2 text-xs">User</TableHead>
@@ -233,13 +261,13 @@ export default function Processes() {
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="h-20 text-center text-xs text-muted-foreground">
+                  <TableCell colSpan={7} className="h-24 text-center text-xs text-muted-foreground">
                     {search ? 'No processes match your filter.' : 'No processes found.'}
                   </TableCell>
                 </TableRow>
               ) : (
                 filtered.map((p) => (
-                  <TableRow key={p.pid} className="h-8 group hover:bg-muted/40 transition-colors">
+                  <TableRow key={p.pid} className="h-8 group hover:bg-muted/25 transition-colors border-b border-border/40">
                     <TableCell className="px-2 py-1 text-center">
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -247,7 +275,7 @@ export default function Processes() {
                             variant="ghost"
                             size="icon"
                             onClick={() => killProcess(p.pid)}
-                            className="size-6 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 opacity-60 group-hover:opacity-100 transition-opacity"
+                            className="size-6 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 opacity-40 group-hover:opacity-100 transition-opacity"
                             aria-label={`Kill PID ${p.pid}`}
                           >
                             <SkullIcon className="size-3" />
@@ -273,7 +301,7 @@ export default function Processes() {
                     <TableCell className="px-2 py-1 text-right">
                       <MetricValue value={p.memory} />
                     </TableCell>
-                    <TableCell className="px-2 py-1 font-mono text-xs text-foreground/85 max-w-lg truncate" title={p.command}>
+                    <TableCell className="px-2 py-1 font-mono text-xs text-foreground/80 max-w-lg truncate" title={p.command}>
                       {p.command}
                     </TableCell>
                   </TableRow>

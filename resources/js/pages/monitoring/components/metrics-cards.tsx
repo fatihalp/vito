@@ -56,7 +56,7 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
               dataKey="disk_used_percent"
               color="var(--color-chart-3)"
               chartData={history}
-              link={route('monitoring.show', { server: server.id, metric: 'disk' })}
+              link={route('monitoring.disk-usage', { server: server.id })}
               formatter={(value) => `${Number(value).toFixed(2)}%`}
               valueFormatter={(value) => `${Number(value).toFixed(2)}%`}
               single={metric !== undefined}

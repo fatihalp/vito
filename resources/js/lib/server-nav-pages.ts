@@ -8,6 +8,7 @@ import {
   CpuIcon,
   DatabaseIcon,
   FlameIcon,
+  HardDriveIcon,
   InfoIcon,
   KeyIcon,
   ListEndIcon,
@@ -46,6 +47,7 @@ export const SERVER_NAV_PAGES: ServerNavPage[] = [
   { key: 'Processes', label: 'Processes', routeName: 'monitoring.processes', icon: CpuIcon },
   { key: 'Server Information', label: 'Server Information', routeName: 'monitoring.information', icon: InfoIcon },
   { key: 'Log Rotation', label: 'Log Rotation', routeName: 'monitoring.log-rotation', icon: RotateCcwIcon },
+  { key: 'Disk Usage', label: 'Disk Usage', routeName: 'monitoring.disk-usage', icon: HardDriveIcon },
   { key: 'Settings', label: 'Settings', routeName: 'server-settings', icon: Settings2Icon },
 ];
 

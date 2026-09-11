@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Monitoring\GetMetrics;
 use App\Actions\Monitoring\GetServerInformation;
 use App\Actions\Monitoring\GetServerProcesses;
+use App\Actions\Monitoring\GetDiskUsage;
 use App\Actions\Monitoring\GetLogRotationData;
 use App\Actions\Monitoring\KillProcess;
 use App\Actions\Monitoring\KillUserProcesses;
@@ -221,5 +222,33 @@ class MonitoringController extends Controller
         }
 
         return back()->with('success', 'All clearable log files cleared successfully.');
+    }
+
+    #[Get('/disk-usage', name: 'monitoring.disk-usage')]
+    public function diskUsage(Request $request, Server $server): Response
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $path = (string) $request->input('path', '/');
+        $limit = (int) $request->input('limit', 10);
+
+        $diskUsage = app(GetDiskUsage::class)->handle($server, $path, $limit);
+
+        return Inertia::render('monitoring/disk-usage', [
+            'diskUsage' => $diskUsage,
+        ]);
+    }
+
+    #[Get('/disk-usage/json', name: 'monitoring.disk-usage.json')]
+    public function diskUsageJson(Request $request, Server $server): JsonResponse
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        $path = (string) $request->input('path', '/');
+        $limit = (int) $request->input('limit', 10);
+
+        $data = app(GetDiskUsage::class)->handle($server, $path, $limit);
+
+        return response()->json($data);
     }
 }

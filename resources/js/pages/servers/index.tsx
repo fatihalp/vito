@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 
 import { type Configs, type SharedData } from '@/types';
 
@@ -10,7 +10,7 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/layouts/app/layout';
-import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon } from 'lucide-react';
+import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon, WifiOffIcon, LoaderCircleIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect } from 'react';
@@ -24,8 +24,67 @@ type Page = {
   groupBy?: 'none' | 'project';
 };
 
+const nameCell = ({ row, value }: CellRenderProps) => {
+  const status = String(row.status || '');
+  const isUnreachable = status === 'disconnected' || row.is_disconnected === true;
+  const isInstalling = status === 'installing';
+  const isFailed = status === 'installation_failed';
+  const id = row.id as number;
+  const name = String(value || row.name || '');
+
+  return (
+    <div className="flex items-center gap-2">
+      <Link href={route('servers.show', { server: id })} className="font-medium hover:underline">
+        {name}
+      </Link>
+      {isUnreachable && (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
+                <WifiOffIcon className="size-3 shrink-0" />
+                Unreachable
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Server connection lost / unreachable</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )}
+      {isInstalling && (
+        <span className="inline-flex items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
+          <LoaderCircleIcon className="size-3 animate-spin shrink-0" />
+          Installing
+        </span>
+      )}
+      {isFailed && (
+        <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
+          Failed
+        </span>
+      )}
+    </div>
+  );
+};
+
 const metricCell = (threshold: number) =>
-  function MetricCell({ value }: CellRenderProps) {
+  function MetricCell({ value, row }: CellRenderProps) {
+    const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
+
+    if (isUnreachable) {
+      return (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-muted-foreground inline-flex cursor-default items-center gap-1 text-xs">
+                <WifiOffIcon className="size-3.5 text-muted-foreground/70 shrink-0" />
+                <span>—</span>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Server unreachable</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      );
+    }
+
     const numeric = typeof value === 'number' ? value : null;
 
     if (numeric === null) {
@@ -103,6 +162,12 @@ const stageCell = ({ value }: CellRenderProps) => {
 };
 
 const warningsCell = ({ row, value }: CellRenderProps) => {
+  const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
+
+  if (isUnreachable) {
+    return <span className="text-muted-foreground text-xs">—</span>;
+  }
+
   const warnings = ((value as Array<{ key: string; count?: number }>) ?? (row.warnings as Array<{ key: string; count?: number }>)) || [];
   const count = warnings.length;
 
@@ -225,6 +290,7 @@ export default function Servers() {
             </div>
           }
           cellRenderers={{
+            name: nameCell,
             cpu_usage_percent: cpuCell,
             memory_used_percent: ramCell,
             disk_used_percent: diskCell,
