@@ -50,6 +50,10 @@ const deployedAtCell = ({ row, value }: CellRenderProps) => {
 export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
   const dialog = useDialog();
 
+  if (!deployments || !deployments.columns) {
+    return null;
+  }
+
   return (
     <VitoTable
       tableData={deployments}

@@ -94,11 +94,12 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
 
 export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, groupBy, ...props }: VitoTableProps) {
   const orderedTableData = useMemo(() => {
-    let cols = orderTableColumns(tableData.columns, (column) => column.name);
+    const rawCols = tableData?.columns ?? [];
+    let cols = orderTableColumns(rawCols, (column) => column.name);
     if (groupBy === 'project') {
       cols = cols.filter((c) => c.name !== 'server.project.name' && c.name !== 'project.name');
     }
-    return { ...tableData, columns: cols };
+    return { ...tableData, columns: cols, data: tableData?.data ?? [] };
   }, [tableData, groupBy]);
   const { columns, searchTerm, onSearch, onSort, getSortState, onPageChange, isProcessing } = useTable({
     tableData: orderedTableData,
@@ -185,7 +186,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
         <Table>
           <TableHeader>
             <TableRow>
-              {orderedTableData.columns
+              {(orderedTableData.columns ?? [])
                 .filter((c) => !c.hidden)
                 .map((colDef) => {
                   const sortState = getSortState(colDef.sort_key);
@@ -214,8 +215,8 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
             </TableRow>
           </TableHeader>
           <TableBody>
-            {orderedTableData.data.length > 0 ? (
-              orderedTableData.data.map((row, rowIndex) => {
+            {(orderedTableData.data ?? []).length > 0 ? (
+              (orderedTableData.data ?? []).map((row, rowIndex) => {
                 let groupHeader: ReactNode = null;
                 if (groupBy && groupBy !== 'none') {
                   const currentKey =
@@ -282,7 +283,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                       }}
                       className={cn(props.onRowClick && 'hover:bg-muted/50 cursor-pointer', props.rowClassName?.(row, rowIndex))}
                     >
-                      {columns.map((col) => (
+                      {(columns ?? []).map((col) => (
                         <TableCell key={col.id}>{col.renderCell(row, rowIndex)}</TableCell>
                       ))}
                     </TableRow>
@@ -349,7 +350,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                 </Button>
 
                 <div className="flex items-center space-x-1">
-                  {pageNumbers.map((p, idx) => {
+                  {(pageNumbers ?? []).map((p, idx) => {
                     if (p === 'ellipsis') {
                       return (
                         <span
