@@ -152,7 +152,7 @@ export function AppSidebar({
           secondNavOpen ? 'w-[calc(var(--sidebar-width-icon)_+_1px)]!' : 'w-full!',
         )}
       >
-        <SidebarHeader className="min-h-10 justify-center border-b px-2.5">
+        <SidebarHeader className="min-h-10 justify-center border-b px-2.5 group-data-[state=collapsed]:px-1.5">
           <div className="flex items-center justify-between gap-2 group-data-[state=collapsed]:justify-center">
             <Link
               href={route('overview')}
@@ -184,24 +184,28 @@ export function AppSidebar({
         <SidebarContent>
           <SidebarGroup>
             <SidebarGroupContent className="md:px-0">
-              <SidebarMenu>
+              <SidebarMenu className="group-data-[state=collapsed]:items-center">
                 {mainNavItems.map((item) => (
-                  <SidebarMenuItem key={`${item.title}-${item.href}`}>
+                  <SidebarMenuItem
+                    key={`${item.title}-${item.href}`}
+                    className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center"
+                  >
                     <SidebarMenuButton
                       asChild
                       isActive={item.onlyActivePath ? currentPath() === item.onlyActivePath : window.location.href.startsWith(item.href)}
                       tooltip={item.title}
                       hidden={item.hidden}
+                      className="group-data-[state=collapsed]:size-8! group-data-[state=collapsed]:p-2! group-data-[state=collapsed]:justify-center"
                     >
                       {item.external ? (
                         <a href={item.href} target="_blank">
                           {item.icon && <item.icon />}
-                          <span>{item.title}</span>
+                          <span className="group-data-[state=collapsed]:hidden">{item.title}</span>
                         </a>
                       ) : (
                         <Link href={item.href}>
                           {item.icon && <item.icon />}
-                          <span>{item.title}</span>
+                          <span className="group-data-[state=collapsed]:hidden">{item.title}</span>
                         </Link>
                       )}
                     </SidebarMenuButton>

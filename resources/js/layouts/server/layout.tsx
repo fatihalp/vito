@@ -277,6 +277,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       secondNavGroups={viewingSite ? [] : [{ title: '', items: sidebarNavItems }]}
       secondNavTitle={viewingSite ? undefined : server.name}
       secondNavSubtitle={viewingSite ? undefined : 'Server'}
+      defaultPrimaryNavOpen={false}
     >
       {!viewingSite && <ServerHeader server={server} />}
 

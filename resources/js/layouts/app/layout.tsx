@@ -21,13 +21,15 @@ export default function Layout({
   secondNavGroups,
   secondNavTitle,
   secondNavSubtitle,
+  defaultPrimaryNavOpen,
 }: PropsWithChildren<{
   secondNavItems?: NavItem[];
   secondNavGroups?: NavGroup[];
   secondNavTitle?: string;
   secondNavSubtitle?: string;
+  defaultPrimaryNavOpen?: boolean;
 }>) {
-  const page = usePage<SharedData>();
+  const page = usePage<SharedData & { server?: { id: number }; site?: { id: number } }>();
   const queryClient = getQueryClient(page.props.auth.user.id);
   const { status: socketStatus, reconnect: socketReconnect } = useSocketEvents();
   const syncBootstrap = useBootstrapStore((s) => s.syncWithServerVersion);
@@ -36,16 +38,17 @@ export default function Layout({
   const bootstrapStatus = useBootstrapStore((s) => s.status);
   const serverBootstrapVersion = page.props.bootstrap_version;
   const hasSecondNav = secondNavGroups?.some((group) => group.items.length > 0) ?? !!secondNavItems?.length;
-  const [primaryNavOpen, setPrimaryNavOpen] = useState(() => (page.props.site ? false : getStoredSidebarOpen(hasSecondNav)));
+  const isServerLevel = defaultPrimaryNavOpen !== undefined ? !defaultPrimaryNavOpen : (!!page.props.site || !!page.props.server || secondNavSubtitle === 'Server');
+  const [primaryNavOpen, setPrimaryNavOpen] = useState(() => (isServerLevel ? false : getStoredSidebarOpen(hasSecondNav)));
   const [secondNavOpen, setSecondNavOpen] = useState(hasSecondNav);
 
   useEffect(() => {
-    if (page.props.site) {
+    if (isServerLevel) {
       setPrimaryNavOpen(false);
     } else {
       setPrimaryNavOpen(getStoredSidebarOpen(hasSecondNav));
     }
-  }, [hasSecondNav, page.props.site?.id]);
+  }, [hasSecondNav, page.props.site?.id, page.props.server?.id, isServerLevel]);
 
   useEffect(() => {
     setSecondNavOpen(hasSecondNav);

@@ -13,15 +13,15 @@ export function NavUser() {
 
   return (
     <SidebarMenu>
-      <SidebarMenuItem>
+      <SidebarMenuItem className="group-data-[state=collapsed]:flex group-data-[state=collapsed]:justify-center">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground md:h-8 md:p-0"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground md:h-8 md:p-0 group-data-[state=collapsed]:size-8! group-data-[state=collapsed]:justify-center group-data-[state=collapsed]:p-0!"
             >
-              <UserInfo user={auth.user} />
-              <ChevronsUpDown className="ml-auto size-4" />
+              <UserInfo user={auth.user} hideTextOnCollapse />
+              <ChevronsUpDown className="ml-auto size-4 group-data-[state=collapsed]:hidden" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
