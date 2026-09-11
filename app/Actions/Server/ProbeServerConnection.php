@@ -40,7 +40,7 @@ class ProbeServerConnection
             $server->save();
 
             try {
-                $server->latestMetric()?->update(['reboot_required' => false]);
+                $server->latestMetric()->update(['reboot_required' => false]);
             } catch (Throwable) {
             }
 

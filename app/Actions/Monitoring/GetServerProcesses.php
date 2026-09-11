@@ -36,7 +36,7 @@ class GetServerProcesses
             return ['processes' => [], 'users' => []];
         }
 
-        $header = strtolower(trim($lines[0] ?? ''));
+        $header = strtolower(trim($lines[0]));
         $isPsAux = str_starts_with($header, 'user') || str_contains($header, 'vsz');
 
         array_shift($lines);
