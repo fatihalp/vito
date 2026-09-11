@@ -13,7 +13,7 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
 
   const recentSiteIds = useMemo(() => {
     if (!userId || !server?.id) return [];
-    return siteHelper.getRecentSites(userId, server.id, 10).map((s) => s.id);
+    return (siteHelper.getRecentSites(userId, server.id, 10) ?? []).map((s) => s.id);
   }, [userId, server?.id]);
 
   const resources = useOverviewResources(
@@ -27,10 +27,10 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
   const sites = resources.data?.sites ?? [];
 
   const displaySites = useMemo(() => {
-    const matchedRecent = recentSiteIds
-      .map((id) => sites.find((s) => s.id === id && s.server_id === server.id))
+    const matchedRecent = (recentSiteIds ?? [])
+      .map((id) => (sites ?? []).find((s) => s.id === id && s.server_id === server.id))
       .filter((s): s is OverviewSite => s !== undefined);
-    const otherServerSites = sites.filter((s) => s.server_id === server.id && !recentSiteIds.includes(s.id));
+    const otherServerSites = (sites ?? []).filter((s) => s.server_id === server.id && !recentSiteIds.includes(s.id));
     return [...matchedRecent, ...otherServerSites].slice(0, 10);
   }, [recentSiteIds, sites, server.id]);
 
@@ -55,7 +55,7 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
         </div>
       ) : displaySites.length > 0 ? (
         <div className="space-y-0.5 max-h-[300px] overflow-y-auto">
-          {displaySites.map((site) => (
+          {(displaySites ?? []).map((site) => (
             <Link
               key={site.id}
               href={route('application', { server: server.id, site: site.id })}

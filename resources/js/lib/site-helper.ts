@@ -28,10 +28,10 @@ function readRecentSites(key: string): RecentSite[] {
 
   try {
     const stored = localStorage.getItem(key);
+    const parsed = stored ? JSON.parse(stored) : [];
+    const recentSites: RecentSite[] = Array.isArray(parsed) ? (parsed as RecentSite[]) : [];
 
-    const recentSites = stored ? (JSON.parse(stored) as RecentSite[]) : [];
-
-    return recentSites.filter((site) => site.last_used_at >= Date.now() - recentHistoryTtl);
+    return recentSites.filter((site) => site && typeof site.last_used_at === 'number' && site.last_used_at >= Date.now() - recentHistoryTtl);
   } catch {
     return [];
   }
@@ -109,9 +109,10 @@ const siteHelper = {
         if (key?.startsWith(`recent-project-sites:${userId}:`)) {
           const stored = localStorage.getItem(key);
           if (stored) {
-            const list = JSON.parse(stored) as RecentSite[];
+            const parsed = JSON.parse(stored);
+            const list = Array.isArray(parsed) ? (parsed as RecentSite[]) : [];
             for (const item of list) {
-              if (item.last_used_at >= Date.now() - recentHistoryTtl && !seen.has(item.id)) {
+              if (item && typeof item.last_used_at === 'number' && item.last_used_at >= Date.now() - recentHistoryTtl && !seen.has(item.id)) {
                 seen.add(item.id);
                 all.push(item);
               }
@@ -164,7 +165,8 @@ const siteHelper = {
 
     try {
       const stored = localStorage.getItem(sitePageVisitsKey(userId, siteId));
-      const visits = stored ? (JSON.parse(stored) as SitePageVisit[]) : [];
+      const parsed = stored ? JSON.parse(stored) : [];
+      const visits: SitePageVisit[] = Array.isArray(parsed) ? (parsed as SitePageVisit[]) : [];
 
       return visits.slice(0, limit).map((visit) => visit.key);
     } catch {

@@ -28,10 +28,10 @@ function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
 
   return [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts.resources },
-    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts.domains },
-    { title: 'Commands', href: route('commands', routeParams), count: site.counts.commands },
-    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts.workers },
+    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts?.resources ?? 0 },
+    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts?.domains ?? 0 },
+    { title: 'Commands', href: route('commands', routeParams), count: site.counts?.commands ?? 0 },
+    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts?.workers ?? 0 },
     { title: 'Settings', href: route('site-settings', routeParams) },
   ];
 }

@@ -31,7 +31,7 @@ export default function RecentSitesNavFlyout() {
         </div>
       ) : sites.length > 0 ? (
         <div className="space-y-0.5 max-h-[300px] overflow-y-auto">
-          {sites.slice(0, 10).map((site) => (
+          {(sites ?? []).slice(0, 10).map((site) => (
             <Link
               key={site.id}
               href={route('application', { server: site.server_id, site: site.id })}

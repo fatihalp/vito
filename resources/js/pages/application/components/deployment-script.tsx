@@ -28,7 +28,7 @@ export default function DeploymentScript({
 }) {
   const { getActualAppearance } = useAppearance();
 
-  const availableCommands = site.available_tooling_commands;
+  const availableCommands = site.available_tooling_commands ?? [];
 
   const [open, setOpen] = useState(false);
   const form = useForm<{
@@ -81,7 +81,7 @@ export default function DeploymentScript({
                     <StatusRipple variant="default" />
                     <p>
                       Using{' '}
-                      {availableCommands.map((cmd, i) => (
+                      {(availableCommands ?? []).map((cmd, i) => (
                         <Fragment key={cmd}>
                           {i > 0 && ', '}
                           <code>`{cmd}`</code>

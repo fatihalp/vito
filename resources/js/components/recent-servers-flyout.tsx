@@ -31,7 +31,7 @@ export default function RecentServersFlyout() {
         </div>
       ) : servers.length > 0 ? (
         <div className="space-y-0.5 max-h-[300px] overflow-y-auto">
-          {servers.slice(0, 10).map((server) => (
+          {(servers ?? []).slice(0, 10).map((server) => (
             <Link
               key={server.id}
               href={route('servers.show', { server: server.id })}
