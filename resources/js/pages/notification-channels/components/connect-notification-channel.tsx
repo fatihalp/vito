@@ -26,6 +26,7 @@ type NotificationChannelForm = {
   provider: string;
   name: string;
   global: boolean;
+  [key: string]: any;
 };
 
 export default function ConnectNotificationChannel({

@@ -395,7 +395,7 @@ export default function CreateServer({
             }
           }
         } catch {
-          
+          void 0;
         }
       }
     } finally {

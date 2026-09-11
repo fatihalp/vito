@@ -35,6 +35,7 @@ export const getCachedLatencies = (): Latencies | null => {
       return memoryLatenciesCache;
     }
   } catch {
+    void 0;
   }
   return null;
 };
@@ -44,6 +45,7 @@ export const setCachedLatencies = (latencies: Latencies): void => {
   try {
     sessionStorage.setItem('vito.hetzner_latencies', JSON.stringify(latencies));
   } catch {
+    void 0;
   }
 };
 

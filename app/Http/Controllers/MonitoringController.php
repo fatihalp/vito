@@ -229,13 +229,15 @@ class MonitoringController extends Controller
     {
         $this->authorize('viewAny', [Metric::class, $server]);
 
-        $path = (string) $request->input('path', '/');
-        $limit = (int) $request->input('limit', 10);
-
-        $diskUsage = app(GetDiskUsage::class)->handle($server, $path, $limit);
+        $diskUsageAction = app(GetDiskUsage::class);
+        $path = $diskUsageAction->sanitizePath((string) $request->input('path', '/'));
+        $limit = max(5, min(100, (int) $request->input('limit', 10)));
 
         return Inertia::render('monitoring/disk-usage', [
-            'diskUsage' => $diskUsage,
+            'initialPath' => $path,
+            'initialLimit' => $limit,
+            'initialBreadcrumbs' => $diskUsageAction->buildBreadcrumbs($path),
+            'initialParentPath' => $diskUsageAction->resolveParentPath($path),
         ]);
     }
 

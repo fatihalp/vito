@@ -101,7 +101,7 @@ export default function HostedDomains() {
   const dialog = useDialog();
 
   const sslLocked = !page.props.site.can_configure_ssl;
-  const domainsCount = page.props.hostedDomains?.total ?? page.props.site.counts?.domains;
+  const domainsCount = (page.props.hostedDomains as unknown as { total?: number })?.total ?? page.props.site.counts?.domains;
 
   return (
     <ServerLayout>
@@ -143,7 +143,7 @@ export default function HostedDomains() {
                   <DropdownMenuItem
                     disabled={sslLocked}
                     onClick={() =>
-                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !!checked })
+                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !page.props.site.force_ssl })
                     }
                   >
                     <ShieldOffIcon />
@@ -153,7 +153,7 @@ export default function HostedDomains() {
                   <DropdownMenuItem
                     disabled={sslLocked}
                     onClick={() =>
-                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !!checked })
+                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !page.props.site.force_ssl })
                     }
                   >
                     <ShieldCheckIcon />

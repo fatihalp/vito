@@ -48,9 +48,13 @@ function CustomNode({ id, selected, data }: { id: string; selected: boolean; dat
   const makeStartingNode = () => {
     const node = getNode(id);
     if (node) {
-      
-      node.data.action.starting = true;
-      data.action.starting = true;
+      const nodeData = node.data as unknown as WorkflowNodeData;
+      if (nodeData?.action) {
+        nodeData.action.starting = true;
+      }
+      if (data.action) {
+        data.action.starting = true;
+      }
       setNodes((nodes) =>
         nodes.map((n) =>
           n.id === id
@@ -62,8 +66,7 @@ function CustomNode({ id, selected, data }: { id: string; selected: boolean; dat
                 data: {
                   ...n.data,
                   action: {
-                    
-                    ...n.data.action,
+                    ...((n.data as unknown as WorkflowNodeData)?.action ?? {}),
                     starting: false,
                   },
                 },

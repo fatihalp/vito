@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import {
   AlertCircleIcon,
@@ -9,6 +9,7 @@ import {
   FileIcon,
   FolderIcon,
   HardDriveIcon,
+  Loader2Icon,
   PencilIcon,
   RefreshCwIcon,
   XIcon,
@@ -23,6 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { cn } from '@/lib/utils';
 
@@ -62,7 +64,11 @@ export type DiskUsageData = {
 
 type PageProps = {
   server: Server;
-  diskUsage: DiskUsageData;
+  initialPath?: string;
+  initialLimit?: number;
+  initialBreadcrumbs?: Breadcrumb[];
+  initialParentPath?: string | null;
+  diskUsage?: DiskUsageData | null;
 };
 
 const LIMIT_OPTIONS = [
@@ -93,13 +99,23 @@ function SizeCell({ size, percentage }: { size: string; percentage: number }) {
 }
 
 export default function DiskUsage() {
-  const { server, diskUsage: initialData } = usePage<PageProps>().props;
-  const [data, setData] = useState<DiskUsageData>(initialData);
-  const [limit, setLimit] = useState<string>('10');
-  const [loading, setLoading] = useState<boolean>(false);
+  const {
+    server,
+    initialPath = '/',
+    initialLimit = 10,
+    initialBreadcrumbs,
+    initialParentPath,
+    diskUsage: serverProvidedData,
+  } = usePage<PageProps>().props;
+
+  const [data, setData] = useState<DiskUsageData | null>(serverProvidedData ?? null);
+  const [currentPath, setCurrentPath] = useState<string>(initialPath);
+  const [limit, setLimit] = useState<string>(String(initialLimit));
+  const [loading, setLoading] = useState<boolean>(!serverProvidedData);
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [pathInput, setPathInput] = useState<string>(initialData.path || '/');
+  const [pathInput, setPathInput] = useState<string>(initialPath);
   const [copiedPath, setCopiedPath] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const { copy } = useClipboard();
 
   const handleCopy = (path: string) => {
@@ -108,15 +124,56 @@ export default function DiskUsage() {
     setTimeout(() => setCopiedPath(null), 1500);
   };
 
+  const breadcrumbs = useMemo(() => {
+    if (data?.breadcrumbs && data.breadcrumbs.length > 0) {
+      return data.breadcrumbs;
+    }
+    if (initialBreadcrumbs && initialBreadcrumbs.length > 0) {
+      return initialBreadcrumbs;
+    }
+    const parts = currentPath.split('/').filter(Boolean);
+    const crumbs: Breadcrumb[] = [{ name: '/', path: '/' }];
+    let acc = '';
+    for (const part of parts) {
+      acc += '/' + part;
+      crumbs.push({ name: part, path: acc });
+    }
+    return crumbs;
+  }, [data?.breadcrumbs, initialBreadcrumbs, currentPath]);
+
+  const parentPath = useMemo(() => {
+    if (data?.parent_path !== undefined) {
+      return data.parent_path;
+    }
+    if (initialParentPath !== undefined) {
+      return initialParentPath;
+    }
+    if (currentPath === '/') {
+      return null;
+    }
+    const idx = currentPath.lastIndexOf('/');
+    return idx <= 0 ? '/' : currentPath.substring(0, idx);
+  }, [data?.parent_path, initialParentPath, currentPath]);
+
   const fetchDiskUsage = useCallback(
     async (scanPath: string, scanLimit: string) => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       setLoading(true);
+      setCurrentPath(scanPath);
+      setPathInput(scanPath);
+
       try {
         const jsonUrl = new URL(route('monitoring.disk-usage.json', { server: server.id }), window.location.origin);
         jsonUrl.searchParams.set('path', scanPath);
         jsonUrl.searchParams.set('limit', scanLimit);
 
         const res = await fetch(jsonUrl.toString(), {
+          signal: controller.signal,
           headers: {
             Accept: 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
@@ -126,6 +183,7 @@ export default function DiskUsage() {
         if (res.ok) {
           const json: DiskUsageData = await res.json();
           setData(json);
+          setCurrentPath(json.path);
           setPathInput(json.path);
 
           const pageUrl = new URL(route('monitoring.disk-usage', { server: server.id }), window.location.origin);
@@ -134,7 +192,32 @@ export default function DiskUsage() {
             pageUrl.searchParams.set('limit', scanLimit);
           }
           window.history.replaceState(null, '', pageUrl.toString());
+        } else {
+          setData((prev) => ({
+            folders: prev?.folders ?? [],
+            files: prev?.files ?? [],
+            path: scanPath,
+            parent_path: prev?.parent_path ?? null,
+            breadcrumbs: prev?.breadcrumbs ?? [{ name: '/', path: '/' }],
+            target_size: prev?.target_size ?? null,
+            target_size_bytes: prev?.target_size_bytes ?? 0,
+            error: `Failed to load disk usage (HTTP ${res.status}).`,
+          }));
         }
+      } catch (err: unknown) {
+        if (err instanceof DOMException && err.name === 'AbortError') {
+          return;
+        }
+        setData((prev) => ({
+          folders: prev?.folders ?? [],
+          files: prev?.files ?? [],
+          path: scanPath,
+          parent_path: prev?.parent_path ?? null,
+          breadcrumbs: prev?.breadcrumbs ?? [{ name: '/', path: '/' }],
+          target_size: prev?.target_size ?? null,
+          target_size_bytes: prev?.target_size_bytes ?? 0,
+          error: err instanceof Error ? err.message : 'Unknown error occurred.',
+        }));
       } finally {
         setLoading(false);
       }
@@ -142,9 +225,20 @@ export default function DiskUsage() {
     [server.id]
   );
 
-  const handleNavigate = (path: string) => {
+  useEffect(() => {
+    if (!serverProvidedData) {
+      fetchDiskUsage(initialPath, String(initialLimit));
+    }
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, [fetchDiskUsage, initialLimit, initialPath, serverProvidedData]);
+
+  const handleNavigate = (targetPath: string) => {
     setIsEditing(false);
-    fetchDiskUsage(path, limit);
+    fetchDiskUsage(targetPath, limit);
   };
 
   const handleEditSubmit = (e: React.FormEvent) => {
@@ -153,8 +247,6 @@ export default function DiskUsage() {
     setIsEditing(false);
     fetchDiskUsage(sanitized, limit);
   };
-
-  const breadcrumbs = data.breadcrumbs && data.breadcrumbs.length > 0 ? data.breadcrumbs : [{ name: '/', path: '/' }];
 
   return (
     <ServerLayout>
@@ -173,8 +265,8 @@ export default function DiskUsage() {
                   disabled={loading}
                   onClick={() => handleNavigate(preset)}
                   className={cn(
-                    'rounded px-2 py-0.5 font-mono text-[11px] transition-colors cursor-pointer',
-                    data.path === preset
+                    'rounded px-2 py-0.5 font-mono text-[11px] transition-colors cursor-pointer disabled:opacity-50',
+                    currentPath === preset
                       ? 'bg-primary/10 text-primary font-medium'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
                   )}
@@ -188,13 +280,14 @@ export default function DiskUsage() {
 
             <Select
               value={limit}
+              disabled={loading}
               onValueChange={(val) => {
                 setLimit(val);
-                fetchDiskUsage(data.path, val);
+                fetchDiskUsage(currentPath, val);
               }}
             >
               <SelectTrigger
-                className="h-7 w-[60px] text-xs bg-muted/20 border-border/50 hover:bg-muted/40 cursor-pointer"
+                className="h-7 w-[60px] text-xs bg-muted/20 border-border/50 hover:bg-muted/40 cursor-pointer disabled:opacity-50"
                 aria-label="Limit"
               >
                 <SelectValue />
@@ -215,8 +308,8 @@ export default function DiskUsage() {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    onClick={() => fetchDiskUsage(data.path, limit)}
-                    className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
+                    onClick={() => fetchDiskUsage(currentPath, limit)}
+                    className="size-7 text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
                     disabled={loading}
                     aria-label="Refresh"
                   >
@@ -237,15 +330,15 @@ export default function DiskUsage() {
                   <Button
                     variant="ghost"
                     size="icon"
-                    disabled={!data.parent_path || loading}
-                    onClick={() => data.parent_path && handleNavigate(data.parent_path)}
+                    disabled={!parentPath || loading}
+                    onClick={() => parentPath && handleNavigate(parentPath)}
                     className="size-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-30"
                     aria-label="Up"
                   >
                     <CornerLeftUpIcon className="size-3.5" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{data.parent_path ? `Up to ${data.parent_path}` : 'Root'}</TooltipContent>
+                <TooltipContent>{parentPath ? `Up to ${parentPath}` : 'Root'}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
@@ -295,7 +388,7 @@ export default function DiskUsage() {
                           'inline-flex items-center gap-1 rounded px-1 py-0.5 font-mono text-xs transition-colors shrink-0',
                           isLast
                             ? 'font-medium text-foreground bg-muted/40 cursor-default'
-                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 cursor-pointer'
+                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30 cursor-pointer disabled:opacity-50'
                         )}
                       >
                         {isRoot && <HardDriveIcon className="size-3 text-muted-foreground" />}
@@ -307,11 +400,12 @@ export default function DiskUsage() {
 
                 <button
                   type="button"
+                  disabled={loading}
                   onClick={() => {
-                    setPathInput(data.path);
+                    setPathInput(currentPath);
                     setIsEditing(true);
                   }}
-                  className="p-1 rounded text-muted-foreground/40 hover:text-foreground transition-colors cursor-pointer shrink-0 ml-1"
+                  className="p-1 rounded text-muted-foreground/40 hover:text-foreground transition-colors cursor-pointer shrink-0 ml-1 disabled:opacity-30"
                   aria-label="Edit"
                 >
                   <PencilIcon className="size-2.5" />
@@ -320,14 +414,28 @@ export default function DiskUsage() {
             )}
           </div>
 
-          {data.target_size && (
+          {data?.target_size && (
             <span className="shrink-0 font-mono text-xs text-muted-foreground">
               {data.target_size}
             </span>
           )}
         </div>
 
-        {data.error && (
+        {loading && (
+          <div className="flex items-center justify-between rounded-lg border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-foreground">
+            <div className="flex items-center gap-2 min-w-0">
+              <Loader2Icon className="size-4 animate-spin text-primary shrink-0" />
+              <div className="flex items-center gap-1.5 flex-wrap min-w-0">
+                <span className="font-medium">Analyzing disk usage...</span>
+                <span className="text-muted-foreground hidden sm:inline truncate">
+                  Scanning <code className="font-mono text-foreground text-[11px] px-1 py-0.5 bg-muted/60 rounded">{currentPath}</code> on {server.name}. This may take a moment on large disks.
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {data?.error && (
           <div className="flex items-center justify-between rounded-lg border border-destructive/30 bg-destructive/10 p-2.5 text-xs text-destructive">
             <div className="flex items-center gap-2">
               <AlertCircleIcon className="size-4 shrink-0" />
@@ -337,7 +445,7 @@ export default function DiskUsage() {
               variant="outline"
               size="sm"
               className="h-6 text-xs cursor-pointer"
-              onClick={() => fetchDiskUsage(data.path, limit)}
+              onClick={() => fetchDiskUsage(currentPath, limit)}
               disabled={loading}
             >
               Retry
@@ -354,7 +462,7 @@ export default function DiskUsage() {
                   Folders
                 </CardTitle>
                 <span className="text-[11px] text-muted-foreground/70 font-mono">
-                  {data.folders.length}
+                  {loading ? '...' : (data?.folders.length ?? 0)}
                 </span>
               </div>
             </CardHeader>
@@ -367,10 +475,29 @@ export default function DiskUsage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.folders.length === 0 ? (
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i} className="h-8 border-b border-border/30">
+                        <TableCell className="px-3 py-1">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="size-3.5 rounded shrink-0" />
+                            <Skeleton
+                              className="h-3.5 rounded"
+                              style={{ width: `${35 + ((i * 11) % 40)}%` }}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-1 text-right">
+                          <div className="flex justify-end">
+                            <Skeleton className="h-3.5 w-12 rounded" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : !data || data.folders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={2} className="h-20 text-center text-xs text-muted-foreground">
-                        {loading ? 'Scanning...' : 'No subdirectories'}
+                        No subdirectories
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -422,7 +549,7 @@ export default function DiskUsage() {
                   Files
                 </CardTitle>
                 <span className="text-[11px] text-muted-foreground/70 font-mono">
-                  {data.files.length}
+                  {loading ? '...' : (data?.files.length ?? 0)}
                 </span>
               </div>
             </CardHeader>
@@ -435,10 +562,31 @@ export default function DiskUsage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {data.files.length === 0 ? (
+                  {loading ? (
+                    Array.from({ length: 6 }).map((_, i) => (
+                      <TableRow key={i} className="h-8 border-b border-border/30">
+                        <TableCell className="px-3 py-1">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="size-3 rounded shrink-0" />
+                            <div className="flex flex-col gap-1 w-full">
+                              <Skeleton
+                                className="h-3 rounded"
+                                style={{ width: `${30 + ((i * 13) % 45)}%` }}
+                              />
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-1 text-right">
+                          <div className="flex justify-end">
+                            <Skeleton className="h-3.5 w-12 rounded" />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  ) : !data || data.files.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={2} className="h-20 text-center text-xs text-muted-foreground">
-                        {loading ? 'Scanning...' : 'No files'}
+                        No files
                       </TableCell>
                     </TableRow>
                   ) : (

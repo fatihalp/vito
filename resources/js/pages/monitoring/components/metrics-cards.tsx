@@ -6,6 +6,9 @@ import { useMetrics } from '@/pages/monitoring/components/use-metrics';
 import { WifiOffIcon } from 'lucide-react';
 
 export default function MetricsCards({ server, filter, metric }: { server: Server; filter?: MetricsFilter; metric?: string }) {
+  const query = useMetrics(server, filter);
+  const history = query.data?.history ?? [];
+
   if (server.status === 'disconnected') {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-dashed bg-muted/20 px-4 py-3.5 text-sm text-muted-foreground">
@@ -14,9 +17,6 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
       </div>
     );
   }
-
-  const query = useMetrics(server, filter);
-  const history = query.data?.history ?? [];
 
   return (
     <div className={metric ? 'grid grid-cols-1 gap-4' : 'grid grid-cols-1 gap-6 lg:grid-cols-3'}>

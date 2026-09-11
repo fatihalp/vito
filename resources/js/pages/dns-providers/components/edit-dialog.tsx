@@ -26,7 +26,7 @@ export default function DnsProviderEditDialog({
   const configs = useConfigs()!;
   const editFields: DynamicFieldConfig[] = configs.dns_provider.providers[dnsProvider.provider]?.edit_form ?? [];
 
-  const form = useForm({
+  const form = useForm<{ name: string; global: boolean; [key: string]: any }>({
     name: dnsProvider.name,
     global: dnsProvider.global,
   });

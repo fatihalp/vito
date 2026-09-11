@@ -38,7 +38,7 @@ export default function RevealSiteResourceDialog({
     refetchOnWindowFocus: false,
   });
 
-  const targetName = resource?.server?.name ?? resource?.bucket?.name ?? 'Resource';
+  const targetName: string = resource?.server?.name ?? (typeof resource?.storage_provider?.profile === 'string' ? resource.storage_provider.profile : 'Resource');
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

@@ -3,8 +3,6 @@ import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
-import { Button } from '@/components/ui/button';
-import { BookOpenIcon } from 'lucide-react';
 import Container from '@/components/container';
 import Filter from '@/pages/monitoring/components/filter';
 import { useState } from 'react';

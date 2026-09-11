@@ -142,18 +142,20 @@ export default function ConnectStorageProvider({
   };
 
   const redirectToDropbox = () => {
-    const errors: Partial<Record<keyof StorageProviderForm, string>> = {};
+    let hasError = false;
     if (!form.data.name) {
-      errors.name = 'The name field is required.';
+      form.setError('name', 'The name field is required.');
+      hasError = true;
     }
     if (!form.data.app_key) {
-      errors.app_key = 'The app key field is required.';
+      form.setError('app_key', 'The app key field is required.');
+      hasError = true;
     }
     if (!form.data.app_secret) {
-      errors.app_secret = 'The app secret field is required.';
+      form.setError('app_secret', 'The app secret field is required.');
+      hasError = true;
     }
-    if (Object.keys(errors).length > 0) {
-      form.setError(errors);
+    if (hasError) {
       return;
     }
 

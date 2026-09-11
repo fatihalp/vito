@@ -115,7 +115,7 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
             break;
         }
       } catch {
-        
+        void 0;
       }
     };
 

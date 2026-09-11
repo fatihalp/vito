@@ -41,7 +41,6 @@ export default function DeploymentScript({
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    setFocused(isOpen);
   };
 
   const submit = (e: FormEvent) => {

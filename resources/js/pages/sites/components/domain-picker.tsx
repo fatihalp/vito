@@ -125,6 +125,7 @@ export default function DomainPicker({
         setTempProviderId(firstId);
       }
     } catch {
+      void 0;
     } finally {
       setLoadingProviders(false);
     }

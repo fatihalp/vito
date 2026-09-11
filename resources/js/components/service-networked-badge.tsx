@@ -37,7 +37,7 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
             <span>Open (Remote)</span>
           </Badge>
         ) : (
-          <Badge variant="secondary" className="gap-1 hover:opacity-80 transition-opacity">
+          <Badge variant="gray" className="gap-1 hover:opacity-80 transition-opacity">
             <LockIcon className="size-3" />
             <span>Local Only</span>
           </Badge>

@@ -177,7 +177,7 @@ export default function EdgeNetworkDialog({
             <div className="flex items-center justify-between bg-muted/30 px-4 py-2.5 border-b">
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold">Domains</span>
-                <Badge variant="secondary" className="text-[10px] font-mono font-normal">
+                <Badge variant="gray" className="text-[10px] font-mono font-normal">
                   {hasCloudflare ? `${protectedCount} of ${domains.length} protected` : `${domains.length} total`}
                 </Badge>
               </div>
@@ -199,7 +199,7 @@ export default function EdgeNetworkDialog({
                         {item.domain}
                       </span>
                       {item.type === 'primary' && (
-                        <Badge variant="secondary" className="text-[9px] h-4 px-1 uppercase font-semibold">
+                        <Badge variant="gray" className="text-[9px] h-4 px-1 uppercase font-semibold">
                           Primary
                         </Badge>
                       )}

@@ -90,7 +90,7 @@ export default function HetznerPlanSelect({ value, onChange }: { value: string; 
                 <section key={group} className="space-y-2">
                   <div className="flex items-center gap-2">
                     <h3 className="text-sm font-medium">{group}</h3>
-                    <Badge variant={group.includes('Deprecated') ? 'outline' : 'secondary'} className={cn(group.includes('Deprecated') && 'text-amber-600 dark:text-amber-400 border-amber-500/30')}>
+                    <Badge variant={group.includes('Deprecated') ? 'outline' : 'gray'} className={cn(group.includes('Deprecated') && 'text-amber-600 dark:text-amber-400 border-amber-500/30')}>
                       {filteredPlans.filter((plan) => plan.group === group).length} plans
                     </Badge>
                   </div>

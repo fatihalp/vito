@@ -25,7 +25,7 @@ interface SecurityToggleState {
   status: string;
   status_color: 'gray' | 'success' | 'info' | 'warning' | 'danger';
   enabled: boolean;
-  detected: boolean | null;
+  detected?: boolean | null;
   manageable?: boolean;
   log_id?: number | null;
 }

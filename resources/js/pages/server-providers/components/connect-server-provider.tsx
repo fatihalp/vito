@@ -26,6 +26,7 @@ type ServerProviderForm = {
   provider: string;
   name: string;
   global: boolean;
+  [key: string]: any;
 };
 
 export default function ConnectServerProvider({

@@ -13,13 +13,29 @@ use function Illuminate\Support\php_binary;
 
 function generate_public_key(string $privateKeyPath, string $publicKeyPath): void
 {
-    chmod($privateKeyPath, 0400);
-    exec("ssh-keygen -y -f {$privateKeyPath} > {$publicKeyPath}");
+    if (file_exists($privateKeyPath)) {
+        chmod($privateKeyPath, 0400);
+        exec("ssh-keygen -y -f {$privateKeyPath} > {$publicKeyPath}");
+    }
 }
 
 function generate_key_pair(string $path): void
 {
-    exec("ssh-keygen -t ed25519 -m PEM -N '' -f {$path}");
+    File::ensureDirectoryExists(dirname($path));
+
+    if (file_exists($path)) {
+        @unlink($path);
+    }
+    if (file_exists("{$path}.pub")) {
+        @unlink("{$path}.pub");
+    }
+
+    exec("ssh-keygen -t ed25519 -N '' -f {$path} -q");
+
+    if (! file_exists($path)) {
+        throw new RuntimeException("Failed to generate SSH key pair at {$path}");
+    }
+
     chmod($path, 0400);
 }
 

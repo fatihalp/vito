@@ -38,7 +38,7 @@ function writeCache(payload: CachedBootstrap): void {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
   } catch {
-    
+    void 0;
   }
 }
 
@@ -46,7 +46,7 @@ function clearCache(): void {
   try {
     localStorage.removeItem(STORAGE_KEY);
   } catch {
-    
+    void 0;
   }
 }
 
