@@ -10,13 +10,13 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
   const label = String(value ?? 'unknown');
 
   if (label === 'n/a') {
-    return <span className="text-muted-foreground">-</span>;
+    return null;
   }
 
   const service = row.resource as Service | undefined;
 
-  if (!service) {
-    return <Badge variant="outline">{label}</Badge>;
+  if (!service || !service.supports_networking) {
+    return null;
   }
 
   const isRemoteOpen = label === 'yes' || service.networking_enabled;
@@ -32,14 +32,14 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
         title="Click to view/change remote networking settings"
       >
         {isRemoteOpen ? (
-          <Badge variant="success" className="gap-1 hover:opacity-80 transition-opacity">
+          <Badge variant="success" className="gap-1 text-xs hover:opacity-80 transition-opacity">
             <GlobeIcon className="size-3" />
-            <span>Open (Remote)</span>
+            <span>Remote: Open</span>
           </Badge>
         ) : (
-          <Badge variant="gray" className="gap-1 hover:opacity-80 transition-opacity">
+          <Badge variant="gray" className="gap-1 text-xs hover:opacity-80 transition-opacity">
             <LockIcon className="size-3" />
-            <span>Local Only</span>
+            <span>Remote: Local Only</span>
           </Badge>
         )}
       </button>

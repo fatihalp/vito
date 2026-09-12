@@ -48,6 +48,10 @@ class ServerPolicy
 
     public function delete(User $user, Server $server): bool
     {
+        if ($server->is_self) {
+            return false;
+        }
+
         return $this->hasOwnerAccess($user, $server->project) && $server->status !== ServerStatus::DISCONNECTED;
     }
 

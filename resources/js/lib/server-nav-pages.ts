@@ -20,6 +20,7 @@ import {
   ScrollTextIcon,
   Settings2Icon,
   ShieldIcon,
+  SlidersIcon,
   UsersIcon,
   type LucideIcon,
 } from 'lucide-react';
@@ -40,6 +41,7 @@ export const SERVER_NAV_PAGES: ServerNavPage[] = [
   { key: 'SSL', label: 'SSL', routeName: 'server-ssls', icon: LockIcon },
   { key: 'Network', label: 'Network', routeName: 'servers.network', icon: NetworkIcon },
   { key: 'Features', label: 'Features', routeName: 'server-features', icon: BoxIcon },
+  { key: 'Limits', label: 'Limits', routeName: 'servers.limits', icon: SlidersIcon },
   { key: 'Metrics', label: 'Metrics', routeName: 'monitoring', icon: ChartLineIcon },
   { key: 'Server logs', label: 'Server logs', routeName: 'logs', icon: LogsIcon },
   { key: 'Service logs', label: 'Service logs', routeName: 'logs.services', icon: ScrollTextIcon },

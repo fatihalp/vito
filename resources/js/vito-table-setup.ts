@@ -2,6 +2,7 @@ import { registerCellComponent, registerIcons } from '@forjedio/inertia-table-re
 import { CrownIcon, CopyIcon, SignpostIcon, DatabaseIcon } from 'lucide-react';
 import { DatabaseUserDatabases } from '@/components/database-user-databases';
 import { ServiceNetworkedBadge } from '@/components/service-networked-badge';
+import { ServiceNameCell } from '@/components/service-name-cell';
 
 registerIcons({
   crown: CrownIcon,
@@ -12,3 +13,5 @@ registerIcons({
 
 registerCellComponent('DatabaseUserDatabases', DatabaseUserDatabases);
 registerCellComponent('ServiceNetworkedBadge', ServiceNetworkedBadge);
+registerCellComponent('ServiceNameCell', ServiceNameCell);
+

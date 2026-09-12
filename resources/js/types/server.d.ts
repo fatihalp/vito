@@ -27,6 +27,7 @@ export interface Server {
   authentication: string;
   public_key: string;
   status: string;
+  is_self?: boolean;
   auto_update: boolean;
   auto_update_schedule?: string | null;
   progress?: string;
@@ -55,6 +56,11 @@ export interface Server {
     user: string;
     status: string;
   }>;
+  metric?: {
+    cpu_usage_percent?: number | null;
+    memory_used_percent?: number | null;
+    disk_used_percent?: number | null;
+  } | null;
   [key: string]: unknown;
 }
 

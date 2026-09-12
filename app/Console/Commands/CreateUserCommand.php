@@ -30,6 +30,8 @@ class CreateUserCommand extends Command
 
         $user->ensureHasDefaultProject();
 
+        app(\App\Actions\Server\EnsureSelfServerExists::class)->ensure($user);
+
         $this->info('User created!');
     }
 }

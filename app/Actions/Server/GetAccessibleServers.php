@@ -20,6 +20,8 @@ class GetAccessibleServers
      */
     public function get(User $user, array $input): array
     {
+        app(EnsureSelfServerExists::class)->ensure($user);
+
         $accessibleProjectIds = $user->allProjects()->pluck('id');
 
         $validated = Validator::make($input, [

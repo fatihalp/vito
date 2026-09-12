@@ -28,27 +28,26 @@ class ServiceTable extends Table
     protected function columns(): array
     {
         return [
-            TextColumn::make('name', 'Name')->sortable(),
+            ComponentColumn::create('name', 'Name', 'ServiceNameCell')->sortable(),
             TextColumn::make('version', 'Version')
                 ->value(fn (Service $service): string => $service->installed_version ?: $service->version)
                 ->accessor('installed_version')
                 ->sortable(),
             DateTimeColumn::make('created_at', 'Installed at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
-            ComponentColumn::create('networked', 'Remote Access', 'ServiceNetworkedBadge')
-                ->value(function (Service $service): string {
-                    $handler = $service->hasHandler() ? $service->handler() : null;
+            Column::data('networked', function (Service $service): string {
+                $handler = $service->hasHandler() ? $service->handler() : null;
 
-                    if (! $handler instanceof SupportsNetworking) {
-                        return 'n/a';
-                    }
+                if (! $handler instanceof SupportsNetworking) {
+                    return 'n/a';
+                }
 
-                    if (isset($service->type_data['networking_effective']) && $service->type_data['networking_effective'] !== null) {
-                        return $service->type_data['networking_effective'] ? 'yes' : 'no';
-                    }
+                if (isset($service->type_data['networking_effective']) && $service->type_data['networking_effective'] !== null) {
+                    return $service->type_data['networking_effective'] ? 'yes' : 'no';
+                }
 
-                    return $handler->networkingEnabled() ? 'yes' : 'no';
-                }),
+                return $handler->networkingEnabled() ? 'yes' : 'no';
+            }),
             Column::data('id'),
             Column::data('resource', fn (Service $service) => ServiceResource::make($service)),
             ActionsColumn::make(),

@@ -149,7 +149,7 @@ class SSH
     public function connect(bool $sftp = false): void
     {
         
-        $ip = $this->server->ip;
+        $ip = $this->server->is_self ? '127.0.0.1' : $this->server->ip;
         if (str($ip)->contains(':')) {
             $ip = '['.$ip.']';
         }

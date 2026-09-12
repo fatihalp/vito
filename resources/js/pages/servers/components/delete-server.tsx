@@ -22,6 +22,10 @@ import { SharedData } from '@/types';
 import siteHelper from '@/lib/site-helper';
 
 export default function DeleteServer({ server, children }: { server: Server; children: ReactNode }) {
+  if (server.is_self) {
+    return null;
+  }
+
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
 

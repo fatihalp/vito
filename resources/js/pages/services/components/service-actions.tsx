@@ -8,6 +8,7 @@ import ConfigFile from '@/pages/services/components/config-file';
 import InstallationLog from '@/pages/services/components/installation-log';
 import { Service } from '@/types/service';
 import { useDialog } from '@/hooks/use-dialog';
+import { Link } from '@inertiajs/react';
 
 export default function ServiceActions({ service }: { service: Service }) {
   const dialog = useDialog();
@@ -36,6 +37,16 @@ export default function ServiceActions({ service }: { service: Service }) {
               <ResyncStats service={service} />
             </>
           )}
+          {service.type === 'webserver' && service.name === 'nginx' && (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={route('servers.limits', { server: service.server_id })}>
+                  Configure limits
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
           {service.config_paths && service.config_paths.length > 0 && (
             <>
               <DropdownMenuSeparator />
@@ -47,6 +58,11 @@ export default function ServiceActions({ service }: { service: Service }) {
           {service.type === 'php' && (
             <>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link href={route('servers.limits', { server: service.server_id })}>
+                  Configure limits
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => dialog.phpExtensions.open({ service })}>
                 Extensions
               </DropdownMenuItem>

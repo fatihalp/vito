@@ -245,14 +245,22 @@ export default function ServerSettings() {
                   <div className="space-y-0.5">
                     <p className="font-medium text-destructive text-sm">Remove Server</p>
                     <p className="text-muted-foreground text-xs">
-                      Remove this server from Vito. The server remains running on your provider.
+                      {server.is_self
+                        ? 'This server hosts Vito itself and cannot be removed.'
+                        : 'Remove this server from Vito. The server remains running on your provider.'}
                     </p>
                   </div>
-                  <DeleteServer server={server}>
-                    <Button variant="destructive" size="sm" className="shrink-0">
-                      Remove
-                    </Button>
-                  </DeleteServer>
+                  {server.is_self ? (
+                    <Badge variant="outline" className="text-xs text-muted-foreground font-medium">
+                      Protected
+                    </Badge>
+                  ) : (
+                    <DeleteServer server={server}>
+                      <Button variant="destructive" size="sm" className="shrink-0">
+                        Remove
+                      </Button>
+                    </DeleteServer>
+                  )}
                 </div>
               </CardContent>
             </Card>

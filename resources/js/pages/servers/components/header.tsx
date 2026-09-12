@@ -51,6 +51,14 @@ export default function ServerHeader({ server: initialServer }: { server: Server
         </Tooltip>
         <SlashIcon className="size-3" />
         <Badge variant={server.role_color}>{server.role}</Badge>
+        {server.is_self && (
+          <>
+            <SlashIcon className="size-3" />
+            <Badge variant="outline" className="text-[11px] gap-1 bg-primary/10 text-primary border-primary/20 font-medium">
+              Vito Host
+            </Badge>
+          </>
+        )}
         <SlashIcon className="size-3" />
         <Tooltip>
           <TooltipTrigger asChild>

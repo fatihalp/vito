@@ -222,12 +222,18 @@ touch /home/vito/vito/storage/database.sqlite
 php artisan key:generate
 php artisan storage:link
 php artisan migrate --force
-php artisan user:create Vito ${V_ADMIN_EMAIL} ${V_ADMIN_PASSWORD}
 openssl genpkey -algorithm RSA -out /home/vito/vito/storage/ssh-private.pem
 chmod 600 /home/vito/vito/storage/ssh-private.pem
 ssh-keygen -y -f /home/vito/vito/storage/ssh-private.pem > /home/vito/vito/storage/ssh-public.key
 chown -R vito:vito /home/vito/vito/storage/ssh-private.pem
 chown -R vito:vito /home/vito/vito/storage/ssh-public.key
+mkdir -p /home/vito/.ssh
+cat /home/vito/vito/storage/ssh-public.key >> /home/vito/.ssh/authorized_keys
+chmod 600 /home/vito/.ssh/authorized_keys
+chown -R vito:vito /home/vito/.ssh
+
+php artisan user:create Vito ${V_ADMIN_EMAIL} ${V_ADMIN_PASSWORD}
+php artisan vito:ensure-self-server || true
 
 php artisan optimize
 

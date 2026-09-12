@@ -31,7 +31,7 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout title="Log in to your account" description="Use your social account to log in.">
+    <AuthLayout title="Log in" showFooter={false}>
       <Head title="Log in" />
 
       <form onSubmit={submit}>

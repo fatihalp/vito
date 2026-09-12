@@ -32,6 +32,7 @@ class ServerResource extends JsonResource
             'provider_data' => $this->provider_data,
             'public_key' => $this->public_key,
             'status' => $this->status->getText(),
+            'is_self' => (bool) $this->is_self,
             'auto_update' => $this->auto_update,
             'auto_update_schedule' => $this->auto_update_schedule,
             'progress' => $this->progress,
@@ -58,6 +59,11 @@ class ServerResource extends JsonResource
                 'databases' => (int) ($this->databases_count ?? $this->databases()->count()),
                 'database_users' => (int) ($this->database_users_count ?? $this->databaseUsers()->count()),
             ],
+            'metric' => ($latestMetric = $this->relationLoaded('latestMetric') ? $this->latestMetric : $this->latestMetric()->first()) ? [
+                'cpu_usage_percent' => $latestMetric->cpu_usage_percent !== null ? (float) $latestMetric->cpu_usage_percent : null,
+                'memory_used_percent' => $latestMetric->memory_total > 0 ? round($latestMetric->memory_used * 100.0 / $latestMetric->memory_total, 1) : null,
+                'disk_used_percent' => $latestMetric->disk_total > 0 ? round($latestMetric->disk_used * 100.0 / $latestMetric->disk_total, 1) : null,
+            ] : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

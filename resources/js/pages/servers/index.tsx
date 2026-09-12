@@ -8,6 +8,7 @@ import Heading from '@/components/heading';
 import CreateServer from '@/pages/servers/components/create-server';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/layouts/app/layout';
 import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon, WifiOffIcon, LoaderCircleIcon } from 'lucide-react';
@@ -29,14 +30,23 @@ const nameCell = ({ row, value }: CellRenderProps) => {
   const isUnreachable = status === 'disconnected' || row.is_disconnected === true;
   const isInstalling = status === 'installing';
   const isFailed = status === 'installation_failed';
+  const isSelf = Boolean(row.is_self);
   const id = row.id as number;
-  const name = String(value || row.name || '');
+  const name = isSelf ? 'Vito sunucusu' : String(value || row.name || '');
 
   return (
     <div className="flex items-center gap-2">
-      <Link href={route('servers.show', { server: id })} className="font-medium hover:underline">
+      <Link
+        href={route('servers.show', { server: id })}
+        className={cn('font-medium hover:underline', isSelf && 'text-primary font-semibold')}
+      >
         {name}
       </Link>
+      {isSelf && (
+        <Badge variant="outline" className="text-[11px] gap-1 bg-primary/10 text-primary border-primary/25 font-semibold">
+          Vito Host
+        </Badge>
+      )}
       {isUnreachable && (
         <TooltipProvider delayDuration={0}>
           <Tooltip>
@@ -236,6 +246,12 @@ export default function Servers() {
         <VitoTable
           tableData={page.props.servers}
           groupBy={page.props.groupBy}
+          rowClassName={(row: Row) => {
+            if (row.is_self) {
+              return 'bg-primary/5 hover:bg-primary/10 dark:bg-primary/10 dark:hover:bg-primary/15 border-b-primary/30';
+            }
+            return '';
+          }}
           toolbar={
             <div className="flex flex-wrap items-center gap-3">
               <div className="flex items-center gap-2">

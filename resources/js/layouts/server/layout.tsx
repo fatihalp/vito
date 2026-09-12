@@ -22,6 +22,7 @@ import {
   ScrollTextIcon,
   Settings2Icon,
   ShieldIcon,
+  SlidersIcon,
   UsersIcon,
   WifiOffIcon,
 } from 'lucide-react';
@@ -90,7 +91,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   }
 
   const serverId = page.props.server.id;
-  const services = page.props.server.services;
+  const services = page.props.server?.services ?? {};
 
   const sidebarNavItems: NavItem[] = [
     {
@@ -205,6 +206,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           href: route('server-features', { server: serverId }),
           onlyActivePath: route('server-features', { server: serverId }),
           icon: BoxIcon,
+        },
+        {
+          title: 'Limits',
+          href: route('servers.limits', { server: serverId }),
+          onlyActivePath: route('servers.limits', { server: serverId }),
+          icon: SlidersIcon,
         },
       ],
     },

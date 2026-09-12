@@ -93,6 +93,7 @@ class ServerTable extends Table
             Column::data('status_text', fn (Server $server) => $server->status->getText()),
             Column::data('is_disconnected', fn (Server $server) => $server->status === ServerStatus::DISCONNECTED),
             Column::data('is_ready', fn (Server $server) => $server->isReady()),
+            Column::data('is_self', fn (Server $server) => (bool) $server->is_self),
         ];
     }
 

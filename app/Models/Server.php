@@ -67,6 +67,7 @@ class Server extends AbstractModel
         'kernel_updates',
         'last_update_check',
         'feature_data',
+        'is_self',
     ];
 
     protected $casts = [
@@ -77,6 +78,7 @@ class Server extends AbstractModel
         'provider_data' => 'json',
         'authentication' => 'encrypted:json',
         'auto_update' => 'boolean',
+        'is_self' => 'boolean',
         'progress' => 'float',
         'updates' => 'integer',
         'kernel_updates' => 'integer',
@@ -97,6 +99,10 @@ class Server extends AbstractModel
         parent::boot();
 
         static::deleting(function (Server $server): void {
+            if ($server->is_self) {
+                throw new \RuntimeException('The server hosting Vito cannot be deleted.');
+            }
+
             $server->networkDeparture = app(ResyncNetworkSiblings::class)->capture($server);
         });
 
@@ -468,13 +474,24 @@ class Server extends AbstractModel
     
     public function sshKey(): array
     {
-        
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
+        $privateKeyPath = $storageDisk->path((string) $this->id);
+        $publicKeyPath = $storageDisk->path($this->id.'.pub');
+
+        if ($this->is_self && (! File::exists($privateKeyPath) || ! File::exists($publicKeyPath))) {
+            $masterPrivate = storage_path(config('core.ssh_private_key_name'));
+            $masterPublic = storage_path(config('core.ssh_public_key_name'));
+            if (File::exists($masterPrivate) && File::exists($masterPublic)) {
+                File::ensureDirectoryExists($storageDisk->path(''));
+                File::copy($masterPrivate, $privateKeyPath);
+                File::copy($masterPublic, $publicKeyPath);
+            }
+        }
 
         return [
-            'public_key' => str(Storage::disk(config('core.key_pairs_disk'))->get($this->id.'.pub'))->replace("\n", '')->toString(),
-            'public_key_path' => $storageDisk->path($this->id.'.pub'),
-            'private_key_path' => $storageDisk->path((string) $this->id),
+            'public_key' => str($storageDisk->get($this->id.'.pub') ?? '')->replace("\n", '')->toString(),
+            'public_key_path' => $publicKeyPath,
+            'private_key_path' => $privateKeyPath,
         ];
     }
 

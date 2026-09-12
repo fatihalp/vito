@@ -7,9 +7,10 @@ interface AuthLayoutProps {
   name?: string;
   title?: string;
   description?: string;
+  showFooter?: boolean;
 }
 
-export default function AuthLayout({ children, title, description }: PropsWithChildren<AuthLayoutProps>) {
+export default function AuthLayout({ children, title, description, showFooter = true }: PropsWithChildren<AuthLayoutProps>) {
   const page = usePage<SharedData>();
   return (
     <div className="bg-background flex min-h-svh flex-col items-center justify-center gap-6 p-6 md:p-10">
@@ -20,25 +21,29 @@ export default function AuthLayout({ children, title, description }: PropsWithCh
               <div className="mb-1 flex h-9 w-9 items-center justify-center rounded-md">
                 <AppLogoIcon className="text-foreground size-9 rounded-sm fill-current" />
               </div>
-              <span className="sr-only">{title}</span>
+              <span className="sr-only">{title ?? 'Home'}</span>
             </Link>
 
-            <div className="space-y-2 text-center">
-              <h1 className="text-xl font-medium">{title}</h1>
-              <p className="text-muted-foreground text-center text-sm">{description}</p>
-            </div>
+            {(title || description) && (
+              <div className="space-y-2 text-center">
+                {title && <h1 className="text-xl font-medium">{title}</h1>}
+                {description && <p className="text-muted-foreground text-center text-sm">{description}</p>}
+              </div>
+            )}
           </div>
           {children}
-          <div className="text-muted-foreground/50 text-center text-xs">
-            VitoDeploy{' '}
-            <a
-              href={`https://github.com/vitodeploy/vito/releases/tag/${page.props.version}`}
-              className="hover:text-primary cursor-pointer"
-              target="_blank"
-            >
-              {page.props.version}
-            </a>
-          </div>
+          {showFooter && (
+            <div className="text-muted-foreground/50 text-center text-xs">
+              VitoDeploy{' '}
+              <a
+                href={`https://github.com/vitodeploy/vito/releases/tag/${page.props.version}`}
+                className="hover:text-primary cursor-pointer"
+                target="_blank"
+              >
+                {page.props.version}
+              </a>
+            </div>
+          )}
         </div>
       </div>
     </div>
