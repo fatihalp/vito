@@ -130,7 +130,6 @@ export default function ServerUpdate() {
       <Head title={`Update Packages - ${server.name}`} />
 
       <Container className="max-w-5xl space-y-3.5 py-4">
-        {/* Top Header Bar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2.5">
             <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 cursor-pointer">
@@ -182,7 +181,6 @@ export default function ServerUpdate() {
           </div>
         </div>
 
-        {/* Success Completion Banner */}
         {justCompleted && !isUpdating && (
           <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -213,7 +211,6 @@ export default function ServerUpdate() {
           </div>
         )}
 
-        {/* Reboot Required Banner */}
         {rebootRequired && !isUpdating && (
           <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-700 dark:text-amber-400 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-2.5">
@@ -234,7 +231,6 @@ export default function ServerUpdate() {
           </div>
         )}
 
-        {/* Trigger Error Banner */}
         {triggerError && (
           <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-600 dark:text-rose-400 shadow-2xs flex items-center gap-2.5">
             <XCircleIcon className="size-5 shrink-0 text-rose-500" />
@@ -242,7 +238,6 @@ export default function ServerUpdate() {
           </div>
         )}
 
-        {/* Action Toolbar */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-border/50 bg-card px-3.5 py-2 text-xs shadow-2xs">
           <div className="flex items-center gap-2.5 flex-wrap">
             <Button
@@ -340,7 +335,6 @@ export default function ServerUpdate() {
           </div>
         </div>
 
-        {/* Terminal Window */}
         <div className="overflow-hidden rounded-lg border border-border/60 bg-neutral-950 text-neutral-100 shadow-lg">
           <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/90 px-3.5 py-2 select-none">
             <div className="flex items-center gap-2">

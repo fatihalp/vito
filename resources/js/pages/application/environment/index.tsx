@@ -284,13 +284,11 @@ function EnvironmentEditorContent() {
       <Head title={`.env Editor - ${site.domain}`} />
 
       <Container className="max-w-7xl gap-4 py-5 flex flex-col min-h-[calc(100vh-80px)]">
-        {/* Hidden decoy fields to absorb browser credential autofill */}
         <div style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', zIndex: -1 }} aria-hidden="true">
           <input type="text" name="fake_username_trap" tabIndex={-1} autoComplete="off" />
           <input type="password" name="fake_password_trap" tabIndex={-1} autoComplete="off" />
         </div>
 
-        {/* Top bar with navigation and actions */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 cursor-pointer">
@@ -364,7 +362,6 @@ function EnvironmentEditorContent() {
           </div>
         </div>
 
-        {/* Alerts */}
         {queryError && (
           <Alert variant="destructive">
             <AlertCircleIcon className="size-4" />
@@ -383,7 +380,6 @@ function EnvironmentEditorContent() {
           </Alert>
         )}
 
-        {/* Main Editor / Variables Area */}
         <Card className="overflow-hidden border flex-1 flex flex-col min-h-[550px]">
           {mode === 'classic' ? (
             <div className="flex flex-col flex-1 h-full min-h-[550px]">

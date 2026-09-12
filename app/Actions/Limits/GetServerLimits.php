@@ -64,7 +64,6 @@ class GetServerLimits
                     }
                 }
             } catch (Throwable) {
-                // If remote probe fails, retain defaults
             }
         }
 

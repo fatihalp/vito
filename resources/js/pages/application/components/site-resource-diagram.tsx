@@ -217,7 +217,6 @@ export default function SiteResourceDiagram({
         <CollapsibleContent>
           <CardContent className="p-3.5 sm:p-4">
             <div className="relative grid grid-cols-1 lg:grid-cols-[1fr_auto_1.1fr_auto_1.15fr] items-stretch gap-3 lg:gap-0">
-              {/* Column 1: Network */}
               <div className="rounded-xl border border-border/50 bg-muted/15 p-3 flex flex-col gap-2.5 relative z-10">
                 <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-0.5">
                   <span>Network</span>
@@ -491,7 +490,6 @@ export default function SiteResourceDiagram({
                 </div>
               </div>
 
-              {/* Connecting line 1 */}
               <div className="hidden lg:flex items-center justify-center w-8 relative select-none">
                 <svg className="w-full h-20 overflow-visible" viewBox="0 0 32 80" fill="none" preserveAspectRatio="none">
                   <path
@@ -503,7 +501,6 @@ export default function SiteResourceDiagram({
                 </svg>
               </div>
 
-              {/* Column 2: App server & Queues */}
               <div className="rounded-xl border border-border/50 bg-muted/15 p-3 flex flex-col gap-2.5 relative z-10">
                 <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-0.5">
                   <span className="truncate">{regionLabel}</span>
@@ -664,7 +661,6 @@ export default function SiteResourceDiagram({
                 </div>
               </div>
 
-              {/* Connecting line 2 */}
               <div className="hidden lg:flex items-center justify-center w-8 relative select-none">
                 <svg className="w-full h-28 overflow-visible" viewBox="0 0 32 100" fill="none" preserveAspectRatio="none">
                   <path
@@ -676,7 +672,6 @@ export default function SiteResourceDiagram({
                 </svg>
               </div>
 
-              {/* Column 3: Connected Resources */}
               <div className="rounded-xl border border-border/50 bg-muted/15 p-3 flex flex-col gap-2.5 relative z-10">
                 <div className="flex items-center justify-between text-xs font-medium text-muted-foreground px-0.5">
                   <span>Resources</span>
@@ -686,7 +681,6 @@ export default function SiteResourceDiagram({
                   </Link>
                 </div>
 
-                {/* Database Resource */}
                 {dbResource ? (
                   <div className="rounded-lg border border-border/70 bg-card p-3 shadow-2xs hover:border-primary/40 transition-colors">
                     <div className="flex items-center justify-between">
@@ -723,7 +717,7 @@ export default function SiteResourceDiagram({
 
                         <div className="flex items-center justify-between">
                           <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                            <ZapIcon className="size-3 text-muted-foreground/70" />
+                            <ShieldCheckIcon className="size-3 text-muted-foreground/70" />
                             <span>Status</span>
                           </span>
                           <span className="flex items-center gap-1 text-[11px] font-medium text-foreground">
@@ -750,7 +744,6 @@ export default function SiteResourceDiagram({
                   </Link>
                 )}
 
-                {/* Cache Resource */}
                 {cacheResource ? (
                   <div className="rounded-lg border border-border/70 bg-card p-3 shadow-2xs hover:border-primary/40 transition-colors">
                     <div className="flex items-center justify-between">
@@ -814,7 +807,6 @@ export default function SiteResourceDiagram({
                   </Link>
                 )}
 
-                {/* Storage Resource */}
                 {storageResource ? (
                   <div className="rounded-lg border border-border/70 bg-card p-3 shadow-2xs hover:border-primary/40 transition-colors">
                     <div className="flex items-center justify-between">

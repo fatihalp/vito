@@ -2,7 +2,6 @@
 
 namespace App\Providers;
 
-use App\Facades\SSH;
 use App\Models\FirewallRule;
 use App\Models\PersonalAccessToken;
 use App\Models\ServerLog;
@@ -56,7 +55,6 @@ class DemoServiceProvider extends ServiceProvider
             }
         }
 
-        SSH::fake('Demo SSH is enabled. No SSH commands will be executed.');
         Http::fake([
             '*' => Http::response([]),
         ]);

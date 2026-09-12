@@ -13,7 +13,6 @@ use App\Models\NetworkServer;
 use App\Models\ServerLog;
 use App\Services\AbstractService;
 use App\Support\Cidr;
-use App\Support\Testing\SSHFake;
 use Closure;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -205,7 +204,7 @@ class WireGuard extends AbstractService implements VPN
         return $handshakes;
     }
 
-    private function uploadConf(SSH|SSHFake $ssh, string $remote, string $content): void
+    private function uploadConf(SSH $ssh, string $remote, string $content): void
     {
         $tmpName = 'wg-'.Str::random(20);
         $disk = Storage::disk('local');

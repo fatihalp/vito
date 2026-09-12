@@ -6,7 +6,6 @@ use App\Exceptions\SSHError;
 use App\Helpers\SSH;
 use App\Models\Site;
 use App\Services\LogAnalysis\GoAccess\GoAccess;
-use App\Support\Testing\SSHFake;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -68,7 +67,7 @@ class GetSiteStats
     }
 
     
-    private function detail(SSH|SSHFake $ssh, Site $site, string $month, ?array $status): ?array
+    private function detail(SSH $ssh, Site $site, string $month, ?array $status): ?array
     {
         $report = $this->readMonth($ssh, $site, $month);
         if ($report === null) {
@@ -153,13 +152,13 @@ class GetSiteStats
     }
 
     
-    private function readJson(SSH|SSHFake $ssh, Site $site, string $file): ?array
+    private function readJson(SSH $ssh, Site $site, string $file): ?array
     {
         return $this->cat($ssh, GoAccess::BASE_DIR."/data/{$site->id}/{$file}");
     }
 
     
-    private function readMonth(SSH|SSHFake $ssh, Site $site, string $month): ?array
+    private function readMonth(SSH $ssh, Site $site, string $month): ?array
     {
         if (preg_match('/^\d{4}-\d{2}$/', $month) !== 1) {
             return null;
@@ -171,7 +170,7 @@ class GetSiteStats
     }
 
     
-    private function cat(SSH|SSHFake $ssh, string $path): ?array
+    private function cat(SSH $ssh, string $path): ?array
     {
         $out = trim($ssh->exec('cat '.escapeshellarg($path).' 2>/dev/null || echo ""'));
         if ($out === '') {

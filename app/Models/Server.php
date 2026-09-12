@@ -18,7 +18,6 @@ use App\SSH\OS\Cron;
 use App\SSH\OS\OS;
 use App\SSH\OS\Security;
 use App\SSH\OS\Systemd;
-use App\Support\Testing\SSHFake;
 use Carbon\Carbon;
 use Database\Factories\ServerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -377,7 +376,7 @@ class Server extends AbstractModel
         return $service;
     }
 
-    public function ssh(?string $user = null): \App\Helpers\SSH|SSHFake
+    public function ssh(?string $user = null): \App\Helpers\SSH
     {
         return SSH::init($this, $user);
     }

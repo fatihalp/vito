@@ -2,7 +2,6 @@
 
 namespace App\Facades;
 
-use App\Support\Testing\SFTPFake;
 use Illuminate\Support\Facades\Facade;
 
 class SFTP extends Facade
@@ -11,11 +10,5 @@ class SFTP extends Facade
     {
         return 'sftp';
     }
-
-    public static function fake(): SFTPFake
-    {
-        static::swap($fake = new SFTPFake);
-
-        return $fake;
-    }
 }
+

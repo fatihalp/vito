@@ -39,7 +39,6 @@ export default function ServerLimits() {
   const { server, limits } = usePage<PageProps>().props;
   const isOffline = server.status === 'disconnected';
 
-  // Nginx form
   const nginxForm = useForm<{
     client_max_body_size: string;
   }>({
@@ -53,13 +52,11 @@ export default function ServerLimits() {
     });
   };
 
-  // PHP version selection
   const initialPhpVersion = limits.default_php || limits.php_versions[0]?.version || '';
   const [selectedVersion, setSelectedVersion] = useState<string>(initialPhpVersion);
 
   const currentPhpLimit = limits.php_versions.find((p) => p.version === selectedVersion) || limits.php_versions[0];
 
-  // PHP form
   const phpForm = useForm<{
     version: string;
     upload_max_filesize: string;
@@ -112,7 +109,6 @@ export default function ServerLimits() {
         </HeaderContainer>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          {/* NGINX */}
           <Card id="nginx">
             <CardHeader className="p-6 pb-2">
               <CardTitle className="text-base font-medium">Nginx</CardTitle>
@@ -161,7 +157,6 @@ export default function ServerLimits() {
             </CardContent>
           </Card>
 
-          {/* PHP-FPM */}
           <Card id="php">
             <CardHeader className="p-6 pb-2">
               <div className="flex items-center justify-between">

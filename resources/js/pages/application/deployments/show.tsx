@@ -58,7 +58,6 @@ export default function DeploymentShow() {
       <Container className="max-w-7xl gap-4 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <SiteBanners site={site} />
 
-        {/* Unified Top Header Bar */}
         <div className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -93,7 +92,6 @@ export default function DeploymentShow() {
             )}
           </div>
 
-          {/* Metadata Bar */}
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground px-1">
             {deployment.commit_data.message && (
               <span className="font-medium text-foreground max-w-lg truncate" title={deployment.commit_data.message}>
@@ -137,7 +135,6 @@ export default function DeploymentShow() {
           </div>
         </div>
 
-        {/* Full Height Log Viewer */}
         <Card className="flex-1 overflow-hidden border flex flex-col min-h-[550px]">
           <LogOutput className="h-[calc(100vh-250px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4">
             {isLoading && 'Loading deployment output...'}
