@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils';
 import { StatusRipple } from '@/components/status-ripple';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { router, useForm } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
@@ -93,6 +93,22 @@ export default function ServerHeader({ server: initialServer }: { server: Server
                 </div>
               </TooltipTrigger>
               <TooltipContent side="bottom">Status</TooltipContent>
+            </Tooltip>
+          </>
+        )}
+        {server.status === 'updating' && (
+          <>
+            <SlashIcon className="size-3" />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="ghost" size="sm" asChild className="h-6 gap-1 px-1.5 text-xs text-amber-500 hover:text-amber-600 dark:text-amber-400 cursor-pointer">
+                  <Link href={route('servers.update', { server: server.id })}>
+                    <LoaderCircleIcon className="size-3 animate-spin" />
+                    <span>Updating...</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Package update in progress. Click to view console logs.</TooltipContent>
             </Tooltip>
           </>
         )}

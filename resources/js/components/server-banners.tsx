@@ -28,54 +28,48 @@ export default function ServerBanners({ server }: { server: Server }) {
     });
   }
 
-  if (updatesWarning) {
+  if (server.status === 'updating') {
+    items.push({
+      key: 'server-updating',
+      title: 'Package update in progress',
+      description: <>Vito is applying package updates to this server. You can monitor the progress and view live console logs.</>,
+      action: (
+        <Button variant="outline" size="sm" asChild className="cursor-pointer">
+          <Link href={route('servers.update', { server: server.id })}>
+            View progress
+          </Link>
+        </Button>
+      ),
+    });
+  }
+
+  if (updatesWarning && server.status !== 'updating') {
     const updatesCount = updatesWarning.count;
     items.push({
       key: 'package-updates',
       title: `${updatesCount} package ${updatesCount === 1 ? 'update' : 'updates'} available`,
       description: <>Install pending OS package updates to keep this server patched.</>,
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            dialog.confirm.open({
-              title: `Update ${server.name}?`,
-              description: `Apply ${updatesCount} pending OS package ${updatesCount === 1 ? 'update' : 'updates'} to this server? The upgrade can take several minutes and may briefly restart affected services. A server restart may be required afterwards.`,
-              confirmLabel: 'Update',
-              method: 'post',
-              url: route('servers.update', server.id),
-            })
-          }
-        >
-          Update
+        <Button variant="outline" size="sm" asChild className="cursor-pointer">
+          <Link href={route('servers.update', { server: server.id, start: 1 })}>
+            Update
+          </Link>
         </Button>
       ),
     });
   }
 
-  if (kernelUpdateWarning) {
+  if (kernelUpdateWarning && server.status !== 'updating') {
     const kernelCount = kernelUpdateWarning.count;
     items.push({
       key: 'kernel-update',
       title: `Kernel update available`,
       description: <>Install the pending kernel {kernelCount === 1 ? 'package' : 'packages'} and restart to apply the new kernel.</>,
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() =>
-            dialog.confirm.open({
-              title: `Update kernel on ${server.name}?`,
-              description: `This installs the pending kernel ${kernelCount === 1 ? 'package' : 'packages'} (a full upgrade that may install or remove packages), then restarts the server to boot the new kernel. The server will be unavailable for a minute or two and connections in flight will be dropped.`,
-              variant: 'destructive',
-              confirmLabel: 'Update & restart',
-              method: 'post',
-              url: route('servers.update-kernel', server.id),
-            })
-          }
-        >
-          Update &amp; restart
+        <Button variant="outline" size="sm" asChild className="cursor-pointer">
+          <Link href={route('servers.update', { server: server.id, type: 'kernel', start: 1 })}>
+            Update &amp; restart
+          </Link>
         </Button>
       ),
     });

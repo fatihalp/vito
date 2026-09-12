@@ -44,6 +44,13 @@ class SSHFake extends SSH
         return $this;
     }
 
+    public function setLog(?ServerLog $log): self
+    {
+        $this->log = $log;
+
+        return $this;
+    }
+
     public function connectionWillFail(): void
     {
         $this->connectionWillFail = true;

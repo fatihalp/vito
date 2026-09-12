@@ -48,9 +48,14 @@ class OS
     }
 
     
-    public function upgrade(): array
+    public function upgrade(?ServerLog $serverLog = null): array
     {
-        $result = $this->server->ssh()->exec(
+        $ssh = $this->server->ssh();
+        if ($serverLog instanceof ServerLog) {
+            $ssh->setLog($serverLog);
+        }
+
+        $result = $ssh->exec(
             view('ssh.os.upgrade'),
             'upgrade'
         );
@@ -62,9 +67,14 @@ class OS
     }
 
     
-    public function upgradeKernel(): void
+    public function upgradeKernel(?ServerLog $serverLog = null): void
     {
-        $this->server->ssh()->exec(
+        $ssh = $this->server->ssh();
+        if ($serverLog instanceof ServerLog) {
+            $ssh->setLog($serverLog);
+        }
+
+        $ssh->exec(
             view('ssh.os.upgrade-kernel'),
             'upgrade-kernel'
         );

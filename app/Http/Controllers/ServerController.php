@@ -14,6 +14,7 @@ use App\Actions\Server\StopServer;
 use App\Actions\Server\TransferServer;
 use App\Actions\Server\Update;
 use App\Actions\Server\UpdateKernel;
+use App\Enums\ServerStatus;
 use App\Http\Resources\ServerLogResource;
 use App\Http\Resources\ServerProviderResource;
 use App\Http\Resources\ServerResource;
@@ -201,14 +202,60 @@ class ServerController extends Controller
         return back()->with('info', $message);
     }
 
-    #[Post('/{server}/update', name: 'servers.update')]
-    public function update(Server $server): RedirectResponse
+    #[Get('/{server}/update', name: 'servers.update')]
+    public function update(Server $server): Response
+    {
+        $this->authorize('view', $server);
+
+        $latestLog = $server->logs()
+            ->whereIn('type', ['upgrade', 'upgrade-kernel'])
+            ->latest('id')
+            ->first();
+
+        return Inertia::render('servers/update', [
+            'server' => new ServerResource($server),
+            'initialLog' => $latestLog ? new ServerLogResource($latestLog) : null,
+        ]);
+    }
+
+    #[Post('/{server}/update/trigger', name: 'servers.update.trigger')]
+    public function triggerUpdate(Server $server, Request $request): JsonResponse
     {
         $this->authorize('update', $server);
 
-        app(Update::class)->update($server);
+        if ($server->status === ServerStatus::UPDATING) {
+            $latestLog = $server->logs()
+                ->whereIn('type', ['upgrade', 'upgrade-kernel'])
+                ->latest('id')
+                ->first();
 
-        return back()->with('info', 'Server is being updated. This may take a while.');
+            return response()->json([
+                'success' => true,
+                'already_running' => true,
+                'log' => $latestLog ? new ServerLogResource($latestLog) : null,
+            ]);
+        }
+
+        $type = $request->input('type', 'os');
+
+        if ($type === 'kernel') {
+            $log = app(UpdateKernel::class)->updateKernel($server);
+        } else {
+            $log = app(Update::class)->update($server);
+        }
+
+        return response()->json([
+            'success' => true,
+            'log' => new ServerLogResource($log),
+        ]);
+    }
+
+    #[Post('/{server}/update', name: 'servers.update.post')]
+    public function postUpdate(Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        return redirect()->route('servers.update', ['server' => $server->id, 'start' => 1]);
     }
 
     #[Post('/{server}/update-kernel', name: 'servers.update-kernel')]
@@ -216,9 +263,7 @@ class ServerController extends Controller
     {
         $this->authorize('update', $server);
 
-        app(UpdateKernel::class)->updateKernel($server);
-
-        return back()->with('info', 'Kernel is being updated and the server will restart.');
+        return redirect()->route('servers.update', ['server' => $server->id, 'type' => 'kernel', 'start' => 1]);
     }
 
     #[Post('/{server}/transfer', name: 'servers.transfer')]

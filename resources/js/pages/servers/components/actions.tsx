@@ -112,34 +112,20 @@ export default function ServerActions({ server }: { server: Server }) {
 
         <CheckForUpdates server={server} />
         <DropdownMenuItem
-          disabled={server.updates == 0}
-          onSelect={() =>
-            dialog.confirm.open({
-              title: `Update ${server.name}?`,
-              description: `Apply ${server.updates} pending OS package ${server.updates === 1 ? 'update' : 'updates'} to this server? The upgrade can take several minutes and may briefly restart affected services. A server restart may be required afterwards.`,
-              variant: 'destructive',
-              confirmLabel: 'Update',
-              method: 'post',
-              url: route('servers.update', server.id),
-            })
-          }
+          disabled={server.updates == 0 || server.status === 'updating'}
+          asChild
         >
-          Update packages
+          <Link href={route('servers.update', { server: server.id, start: 1 })} className="flex items-center w-full cursor-pointer">
+            Update packages
+          </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
-          disabled={server.kernel_updates == 0}
-          onSelect={() =>
-            dialog.confirm.open({
-              title: `Update kernel on ${server.name}?`,
-              description: `This installs the pending kernel ${server.kernel_updates === 1 ? 'package' : 'packages'} (a full upgrade that may install or remove packages), then restarts the server to boot the new kernel. The server will be unavailable for a minute or two and connections in flight will be dropped.`,
-              variant: 'destructive',
-              confirmLabel: 'Update & restart',
-              method: 'post',
-              url: route('servers.update-kernel', server.id),
-            })
-          }
+          disabled={server.kernel_updates == 0 || server.status === 'updating'}
+          asChild
         >
-          Update kernel
+          <Link href={route('servers.update', { server: server.id, type: 'kernel', start: 1 })} className="flex items-center w-full cursor-pointer">
+            Update kernel
+          </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

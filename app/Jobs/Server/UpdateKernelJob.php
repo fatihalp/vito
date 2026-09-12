@@ -18,12 +18,19 @@ class UpdateKernelJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected Server $server) {}
+    public function __construct(
+        protected Server $server,
+        protected ?ServerLog $log = null
+    ) {}
 
     public function handle(): void
     {
         $this->run("server-{$this->server->id}", function () {
-            $this->server->os()->upgradeKernel();
+            if ($this->log) {
+                $this->server->ssh()->setLog($this->log);
+            }
+
+            $this->server->os()->upgradeKernel($this->log);
             $this->server->checkConnection();
             $this->server->checkForUpdates();
             app(BroadcastServerUpdate::class)->broadcast($this->server);
@@ -36,6 +43,10 @@ class UpdateKernelJob implements ShouldQueue
         Notifier::send($this->server, new ServerUpdateFailed($this->server));
         $this->server->checkConnection();
         app(BroadcastServerUpdate::class)->broadcast($this->server);
+
+        if ($this->log) {
+            $this->log->write("\n[ERROR] Kernel update failed: {$e->getMessage()}\n");
+        }
 
         ServerLog::log(
             $this->server,

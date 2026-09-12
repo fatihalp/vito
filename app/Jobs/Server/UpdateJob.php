@@ -20,14 +20,24 @@ class UpdateJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected Server $server, protected bool $notify = false) {}
+    public function __construct(
+        protected Server $server,
+        protected bool $notify = false,
+        protected ?ServerLog $log = null
+    ) {}
 
     public function handle(): void
     {
         $this->run("server-{$this->server->id}", function () {
-            $result = $this->server->os()->upgrade();
+            if ($this->log) {
+                $this->server->ssh()->setLog($this->log);
+            }
+
+            $result = $this->server->os()->upgrade($this->log);
             $this->server->checkConnection();
             $this->server->checkForUpdates();
+            $this->server->status = \App\Enums\ServerStatus::READY;
+            $this->server->save();
             $kernelUpdatesRemaining = $this->server->kernel_updates;
             $this->broadcastServerUpdate();
 
@@ -47,6 +57,10 @@ class UpdateJob implements ShouldQueue
         Notifier::send($this->server, new ServerUpdateFailed($this->server));
         $this->server->checkConnection();
         $this->broadcastServerUpdate();
+
+        if ($this->log) {
+            $this->log->write("\n[ERROR] Update failed: {$e->getMessage()}\n");
+        }
 
         ServerLog::log(
             $this->server,
