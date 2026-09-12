@@ -3,18 +3,23 @@
 namespace App\SiteTypes;
 
 use App\Actions\CronJob\CreateCronJob;
+use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Worker\CreateWorker;
 use App\Exceptions\SSHCommandError;
 use App\Models\Site;
 use App\Models\SourceControl;
 use App\SSH\OS\Composer;
 use App\Tooling\ToolingRegistry;
+use App\Traits\NormalizesWebDirectory;
+use App\Traits\ParsesVitoLimits;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Throwable;
 
 class VitoSite extends PHPSite
 {
+    use NormalizesWebDirectory;
+    use ParsesVitoLimits;
     public static function id(): string
     {
         return 'vito';
@@ -126,6 +131,13 @@ class VitoSite extends PHPSite
 
         $vitoConfig = $input['vito_config'] ?? [];
 
+        if (is_array($vitoConfig)) {
+            $limits = $this->extractVitoLimits($vitoConfig);
+            if (! empty($limits)) {
+                $parentData['php'] = array_merge($parentData['php'] ?? [], $limits);
+            }
+        }
+
         return array_merge($parentData, [
             'vito_config' => $vitoConfig,
         ]);
@@ -173,16 +185,28 @@ class VitoSite extends PHPSite
             $this->applyDeploymentScript($commands);
         }
 
+        $this->setupLimits($config);
         $this->setupCronJobs($config['crons'] ?? []);
         $this->setupWorkers($config['workers'] ?? []);
     }
 
-    private function resolveVitoConfig(): array
+    private function setupLimits(array $config): void
     {
-        if (! empty($this->site->type_data['vito_config']) && is_array($this->site->type_data['vito_config'])) {
-            return $this->site->type_data['vito_config'];
+        $limits = $this->extractVitoLimits($config);
+        if (empty($limits)) {
+            return;
         }
 
+        try {
+            app(UpdatePHPSettings::class)->update($this->site, $limits);
+        } catch (Throwable $e) {
+            Log::warning("Failed to apply PHP/Nginx limits for site #{$this->site->id}: {$e->getMessage()}");
+        }
+    }
+
+    private function resolveVitoConfig(): array
+    {
+        $diskConfig = [];
         try {
             $sitePath = escapeshellarg($this->site->path);
             $output = trim($this->site->server->ssh($this->site->user)->exec(
@@ -192,11 +216,25 @@ class VitoSite extends PHPSite
             if (! empty($output)) {
                 $decoded = json_decode($output, true);
                 if (is_array($decoded)) {
-                    return $decoded;
+                    $diskConfig = $decoded;
                 }
             }
         } catch (Throwable $e) {
             Log::warning("Failed to read vito.json from server for site #{$this->site->id}: {$e->getMessage()}");
+        }
+
+        $typeDataConfig = $this->site->type_data['vito_config'] ?? [];
+        if (! is_array($typeDataConfig)) {
+            $typeDataConfig = [];
+        }
+
+        $merged = array_merge($typeDataConfig, $diskConfig);
+        if (! empty($merged)) {
+            if (! empty($diskConfig) && $merged !== $typeDataConfig) {
+                $this->site->jsonUpdate('type_data', 'vito_config', $merged);
+            }
+
+            return $merged;
         }
 
         return [];

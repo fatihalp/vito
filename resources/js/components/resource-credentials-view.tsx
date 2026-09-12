@@ -10,7 +10,7 @@ export const isSecretEnvKey = (key: string): boolean => {
 
 interface ResourceCredentialsViewProps {
   environment: Record<string, string>;
-  title?: string;
+  title?: string | null;
   subtitle?: string;
   type?: 'database' | 'cache' | 'storage' | 'websocket' | string;
   className?: string;
@@ -47,7 +47,6 @@ export default function ResourceCredentialsView({
       .catch(() => toast.error('Failed to copy to clipboard'));
   };
 
-  
   let deeplinkLabel: string | null = null;
   let deeplinkValue: string | null = null;
   let maskedDeeplinkValue: string | null = null;
@@ -87,52 +86,52 @@ export default function ResourceCredentialsView({
   };
 
   return (
-    <div className={cn('w-full min-w-0 space-y-4', className)}>
-      <div className="w-full min-w-0 space-y-2">
-        <div>
-          <h4 className="text-foreground text-sm font-semibold tracking-tight">{title}</h4>
-          {defaultSubtitle && <p className="text-muted-foreground text-xs">{defaultSubtitle}</p>}
-        </div>
+    <div className={cn('w-full min-w-0 space-y-2.5', className)}>
+      <div className="w-full min-w-0 space-y-1.5">
+        {title && (
+          <div>
+            <h4 className="text-foreground text-xs font-medium">{title}</h4>
+            {defaultSubtitle && <p className="text-muted-foreground text-xs">{defaultSubtitle}</p>}
+          </div>
+        )}
 
-        {}
-        <div className="relative w-full min-w-0 max-w-full overflow-hidden rounded-lg border bg-muted/40 p-4 font-mono text-xs md:text-sm">
-          {}
-          <div className="absolute top-3 right-3 z-10 flex items-center rounded-md border bg-background/95 p-0.5 shadow-xs backdrop-blur-sm">
+        <div className="relative w-full min-w-0 max-w-full overflow-hidden rounded-md border border-border/60 bg-muted/20 p-3 font-mono text-xs">
+          <div className="absolute top-2 right-2 z-10 flex items-center rounded border border-border/60 bg-background/80 p-0.5 backdrop-blur-xs">
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              className="size-6 text-muted-foreground hover:text-foreground"
               onClick={() => setMasked((m) => !m)}
               aria-label={masked ? 'Reveal secret values' : 'Hide secret values'}
               title={masked ? 'Reveal values' : 'Hide values'}
             >
-              {masked ? <EyeIcon className="size-3.5" /> : <EyeOffIcon className="size-3.5" />}
+              {masked ? <EyeIcon className="size-3" /> : <EyeOffIcon className="size-3" />}
             </Button>
-            <div className="mx-0.5 my-auto h-3.5 w-px bg-border" />
+            <div className="mx-0.5 my-auto h-3 w-px bg-border/60" />
             <Button
               type="button"
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-foreground"
+              className="size-6 text-muted-foreground hover:text-foreground"
               onClick={copyEnv}
               aria-label="Copy environment variables"
               title="Copy to clipboard"
             >
-              {copiedEnv ? <CheckIcon className="text-success size-3.5" /> : <CopyIcon className="size-3.5" />}
+              {copiedEnv ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
             </Button>
           </div>
 
-          <div className="w-full min-w-0 space-y-1 overflow-x-auto pr-20">
+          <div className="w-full min-w-0 space-y-1 overflow-x-auto pr-16">
             {envEntries.map(([key, value]) => {
               const isSecret = isSecretEnvKey(key);
               const displayValue = isSecret && masked ? '••••••••••••••••' : value;
 
               return (
                 <div key={key} className="flex items-baseline whitespace-nowrap">
-                  <span className="font-semibold text-purple-600 dark:text-purple-400">{key}</span>
-                  <span className="text-muted-foreground/60">=</span>
-                  <span className={cn('text-foreground', isSecret && masked && 'tracking-widest text-muted-foreground')}>
+                  <span className="font-medium text-foreground/80">{key}</span>
+                  <span className="text-muted-foreground/40 px-0.5 select-none">=</span>
+                  <span className={cn('text-foreground font-normal', isSecret && masked && 'tracking-widest text-muted-foreground/70')}>
                     {displayValue}
                   </span>
                 </div>
@@ -142,26 +141,27 @@ export default function ResourceCredentialsView({
         </div>
       </div>
 
-      {}
       {deeplinkLabel && deeplinkValue && (
-        <div className="w-full min-w-0 space-y-1.5">
-          <h5 className="text-foreground text-xs font-semibold">{deeplinkLabel}</h5>
-          <div className="flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-lg border bg-muted/40 px-3 py-2 font-mono text-xs">
-            <span className="min-w-0 flex-1 truncate text-muted-foreground">
+        <div className="flex w-full min-w-0 items-center justify-between gap-2 overflow-hidden rounded-md border border-border/60 bg-muted/20 px-3 py-1.5 font-mono text-xs">
+          <div className="min-w-0 flex items-center gap-2">
+            <span className="text-[10px] font-semibold tracking-wider text-muted-foreground uppercase select-none">
+              {deeplinkLabel}
+            </span>
+            <span className="min-w-0 truncate text-foreground/90">
               {masked ? maskedDeeplinkValue : deeplinkValue}
             </span>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 shrink-0 text-muted-foreground hover:text-foreground"
-              onClick={copyDeeplink}
-              aria-label={`Copy ${deeplinkLabel}`}
-              title="Copy"
-            >
-              {copiedDeeplink ? <CheckIcon className="text-success size-3.5" /> : <CopyIcon className="size-3.5" />}
-            </Button>
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="size-6 shrink-0 text-muted-foreground hover:text-foreground"
+            onClick={copyDeeplink}
+            aria-label={`Copy ${deeplinkLabel}`}
+            title="Copy"
+          >
+            {copiedDeeplink ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
+          </Button>
         </div>
       )}
     </div>

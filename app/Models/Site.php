@@ -407,7 +407,10 @@ class Site extends AbstractModel
     public function phpSettings(): array
     {
         return [
-            'max_upload_size' => $this->phpSetting('max_upload_size'),
+            'max_upload_size' => $this->phpSetting('client_max_body_size') ?? $this->phpSetting('upload_max_filesize') ?? $this->phpSetting('max_upload_size'),
+            'client_max_body_size' => $this->phpSetting('client_max_body_size'),
+            'upload_max_filesize' => $this->phpSetting('upload_max_filesize'),
+            'post_max_size' => $this->phpSetting('post_max_size'),
             'max_execution_time' => $this->phpSetting('max_execution_time'),
             'memory_limit' => $this->phpSetting('memory_limit'),
             'max_input_vars' => $this->phpSetting('max_input_vars'),

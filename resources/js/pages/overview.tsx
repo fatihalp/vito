@@ -19,6 +19,7 @@ import {
   EyeOffIcon,
   FolderGit2Icon,
   GlobeIcon,
+  LayersIcon,
   LayoutGridIcon,
   ListEndIcon,
   type LucideIcon,
@@ -115,6 +116,7 @@ function serverQuickLinks(server: OverviewServer, userId: number): QuickLink[] {
 
 const SITE_PAGE_META: Record<string, { label: string; routeName: string; icon: LucideIcon }> = {
   Application: { label: 'Application', routeName: 'application', icon: LayoutGridIcon },
+  Topology: { label: 'Topology', routeName: 'site-topology', icon: LayersIcon },
   Resources: { label: 'Resources', routeName: 'site-resources', icon: BoxIcon },
   Domains: { label: 'Domains', routeName: 'hosted-domains', icon: GlobeIcon },
   Commands: { label: 'Commands', routeName: 'commands', icon: TerminalIcon },

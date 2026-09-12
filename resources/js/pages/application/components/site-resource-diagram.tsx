@@ -44,6 +44,7 @@ interface SiteResourceDiagramProps {
   workersCount?: number;
   cronJobsCount?: number;
   domainProxyStatus?: Record<string, boolean>;
+  defaultOpen?: boolean;
 }
 
 export default function SiteResourceDiagram({
@@ -55,8 +56,9 @@ export default function SiteResourceDiagram({
   workersCount = 0,
   cronJobsCount = 0,
   domainProxyStatus = {},
+  defaultOpen = false,
 }: SiteResourceDiagramProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [selectedResource, setSelectedResource] = useState<SiteResource | null>(null);
   const [isDetailed, setIsDetailed] = useState(false);
   const [isEdgeDialogOpen, setIsEdgeDialogOpen] = useState(false);

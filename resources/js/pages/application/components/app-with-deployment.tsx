@@ -37,13 +37,9 @@ import SiteBanners from '@/components/site-banners';
 import ProxiedAppCard from '@/pages/application/components/proxied-app-card';
 import { Worker } from '@/types/worker';
 import { CronJob } from '@/types/cronjob';
-import { SiteResource } from '@/types/site-resource';
-import { HostedDomain } from '@/types/hosted-domain';
-import { DNSProvider } from '@/types/dns-provider';
-import SiteResourceDiagram from '@/pages/application/components/site-resource-diagram';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import DeploymentsTable from '@/pages/application/deployments/table';
-import { DeploymentsSkeleton, SiteResourceDiagramSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
+import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
 
 function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
   return (
@@ -92,10 +88,6 @@ export default function AppWithDeployment() {
     overviewWorkersCount: number;
     overviewCronJobs: CronJob[];
     overviewCronJobsCount: number;
-    resources?: SiteResource[];
-    hostedDomains?: HostedDomain[];
-    dnsProviders?: DNSProvider[];
-    domainProxyStatus?: Record<string, boolean>;
   }>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
   const [showDetails, setShowDetails] = useState(false);
@@ -106,19 +98,6 @@ export default function AppWithDeployment() {
 
       <Container className="max-w-7xl gap-6">
         {site.status === 'installation_failed' && <SiteBanners site={site} />}
-
-        <Deferred data={['resources', 'hostedDomains', 'dnsProviders', 'domainProxyStatus']} fallback={<SiteResourceDiagramSkeleton />}>
-          <SiteResourceDiagram
-            server={page.props.server}
-            site={site}
-            resources={page.props.resources || []}
-            hostedDomains={page.props.hostedDomains || []}
-            dnsProviders={page.props.dnsProviders || []}
-            workersCount={page.props.overviewWorkersCount}
-            cronJobsCount={page.props.overviewCronJobsCount}
-            domainProxyStatus={page.props.domainProxyStatus || {}}
-          />
-        </Deferred>
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="flex min-w-0 flex-col gap-6">

@@ -18,8 +18,22 @@ import type { Site } from '@/types/site';
 import type { SiteResource, SiteResourceServerOption } from '@/types/site-resource';
 import type { StorageProvider } from '@/types/storage-provider';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { DatabaseIcon, ExternalLinkIcon, EyeIcon, HardDriveIcon, InfoIcon, LayersIcon, LoaderCircleIcon, PlusIcon, TrashIcon } from 'lucide-react';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  CopyIcon,
+  DatabaseIcon,
+  ExternalLinkIcon,
+  EyeIcon,
+  HardDriveIcon,
+  InfoIcon,
+  LayersIcon,
+  LoaderCircleIcon,
+  PlusIcon,
+  TrashIcon,
+} from 'lucide-react';
 import { type FormEvent, useEffect, useState } from 'react';
+import { toast } from 'sonner';
 
 type ResourceType = SiteResource['type_value'];
 
@@ -59,6 +73,10 @@ export default function SiteResources() {
     storage_provider_id: '',
     confirm_overwrite: false,
   });
+
+  const [collapsedIds, setCollapsedIds] = useState<Record<number, boolean>>({});
+  const [showConnect, setShowConnect] = useState(page.props.resources.length === 0);
+
   const selectedDefinition = resourceTypes.find((type) => type.value === form.data.type);
   const hasServiceForType = (server: (typeof page.props.servers)[number]) =>
     form.data.type === 'database' ? server.has_database : form.data.type === 'cache' ? server.has_cache : false;
@@ -101,6 +119,7 @@ export default function SiteResources() {
       preserveScroll: true,
       onSuccess: () => {
         form.reset();
+        setShowConnect(false);
       },
       onError: (errors) => {
         form.setError(errors as Record<string, string>);
@@ -178,6 +197,54 @@ export default function SiteResources() {
     installForm.post(route('services.store', { server: page.props.server.id }), { preserveScroll: true });
   };
 
+  const toggleExpanded = (id: number) => {
+    setCollapsedIds((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  const getResourceTitle = (resource: SiteResource) => {
+    if (resource.type_value === 'database') {
+      const conn = resource.environment?.DB_CONNECTION;
+      if (conn === 'pgsql' || conn === 'postgresql') return 'PostgreSQL Database';
+      if (conn === 'mysql') return 'MySQL Database';
+      if (conn === 'mariadb') return 'MariaDB Database';
+      return 'Database';
+    }
+    if (resource.type_value === 'cache') {
+      return 'Redis Cache';
+    }
+    if (resource.type_value === 'storage') {
+      return resource.storage_provider?.name ?? 'Storage';
+    }
+    return resource.type;
+  };
+
+  const getResourceSubtitle = (resource: SiteResource) => {
+    if (resource.server) {
+      return `${resource.server.name} · ${resource.server.ip}`;
+    }
+    if (resource.storage_provider) {
+      return `${resource.storage_provider.provider.toUpperCase()} · Object Storage`;
+    }
+    return 'Connected resource';
+  };
+
+  const copyEnv = (resource: SiteResource) => {
+    if (!resource.environment || Object.keys(resource.environment).length === 0) {
+      toast.error('No environment variables to copy');
+      return;
+    }
+    const text = Object.entries(resource.environment)
+      .map(([k, v]) => `${k}=${v}`)
+      .join('\n');
+    navigator.clipboard
+      .writeText(text)
+      .then(() => toast.success(`${getResourceTitle(resource)} environment variables copied`))
+      .catch(() => toast.error('Failed to copy to clipboard'));
+  };
+
   const resourcesCount = page.props.resources?.length ?? page.props.site.counts?.resources;
 
   return (
@@ -186,17 +253,30 @@ export default function SiteResources() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title={`Resources${typeof resourcesCount === 'number' && resourcesCount > 0 ? ` (${resourcesCount})` : ''}`} />
-          {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
+          <div className="flex items-center gap-2">
+            {availableTypes.length > 0 && (
+              <Button
+                variant={showConnect ? 'secondary' : 'default'}
+                size="sm"
+                onClick={() => setShowConnect((prev) => !prev)}
+              >
+                <PlusIcon className="mr-1 size-3.5" />
+                {showConnect ? 'Close' : 'Connect resource'}
+              </Button>
+            )}
+            {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
+          </div>
         </HeaderContainer>
 
         {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Connect a resource</CardTitle>
-          </CardHeader>
-          <CardContent className="p-4">
-            {availableTypes.length > 0 ? (
+        {showConnect && availableTypes.length > 0 && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Connect a resource</CardTitle>
+              <CardDescription>Link a database, cache server, or storage provider to this site.</CardDescription>
+            </CardHeader>
+            <CardContent className="p-4 pt-0">
               <form onSubmit={submit} className="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
                 <div className="grid gap-2">
                   <Label htmlFor="resource-type">Resource type</Label>
@@ -279,7 +359,7 @@ export default function SiteResources() {
                       <span>No storage providers found. Connect a storage provider in Settings first.</span>
                       <Button size="sm" variant="outline" asChild>
                         <Link href={route('storage-providers')}>
-                          <ExternalLinkIcon className="size-3.5 mr-1" />
+                          <ExternalLinkIcon className="mr-1 size-3.5" />
                           Storage Providers
                         </Link>
                       </Button>
@@ -313,57 +393,84 @@ export default function SiteResources() {
                   </Alert>
                 )}
               </form>
-            ) : (
-              <p className="text-muted-foreground text-sm">All supported resource types are connected.</p>
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
-        <div className="flex w-full flex-col gap-6">
+        <div className="flex w-full flex-col gap-3">
           {page.props.resources.map((resource) => {
             const ResourceIcon = typeIcon(resource.type_value);
-            const target = resource.server?.name ?? resource.storage_provider?.name ?? 'Unavailable resource';
-            const targetDetail = resource.server
-              ? `${resource.server.role} · ${resource.server.ip}`
-              : resource.storage_provider
-                ? `${resource.storage_provider.provider.toUpperCase()} · ${resource.storage_provider.name}`
-                : 'The connected resource is no longer available';
+            const title = getResourceTitle(resource);
+            const subtitle = getResourceSubtitle(resource);
+            const isExpanded = !collapsedIds[resource.id];
+            const hasEnv = resource.environment && Object.keys(resource.environment).length > 0;
 
             return (
-              <Card key={resource.id} className="w-full min-w-0">
-                <CardHeader className="flex-row items-start justify-between gap-4">
-                  <div className="flex min-w-0 items-start gap-3">
-                    <div className="bg-muted flex size-9 shrink-0 items-center justify-center rounded-md">
-                      <ResourceIcon className="size-4" />
+              <Card key={resource.id} className="w-full min-w-0 transition-shadow">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between p-4 gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="bg-muted/60 text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg">
+                      <ResourceIcon className="size-4.5" />
                     </div>
-                    <div className="min-w-0 space-y-1.5">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <CardTitle className="truncate">{target}</CardTitle>
-                        <Badge variant={resource.type_color}>{resource.type}</Badge>
-                        <Badge variant={resource.status_color}>{resource.status}</Badge>
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-medium text-sm text-foreground truncate">{title}</span>
+                        <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
+                          {resource.type}
+                        </Badge>
+                        {resource.status !== 'ready' && (
+                          <Badge variant={resource.status_color}>
+                            {resource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
+                            {resource.status}
+                          </Badge>
+                        )}
                       </div>
-                      <CardDescription className="truncate">{targetDetail}</CardDescription>
+                      <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-1">
+
+                  <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
+                    {hasEnv && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-xs gap-1.5"
+                        onClick={() => copyEnv(resource)}
+                        title="Copy environment variables to clipboard"
+                      >
+                        <CopyIcon className="size-3.5" />
+                        <span>Copy .env</span>
+                      </Button>
+                    )}
+
+                    {hasEnv && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 text-xs gap-1 text-muted-foreground hover:text-foreground"
+                        onClick={() => toggleExpanded(resource.id)}
+                        title={isExpanded ? 'Hide credentials' : 'View credentials'}
+                      >
+                        {isExpanded ? (
+                          <>
+                            <ChevronUpIcon className="size-3.5" />
+                            <span>Hide</span>
+                          </>
+                        ) : (
+                          <>
+                            <ChevronDownIcon className="size-3.5" />
+                            <span>Credentials</span>
+                          </>
+                        )}
+                      </Button>
+                    )}
+
                     <Button
                       variant="ghost"
                       size="icon"
-                      aria-label={`View credentials for ${target}`}
-                      onClick={() =>
-                        dialog.siteResourceReveal.open({
-                          serverId: page.props.server.id,
-                          siteId: page.props.site.id,
-                          resource,
-                        })
-                      }
-                    >
-                      <EyeIcon className="size-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
+                      className="size-8 text-muted-foreground hover:text-destructive"
                       aria-label={`Disconnect ${resource.type}`}
+                      title="Disconnect"
                       onClick={() =>
                         dialog.confirm.open({
                           title: `Disconnect ${resource.type}?`,
@@ -382,32 +489,33 @@ export default function SiteResources() {
                         })
                       }
                     >
-                      <TrashIcon />
+                      <TrashIcon className="size-3.5" />
                     </Button>
                   </div>
-                </CardHeader>
-                <CardContent className="grid gap-4 p-5 pt-0">
-                  {resource.environment && Object.keys(resource.environment).length > 0 ? (
+                </div>
+
+                {isExpanded && resource.environment && Object.keys(resource.environment).length > 0 && (
+                  <div className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                     <ResourceCredentialsView
                       environment={resource.environment}
                       type={resource.type_value}
+                      title={null}
                     />
-                  ) : (
-                    <div className="flex flex-wrap gap-1.5">
-                      {resource.environment_keys.map((key) => (
-                        <Badge key={key} variant="outline" className="font-mono">{key}</Badge>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
+                  </div>
+                )}
               </Card>
             );
           })}
         </div>
 
-        {page.props.resources.length === 0 && (
+        {page.props.resources.length === 0 && !showConnect && (
           <Card>
-            <CardContent className="text-muted-foreground flex min-h-32 items-center justify-center p-6 text-sm">No resources connected.</CardContent>
+            <CardContent className="text-muted-foreground flex flex-col items-center justify-center gap-2 p-8 text-sm">
+              <p>No resources connected yet.</p>
+              <Button size="sm" onClick={() => setShowConnect(true)}>
+                <PlusIcon className="mr-1 size-3.5" /> Connect resource
+              </Button>
+            </CardContent>
           </Card>
         )}
       </Container>

@@ -4,7 +4,7 @@ namespace App\Traits;
 
 trait NormalizesWebDirectory
 {
-    private function normalizeWebDirectory(?string $webDirectory): ?string
+    protected function normalizeWebDirectory(?string $webDirectory): ?string
     {
         if (empty($webDirectory)) {
             return null;

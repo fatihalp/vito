@@ -176,7 +176,7 @@ abstract class AbstractGenerateConfig
             'php_socket' => $isPhp ? $this->buildPhpSocket($site) : '',
             'php_value' => $phpValueString !== '',
             'php_value_string' => $phpValueString,
-            'php_max_upload_size' => $phpEnabled ? $this->phpSetting($site, 'max_upload_size') : null,
+            'php_max_upload_size' => $phpEnabled ? ($this->phpSetting($site, 'client_max_body_size') ?? $this->phpSetting($site, 'upload_max_filesize') ?? $this->phpSetting($site, 'max_upload_size')) : null,
             'php_max_execution_time' => $phpEnabled ? $this->phpSetting($site, 'max_execution_time') : null,
             'port' => $site->port,
             'redirects' => $this->buildRedirects($site),
@@ -234,10 +234,11 @@ abstract class AbstractGenerateConfig
     {
         $directives = [];
 
-        $upload = $this->phpSetting($site, 'max_upload_size');
+        $upload = $this->phpSetting($site, 'upload_max_filesize') ?? $this->phpSetting($site, 'max_upload_size');
+        $post = $this->phpSetting($site, 'post_max_size') ?? $upload;
         if ($upload !== null) {
             $directives[] = "upload_max_filesize={$upload}M";
-            $directives[] = "post_max_size={$upload}M";
+            $directives[] = "post_max_size={$post}M";
         }
 
         $execution = $this->phpSetting($site, 'max_execution_time');

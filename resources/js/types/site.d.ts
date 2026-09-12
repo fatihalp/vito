@@ -24,6 +24,9 @@ export interface Site {
   php_version: string;
   php_settings: {
     max_upload_size: number | null;
+    client_max_body_size?: number | null;
+    upload_max_filesize?: number | null;
+    post_max_size?: number | null;
     max_execution_time: number | null;
     memory_limit: number | null;
     max_input_vars: number | null;

@@ -3,9 +3,12 @@
 namespace App\Actions\SourceControl;
 
 use App\Models\SourceControl;
+use App\Traits\ParsesVitoLimits;
 
 class GetRepoVitoConfig
 {
+    use ParsesVitoLimits;
+
     /**
      * @return array{
      *     exists: bool,
@@ -95,6 +98,8 @@ class GetRepoVitoConfig
             }
         }
 
+        $limits = $this->extractVitoLimits($config);
+
         return [
             'name' => isset($config['name']) && is_string($config['name']) ? $config['name'] : null,
             'type' => isset($config['type']) && is_string($config['type']) ? $config['type'] : 'laravel',
@@ -105,6 +110,7 @@ class GetRepoVitoConfig
             'commands' => $commands,
             'crons' => $crons,
             'workers' => $workers,
+            'limits' => ! empty($limits) ? $limits : null,
             'environment' => $config['environment'] ?? ($config['env'] ?? null),
             'database' => $config['database'] ?? null,
         ];

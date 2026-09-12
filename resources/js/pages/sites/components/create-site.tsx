@@ -47,6 +47,13 @@ type VitoConfigData = {
   workers?: Array<{ name: string; command: string; numprocs?: number }>;
   environment?: Record<string, string> | string | null;
   database?: any;
+  limits?: {
+    client_max_body_size?: string | number;
+    upload_max_filesize?: string | number;
+    post_max_size?: string | number;
+    memory_limit?: string | number;
+    max_execution_time?: string | number;
+  };
 };
 
 type VitoDetectionResult = {

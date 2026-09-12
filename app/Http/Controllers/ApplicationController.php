@@ -6,7 +6,6 @@ use App\Actions\Site\Deploy;
 use App\Actions\Site\GetEnv;
 use App\Actions\Site\GetSiteOverview;
 use App\Actions\Site\ParseEnv;
-use App\Actions\Site\ResolveDomainProxyStatuses;
 use App\Actions\Site\Rollback;
 use App\Actions\Site\StringifyEnv;
 use App\Actions\Site\UpdateDeploymentScript;
@@ -14,16 +13,12 @@ use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
 use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\DeploymentResource;
-use App\Http\Resources\DNSProviderResource;
-use App\Http\Resources\HostedDomainResource;
 use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
-use App\Http\Resources\SiteResourceResource;
 use App\Http\Resources\WorkerResource;
 use App\Actions\Domain\ToggleDomainProxy;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
-use App\Models\DNSProvider;
 use App\Models\Server;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
@@ -77,15 +72,6 @@ class ApplicationController extends Controller
             'overviewWorkersCount' => Inertia::defer(fn () => $getOverview()['workers_count'], 'overview'),
             'overviewCronJobs' => Inertia::defer(fn () => CronJobResource::collection($getOverview()['cron_jobs']), 'overview'),
             'overviewCronJobsCount' => Inertia::defer(fn () => $getOverview()['cron_jobs_count'], 'overview'),
-            'resources' => Inertia::defer(fn () => SiteResourceResource::collection($site->resources()->with(['server', 'storageProvider'])->get()), 'diagram'),
-            'hostedDomains' => Inertia::defer(fn () => HostedDomainResource::collection($site->hostedDomains()->with('ssl')->get()), 'diagram'),
-            'dnsProviders' => Inertia::defer(function () {
-                $user = user();
-                return DNSProviderResource::collection(
-                    DNSProvider::getByProjectId($user->current_project_id, $user)->where('connected', true)->get()
-                );
-            }, 'diagram'),
-            'domainProxyStatus' => Inertia::defer(fn () => app(ResolveDomainProxyStatuses::class)->resolve($site), 'diagram'),
         ]);
     }
 

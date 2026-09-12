@@ -28,6 +28,7 @@ function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
 
   return [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
+    { title: 'Topology', href: route('site-topology', routeParams) },
     { title: 'Resources', href: route('site-resources', routeParams), count: site.counts?.resources ?? 0 },
     { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts?.domains ?? 0 },
     { title: 'Commands', href: route('commands', routeParams), count: site.counts?.commands ?? 0 },
