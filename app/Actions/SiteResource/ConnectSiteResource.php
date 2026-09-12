@@ -396,11 +396,6 @@ class ConnectSiteResource
             $handler->deleteUser($user->username, $user->host);
             $user->delete();
         }
-
-        if ($database) {
-            $handler->delete($database->name);
-            $database->delete();
-        }
     }
 
     private function getSiteEnvMap(Site $site): array

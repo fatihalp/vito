@@ -10,6 +10,7 @@ import { useEffect } from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ConnectSshDialog from './connect-ssh-dialog';
+import ServerActions from './actions';
 
 export default function ServerHeader({ server: initialServer }: { server: Server }) {
   const server = useRealtimeRecord<Server>(initialServer, 'server')!;
@@ -85,6 +86,13 @@ export default function ServerHeader({ server: initialServer }: { server: Server
             <span>Server IP</span>
           </TooltipContent>
         </Tooltip>
+        {!['installing', 'installation_failed'].includes(server.status) && (
+          <ServerActions
+            server={server}
+            variant="outline"
+            className="h-6 text-[11px] gap-1 px-2 cursor-pointer text-muted-foreground hover:text-foreground"
+          />
+        )}
         {['installing', 'installation_failed'].includes(server.status) && (
           <>
             <SlashIcon className="size-3" />

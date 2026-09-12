@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
   ArrowLeftIcon,
@@ -7,9 +7,7 @@ import {
   CopyIcon,
   DownloadIcon,
   LoaderCircleIcon,
-  PackageIcon,
   RefreshCwIcon,
-  ServerIcon,
   TerminalIcon,
   Trash2Icon,
   XCircleIcon,
@@ -39,11 +37,9 @@ export default function ServerUpdate() {
   });
   const [updateType, setUpdateType] = useState<'os' | 'kernel'>('os');
   const [isTriggering, setIsTriggering] = useState<boolean>(false);
-  const [justCompleted, setJustCompleted] = useState<boolean>(false);
   const [triggerError, setTriggerError] = useState<string | null>(null);
   const [isCleared, setIsCleared] = useState<boolean>(false);
 
-  const previousStatusRef = useRef<string>(server.status);
   const terminalEndRef = useRef<HTMLDivElement>(null);
   const { copied, copy } = useClipboard();
 
@@ -57,13 +53,6 @@ export default function ServerUpdate() {
   const rebootRequired = (server.warnings ?? []).some((w) => w.key === 'reboot_required');
 
   useEffect(() => {
-    if (previousStatusRef.current === 'updating' && server.status === 'ready') {
-      setJustCompleted(true);
-    }
-    previousStatusRef.current = server.status;
-  }, [server.status]);
-
-  useEffect(() => {
     terminalEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [content, isUpdating]);
 
@@ -73,7 +62,6 @@ export default function ServerUpdate() {
 
       setIsTriggering(true);
       setTriggerError(null);
-      setJustCompleted(false);
       setIsCleared(false);
       setUpdateType(type);
 
@@ -130,116 +118,56 @@ export default function ServerUpdate() {
       <Head title={`Update Packages - ${server.name}`} />
 
       <Container className="max-w-5xl space-y-3.5 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2.5">
-            <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 cursor-pointer">
-              <Link href={route('servers.show', { server: server.id })}>
-                <ArrowLeftIcon className="size-3.5" />
-                <span>Server</span>
-              </Link>
-            </Button>
-            <div className="h-4 w-px bg-border/60" />
-            <div className="flex items-center gap-2">
-              <ServerIcon className="size-4 text-muted-foreground" />
-              <h1 className="text-sm font-semibold text-foreground tracking-tight">
-                {server.name}
-              </h1>
-              <span className="font-mono text-xs text-muted-foreground">({server.ip})</span>
-            </div>
-          </div>
+        <div className="flex items-center justify-between">
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
+            <Link href={route('servers.show', { server: server.id })}>
+              <ArrowLeftIcon className="size-3.5" />
+              <span>Overview</span>
+            </Link>
+          </Button>
 
-          <div className="flex items-center gap-2">
+          <div>
             {isUpdating ? (
-              <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs animate-pulse">
+              <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
                 <LoaderCircleIcon className="size-3.5 animate-spin" />
-                Updating {updateType === 'kernel' ? 'Kernel' : 'Packages'}...
-              </Badge>
-            ) : justCompleted || server.updates === 0 ? (
-              <Badge variant="success" className="gap-1.5 px-2.5 py-1 text-xs">
-                <CheckCircle2Icon className="size-3.5" />
-                Up to Date
+                <span>Updating {updateType === 'kernel' ? 'kernel' : 'packages'}...</span>
               </Badge>
             ) : server.updates > 0 ? (
               <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
-                <PackageIcon className="size-3.5" />
                 {server.updates} {server.updates === 1 ? 'update' : 'updates'} available
               </Badge>
             ) : (
-              <Badge variant="gray" className="gap-1.5 px-2.5 py-1 text-xs">
-                {server.status}
+              <Badge variant="outline" className="gap-1.5 px-2.5 py-1 text-xs text-emerald-600 border-emerald-500/30 dark:text-emerald-400">
+                <CheckCircle2Icon className="size-3 text-emerald-500" />
+                <span>Up to date</span>
               </Badge>
-            )}
-
-            {!isUpdating && (
-              <Button size="sm" asChild className="h-8 gap-1.5 cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Link href={route('servers.show', { server: server.id })}>
-                  <CheckCircle2Icon className="size-3.5" />
-                  <span>Return to Overview</span>
-                </Link>
-              </Button>
             )}
           </div>
         </div>
 
-        {justCompleted && !isUpdating && (
-          <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3.5 text-xs text-emerald-600 dark:text-emerald-400 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <CheckCircle2Icon className="size-5 shrink-0 text-emerald-500" />
-              <div>
-                <p className="font-semibold text-sm">Package update completed successfully!</p>
-                <p className="text-muted-foreground text-xs mt-0.5">
-                  Operating system packages have been upgraded to their latest versions.
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 text-xs cursor-pointer border-emerald-500/40 text-emerald-600 hover:bg-emerald-500/20"
-                onClick={() => triggerUpdate('os')}
-              >
-                <RefreshCwIcon className="size-3 mr-1.5" />
-                Update Again
-              </Button>
-              <Button size="sm" asChild className="h-7 text-xs cursor-pointer bg-emerald-600 hover:bg-emerald-700 text-white">
-                <Link href={route('servers.show', { server: server.id })}>
-                  Server Overview
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-
         {rebootRequired && !isUpdating && (
-          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 text-xs text-amber-700 dark:text-amber-400 shadow-2xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <RefreshCwIcon className="size-5 shrink-0 text-amber-500" />
-              <div>
-                <p className="font-semibold text-sm">Server restart required</p>
-                <p className="text-muted-foreground text-xs mt-0.5">
-                  A kernel or critical system library was updated. Restart the server to complete the upgrade.
-                </p>
-              </div>
+          <div className="flex items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3.5 py-2.5 text-xs text-amber-700 dark:text-amber-300">
+            <div className="flex items-center gap-2 min-w-0">
+              <RefreshCwIcon className="size-4 shrink-0 text-amber-500" />
+              <span className="truncate">A restart is required to apply kernel or core system updates.</span>
             </div>
-            <Button size="sm" asChild className="h-7 text-xs cursor-pointer bg-amber-600 hover:bg-amber-700 text-white shrink-0">
+            <Button size="sm" asChild className="h-7 text-xs shrink-0 cursor-pointer" variant="outline">
               <Link href={route('servers.restart', { server: server.id, start: 1 })}>
-                <RefreshCwIcon className="size-3 mr-1.5" />
-                Restart Server Now
+                Restart server
               </Link>
             </Button>
           </div>
         )}
 
         {triggerError && (
-          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3.5 text-xs text-rose-600 dark:text-rose-400 shadow-2xs flex items-center gap-2.5">
-            <XCircleIcon className="size-5 shrink-0 text-rose-500" />
-            <p className="font-medium text-xs">{triggerError}</p>
+          <div className="rounded-lg border border-rose-500/30 bg-rose-500/10 p-3 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+            <XCircleIcon className="size-4 shrink-0 text-rose-500" />
+            <p className="font-medium">{triggerError}</p>
           </div>
         )}
 
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-border/50 bg-card px-3.5 py-2 text-xs shadow-2xs">
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-lg border border-border/50 bg-card px-3.5 py-2 text-xs">
+          <div className="flex items-center gap-2 flex-wrap">
             <Button
               size="sm"
               disabled={isUpdating}
@@ -252,12 +180,12 @@ export default function ServerUpdate() {
               {isUpdating ? (
                 <>
                   <LoaderCircleIcon className="size-3.5 animate-spin" />
-                  <span>Updating Packages...</span>
+                  <span>Updating...</span>
                 </>
               ) : (
                 <>
-                  <PackageIcon className="size-3.5" />
-                  <span>{server.updates > 0 ? `Update ${server.updates} Packages` : 'Update Packages'}</span>
+                  <RefreshCwIcon className="size-3.5" />
+                  <span>{server.updates > 0 ? `Update ${server.updates} packages` : 'Update packages'}</span>
                 </>
               )}
             </Button>
@@ -271,7 +199,7 @@ export default function ServerUpdate() {
                 className="h-7.5 text-xs gap-1.5 cursor-pointer border-amber-500/40 text-amber-600 hover:bg-amber-500/10"
               >
                 <RefreshCwIcon className="size-3" />
-                <span>Update Kernel &amp; Restart</span>
+                <span>Update kernel &amp; restart</span>
               </Button>
             )}
 
@@ -288,12 +216,12 @@ export default function ServerUpdate() {
                 as="button"
               >
                 <RefreshCwIcon className="size-3" />
-                <span>Check for Updates</span>
+                <span>Check for updates</span>
               </Link>
             </Button>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1">
             {activeLogId > 0 && (
               <Button
                 variant="ghost"
@@ -335,29 +263,22 @@ export default function ServerUpdate() {
           </div>
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-border/60 bg-neutral-950 text-neutral-100 shadow-lg">
+        <div className="overflow-hidden rounded-lg border border-border/60 bg-neutral-950 text-neutral-100">
           <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/90 px-3.5 py-2 select-none">
             <div className="flex items-center gap-2">
-              <div className="flex items-center gap-1.5">
-                <div className="size-2.5 rounded-full bg-red-500/80" />
-                <div className="size-2.5 rounded-full bg-yellow-500/80" />
-                <div className="size-2.5 rounded-full bg-green-500/80" />
-              </div>
-              <span className="font-mono text-[11px] text-neutral-400 ml-2">
-                terminal — {server.ssh_user || 'root'}@{server.ip}
+              <TerminalIcon className="size-3.5 text-neutral-500" />
+              <span className="font-mono text-xs text-neutral-400">
+                {server.ssh_user || 'root'}@{server.ip}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[11px] font-mono text-neutral-400">
-              <TerminalIcon className="size-3.5 text-neutral-500" />
-              <span>bash (apt)</span>
-            </div>
+            <span className="text-[11px] font-mono text-neutral-500">apt</span>
           </div>
 
           <div className="h-[480px] overflow-y-auto p-4 font-mono text-xs leading-relaxed select-text">
             {isLoading && (
               <div className="flex items-center gap-2 text-neutral-400">
                 <LoaderCircleIcon className="size-3.5 animate-spin shrink-0" />
-                <span>Loading output logs...</span>
+                <span>Loading logs...</span>
               </div>
             )}
 
@@ -370,15 +291,15 @@ export default function ServerUpdate() {
             {!isLoading && !logError && !content && isUpdating && (
               <div className="flex items-center gap-2 text-amber-400/90">
                 <LoaderCircleIcon className="size-3.5 animate-spin shrink-0" />
-                <span>Connecting to server and waiting for package manager output...</span>
+                <span>Connecting to server and running update...</span>
               </div>
             )}
 
             {!isLoading && !logError && !content && !isUpdating && (
               <div className="text-neutral-500">
                 {server.updates > 0
-                  ? `${server.updates} package updates available. Click "Update Packages" above to apply them.`
-                  : 'Ready. No package updates currently pending.'}
+                  ? `${server.updates} package updates available. Click "Update packages" to apply.`
+                  : 'Ready. No package updates pending.'}
               </div>
             )}
 

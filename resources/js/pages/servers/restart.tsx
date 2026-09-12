@@ -136,95 +136,88 @@ export default function ServerRestart() {
     <ServerLayout>
       <Head title={`Restart Server - ${server.name}`} />
 
-      <Container className="max-w-xl space-y-4 py-8">
+      <Container className="max-w-md space-y-4 py-8">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2">
+          <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
             <Link href={route('servers.show', { server: server.id })}>
               <ArrowLeftIcon className="size-3.5" />
               <span>Overview</span>
             </Link>
           </Button>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-medium text-foreground">{server.name}</span>
-            <span className="text-xs font-mono text-muted-foreground">({server.ip})</span>
+          <div>
+            {phase === 'online' ? (
+              <Badge variant="outline" className="gap-1 text-xs text-emerald-600 border-emerald-500/30 dark:text-emerald-400">
+                <CheckCircle2Icon className="size-3 text-emerald-500" />
+                <span>Online</span>
+              </Badge>
+            ) : phase === 'probing' || phase === 'rebooting' ? (
+              <Badge variant="warning" className="gap-1.5 text-xs">
+                <LoaderCircleIcon className="size-3 animate-spin" />
+                <span>Restarting...</span>
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="text-xs">
+                {server.status}
+              </Badge>
+            )}
           </div>
         </div>
 
         <Card className="border-border/60 bg-card shadow-2xs">
-          <CardContent className="flex flex-col items-center justify-center text-center p-8 sm:p-10 space-y-5">
+          <CardContent className="flex flex-col items-center justify-center text-center p-6 space-y-4">
             {phase === 'online' ? (
-              <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
-                <CheckCircle2Icon className="size-7" />
+              <div className="flex size-10 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                <CheckCircle2Icon className="size-5" />
               </div>
             ) : phase === 'probing' || phase === 'rebooting' ? (
-              <div className="flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
-                <LoaderCircleIcon className="size-7 animate-spin" />
+              <div className="flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+                <LoaderCircleIcon className="size-5 animate-spin" />
               </div>
             ) : (
-              <div className="flex size-14 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                <RefreshCwIcon className="size-7" />
+              <div className="flex size-10 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <RefreshCwIcon className="size-5" />
               </div>
             )}
 
-            <div className="space-y-1 max-w-sm">
-              <h2 className="text-base font-semibold tracking-tight text-foreground">
+            <div className="space-y-1">
+              <h2 className="text-sm font-semibold text-foreground">
                 {phase === 'online'
                   ? 'Server is back online'
                   : phase === 'probing' || phase === 'rebooting'
                   ? 'Restarting server...'
-                  : `Restart ${server.name}`}
+                  : 'Restart server'}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {phase === 'online'
                   ? uptime
-                    ? `System is ready (${uptime}).`
-                    : 'SSH connection re-established and system is ready.'
+                    ? `System is responsive (${uptime}).`
+                    : 'SSH connection re-established.'
                   : phase === 'probing' || phase === 'rebooting'
-                  ? 'Waiting for the server to reboot. It will reconnect automatically.'
-                  : 'Rebooting will temporarily disconnect the server and reload system services.'}
+                  ? probeAttempt > 0
+                    ? `Reconnecting (attempt #${probeAttempt})...`
+                    : 'Waiting for server to reconnect...'
+                  : 'Reboot the system and reload all running services.'}
               </p>
             </div>
 
-            {(phase === 'probing' || phase === 'rebooting') && probeAttempt > 0 && (
-              <Badge variant="outline" className="text-[11px] font-normal text-muted-foreground gap-1.5 py-0.5">
-                <span className="size-1.5 rounded-full bg-amber-500 animate-pulse" />
-                Reconnecting (attempt #{probeAttempt})
-              </Badge>
-            )}
-
-            <div className="flex flex-wrap items-center justify-center gap-2.5 pt-1">
-              {phase === 'online' ? (
-                <>
-                  <Button asChild size="sm" className="gap-1.5 cursor-pointer">
-                    <Link href={route('servers.show', { server: server.id })}>
-                      Return to Overview
-                    </Link>
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={triggerReboot} className="cursor-pointer">
-                    Restart again
-                  </Button>
-                </>
-              ) : phase === 'probing' || phase === 'rebooting' ? (
-                <Button variant="outline" size="sm" asChild className="cursor-pointer">
+            {phase === 'online' ? (
+              <div className="flex items-center gap-2 pt-1">
+                <Button asChild size="sm" className="h-7.5 text-xs cursor-pointer">
                   <Link href={route('servers.show', { server: server.id })}>
-                    Return to Overview
+                    Return to overview
                   </Link>
                 </Button>
-              ) : (
-                <>
-                  <Button size="sm" onClick={triggerReboot} className="gap-1.5 cursor-pointer">
-                    <PowerIcon className="size-3.5" />
-                    Restart Server
-                  </Button>
-                  <Button variant="outline" size="sm" asChild className="cursor-pointer">
-                    <Link href={route('servers.show', { server: server.id })}>
-                      Cancel
-                    </Link>
-                  </Button>
-                </>
-              )}
-            </div>
+                <Button variant="outline" size="sm" onClick={triggerReboot} className="h-7.5 text-xs cursor-pointer">
+                  Restart again
+                </Button>
+              </div>
+            ) : phase === 'idle' ? (
+              <Button size="sm" onClick={triggerReboot} className="gap-1.5 cursor-pointer h-7.5 text-xs">
+                <PowerIcon className="size-3.5" />
+                <span>Restart server</span>
+              </Button>
+            ) : null}
           </CardContent>
         </Card>
 
@@ -247,12 +240,6 @@ export default function ServerRestart() {
                     <span className="text-foreground">{m.text}</span>
                   </div>
                 ))}
-                {(phase === 'probing' || phase === 'rebooting') && (
-                  <div className="flex items-center gap-1.5 text-amber-500 pt-0.5">
-                    <LoaderCircleIcon className="size-3 animate-spin shrink-0" />
-                    <span>Checking connection...</span>
-                  </div>
-                )}
               </div>
             )}
           </div>

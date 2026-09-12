@@ -47,7 +47,19 @@ function CheckConnection({ server }: { server: Server }) {
   );
 }
 
-export default function ServerActions({ server }: { server: Server }) {
+interface ServerActionsProps {
+  server: Server;
+  variant?: 'outline' | 'ghost' | 'secondary' | 'default';
+  size?: 'sm' | 'default' | 'lg' | 'icon';
+  className?: string;
+}
+
+export default function ServerActions({
+  server,
+  variant = 'outline',
+  size = 'sm',
+  className,
+}: ServerActionsProps) {
   const dialog = useDialog();
   const canPowerManage = server.can_power_manage === true;
   const isDisconnected = server.status === 'disconnected';
@@ -55,9 +67,9 @@ export default function ServerActions({ server }: { server: Server }) {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          <MoreVerticalIcon className="size-4" />
-          Server actions
+        <Button variant={variant} size={size} className={className ?? 'gap-1 cursor-pointer'}>
+          <MoreVerticalIcon className="size-3 text-muted-foreground" />
+          <span>Server actions</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">

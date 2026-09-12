@@ -6,15 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';
-import ServerActions from '@/pages/servers/components/actions';
 import ServerSetupGuide from '@/pages/servers/components/server-setup-guide';
 import CreateSite from '@/pages/sites/components/create-site';
-import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 import { SharedData } from '@/types';
 import type { Server } from '@/types/server';
 import type { SecurityScore } from '@/types/security';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ArrowRightIcon, ExternalLinkIcon, GlobeIcon, LogsIcon, PlusIcon } from 'lucide-react';
+import { ArrowRightIcon, ExternalLinkIcon, GlobeIcon, PlusIcon } from 'lucide-react';
 import { useCallback, useEffect, useState } from 'react';
 import { useSocketListener } from '@/hooks/use-socket-events';
 import { type OverviewSite, useOverviewResources } from '@/hooks/use-overview-resources';
@@ -60,16 +58,6 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
   return (
     <Container className="max-w-5xl space-y-5">
       <ServerBanners server={server} />
-
-      <div className="flex items-center gap-2">
-        <InstantLogs server={server}>
-          <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer">
-            <LogsIcon className="size-3.5" />
-            Logs
-          </Button>
-        </InstantLogs>
-        <ServerActions server={server} />
-      </div>
 
       <MetricsCards server={server} />
 
