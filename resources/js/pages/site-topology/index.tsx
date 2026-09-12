@@ -49,7 +49,7 @@ export default function SiteTopology() {
           workersCount={page.props.overviewWorkersCount}
           cronJobsCount={page.props.overviewCronJobsCount}
           domainProxyStatus={page.props.domainProxyStatus || {}}
-          defaultOpen={true}
+          collapsible={false}
         />
       </Container>
     </ServerLayout>

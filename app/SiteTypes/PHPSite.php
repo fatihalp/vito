@@ -144,22 +144,17 @@ class PHPSite extends AbstractSiteType
     
     public function install(): void
     {
-        $this->progress(0, 'isolating-user');
-        $this->isolate();
-        $this->progress(15, 'installing-tooling');
-        $this->setupRequestedTooling();
-        $this->progress(20, 'creating-vhost');
-        $this->site->webserver()->createVHost($this->site);
-        $this->progress(25, 'deploying-ssh-key');
-        $this->deployKey();
-        $this->progress(40, 'cloning-repository');
-        $this->cloneRepository();
-        $this->progress(60, 'restarting-php');
-        $this->site->php()?->restart();
-        $this->progress(75, 'installing-composer-dependencies');
-        if ($this->site->type_data['composer']) {
-            $this->installComposerDependencies();
-        }
+        $this->step('isolating-user', 0, fn () => $this->isolate());
+        $this->step('installing-tooling', 15, fn () => $this->setupRequestedTooling());
+        $this->step('creating-vhost', 20, fn () => $this->site->webserver()->createVHost($this->site));
+        $this->step('deploying-ssh-key', 25, fn () => $this->deployKey());
+        $this->step('cloning-repository', 40, fn () => $this->cloneRepository());
+        $this->step('restarting-php', 60, fn () => $this->site->php()?->restart());
+        $this->step('installing-composer-dependencies', 75, function () {
+            if ($this->site->type_data['composer'] ?? true) {
+                $this->installComposerDependencies();
+            }
+        });
         $this->progress(90, 'finishing');
     }
 

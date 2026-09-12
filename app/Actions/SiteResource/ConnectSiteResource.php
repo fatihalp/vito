@@ -37,7 +37,7 @@ class ConnectSiteResource
     {
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
         $projectId = $site->server->project_id;
-        $user = auth()->user() ?? (function_exists('user') ? user() : null);
+        $user = auth()->user();
         $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
 
         $validator = Validator::make($input, [
@@ -136,7 +136,7 @@ class ConnectSiteResource
 
         $existingDb = ! empty($options['database_id'])
             ? Database::where('server_id', $server->id)->find($options['database_id'])
-            : null;
+            : (! empty($options['database_name']) ? Database::where('server_id', $server->id)->where('name', $options['database_name'])->first() : null);
 
         $name = $existingDb ? $existingDb->name : (! empty($options['database_name']) ? $options['database_name'] : 'site_'.$site->id);
         $username = 'site_'.$site->id.'_'.Str::lower(Str::random(6));

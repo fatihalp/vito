@@ -128,8 +128,11 @@ function InstallationFailedBanner({ site }: { site: Site }) {
 }
 
 export function getSiteWarningItems(site: Site): BannerItem[] {
-  const installing = site.status === 'installing';
-  const warnings: SiteWarning[] = installing ? [] : (site.warnings ?? []);
+  if (site.status !== 'ready') {
+    return [];
+  }
+
+  const warnings: SiteWarning[] = site.warnings ?? [];
 
   const pendingDomainsWarning = warnings.find((w) => w.key === 'pending_domains');
   const sslDisabledWarning = warnings.find((w) => w.key === 'ssl_disabled');

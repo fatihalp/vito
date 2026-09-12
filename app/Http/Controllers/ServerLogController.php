@@ -15,6 +15,7 @@ use App\Http\Resources\ServerLogResource;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Models\Site;
+use App\Support\LogCleaner;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -131,7 +132,7 @@ class ServerLogController extends Controller
     {
         $this->authorize('view', $log);
 
-        return $log->getContent();
+        return LogCleaner::clean($log->getContent());
     }
 
     

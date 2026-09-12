@@ -1,14 +1,43 @@
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { ReactNode, useRef, useEffect, useState } from 'react';
+import React, { ReactNode, useRef, useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowDown, ClockArrowDownIcon } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import { parseAnsi } from '@/lib/ansi';
+
+function formatLogNode(node: ReactNode): ReactNode {
+  if (node === null || node === undefined || typeof node === 'boolean') {
+    return null;
+  }
+  if (typeof node === 'string') {
+    return parseAnsi(node);
+  }
+  if (typeof node === 'number') {
+    return node;
+  }
+  if (Array.isArray(node)) {
+    return node.map((child, index) => (
+      <React.Fragment key={index}>{formatLogNode(child)}</React.Fragment>
+    ));
+  }
+  if (React.isValidElement(node)) {
+    const props = node.props as { children?: ReactNode };
+    if (props && 'children' in props) {
+      return React.cloneElement(node, undefined, formatLogNode(props.children));
+    }
+  }
+  return node;
+}
 
 export default function LogOutput({ className, children }: { className?: string; children: ReactNode }) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(false);
+
+  const formattedContent = useMemo(() => {
+    return formatLogNode(children);
+  }, [children]);
 
   useEffect(() => {
     if (autoScroll && endRef.current) {
@@ -29,7 +58,7 @@ export default function LogOutput({ className, children }: { className?: string;
           className,
         )}
       >
-        <div>{children}</div>
+        <div>{formattedContent}</div>
         <div ref={endRef} />
         <ScrollBar orientation="vertical" />
       </ScrollArea>

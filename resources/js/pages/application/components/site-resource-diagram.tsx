@@ -45,6 +45,7 @@ interface SiteResourceDiagramProps {
   cronJobsCount?: number;
   domainProxyStatus?: Record<string, boolean>;
   defaultOpen?: boolean;
+  collapsible?: boolean;
 }
 
 export default function SiteResourceDiagram({
@@ -57,8 +58,9 @@ export default function SiteResourceDiagram({
   cronJobsCount = 0,
   domainProxyStatus = {},
   defaultOpen = false,
+  collapsible = false,
 }: SiteResourceDiagramProps) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = useState(collapsible ? defaultOpen : true);
   const [selectedResource, setSelectedResource] = useState<SiteResource | null>(null);
   const [isDetailed, setIsDetailed] = useState(false);
   const [isEdgeDialogOpen, setIsEdgeDialogOpen] = useState(false);
@@ -115,75 +117,92 @@ export default function SiteResourceDiagram({
 
   const regionLabel = server.provider || 'Host Infrastructure';
 
+  const badges = (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
+        <span
+          className={cn(
+            'size-1.5 rounded-full',
+            isPrimaryProxied
+              ? 'bg-emerald-500'
+              : hasCloudflare
+              ? 'bg-amber-500/80'
+              : anyConnectedDns
+              ? 'bg-muted-foreground/50'
+              : 'bg-muted-foreground/40',
+          )}
+        />
+        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare') : anyConnectedDns ? 'DNS' : 'Direct'}
+      </span>
+
+      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40 font-mono">
+        <span className="size-1.5 rounded-full bg-emerald-500" />
+        {site.php_version ? `PHP ${site.php_version}` : site.type}
+      </span>
+
+      {attachedResourcesCount > 0 && (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
+          <DatabaseIcon className="size-2.5" />
+          {attachedResourcesCount} {attachedResourcesCount === 1 ? 'resource' : 'resources'}
+        </span>
+      )}
+
+      {(workersCount > 0 || cronJobsCount > 0) && (
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
+          <Layers3Icon className="size-2.5" />
+          {workersCount > 0 && `${workersCount}w`}
+          {workersCount > 0 && cronJobsCount > 0 && ' · '}
+          {cronJobsCount > 0 && `${cronJobsCount}c`}
+        </span>
+      )}
+    </div>
+  );
+
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="w-full">
+    <Collapsible open={collapsible ? isOpen : true} onOpenChange={collapsible ? setIsOpen : undefined} className="w-full">
       <Card ref={containerRef} className="relative overflow-hidden border-border/60 shadow-xs transition-all duration-200">
         <div
           className={cn(
             'flex flex-wrap sm:flex-nowrap items-center justify-between gap-3 px-4 py-2.5 transition-colors',
-            isOpen ? 'border-b bg-muted/20' : 'hover:bg-muted/10',
+            !collapsible || isOpen ? 'border-b bg-muted/20' : 'hover:bg-muted/10',
           )}
         >
-          <CollapsibleTrigger asChild>
-            <button
-              type="button"
-              className="flex min-w-0 flex-1 items-center gap-2.5 text-left group cursor-pointer"
-            >
-              <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-foreground/80 group-hover:border-border group-hover:bg-muted/70 transition-colors">
+          {collapsible ? (
+            <CollapsibleTrigger asChild>
+              <button
+                type="button"
+                className="flex min-w-0 flex-1 items-center gap-2.5 text-left group cursor-pointer"
+              >
+                <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-foreground/80 group-hover:border-border group-hover:bg-muted/70 transition-colors">
+                  <LayersIcon className="size-3.5" />
+                </div>
+                <div className="flex flex-wrap items-center gap-2 min-w-0">
+                  <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                    Infrastructure Topology
+                  </span>
+                  {badges}
+                </div>
+                <ChevronDownIcon
+                  className={cn('size-4 text-muted-foreground transition-transform duration-200 ml-auto sm:ml-0 shrink-0', isOpen && 'rotate-180')}
+                />
+              </button>
+            </CollapsibleTrigger>
+          ) : (
+            <div className="flex min-w-0 flex-1 items-center gap-2.5 text-left">
+              <div className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border/60 bg-muted/40 text-foreground/80">
                 <LayersIcon className="size-3.5" />
               </div>
               <div className="flex flex-wrap items-center gap-2 min-w-0">
-                <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">
+                <span className="text-sm font-semibold text-foreground">
                   Infrastructure Topology
                 </span>
-
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
-                    <span
-                      className={cn(
-                        'size-1.5 rounded-full',
-                        isPrimaryProxied
-                          ? 'bg-emerald-500'
-                          : hasCloudflare
-                          ? 'bg-amber-500/80'
-                          : anyConnectedDns
-                          ? 'bg-muted-foreground/50'
-                          : 'bg-muted-foreground/40',
-                      )}
-                    />
-                    {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare') : anyConnectedDns ? 'DNS' : 'Direct'}
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40 font-mono">
-                    <span className="size-1.5 rounded-full bg-emerald-500" />
-                    {site.php_version ? `PHP ${site.php_version}` : site.type}
-                  </span>
-
-                  {attachedResourcesCount > 0 && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
-                      <DatabaseIcon className="size-2.5" />
-                      {attachedResourcesCount} {attachedResourcesCount === 1 ? 'resource' : 'resources'}
-                    </span>
-                  )}
-
-                  {(workersCount > 0 || cronJobsCount > 0) && (
-                    <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
-                      <Layers3Icon className="size-2.5" />
-                      {workersCount > 0 && `${workersCount}w`}
-                      {workersCount > 0 && cronJobsCount > 0 && ' · '}
-                      {cronJobsCount > 0 && `${cronJobsCount}c`}
-                    </span>
-                  )}
-                </div>
+                {badges}
               </div>
-              <ChevronDownIcon
-                className={cn('size-4 text-muted-foreground transition-transform duration-200 ml-auto sm:ml-0 shrink-0', isOpen && 'rotate-180')}
-              />
-            </button>
-          </CollapsibleTrigger>
+            </div>
+          )}
 
           <div className="flex items-center gap-1.5 shrink-0 ml-auto sm:ml-0">
-            {isOpen && (
+            {(!collapsible || isOpen) && (
               <Button
                 type="button"
                 variant="ghost"

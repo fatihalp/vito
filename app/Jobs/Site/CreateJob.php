@@ -42,6 +42,9 @@ class CreateJob implements ShouldQueue
             $this->site->progress = 100;
             $this->site->progress_step = null;
             $this->site->last_error = null;
+            $this->site->jsonForget('type_data', 'completed_steps', false);
+            $this->site->jsonForget('type_data', 'completed_install_commands', false);
+            $this->site->jsonForget('type_data', 'completed_deploy_commands', false);
             $this->site->save();
             $this->broadcastSiteUpdate();
             Notifier::send($this->site, new SiteInstallationSucceed($this->site));

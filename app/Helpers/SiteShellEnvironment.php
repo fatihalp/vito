@@ -10,11 +10,17 @@ final class SiteShellEnvironment
     
     public static function collect(Site $site): array
     {
-        if (! $site->isolatedUser || $site->user === '' || $site->user === null) {
+        $user = $site->user;
+        if ($user === '' || $user === null) {
             return [];
         }
 
-        $paths = [];
+        $home = home_path($user);
+        $vitoBin = $home.'/.local/vito/bin';
+        $localBin = $home.'/.local/bin';
+
+        $paths = [$vitoBin, $localBin];
+
         foreach (ToolingRegistry::all() as $tool) {
             if ($tool->installedVersion($site) === null) {
                 continue;
@@ -26,13 +32,14 @@ final class SiteShellEnvironment
             }
         }
 
-        if ($paths === []) {
-            return [];
+        $systemPaths = ['/usr/local/sbin', '/usr/local/bin', '/usr/sbin', '/usr/bin', '/sbin', '/bin'];
+        foreach ($systemPaths as $sysPath) {
+            if (! in_array($sysPath, $paths, true)) {
+                $paths[] = $sysPath;
+            }
         }
 
-        $base = "/usr/local/bin:/usr/bin:/bin:/home/{$site->user}/.local/bin";
-
-        return ['PATH' => implode(':', $paths).':'.$base];
+        return ['PATH' => implode(':', $paths)];
     }
 
     public static function wrap(Site $site, string $command, bool $cdToSitePath = false): string

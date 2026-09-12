@@ -55,12 +55,8 @@ class LoadBalancer extends AbstractSiteType
     
     public function install(): void
     {
-        $this->progress(0, 'isolating-user');
-        $this->isolate();
-
-        $this->progress(50, 'creating-vhost');
-        $this->site->webserver()->createVHost($this->site);
-
+        $this->step('isolating-user', 0, fn () => $this->isolate());
+        $this->step('creating-vhost', 50, fn () => $this->site->webserver()->createVHost($this->site));
         $this->progress(90, 'finishing');
     }
 

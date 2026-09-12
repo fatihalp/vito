@@ -54,14 +54,10 @@ class PHPBlank extends PHPSite
     
     public function install(): void
     {
-        $this->progress(0, 'isolating-user');
-        $this->isolate();
-        $this->progress(15, 'installing-tooling');
-        $this->setupRequestedTooling();
-        $this->progress(25, 'creating-vhost');
-        $this->site->webserver()->createVHost($this->site);
-        $this->progress(55, 'restarting-php');
-        $this->site->php()?->restart();
+        $this->step('isolating-user', 0, fn () => $this->isolate());
+        $this->step('installing-tooling', 15, fn () => $this->setupRequestedTooling());
+        $this->step('creating-vhost', 25, fn () => $this->site->webserver()->createVHost($this->site));
+        $this->step('restarting-php', 55, fn () => $this->site->php()?->restart());
         $this->progress(90, 'finishing');
     }
 

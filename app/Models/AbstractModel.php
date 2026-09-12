@@ -12,7 +12,10 @@ abstract class AbstractModel extends Model
 
     public function jsonUpdate(string $field, string $key, mixed $value, bool $save = true): void
     {
-        $current = $this->{$field};
+        $current = $this->{$field} ?? [];
+        if (! is_array($current)) {
+            $current = [];
+        }
         $current[$key] = $value;
         $this->{$field} = $current;
         if ($save) {

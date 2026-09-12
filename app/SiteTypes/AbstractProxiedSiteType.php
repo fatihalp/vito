@@ -114,16 +114,11 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
     
     public function install(): void
     {
-        $this->progress(0, 'isolating-user');
-        $this->isolate();
-        $this->progress(20, 'installing-tooling');
-        $this->setupRequestedTooling();
-        $this->progress(40, 'creating-vhost');
-        $this->site->webserver()->createVHost($this->site);
-        $this->progress(55, 'deploying-ssh-key');
-        $this->deployKey();
-        $this->progress(75, 'cloning-repository');
-        $this->cloneRepository();
+        $this->step('isolating-user', 0, fn () => $this->isolate());
+        $this->step('installing-tooling', 20, fn () => $this->setupRequestedTooling());
+        $this->step('creating-vhost', 40, fn () => $this->site->webserver()->createVHost($this->site));
+        $this->step('deploying-ssh-key', 55, fn () => $this->deployKey());
+        $this->step('cloning-repository', 75, fn () => $this->cloneRepository());
         $this->progress(90, 'finishing');
     }
 

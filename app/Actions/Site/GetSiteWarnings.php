@@ -4,6 +4,7 @@ namespace App\Actions\Site;
 
 use App\Enums\DeploymentStatus;
 use App\Enums\HostedDomainStatus;
+use App\Enums\SiteStatus;
 use App\Enums\SslStatus;
 use App\Enums\WorkerStatus;
 use App\Models\Site;
@@ -15,6 +16,10 @@ class GetSiteWarnings
 
     public function get(Site $site): array
     {
+        if ($site->status !== SiteStatus::READY) {
+            return [];
+        }
+
         $warnings = [];
 
         $hostedDomains = $site->relationLoaded('hostedDomains') ? $site->hostedDomains : collect();

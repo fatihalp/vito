@@ -6,15 +6,21 @@ use App\Actions\CronJob\CreateCronJob;
 use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Worker\CreateWorker;
 use App\DTOs\SocketEventDTO;
+use App\Actions\SiteResource\ConnectSiteResource;
 use App\Enums\DeploymentStatus;
+use App\Enums\SiteResourceType;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHCommandError;
+use App\Helpers\EnvParser;
 use App\Http\Resources\DeploymentResource;
 use App\Models\Deployment;
 use App\Models\ServerLog;
 use App\Models\Site;
 use App\Models\SourceControl;
 use App\SSH\OS\Composer;
+use App\SSH\OS\Git;
+use App\Tooling\ComposerTooling;
+use App\Tooling\SiteToolingState;
 use App\Tooling\ToolingRegistry;
 use App\Traits\NormalizesWebDirectory;
 use App\Traits\ParsesVitoLimits;
@@ -151,39 +157,27 @@ class VitoSite extends PHPSite
 
     public function install(): void
     {
-        $this->progress(0, 'isolating-user');
-        $this->isolate();
-
-        $this->progress(15, 'installing-tooling');
-        $this->setupRequestedTooling();
-
-        $this->progress(20, 'creating-vhost');
-        $this->site->webserver()->createVHost($this->site);
-
-        $this->progress(25, 'deploying-ssh-key');
-        $this->deployKey();
-
-        $this->progress(40, 'cloning-repository');
-        $this->cloneRepository();
-
-        $this->progress(60, 'restarting-php');
-        $this->site->php()?->restart();
-
-        $this->progress(70, 'running-auto-install');
-        $this->runAutoInstall();
+        $this->step('isolating-user', 0, fn () => $this->isolate());
+        $this->step('installing-tooling', 15, fn () => $this->setupRequestedTooling());
+        $this->step('creating-vhost', 20, fn () => $this->site->webserver()->createVHost($this->site));
+        $this->step('deploying-ssh-key', 25, fn () => $this->deployKey());
+        $this->step('cloning-repository', 40, fn () => $this->cloneRepository());
+        $this->step('restarting-php', 60, fn () => $this->site->php()?->restart());
+        $this->step('running-auto-install', 70, fn () => $this->runAutoInstall());
 
         $this->progress(100, 'finishing');
     }
 
     protected function runAutoInstall(): void
     {
-        $config = $this->resolveVitoConfig();
+        $config = $this->resolveVitoConfig(refreshFromDisk: true);
 
         if (empty($config)) {
             return;
         }
 
         $this->ensureEnvironmentFile($config);
+        $this->setupDatabase($config);
 
         $commands = $config['commands'] ?? [];
         if (! empty($commands)) {
@@ -200,6 +194,71 @@ class VitoSite extends PHPSite
         $this->setupWorkers($config['workers'] ?? []);
     }
 
+    private function setupDatabase(array $config): void
+    {
+        $server = $this->site->server;
+        $service = $server->database();
+        if (! $service) {
+            return;
+        }
+
+        if ($this->site->resources()->where('type', SiteResourceType::DATABASE->value)->exists()) {
+            return;
+        }
+
+        $dbConfig = $config['database'] ?? null;
+        if ($dbConfig === false || $dbConfig === 'none') {
+            return;
+        }
+
+        $commands = array_merge($config['install_commands'] ?? [], $config['commands'] ?? []);
+        $hasMigrate = false;
+        foreach ($commands as $cmd) {
+            if (is_string($cmd) && (str_contains($cmd, 'migrate') || str_contains($cmd, 'alobot:install') || str_contains($cmd, 'db:seed'))) {
+                $hasMigrate = true;
+                break;
+            }
+        }
+
+        $isLaravel = ($config['type'] ?? '') === 'laravel';
+        if (! $dbConfig && ! $hasMigrate && ! $isLaravel) {
+            return;
+        }
+
+        $dbName = is_string($dbConfig) && trim($dbConfig) !== ''
+            ? trim($dbConfig)
+            : (is_array($dbConfig) && ! empty($dbConfig['name']) ? trim($dbConfig['name']) : ($this->detectDatabaseNameFromEnv() ?? 'site_'.$this->site->id));
+
+        $dbName = preg_replace('/[^a-zA-Z0-9_]/', '_', $dbName);
+
+        try {
+            app(ConnectSiteResource::class)->connect($this->site, [
+                'type' => SiteResourceType::DATABASE->value,
+                'server_id' => $server->id,
+                'database_name' => $dbName,
+                'confirm_overwrite' => true,
+            ]);
+        } catch (Throwable $e) {
+            Log::warning("Failed to auto-provision database for site #{$this->site->id}: {$e->getMessage()}");
+        }
+    }
+
+    private function detectDatabaseNameFromEnv(): ?string
+    {
+        try {
+            $path = $this->site->resolveEnvPath();
+            $raw = $this->site->getEnv($path);
+            $parsed = EnvParser::parse($raw);
+            $dbName = $parsed['DB_DATABASE']['value'] ?? null;
+            if (is_string($dbName) && trim($dbName) !== '' && ! in_array(trim($dbName), ['laravel', 'forge', 'database', ''], true)) {
+                return trim($dbName);
+            }
+        } catch (Throwable) {
+        }
+
+        return null;
+    }
+
     private function setupLimits(array $config): void
     {
         $limits = $this->extractVitoLimits($config);
@@ -214,11 +273,38 @@ class VitoSite extends PHPSite
         }
     }
 
-    private function resolveVitoConfig(): array
+    private ?array $resolvedVitoConfig = null;
+
+    private function resolveVitoConfig(bool $refreshFromDisk = false): array
     {
+        if (! $refreshFromDisk && $this->resolvedVitoConfig !== null) {
+            return $this->resolvedVitoConfig;
+        }
+
+        $typeDataConfig = $this->site->type_data['vito_config'] ?? [];
+        if (! is_array($typeDataConfig)) {
+            $typeDataConfig = [];
+        }
+
+        if (! $refreshFromDisk) {
+            return $this->resolvedVitoConfig = $typeDataConfig;
+        }
+
         $diskConfig = [];
         try {
             $sitePath = escapeshellarg($this->site->path);
+
+            if ($this->repositoryAlreadyCloned()) {
+                try {
+                    app(Git::class)->fetchOrigin($this->site);
+                    app(Git::class)->checkout($this->site);
+                    $this->site->server->ssh($this->site->user)->exec(
+                        "cd {$sitePath} && git reset --hard origin/".escapeshellarg((string) $this->site->branch)
+                    );
+                } catch (Throwable) {
+                }
+            }
+
             $output = trim($this->site->server->ssh($this->site->user)->exec(
                 "if [ -f {$sitePath}/vito.json ]; then cat {$sitePath}/vito.json; elif [ -f {$sitePath}/.vito.json ]; then cat {$sitePath}/.vito.json; fi"
             ));
@@ -233,21 +319,16 @@ class VitoSite extends PHPSite
             Log::warning("Failed to read vito.json from server for site #{$this->site->id}: {$e->getMessage()}");
         }
 
-        $typeDataConfig = $this->site->type_data['vito_config'] ?? [];
-        if (! is_array($typeDataConfig)) {
-            $typeDataConfig = [];
-        }
-
-        $merged = array_merge($typeDataConfig, $diskConfig);
+        $merged = ! empty($diskConfig) ? array_replace($typeDataConfig, $diskConfig) : $typeDataConfig;
         if (! empty($merged)) {
             if (! empty($diskConfig) && $merged !== $typeDataConfig) {
                 $this->site->jsonUpdate('type_data', 'vito_config', $merged);
             }
 
-            return $merged;
+            return $this->resolvedVitoConfig = $merged;
         }
 
-        return [];
+        return $this->resolvedVitoConfig = [];
     }
 
     private function ensureEnvironmentFile(array $config): void
@@ -308,12 +389,43 @@ class VitoSite extends PHPSite
             Log::warning("Could not create initial deployment for site #{$this->site->id}: {$e->getMessage()}");
         }
 
+        $hasComposer = false;
+        foreach (array_merge($installCommands, $commands) as $cmd) {
+            if (is_string($cmd) && str_contains($cmd, 'composer')) {
+                $hasComposer = true;
+                break;
+            }
+        }
+
+        if ($hasComposer) {
+            $this->ensureComposer($log);
+        }
+
         $sitePath = escapeshellarg($this->site->path);
 
         try {
             if (! empty($installCommands)) {
                 $log->write("=== Running Install Commands ===\n");
-                $this->runCommandList($installCommands, $sitePath, $log);
+                $completedInstall = $this->site->type_data['completed_install_commands'] ?? [];
+                if (! is_array($completedInstall)) {
+                    $completedInstall = [];
+                }
+
+                foreach ($installCommands as $command) {
+                    if (! is_string($command) || trim($command) === '') {
+                        continue;
+                    }
+
+                    if (in_array($command, $completedInstall, true)) {
+                        $log->write("\n$ {$command} (already completed, skipped)\n");
+                        continue;
+                    }
+
+                    $this->runSingleCommand($command, $sitePath, $log);
+
+                    $completedInstall[] = $command;
+                    $this->site->jsonUpdate('type_data', 'completed_install_commands', array_values($completedInstall));
+                }
             }
 
             if (! empty($commands)) {
@@ -351,23 +463,79 @@ class VitoSite extends PHPSite
         }
     }
 
+    private function ensureComposer(ServerLog $log): void
+    {
+        try {
+            $check = trim($this->site->server->ssh($this->site->user)->exec(
+                'which composer 2>/dev/null || [ -f ~/.local/vito/bin/composer ] && echo "FOUND" || echo "NOT_FOUND"'
+            ));
+
+            if (! str_contains($check, 'FOUND') && ! str_contains($check, 'composer')) {
+                $log->write("Composer not found. Installing Composer...\n");
+                app(ComposerTooling::class)->install($this->site, '2');
+                SiteToolingState::completeInstall($this->site, 'composer', '2');
+                $log->write("Composer installed successfully.\n\n");
+            }
+        } catch (Throwable $e) {
+            Log::warning("Could not verify/install Composer for site #{$this->site->id}: {$e->getMessage()}");
+        }
+    }
+
     private function runCommandList(array $commands, string $sitePath, ServerLog $log): void
     {
+        $completedDeploy = $this->site->type_data['completed_deploy_commands'] ?? [];
+        if (! is_array($completedDeploy)) {
+            $completedDeploy = [];
+        }
+
         foreach ($commands as $command) {
             if (! is_string($command) || trim($command) === '') {
                 continue;
             }
 
-            $log->write("\n$ {$command}\n");
+            if (in_array($command, $completedDeploy, true)) {
+                $log->write("\n$ {$command} (already completed, skipped)\n");
+                continue;
+            }
 
-            $ssh = $this->site->server->ssh($this->site->user);
-            $ssh->setLog($log);
+            $this->runSingleCommand($command, $sitePath, $log);
 
-            $ssh->exec(
-                "cd {$sitePath} && {$command}",
-                'install-commands',
-                $this->site->id
-            );
+            $completedDeploy[] = $command;
+            $this->site->jsonUpdate('type_data', 'completed_deploy_commands', array_values($completedDeploy));
+        }
+    }
+
+    private function runSingleCommand(string $command, string $sitePath, ServerLog $log): void
+    {
+        $variables = array_merge(
+            $this->site->environmentVariables(),
+            $this->deploymentEnvironment(),
+        );
+
+        $aliases = $this->site->environmentAliases();
+        $aliasPrefix = "shopt -s expand_aliases\n";
+        foreach ($aliases as $key => $alias) {
+            $aliasPrefix .= sprintf("alias %s=%s\n", $key, escapeshellarg((string) $alias));
+        }
+
+        $log->write("\n$ {$command}\n");
+
+        $isSudo = str_starts_with(trim($command), 'sudo ');
+        $ssh = $isSudo ? $this->site->server->ssh() : $this->site->server->ssh($this->site->user);
+        $ssh->setLog($log);
+        $ssh->variables($variables);
+
+        $ssh->exec(
+            "{$aliasPrefix}cd {$sitePath} && {$command}",
+            'install-commands',
+            $this->site->id
+        );
+
+        if ($isSudo) {
+            try {
+                $this->site->server->ssh()->exec("sudo chown -R {$this->site->user}:{$this->site->user} {$sitePath}");
+            } catch (Throwable) {
+            }
         }
     }
 

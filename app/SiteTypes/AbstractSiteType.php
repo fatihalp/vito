@@ -131,6 +131,37 @@ abstract class AbstractSiteType implements SiteType
         ));
     }
 
+    public function isStepCompleted(string $step): bool
+    {
+        $completed = $this->site->type_data['completed_steps'] ?? [];
+
+        return is_array($completed) && in_array($step, $completed, true);
+    }
+
+    public function completeStep(string $step): void
+    {
+        $completed = $this->site->type_data['completed_steps'] ?? [];
+        if (! is_array($completed)) {
+            $completed = [];
+        }
+
+        if (! in_array($step, $completed, true)) {
+            $completed[] = $step;
+            $this->site->jsonUpdate('type_data', 'completed_steps', array_values($completed));
+        }
+    }
+
+    protected function step(string $step, int $percentage, callable $callback): void
+    {
+        if ($this->isStepCompleted($step)) {
+            return;
+        }
+
+        $this->progress($percentage, $step);
+        $callback();
+        $this->completeStep($step);
+    }
+
     
     protected function deployKey(): void
     {

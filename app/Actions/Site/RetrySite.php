@@ -28,23 +28,24 @@ class RetrySite
         ])->validate();
 
         DB::transaction(function () use ($site, $validated): void {
+            $typeData = $site->type_data ?? [];
+
             if (array_key_exists('composer_install_command', $validated)) {
                 $command = $validated['composer_install_command'];
-                $typeData = $site->type_data ?? [];
 
                 if ($command === null || trim($command) === '') {
                     unset($typeData['composer_install_command']);
                 } else {
                     $typeData['composer_install_command'] = $command;
                 }
-
-                $site->type_data = $typeData;
             }
 
+            unset($typeData['composer_install_failed']);
+
+            $site->type_data = $typeData;
             $site->status = SiteStatus::INSTALLING;
             $site->last_error = null;
-            $site->progress_step = null;
-            $site->progress = 0;
+            $site->progress = $site->progress ?? 0;
             $site->save();
 
             SocketEvent::dispatch(new SocketEventDTO(

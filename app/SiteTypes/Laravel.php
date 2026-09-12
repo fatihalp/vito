@@ -26,14 +26,16 @@ class Laravel extends PHPSite
         $envPath = $this->site->type_data['env_path'] ?? $this->site->path.'/.env';
         $examplePath = $this->site->path.'/.env.example';
 
-        $this->site->server->ssh($this->site->user)->exec(
-            view('ssh.laravel.ensure-env', [
-                'envPath' => $envPath,
-                'examplePath' => $examplePath,
-            ]),
-            'ensure-env',
-            $this->site->id,
-        );
+        $this->step('ensuring-env', 85, function () use ($envPath, $examplePath) {
+            $this->site->server->ssh($this->site->user)->exec(
+                view('ssh.laravel.ensure-env', [
+                    'envPath' => $envPath,
+                    'examplePath' => $examplePath,
+                ]),
+                'ensure-env',
+                $this->site->id,
+            );
+        });
     }
 
     public function baseCommands(): array

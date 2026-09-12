@@ -248,12 +248,9 @@ function format_webserver_config(string $config): string
     return implode("\n", $formattedLines)."\n";
 }
 
-function user(): User
+function user(): ?User
 {
-    
-    $user = Auth::user();
-
-    return $user;
+    return Auth::user();
 }
 
 function plugins_path(?string $path = null): string
