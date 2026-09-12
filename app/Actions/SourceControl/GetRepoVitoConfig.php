@@ -63,6 +63,11 @@ class GetRepoVitoConfig
 
     private function normalizeConfig(array $config): array
     {
+        $installCommands = [];
+        if (isset($config['install_commands']) && is_array($config['install_commands'])) {
+            $installCommands = array_values(array_filter($config['install_commands'], 'is_string'));
+        }
+
         $commands = [];
         if (isset($config['commands']) && is_array($config['commands'])) {
             $commands = array_values(array_filter($config['commands'], 'is_string'));
@@ -107,6 +112,7 @@ class GetRepoVitoConfig
             'node_version' => isset($config['node_version']) && is_string($config['node_version']) ? $config['node_version'] : null,
             'web_directory' => isset($config['web_directory']) && is_string($config['web_directory']) ? $config['web_directory'] : 'public',
             'package_manager' => isset($config['package_manager']) && is_string($config['package_manager']) ? $config['package_manager'] : 'composer',
+            'install_commands' => $installCommands,
             'commands' => $commands,
             'crons' => $crons,
             'workers' => $workers,

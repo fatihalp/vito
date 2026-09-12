@@ -183,6 +183,11 @@ export default function AppWithDeployment() {
                                 Environment (.env)
                               </Link>
                             </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={route('sites.logs', { server: page.props.server.id, site: site.id })}>
+                                Logs
+                              </Link>
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>

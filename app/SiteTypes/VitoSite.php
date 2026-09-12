@@ -5,7 +5,13 @@ namespace App\SiteTypes;
 use App\Actions\CronJob\CreateCronJob;
 use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Worker\CreateWorker;
+use App\DTOs\SocketEventDTO;
+use App\Enums\DeploymentStatus;
+use App\Events\SocketEvent;
 use App\Exceptions\SSHCommandError;
+use App\Http\Resources\DeploymentResource;
+use App\Models\Deployment;
+use App\Models\ServerLog;
 use App\Models\Site;
 use App\Models\SourceControl;
 use App\SSH\OS\Composer;
@@ -181,8 +187,12 @@ class VitoSite extends PHPSite
 
         $commands = $config['commands'] ?? [];
         if (! empty($commands)) {
-            $this->executeInstallCommands($commands);
             $this->applyDeploymentScript($commands);
+        }
+
+        $installCommands = $config['install_commands'] ?? [];
+        if (! empty($installCommands) || ! empty($commands)) {
+            $this->executeAutoInstall($installCommands, $commands);
         }
 
         $this->setupLimits($config);
@@ -265,24 +275,99 @@ class VitoSite extends PHPSite
         }
     }
 
-    private function executeInstallCommands(array $commands): void
+    private function executeAutoInstall(array $installCommands, array $commands): void
     {
+        $log = ServerLog::newLog($this->site->server, 'install-commands')
+            ->forSite($this->site);
+        $log->save();
+
+        $deployment = null;
+        try {
+            $deployment = new Deployment([
+                'site_id' => $this->site->id,
+                'deployment_script_id' => $this->site->deploymentScript?->id,
+                'log_id' => $log->id,
+                'status' => DeploymentStatus::DEPLOYING,
+                'active' => true,
+            ]);
+            $lastCommit = $this->site->sourceControl?->provider()?->getLastCommit($this->site->repository, $this->site->branch);
+            if ($lastCommit) {
+                $deployment->commit_id = $lastCommit['commit_id'];
+                $deployment->commit_data = $lastCommit['commit_data'];
+            } else {
+                $deployment->commit_data = ['message' => 'Initial installation'];
+            }
+            $deployment->save();
+
+            SocketEvent::dispatch(new SocketEventDTO(
+                projectId: $this->site->server->project_id,
+                type: 'deployment.created',
+                data: new DeploymentResource($deployment),
+            ));
+        } catch (Throwable $e) {
+            Log::warning("Could not create initial deployment for site #{$this->site->id}: {$e->getMessage()}");
+        }
+
         $sitePath = escapeshellarg($this->site->path);
 
+        try {
+            if (! empty($installCommands)) {
+                $log->write("=== Running Install Commands ===\n");
+                $this->runCommandList($installCommands, $sitePath, $log);
+            }
+
+            if (! empty($commands)) {
+                $log->write("\n=== Running Deployment Commands ===\n");
+                $this->runCommandList($commands, $sitePath, $log);
+            }
+
+            $log->write("\nInstallation completed successfully.\n");
+
+            if ($deployment) {
+                $deployment->status = DeploymentStatus::FINISHED;
+                $deployment->save();
+
+                SocketEvent::dispatch(new SocketEventDTO(
+                    projectId: $this->site->server->project_id,
+                    type: 'deployment.updated',
+                    data: new DeploymentResource($deployment),
+                ));
+            }
+        } catch (SSHCommandError $e) {
+            $log->write("\nCommand failed: {$e->getMessage()}\n");
+
+            if ($deployment) {
+                $deployment->status = DeploymentStatus::FAILED;
+                $deployment->save();
+
+                SocketEvent::dispatch(new SocketEventDTO(
+                    projectId: $this->site->server->project_id,
+                    type: 'deployment.updated',
+                    data: new DeploymentResource($deployment),
+                ));
+            }
+
+            throw $e;
+        }
+    }
+
+    private function runCommandList(array $commands, string $sitePath, ServerLog $log): void
+    {
         foreach ($commands as $command) {
             if (! is_string($command) || trim($command) === '') {
                 continue;
             }
 
-            try {
-                $this->site->server->ssh($this->site->user)->exec(
-                    "cd {$sitePath} && {$command}",
-                    'vito-auto-install',
-                    $this->site->id
-                );
-            } catch (SSHCommandError $e) {
-                Log::warning("Auto-install command '{$command}' failed on site #{$this->site->id}: {$e->getMessage()}");
-            }
+            $log->write("\n$ {$command}\n");
+
+            $ssh = $this->site->server->ssh($this->site->user);
+            $ssh->setLog($log);
+
+            $ssh->exec(
+                "cd {$sitePath} && {$command}",
+                'install-commands',
+                $this->site->id
+            );
         }
     }
 

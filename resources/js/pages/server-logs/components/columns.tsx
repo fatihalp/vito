@@ -67,17 +67,35 @@ function Delete({ serverLog }: { serverLog: ServerLog }) {
   );
 }
 
+function EventCell({ serverLog }: { serverLog: ServerLog }) {
+  const dialog = useDialog();
+
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        dialog.logViewer.open({
+          serverId: serverLog.server_id,
+          logId: serverLog.id,
+          title: humanizeStep(serverLog.type) || serverLog.name,
+        })
+      }
+      className="flex flex-col text-left cursor-pointer group"
+    >
+      <span className="font-medium text-foreground group-hover:text-primary transition-colors underline-offset-4 group-hover:underline">
+        {humanizeStep(serverLog.type) || serverLog.name}
+      </span>
+      <span className="text-muted-foreground font-mono text-xs">{serverLog.name}</span>
+    </button>
+  );
+}
+
 export const columns: ColumnDef<ServerLog>[] = [
   {
     accessorKey: 'name',
     header: 'Event',
     enableColumnFilter: true,
-    cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span>{humanizeStep(row.original.type) || row.original.name}</span>
-        <span className="text-muted-foreground font-mono text-xs">{row.original.name}</span>
-      </div>
-    ),
+    cell: ({ row }) => <EventCell serverLog={row.original} />,
   },
   {
     accessorKey: 'created_at',
