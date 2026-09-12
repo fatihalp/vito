@@ -17,9 +17,9 @@ class RetrySite
     
     public function retry(Site $site, array $input = []): Site
     {
-        if (! $site->isInstallationFailed()) {
+        if (! $site->isInstallationFailed() && $site->status !== SiteStatus::INSTALLING) {
             throw ValidationException::withMessages([
-                'status' => 'Only sites in the installation_failed state can be retried.',
+                'status' => 'Only sites that are installing or failed installation can be retried.',
             ]);
         }
 

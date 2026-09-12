@@ -122,6 +122,18 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         $this->progress(90, 'finishing');
     }
 
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'installing-tooling', 'label' => 'Installing Runtime Tooling', 'percentage' => 20],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 40],
+            ['key' => 'deploying-ssh-key', 'label' => 'Deploying Repository SSH Key', 'percentage' => 55],
+            ['key' => 'cloning-repository', 'label' => 'Cloning Source Code', 'percentage' => 75],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 90],
+        ];
+    }
+
     public function defaultDeploymentScript(): string
     {
         return implode("\n\n", array_merge(

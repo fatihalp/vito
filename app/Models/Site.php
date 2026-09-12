@@ -379,6 +379,14 @@ class Site extends AbstractModel
         }
     }
 
+    /**
+     * @return array<int, array{key: string, label: string, percentage: number}>
+     */
+    public function installationSteps(): array
+    {
+        return $this->typeOrNull()?->installationSteps() ?? [];
+    }
+
     public function php(): ?Service
     {
         if ($this->php_version) {

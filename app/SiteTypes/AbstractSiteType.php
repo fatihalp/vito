@@ -118,6 +118,21 @@ abstract class AbstractSiteType implements SiteType
         return null;
     }
 
+    /**
+     * @return array<int, array{key: string, label: string, percentage: number}>
+     */
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'installing-tooling', 'label' => 'Installing Runtime Tooling', 'percentage' => 15],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 20],
+            ['key' => 'deploying-ssh-key', 'label' => 'Deploying Repository SSH Key', 'percentage' => 25],
+            ['key' => 'cloning-repository', 'label' => 'Cloning Source Code', 'percentage' => 40],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 90],
+        ];
+    }
+
     protected function progress(int $percentage, ?string $step): void
     {
         $this->site->progress = $percentage;

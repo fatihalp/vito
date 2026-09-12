@@ -114,6 +114,10 @@ class CreateJob implements ShouldQueue
             return 'Source control provider rejected the deploy key request: '.$this->truncate($response, 500);
         }
 
+        if ($e instanceof \RuntimeException) {
+            return $this->truncate($this->redactPublicKeys($e->getMessage()), 1000);
+        }
+
         return 'Installation failed due to an unexpected error. See the site logs for full details.';
     }
 

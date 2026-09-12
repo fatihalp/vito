@@ -4,12 +4,12 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { StatusRipple } from '@/components/status-ripple';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
-import { cn, humanizeStep } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { type SharedData } from '@/types';
 import type { Server } from '@/types/server';
 import type { Site } from '@/types/site';
 import { Link, router, usePage } from '@inertiajs/react';
-import { ChevronDownIcon, ChevronLeftIcon, ExternalLinkIcon, LoaderCircleIcon, ServerIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronLeftIcon, ExternalLinkIcon, ServerIcon } from 'lucide-react';
 import { useEffect } from 'react';
 import siteHelper from '@/lib/site-helper';
 
@@ -89,7 +89,6 @@ export function SiteHeaderNav() {
     { title: 'Logs', href: route('sites.logs', routeParams) },
   ];
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
-  const siteInstalling = ['installing', 'installation_failed'].includes(site.status);
 
   return (
     <nav aria-label="Site navigation" className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-2">
@@ -160,14 +159,7 @@ export function SiteHeaderNav() {
       </DropdownMenu>
 
       <div className="ml-auto flex shrink-0 items-center gap-2 pl-2">
-        {siteInstalling && (
-          <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
-            <LoaderCircleIcon className={cn('size-4', site.status === 'installing' && 'text-brand animate-spin')} />
-            <span>{parseInt((site.progress ?? 0).toString())}%</span>
-            {site.status === 'installing' && site.progress_step && <span className="hidden lg:inline">{humanizeStep(site.progress_step)}</span>}
-            {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
-          </div>
-        )}
+        {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
         <Button variant="outline" size="sm" className="h-8" asChild>
           <a href={site.url} target="_blank" rel="noopener noreferrer">
             <ExternalLinkIcon className="size-3.5" />

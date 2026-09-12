@@ -23,6 +23,11 @@ interface SiteType
 
     public function install(): void;
 
+    /**
+     * @return array<int, array{key: string, label: string, percentage: number}>
+     */
+    public function installationSteps(): array;
+
     public function attachSourceControl(): void;
 
     public function assertReadyToDeploy(): void;

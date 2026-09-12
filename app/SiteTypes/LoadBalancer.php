@@ -60,6 +60,15 @@ class LoadBalancer extends AbstractSiteType
         $this->progress(90, 'finishing');
     }
 
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 50],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 90],
+        ];
+    }
+
     public function vhostData(): array
     {
         return [

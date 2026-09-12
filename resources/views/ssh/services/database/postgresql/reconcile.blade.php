@@ -2,6 +2,11 @@ DB_NAME='{{ $database }}'
 DB_VERSION='{{ $version }}'
 DB_MAJOR=${DB_VERSION%%.*}
 
+if ! sudo -u postgres psql -tAc "SELECT 1 FROM pg_database WHERE datname = '$DB_NAME';" | grep -q 1; then
+    echo "Database $DB_NAME does not exist, skipping privilege sync."
+    exit 0
+fi
+
 DB_OWNER=$(sudo -u postgres psql -d "$DB_NAME" -tAc "SELECT pg_catalog.pg_get_userbyid(d.datdba) FROM pg_catalog.pg_database d WHERE d.datname = '$DB_NAME';")
 
 @foreach ($scrubUsers as $scrubUser)

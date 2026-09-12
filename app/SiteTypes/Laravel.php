@@ -38,6 +38,21 @@ class Laravel extends PHPSite
         });
     }
 
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'installing-tooling', 'label' => 'Installing Runtime Tooling', 'percentage' => 15],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 20],
+            ['key' => 'deploying-ssh-key', 'label' => 'Deploying Repository SSH Key', 'percentage' => 25],
+            ['key' => 'cloning-repository', 'label' => 'Cloning Source Code', 'percentage' => 40],
+            ['key' => 'restarting-php', 'label' => 'Restarting PHP Runtime', 'percentage' => 60],
+            ['key' => 'installing-composer-dependencies', 'label' => 'Installing Composer Dependencies', 'percentage' => 75],
+            ['key' => 'ensuring-env', 'label' => 'Ensuring Environment Configuration', 'percentage' => 85],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 90],
+        ];
+    }
+
     public function baseCommands(): array
     {
         return array_merge(parent::baseCommands(), [

@@ -8,15 +8,20 @@ use App\Actions\Worker\CreateWorker;
 use App\DTOs\SocketEventDTO;
 use App\Actions\SiteResource\ConnectSiteResource;
 use App\Enums\DeploymentStatus;
+use App\Enums\ServiceStatus;
 use App\Enums\SiteResourceType;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHCommandError;
 use App\Helpers\EnvParser;
 use App\Http\Resources\DeploymentResource;
+use App\Jobs\Service\UpdateVitoAgentConfigJob;
 use App\Models\Deployment;
+use App\Models\Server;
 use App\Models\ServerLog;
+use App\Models\Service;
 use App\Models\Site;
 use App\Models\SourceControl;
+use RuntimeException;
 use App\SSH\OS\Composer;
 use App\SSH\OS\Git;
 use App\Tooling\ComposerTooling;
@@ -168,6 +173,20 @@ class VitoSite extends PHPSite
         $this->progress(100, 'finishing');
     }
 
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'installing-tooling', 'label' => 'Installing Runtime Tooling', 'percentage' => 15],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 20],
+            ['key' => 'deploying-ssh-key', 'label' => 'Deploying Repository SSH Key', 'percentage' => 25],
+            ['key' => 'cloning-repository', 'label' => 'Cloning Source Code', 'percentage' => 40],
+            ['key' => 'restarting-php', 'label' => 'Restarting PHP Runtime', 'percentage' => 60],
+            ['key' => 'running-auto-install', 'label' => 'Auto-Install & Services', 'percentage' => 70],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 100],
+        ];
+    }
+
     protected function runAutoInstall(): void
     {
         $config = $this->resolveVitoConfig(refreshFromDisk: true);
@@ -176,8 +195,12 @@ class VitoSite extends PHPSite
             return;
         }
 
-        $this->ensureEnvironmentFile($config);
-        $this->setupDatabase($config);
+        $log = ServerLog::newLog($this->site->server, 'install-commands')
+            ->forSite($this->site);
+        $log->save();
+
+        $this->ensureEnvironmentFile($config, $log);
+        $this->setupDatabase($config, $log);
 
         $commands = $config['commands'] ?? [];
         if (! empty($commands)) {
@@ -186,7 +209,7 @@ class VitoSite extends PHPSite
 
         $installCommands = $config['install_commands'] ?? [];
         if (! empty($installCommands) || ! empty($commands)) {
-            $this->executeAutoInstall($installCommands, $commands);
+            $this->executeAutoInstall($installCommands, $commands, $log);
         }
 
         $this->setupLimits($config);
@@ -194,15 +217,13 @@ class VitoSite extends PHPSite
         $this->setupWorkers($config['workers'] ?? []);
     }
 
-    private function setupDatabase(array $config): void
+    private function setupDatabase(array $config, ?ServerLog $log = null): void
     {
         $server = $this->site->server;
-        $service = $server->database();
-        if (! $service) {
-            return;
-        }
 
         if ($this->site->resources()->where('type', SiteResourceType::DATABASE->value)->exists()) {
+            $log?->write("Database resource is already connected to site #{$this->site->id}, skipping.\n");
+
             return;
         }
 
@@ -225,11 +246,27 @@ class VitoSite extends PHPSite
             return;
         }
 
+        $service = $server->database();
+        if (! $service) {
+            $driver = $this->detectDatabaseDriver($config);
+            $log?->write("No database service found on server #{$server->id}. Automatically installing {$driver}...\n");
+            $service = $this->autoInstallDatabaseService($server, $driver, $log);
+            if (! $service) {
+                $msg = "Server #{$server->id} has no database service and auto-installation of {$driver} failed.";
+                $log?->write("Error: {$msg}\n");
+
+                throw new RuntimeException($msg);
+            }
+            $server->unsetRelation('services');
+        }
+
         $dbName = is_string($dbConfig) && trim($dbConfig) !== ''
             ? trim($dbConfig)
             : (is_array($dbConfig) && ! empty($dbConfig['name']) ? trim($dbConfig['name']) : ($this->detectDatabaseNameFromEnv() ?? 'site_'.$this->site->id));
 
         $dbName = preg_replace('/[^a-zA-Z0-9_]/', '_', $dbName);
+
+        $log?->write("Auto-provisioning database '{$dbName}' on server #{$server->id}...\n");
 
         try {
             app(ConnectSiteResource::class)->connect($this->site, [
@@ -238,8 +275,85 @@ class VitoSite extends PHPSite
                 'database_name' => $dbName,
                 'confirm_overwrite' => true,
             ]);
+
+            $log?->write("Database '{$dbName}' successfully provisioned and connected.\n\n");
         } catch (Throwable $e) {
-            Log::warning("Failed to auto-provision database for site #{$this->site->id}: {$e->getMessage()}");
+            $errorMsg = "Failed to auto-provision database '{$dbName}' for site #{$this->site->id}: {$e->getMessage()}";
+            $log?->write("Error: {$errorMsg}\n");
+            Log::error($errorMsg, ['exception' => $e]);
+
+            throw new RuntimeException($errorMsg, previous: $e);
+        }
+    }
+
+    private function detectDatabaseDriver(array $config): string
+    {
+        $dbConfig = $config['database'] ?? null;
+        if (is_array($dbConfig) && ! empty($dbConfig['type'])) {
+            $type = strtolower((string) $dbConfig['type']);
+            if (in_array($type, ['pgsql', 'postgres', 'postgresql'], true)) {
+                return 'postgresql';
+            }
+            if (in_array($type, ['mysql', 'mariadb'], true)) {
+                return 'mysql';
+            }
+        }
+
+        if (is_string($dbConfig) && in_array(strtolower($dbConfig), ['postgresql', 'pgsql', 'postgres'], true)) {
+            return 'postgresql';
+        }
+
+        try {
+            $path = $this->site->resolveEnvPath();
+            $raw = $this->site->getEnv($path);
+            $parsed = EnvParser::parse($raw);
+            $conn = strtolower((string) ($parsed['DB_CONNECTION']['value'] ?? ''));
+            if (str_contains($conn, 'pgsql') || str_contains($conn, 'postgres')) {
+                return 'postgresql';
+            }
+            if (str_contains($conn, 'mysql') || str_contains($conn, 'mariadb')) {
+                return 'mysql';
+            }
+        } catch (Throwable) {
+        }
+
+        return 'mysql';
+    }
+
+    private function autoInstallDatabaseService(Server $server, string $serviceName, ?ServerLog $log = null): ?Service
+    {
+        try {
+            $version = (string) (config("service.services.{$serviceName}.versions")[0] ?? ($serviceName === 'postgresql' ? '17' : '8.4'));
+
+            $service = new Service([
+                'server_id' => $server->id,
+                'name' => $serviceName,
+                'type' => 'database',
+                'version' => $version,
+                'status' => ServiceStatus::INSTALLING,
+                'is_default' => true,
+            ]);
+            $service->save();
+            $service->newLog();
+
+            $log?->write("Installing {$serviceName} {$version} on server #{$server->id}...\n");
+
+            $handler = $service->handler();
+            $handler->install();
+            $service->status = ServiceStatus::READY;
+            $service->installed_version = $handler->version();
+            $service->save();
+
+            UpdateVitoAgentConfigJob::dispatchFor($service);
+
+            $log?->write("{$serviceName} {$version} installed successfully.\n");
+
+            return $service;
+        } catch (Throwable $e) {
+            $log?->write("Failed to install {$serviceName}: {$e->getMessage()}\n");
+            Log::error("Failed to auto-install {$serviceName} for server #{$server->id}: {$e->getMessage()}", ['exception' => $e]);
+
+            return null;
         }
     }
 
@@ -331,7 +445,7 @@ class VitoSite extends PHPSite
         return $this->resolvedVitoConfig = [];
     }
 
-    private function ensureEnvironmentFile(array $config): void
+    private function ensureEnvironmentFile(array $config, ?ServerLog $log = null): void
     {
         try {
             $sitePath = escapeshellarg($this->site->path);
@@ -351,16 +465,21 @@ class VitoSite extends PHPSite
                     $this->site->server->ssh($this->site->user)->exec($appendCmd, 'append-env', $this->site->id);
                 }
             }
+
+            $log?->write("Environment file (.env) ready.\n");
         } catch (Throwable $e) {
+            $log?->write("Warning: could not setup environment file: {$e->getMessage()}\n");
             Log::warning("Could not setup environment file for site #{$this->site->id}: {$e->getMessage()}");
         }
     }
 
-    private function executeAutoInstall(array $installCommands, array $commands): void
+    private function executeAutoInstall(array $installCommands, array $commands, ?ServerLog $log = null): void
     {
-        $log = ServerLog::newLog($this->site->server, 'install-commands')
-            ->forSite($this->site);
-        $log->save();
+        if (! $log) {
+            $log = ServerLog::newLog($this->site->server, 'install-commands')
+                ->forSite($this->site);
+            $log->save();
+        }
 
         $deployment = null;
         try {

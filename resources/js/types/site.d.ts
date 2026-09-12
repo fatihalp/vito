@@ -45,6 +45,12 @@ export interface Site {
   ssl_enabled: boolean;
   progress: number;
   progress_step: string | null;
+  installation_steps?: Array<{
+    key: string;
+    label: string;
+    description?: string;
+    percentage: number;
+  }>;
   last_error: string | null;
   vhost_generation_enabled: boolean;
   has_custom_vhost_template: boolean;

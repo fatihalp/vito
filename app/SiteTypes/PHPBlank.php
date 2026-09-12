@@ -61,6 +61,17 @@ class PHPBlank extends PHPSite
         $this->progress(90, 'finishing');
     }
 
+    public function installationSteps(): array
+    {
+        return [
+            ['key' => 'isolating-user', 'label' => 'Isolating User & Environment', 'percentage' => 0],
+            ['key' => 'installing-tooling', 'label' => 'Installing Runtime Tooling', 'percentage' => 15],
+            ['key' => 'creating-vhost', 'label' => 'Configuring Web Server VHost', 'percentage' => 25],
+            ['key' => 'restarting-php', 'label' => 'Restarting PHP Runtime', 'percentage' => 55],
+            ['key' => 'finishing', 'label' => 'Finalizing & Verifying', 'percentage' => 90],
+        ];
+    }
+
     public function baseCommands(): array
     {
         return [];
