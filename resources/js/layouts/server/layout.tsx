@@ -23,6 +23,7 @@ import {
   Settings2Icon,
   ShieldIcon,
   SlidersIcon,
+  TerminalIcon,
   UsersIcon,
   WifiOffIcon,
 } from 'lucide-react';
@@ -237,6 +238,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           href: route('logs.services', { server: serverId }),
           onlyActivePath: route('logs.services', { server: serverId }),
           icon: ScrollTextIcon,
+        },
+        {
+          title: 'Commands',
+          href: route('servers.commands', { server: serverId }),
+          onlyActivePath: route('servers.commands', { server: serverId }),
+          icon: TerminalIcon,
         },
         {
           title: 'Custom logs',

@@ -11,8 +11,7 @@ echo "=== [2/4] Updating package index ==="
 sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get update -o Acquire::AllowReleaseInfoChange::Label=true
 
 echo "=== [3/4] Upgrading packages ==="
-sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get upgrade -y | tee "$UPGRADE_LOG"
-sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade -y
+sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get -o APT::Get::Always-Include-Phased-Updates=true --with-new-pkgs -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" upgrade -y | tee "$UPGRADE_LOG"
 
 echo "=== [4/4] Removing obsolete packages ==="
 sudo DEBIAN_FRONTEND=noninteractive NEEDRESTART_MODE=a apt-get autoremove -y

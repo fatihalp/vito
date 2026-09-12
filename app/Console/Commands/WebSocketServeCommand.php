@@ -3,7 +3,6 @@
 namespace App\Console\Commands;
 
 use App\WebSocket\EventsHandler;
-use App\WebSocket\TerminalHandler;
 use App\WebSocket\WebSocketServer;
 use Illuminate\Console\Command;
 use Psr\Http\Message\RequestInterface;
@@ -40,8 +39,6 @@ class WebSocketServeCommand extends Command
         $loop = Loop::get();
 
         $server = new WebSocketServer($loop, $maxConnections, $allowedOrigins);
-
-        $server->route('/ws/terminal', new TerminalHandler($loop));
 
         $eventsHandler = new EventsHandler;
         $server->route('/ws/events', $eventsHandler);

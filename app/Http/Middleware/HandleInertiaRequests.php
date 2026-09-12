@@ -62,7 +62,8 @@ class HandleInertiaRequests extends Middleware
                 $server = Server::find($server);
             }
             if ($server) {
-                $server->loadCount(['sites', 'cronJobs', 'workers', 'backups', 'services', 'databases', 'databaseUsers']);
+                $server->load('sshKeys')
+                    ->loadCount(['sites', 'cronJobs', 'workers', 'backups', 'services', 'databases', 'databaseUsers']);
             }
 
             $data['server'] = ServerResource::make($server);

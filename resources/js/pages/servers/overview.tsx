@@ -3,42 +3,45 @@ import ServerBanners from '@/components/server-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';
 import ServerActions from '@/pages/servers/components/actions';
+import ServerSetupGuide from '@/pages/servers/components/server-setup-guide';
+import CreateSite from '@/pages/sites/components/create-site';
 import { InstantLogs } from '@/pages/server-logs/components/instant-logs';
 import { SharedData } from '@/types';
 import type { Server } from '@/types/server';
-import { Link, useForm, usePage } from '@inertiajs/react';
-import { ArrowRightIcon, ExternalLinkIcon, GlobeIcon, LoaderCircleIcon, LogsIcon, RefreshCwIcon, TerminalSquareIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import type { SecurityScore } from '@/types/security';
+import { Link, router, usePage } from '@inertiajs/react';
+import { ArrowRightIcon, ExternalLinkIcon, GlobeIcon, LogsIcon, PlusIcon } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
+import { useSocketListener } from '@/hooks/use-socket-events';
 import { type OverviewSite, useOverviewResources } from '@/hooks/use-overview-resources';
 import { RecentSitesSkeleton } from '@/components/page-skeleton';
 
-function CheckConnectionButton({ serverId }: { serverId: number }) {
-  const form = useForm();
-
-  return (
-    <Button
-      variant="outline"
-      size="sm"
-      className="gap-1.5"
-      disabled={form.processing}
-      onClick={() => form.patch(route('servers.status', serverId))}
-    >
-      {form.processing ? <LoaderCircleIcon className="size-3.5 animate-spin" /> : <RefreshCwIcon className="size-3.5" />}
-      Check connection
-    </Button>
-  );
-}
-
-export default function ServerOverview() {
+export default function ServerOverview({ securityScore }: { securityScore?: SecurityScore }) {
   const page = usePage<SharedData & { server: Server }>();
   const server = useRealtimeRecord<Server>(page.props.server, 'server')!;
   const [recentSiteIds, setRecentSiteIds] = useState<number[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
+
+  useSocketListener(
+    useCallback(
+      (event) => {
+        const data = event.data;
+        const isObject = !!data && typeof data === 'object' && !Array.isArray(data);
+        if (
+          (event.type === 'security.updated' || event.type?.startsWith('service.')) &&
+          isObject &&
+          (data as { server_id?: number }).server_id === server.id
+        ) {
+          router.reload({ only: ['securityScore'] });
+        }
+      },
+      [server.id],
+    ),
+  );
 
   useEffect(() => {
     setRecentSiteIds(siteHelper.getRecentSites(page.props.auth.user.id, server.id, 25).map((site) => site.id));
@@ -54,77 +57,23 @@ export default function ServerOverview() {
     .slice(0, 5);
   const recentSites = matchedRecentSites.length > 0 ? matchedRecentSites : sites.slice(0, 5);
 
-  const isOffline = server.status === 'disconnected';
-
   return (
     <Container className="max-w-5xl space-y-5">
       <ServerBanners server={server} />
 
-      <div className="flex flex-wrap items-center gap-2">
-        {isOffline ? (
-          <>
-            <CheckConnectionButton serverId={server.id} />
-            <Button variant="outline" size="sm" asChild className="gap-1.5">
-              <Link href={route('servers.restart', { server: server.id, start: 1 })}>
-                <RefreshCwIcon className="size-3.5" />
-                Restart
-              </Link>
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button variant="outline" size="sm" disabled className="gap-1.5 opacity-60">
-                    <TerminalSquareIcon className="size-4" />
-                    Terminal
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Server is offline</TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button variant="outline" size="sm" disabled className="gap-1.5 opacity-60">
-                    <LogsIcon className="size-4" />
-                    Logs
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>Server is offline</TooltipContent>
-            </Tooltip>
-          </>
-        ) : (
-          <>
-            <Button
-              variant="outline"
-              size="sm"
-              className="gap-1.5"
-              onClick={() => {
-                const url = route('console', { server: server.id });
-                window.open(url, `terminal-${server.id}`, 'width=900,height=600,menubar=no,toolbar=no,location=no,status=no');
-              }}
-            >
-              <TerminalSquareIcon className="size-4" />
-              Terminal
-            </Button>
-            <InstantLogs server={server}>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                <LogsIcon className="size-4" />
-                Logs
-              </Button>
-            </InstantLogs>
-            <Button variant="outline" size="sm" asChild className="gap-1.5">
-              <Link href={route('servers.restart', { server: server.id, start: 1 })}>
-                <RefreshCwIcon className="size-3.5" />
-                Restart
-              </Link>
-            </Button>
-          </>
-        )}
+      <div className="flex items-center gap-2">
+        <InstantLogs server={server}>
+          <Button variant="outline" size="sm" className="gap-1.5 cursor-pointer">
+            <LogsIcon className="size-3.5" />
+            Logs
+          </Button>
+        </InstantLogs>
         <ServerActions server={server} />
       </div>
 
       <MetricsCards server={server} />
+
+      <ServerSetupGuide server={server} securityScore={securityScore} />
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4 border-b px-4 py-3">
@@ -188,6 +137,14 @@ export default function ServerOverview() {
               <div className="flex flex-col gap-0.5">
                 <h3 className="text-sm font-medium">No recent sites</h3>
                 <p className="text-muted-foreground text-xs">Sites you open on this server will appear here.</p>
+              </div>
+              <div className="pt-2">
+                <CreateSite server={server}>
+                  <Button size="sm" className="gap-1.5 cursor-pointer">
+                    <PlusIcon className="size-3.5" />
+                    Create site
+                  </Button>
+                </CreateSite>
               </div>
             </div>
           )}

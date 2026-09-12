@@ -9,6 +9,7 @@ use App\Actions\Server\GetAccessibleServers;
 use App\Actions\Server\GetServers;
 use App\Actions\Server\ProbeServerConnection;
 use App\Actions\Server\RebootServer;
+use App\Actions\Server\Security\CalculateSecurityScore;
 use App\Actions\Server\StartServer;
 use App\Actions\Server\StopServer;
 use App\Actions\Server\TransferServer;
@@ -95,6 +96,7 @@ class ServerController extends Controller
         $this->authorize('view', $server);
 
         return Inertia::render('servers/show', [
+            'securityScore' => app(CalculateSecurityScore::class)->calculate($server),
             'logs' => $server->isInstalling()
                 ? Inertia::defer(fn () => ServerLogResource::collection($server->logs()->latest()->simplePaginate(config('web.pagination_size'), pageName: 'logsPage')))
                 : null,
