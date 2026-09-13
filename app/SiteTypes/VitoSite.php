@@ -8,6 +8,7 @@ use App\Actions\Worker\CreateWorker;
 use App\DTOs\SocketEventDTO;
 use App\Actions\SiteResource\ConnectSiteResource;
 use App\Enums\DeploymentStatus;
+use App\Enums\RedirectStatus;
 use App\Enums\ServiceStatus;
 use App\Enums\SiteResourceType;
 use App\Events\SocketEvent;
@@ -16,6 +17,7 @@ use App\Helpers\EnvParser;
 use App\Http\Resources\DeploymentResource;
 use App\Jobs\Service\UpdateVitoAgentConfigJob;
 use App\Models\Deployment;
+use App\Models\Redirect;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Models\Service;
@@ -213,6 +215,7 @@ class VitoSite extends PHPSite
         }
 
         $this->setupLimits($config);
+        $this->setupProxies($config);
         $this->setupCronJobs($config['crons'] ?? []);
         $this->setupWorkers($config['workers'] ?? []);
     }
@@ -365,6 +368,43 @@ class VitoSite extends PHPSite
             app(UpdatePHPSettings::class)->update($this->site, $limits);
         } catch (Throwable $e) {
             Log::warning("Failed to apply PHP/Nginx limits for site #{$this->site->id}: {$e->getMessage()}");
+        }
+    }
+
+    private function setupProxies(array $config): void
+    {
+        $proxies = $config['proxies'] ?? [];
+        if (empty($proxies)) {
+            return;
+        }
+
+        $created = false;
+        foreach ($proxies as $proxy) {
+            if (empty($proxy['from']) || empty($proxy['to'])) {
+                continue;
+            }
+
+            $exists = $this->site->redirects()
+                ->where('from', $proxy['from'])
+                ->exists();
+
+            if ($exists) {
+                continue;
+            }
+
+            Redirect::create([
+                'site_id' => $this->site->id,
+                'from' => $proxy['from'],
+                'to' => $proxy['to'],
+                'mode' => Redirect::MODE_PROXY,
+                'websocket' => $proxy['websocket'] ?? false,
+                'status' => RedirectStatus::READY,
+            ]);
+            $created = true;
+        }
+
+        if ($created) {
+            $this->site->webserver()->updateVHost($this->site);
         }
     }
 
