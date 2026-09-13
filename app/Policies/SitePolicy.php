@@ -17,6 +17,7 @@ class SitePolicy
     public function viewAny(User $user, Server $server): bool
     {
         return $this->hasServerReadAccess($user, $server)
+            && ! $server->is_self
             && $server->role === ServerRole::APP
             && $server->webserver();
     }
@@ -27,6 +28,7 @@ class SitePolicy
 
         return $this->hasServerReadAccess($user, $siteServer)
             && $site->server_id === $server->id
+            && ! $siteServer->is_self
             && $siteServer->role === ServerRole::APP
             && $siteServer->webserver();
     }
@@ -34,6 +36,7 @@ class SitePolicy
     public function create(User $user, Server $server): bool
     {
         return $this->hasWriteAccess($user, $server->project)
+            && ! $server->is_self
             && $server->isReady()
             && $server->role === ServerRole::APP
             && $server->webserver();

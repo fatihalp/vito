@@ -18,6 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import siteHelper from '@/lib/site-helper';
+import { isPendingLog } from '@/lib/log';
 import { cn } from '@/lib/utils';
 import {
   CheckCircle2,
@@ -569,7 +570,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
               <LogOutput className="h-[460px] w-full rounded-none border-0 font-mono text-xs">
                 {logError ? (
                   <span className="text-destructive">{logError}</span>
-                ) : isLogLoading && !liveLogContent ? (
+                ) : (isLogLoading && !liveLogContent) || isPendingLog(liveLogContent) ? (
                   <div className="flex h-full min-h-[220px] w-full items-center justify-center py-10">
                     <Loader2 className="size-6 animate-spin text-muted-foreground" />
                   </div>

@@ -5,7 +5,7 @@ import ResourceCredentialsView from '@/components/resource-credentials-view';
 import SiteBanners from '@/components/site-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDialog } from '@/hooks/use-dialog';
 import ServerLayout from '@/layouts/server/layout';
@@ -278,41 +278,46 @@ export default function SiteResources() {
 
         {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}
 
-        <div className="flex w-full flex-col gap-4">
+        <div className="flex w-full flex-col gap-3">
+          {/* Database Card */}
           <Card className="w-full transition-shadow">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="bg-muted/60 text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg">
                   <DatabaseIcon className="size-4.5" />
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <CardTitle className="text-sm font-semibold">Database</CardTitle>
+                    <span className="text-sm font-semibold">Database</span>
                     {dbResource ? (
                       <Badge variant={dbResource.status_color}>
                         {dbResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
                         {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
                       </Badge>
                     ) : isDbInstalling ? (
-                      <Badge variant="warning">
+                      <Badge variant="warning" className="text-xs">
                         <LoaderCircleIcon className="mr-1 size-3 animate-spin" />
                         Installing...
                       </Badge>
+                    ) : isDbReady ? (
+                      <Badge variant="outline" className="text-xs font-normal text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                        Ready
+                      </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                        Not configured
+                        Not installed
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-xs truncate">
-                    {dbResource
-                      ? `${getResourceTitle(dbResource)} · ${dbResource.server?.name ?? 'Server'} (${dbResource.server?.ip ?? ''})`
-                      : 'PostgreSQL or MySQL database with dedicated user and automatic .env configuration.'}
-                  </CardDescription>
+                  {dbResource && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {getResourceTitle(dbResource)} · {dbResource.server?.name ?? 'Server'} ({dbResource.server?.ip ?? ''})
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {dbResource && (
+              {dbResource ? (
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <Button
                     variant="outline"
@@ -352,10 +357,62 @@ export default function SiteResources() {
                     <UnlinkIcon className="size-3.5" />
                   </Button>
                 </div>
-              )}
-            </CardHeader>
+              ) : (
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  {dbServers.length > 1 && (
+                    <Select value={selectedDbServerId} onValueChange={setSelectedDbServerId}>
+                      <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
+                        <SelectValue placeholder="Select server" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {dbServers.map((s) => (
+                          <SelectItem key={s.id} value={s.id.toString()}>
+                            {s.id === page.props.server.id ? `This server (${s.name})` : s.name} · {s.ip}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
-            {dbResource ? (
+                  {isDbInstalling ? (
+                    <span className="text-xs text-muted-foreground">
+                      Installing PostgreSQL...
+                    </span>
+                  ) : isDbReady ? (
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs gap-1.5"
+                      disabled={isConnecting}
+                      onClick={() => connectResource({ type: 'database', serverId: selectedDbServerId })}
+                    >
+                      {isConnecting ? (
+                        <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      ) : (
+                        <PlusIcon className="size-3.5" />
+                      )}
+                      Connect Database
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 text-xs gap-1.5"
+                      disabled={isInstalling || isConnecting}
+                      onClick={() => installAndConnect('database', selectedDbServerId)}
+                    >
+                      {isInstalling || isConnecting ? (
+                        <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      ) : (
+                        <PlusIcon className="size-3.5" />
+                      )}
+                      Install PostgreSQL &amp; Connect
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {dbResource &&
               !collapsedIds[dbResource.id] &&
               dbResource.environment &&
               Object.keys(dbResource.environment).length > 0 && (
@@ -366,113 +423,48 @@ export default function SiteResources() {
                     title={null}
                   />
                 </CardContent>
-              )
-            ) : (
-              <CardContent className="border-t border-border/50 p-4 pt-3">
-                {isDbInstalling ? (
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                    <LoaderCircleIcon className="size-4 animate-spin text-primary shrink-0" />
-                    <span>
-                      Installing PostgreSQL on {selectedDbServer?.name ?? 'server'} ({selectedDbServer?.database_status ?? 'in progress'})… Vito will connect the database automatically once installation completes.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
-                      {dbServers.length > 1 ? (
-                        <>
-                          <span className="text-xs font-medium text-foreground shrink-0">Server:</span>
-                          <Select value={selectedDbServerId} onValueChange={setSelectedDbServerId}>
-                            <SelectTrigger className="w-full sm:w-[260px] h-8 text-xs">
-                              <SelectValue placeholder="Select server" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {dbServers.map((s) => (
-                                <SelectItem key={s.id} value={s.id.toString()}>
-                                  {s.id === page.props.server.id ? `This server (${s.name})` : s.name} · {s.ip}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          {isDbReady
-                            ? `Database service is installed and ready on this server (${page.props.server.name}).`
-                            : `PostgreSQL is not installed on this server (${page.props.server.name}).`}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="shrink-0">
-                      {isDbReady ? (
-                        <Button
-                          size="sm"
-                          disabled={isConnecting}
-                          onClick={() => connectResource({ type: 'database', serverId: selectedDbServerId })}
-                        >
-                          {isConnecting ? (
-                            <LoaderCircleIcon className="mr-1 size-3.5 animate-spin" />
-                          ) : (
-                            <PlusIcon className="mr-1 size-3.5" />
-                          )}
-                          Connect Database
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          disabled={isInstalling || isConnecting}
-                          onClick={() => installAndConnect('database', selectedDbServerId)}
-                        >
-                          {isInstalling || isConnecting ? (
-                            <LoaderCircleIcon className="mr-1 size-3.5 animate-spin" />
-                          ) : (
-                            <PlusIcon className="mr-1 size-3.5" />
-                          )}
-                          Install PostgreSQL &amp; Connect
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            )}
+              )}
           </Card>
 
+          {/* Cache & Queue Card */}
           <Card className="w-full transition-shadow">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="bg-muted/60 text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg">
                   <LayersIcon className="size-4.5" />
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <CardTitle className="text-sm font-semibold">Cache &amp; Queue (Redis)</CardTitle>
+                    <span className="text-sm font-semibold">Cache &amp; Queue (Redis)</span>
                     {cacheResource ? (
                       <Badge variant={cacheResource.status_color}>
                         {cacheResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
                         {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
                       </Badge>
                     ) : isCacheInstalling ? (
-                      <Badge variant="warning">
+                      <Badge variant="warning" className="text-xs">
                         <LoaderCircleIcon className="mr-1 size-3 animate-spin" />
                         Installing...
                       </Badge>
+                    ) : isCacheReady ? (
+                      <Badge variant="outline" className="text-xs font-normal text-emerald-600 dark:text-emerald-400 border-emerald-500/30">
+                        Ready
+                      </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                        Not configured
+                        Not installed
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-xs truncate">
-                    {cacheResource
-                      ? `Redis · ${cacheResource.server?.name ?? 'Server'} (${cacheResource.server?.ip ?? ''})`
-                      : 'Redis service for fast application caching, sessions, and background workers.'}
-                  </CardDescription>
+                  {cacheResource && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      Redis · {cacheResource.server?.name ?? 'Server'} ({cacheResource.server?.ip ?? ''})
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {cacheResource && (
+              {cacheResource ? (
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <Button
                     variant="outline"
@@ -512,10 +504,62 @@ export default function SiteResources() {
                     <UnlinkIcon className="size-3.5" />
                   </Button>
                 </div>
-              )}
-            </CardHeader>
+              ) : (
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  {cacheServers.length > 1 && (
+                    <Select value={selectedCacheServerId} onValueChange={setSelectedCacheServerId}>
+                      <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
+                        <SelectValue placeholder="Select server" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {cacheServers.map((s) => (
+                          <SelectItem key={s.id} value={s.id.toString()}>
+                            {s.id === page.props.server.id ? `This server (${s.name})` : s.name} · {s.ip}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
 
-            {cacheResource ? (
+                  {isCacheInstalling ? (
+                    <span className="text-xs text-muted-foreground">
+                      Installing Redis...
+                    </span>
+                  ) : isCacheReady ? (
+                    <Button
+                      size="sm"
+                      className="h-8 text-xs gap-1.5"
+                      disabled={isConnecting}
+                      onClick={() => connectResource({ type: 'cache', serverId: selectedCacheServerId })}
+                    >
+                      {isConnecting ? (
+                        <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      ) : (
+                        <PlusIcon className="size-3.5" />
+                      )}
+                      Connect Redis
+                    </Button>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      className="h-8 text-xs gap-1.5"
+                      disabled={isInstalling || isConnecting}
+                      onClick={() => installAndConnect('cache', selectedCacheServerId)}
+                    >
+                      {isInstalling || isConnecting ? (
+                        <LoaderCircleIcon className="size-3.5 animate-spin" />
+                      ) : (
+                        <PlusIcon className="size-3.5" />
+                      )}
+                      Install Redis &amp; Connect
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {cacheResource &&
               !collapsedIds[cacheResource.id] &&
               cacheResource.environment &&
               Object.keys(cacheResource.environment).length > 0 && (
@@ -526,88 +570,19 @@ export default function SiteResources() {
                     title={null}
                   />
                 </CardContent>
-              )
-            ) : (
-              <CardContent className="border-t border-border/50 p-4 pt-3">
-                {isCacheInstalling ? (
-                  <div className="flex items-center gap-2.5 rounded-lg border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
-                    <LoaderCircleIcon className="size-4 animate-spin text-primary shrink-0" />
-                    <span>
-                      Installing Redis on {selectedCacheServer?.name ?? 'server'} ({selectedCacheServer?.cache_status ?? 'in progress'})… Vito will connect automatically once ready.
-                    </span>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
-                      {cacheServers.length > 1 ? (
-                        <>
-                          <span className="text-xs font-medium text-foreground shrink-0">Server:</span>
-                          <Select value={selectedCacheServerId} onValueChange={setSelectedCacheServerId}>
-                            <SelectTrigger className="w-full sm:w-[260px] h-8 text-xs">
-                              <SelectValue placeholder="Select server" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {cacheServers.map((s) => (
-                                <SelectItem key={s.id} value={s.id.toString()}>
-                                  {s.id === page.props.server.id ? `This server (${s.name})` : s.name} · {s.ip}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </>
-                      ) : (
-                        <p className="text-xs text-muted-foreground">
-                          {isCacheReady
-                            ? `Redis service is installed and ready on this server (${page.props.server.name}).`
-                            : `Redis is not installed on this server (${page.props.server.name}).`}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="shrink-0">
-                      {isCacheReady ? (
-                        <Button
-                          size="sm"
-                          disabled={isConnecting}
-                          onClick={() => connectResource({ type: 'cache', serverId: selectedCacheServerId })}
-                        >
-                          {isConnecting ? (
-                            <LoaderCircleIcon className="mr-1 size-3.5 animate-spin" />
-                          ) : (
-                            <PlusIcon className="mr-1 size-3.5" />
-                          )}
-                          Connect Redis
-                        </Button>
-                      ) : (
-                        <Button
-                          size="sm"
-                          disabled={isInstalling || isConnecting}
-                          onClick={() => installAndConnect('cache', selectedCacheServerId)}
-                        >
-                          {isInstalling || isConnecting ? (
-                            <LoaderCircleIcon className="mr-1 size-3.5 animate-spin" />
-                          ) : (
-                            <PlusIcon className="mr-1 size-3.5" />
-                          )}
-                          Install Redis &amp; Connect
-                        </Button>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            )}
+              )}
           </Card>
 
+          {/* Object Storage Card */}
           <Card className="w-full transition-shadow">
-            <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 pb-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3 min-w-0">
                 <div className="bg-muted/60 text-muted-foreground flex size-9 shrink-0 items-center justify-center rounded-lg">
                   <HardDriveIcon className="size-4.5" />
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <CardTitle className="text-sm font-semibold">Object Storage</CardTitle>
+                    <span className="text-sm font-semibold">Object Storage</span>
                     {storageResource ? (
                       <Badge variant={storageResource.status_color}>
                         {storageResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
@@ -619,15 +594,15 @@ export default function SiteResources() {
                       </Badge>
                     )}
                   </div>
-                  <CardDescription className="text-xs truncate">
-                    {storageResource
-                      ? `${storageResource.storage_provider?.name ?? 'Storage'} (${(storageResource.storage_provider?.provider ?? 'S3').toUpperCase()}) · Object Storage`
-                      : 'Connect AWS S3, Cloudflare R2, MinIO, or DigitalOcean Spaces for file uploads.'}
-                  </CardDescription>
+                  {storageResource && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {storageResource.storage_provider?.name ?? 'Storage'} ({storageResource.storage_provider?.provider?.toUpperCase() ?? 'S3'})
+                    </p>
+                  )}
                 </div>
               </div>
 
-              {storageResource && (
+              {storageResource ? (
                 <div className="flex items-center gap-1.5 shrink-0 self-end sm:self-auto">
                   <Button
                     variant="outline"
@@ -667,10 +642,58 @@ export default function SiteResources() {
                     <UnlinkIcon className="size-3.5" />
                   </Button>
                 </div>
-              )}
-            </CardHeader>
+              ) : (
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+                  {page.props.storageProviders.length > 0 ? (
+                    <>
+                      <Select
+                        value={selectedStorageProviderId}
+                        onValueChange={setSelectedStorageProviderId}
+                      >
+                        <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
+                          <SelectValue placeholder="Select provider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {page.props.storageProviders.map((provider) => (
+                            <SelectItem key={provider.id} value={provider.id.toString()}>
+                              {provider.name} ({provider.provider.toUpperCase()})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
 
-            {storageResource ? (
+                      <Button
+                        size="sm"
+                        className="h-8 text-xs gap-1.5"
+                        disabled={!selectedStorageProviderId || isConnecting}
+                        onClick={() =>
+                          connectResource({
+                            type: 'storage',
+                            storageProviderId: selectedStorageProviderId,
+                          })
+                        }
+                      >
+                        {isConnecting ? (
+                          <LoaderCircleIcon className="size-3.5 animate-spin" />
+                        ) : (
+                          <PlusIcon className="size-3.5" />
+                        )}
+                        Connect Storage
+                      </Button>
+                    </>
+                  ) : (
+                    <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" asChild>
+                      <Link href={route('storage-providers')}>
+                        <ExternalLinkIcon className="size-3.5" />
+                        Configure Provider
+                      </Link>
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {storageResource &&
               !collapsedIds[storageResource.id] &&
               storageResource.environment &&
               Object.keys(storageResource.environment).length > 0 && (
@@ -681,63 +704,7 @@ export default function SiteResources() {
                     title={null}
                   />
                 </CardContent>
-              )
-            ) : (
-              <CardContent className="border-t border-border/50 p-4 pt-3">
-                {page.props.storageProviders.length > 0 ? (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 min-w-0">
-                      <span className="text-xs font-medium text-foreground shrink-0">Provider:</span>
-                      <Select
-                        value={selectedStorageProviderId}
-                        onValueChange={setSelectedStorageProviderId}
-                      >
-                        <SelectTrigger className="w-full sm:w-[260px] h-8 text-xs">
-                          <SelectValue placeholder="Select storage provider" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {page.props.storageProviders.map((provider) => (
-                            <SelectItem key={provider.id} value={provider.id.toString()}>
-                              {provider.name} ({provider.provider.toUpperCase()})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <Button
-                      size="sm"
-                      disabled={!selectedStorageProviderId || isConnecting}
-                      onClick={() =>
-                        connectResource({
-                          type: 'storage',
-                          storageProviderId: selectedStorageProviderId,
-                        })
-                      }
-                    >
-                      {isConnecting ? (
-                        <LoaderCircleIcon className="mr-1 size-3.5 animate-spin" />
-                      ) : (
-                        <PlusIcon className="mr-1 size-3.5" />
-                      )}
-                      Connect Storage
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <p className="text-xs text-muted-foreground">
-                      No storage providers configured yet. Connect AWS S3, Cloudflare R2, or MinIO in Settings.
-                    </p>
-                    <Button size="sm" variant="outline" asChild>
-                      <Link href={route('storage-providers')}>
-                        <ExternalLinkIcon className="mr-1 size-3.5" />
-                        Configure Storage
-                      </Link>
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            )}
+              )}
           </Card>
         </div>
       </Container>

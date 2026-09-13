@@ -3,7 +3,8 @@ import { WorkflowRun } from '@/types/workflow-run';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
-import { appendLogContent } from '@/lib/log';
+import { appendLogContent, isPendingLog } from '@/lib/log';
+import { Loader2 } from 'lucide-react';
 
 export default function Logs({ workflowRun }: { workflowRun: WorkflowRun }) {
   const [content, setContent] = useState('');
@@ -52,9 +53,13 @@ export default function Logs({ workflowRun }: { workflowRun: WorkflowRun }) {
   return (
     <LogOutput className="rounded-lg border shadow">
       <>
-        {isLoading && 'Loading...'}
+        {(isLoading || isPendingLog(content)) && (
+          <div className="flex h-full min-h-[200px] w-full items-center justify-center py-12">
+            <Loader2 className="size-6 animate-spin text-muted-foreground" />
+          </div>
+        )}
         {error && <div className="text-red-500">Error: {error}</div>}
-        {content && !error && content}
+        {!isLoading && !isPendingLog(content) && content && !error && content}
       </>
     </LogOutput>
   );

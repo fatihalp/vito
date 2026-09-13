@@ -48,7 +48,16 @@ export default function LogOutput({ className, children }: { className?: string;
   }, [children]);
 
   const isPending = useMemo(() => {
-    return typeof children === 'string' && (isPendingLog(children) || children.trim() === 'Loading...');
+    const checkPending = (n: ReactNode): boolean => {
+      if (typeof n === 'string') return isPendingLog(n) || n.trim() === 'Loading...';
+      if (Array.isArray(n)) return n.some(checkPending);
+      if (React.isValidElement(n)) {
+        const props = n.props as { children?: ReactNode };
+        return props?.children !== undefined ? checkPending(props.children) : false;
+      }
+      return false;
+    };
+    return checkPending(children);
   }, [children]);
 
   useEffect(() => {

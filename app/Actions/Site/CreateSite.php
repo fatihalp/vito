@@ -38,6 +38,12 @@ class CreateSite
             ]);
         }
 
+        if ($server->is_self) {
+            throw ValidationException::withMessages([
+                'server' => __('Sites cannot be created on this server.'),
+            ]);
+        }
+
         if (empty($input['user']) || ! is_string($input['user'])) {
             $input['user'] = $this->generateIsolatedUsername($server, is_string($input['domain'] ?? null) ? $input['domain'] : '');
         }

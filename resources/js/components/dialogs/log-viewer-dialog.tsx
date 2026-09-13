@@ -4,6 +4,8 @@ import LogOutput from '@/components/log-output';
 import { useLogContent } from '@/hooks/use-log-content';
 import { Loader2 } from 'lucide-react';
 
+import { isPendingLog } from '@/lib/log';
+
 type LogViewerDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -24,19 +26,21 @@ export default function LogViewerDialog({ open, onOpenChange, serverId, logId, t
         </DialogHeader>
         <LogOutput>
           <>
-            {isLoading && (
+            {(isLoading || isPendingLog(content)) && (
               <div className="flex h-full min-h-[220px] w-full items-center justify-center py-10">
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
               </div>
             )}
             {error && <div className="text-destructive">Error: {error}</div>}
-            {content && !error && content}
+            {!isLoading && !isPendingLog(content) && content && !error && content}
           </>
         </LogOutput>
         <DialogFooter>
-          <a href={route('logs.download', { server: serverId, log: logId })} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline">Download</Button>
-          </a>
+          <Button variant="outline" asChild>
+            <a href={route('logs.download', { server: serverId, log: logId })} target="_blank" rel="noopener noreferrer">
+              Download
+            </a>
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

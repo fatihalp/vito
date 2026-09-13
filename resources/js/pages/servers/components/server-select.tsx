@@ -26,6 +26,7 @@ interface ServerSelectProps {
   footer?: ReactNode;
   header?: ReactNode;
   showIp?: boolean;
+  excludeSelf?: boolean;
 }
 
 export default function ServerSelect({
@@ -43,6 +44,7 @@ export default function ServerSelect({
   footer,
   header,
   showIp = true,
+  excludeSelf = false,
 }: ServerSelectProps) {
   const page = usePage<SharedData>();
   const [internalOpen, setInternalOpen] = useState(false);
@@ -69,9 +71,15 @@ export default function ServerSelect({
   }, [query]);
 
   const { data, isFetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Server[]>({
-    queryKey: ['servers', page.props.auth.currentProject?.id, debouncedQuery],
+    queryKey: ['servers', page.props.auth.currentProject?.id, debouncedQuery, excludeSelf],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await axios.get(route('servers.json', { query: debouncedQuery || '', page: pageParam }));
+      const response = await axios.get(
+        route('servers.json', {
+          query: debouncedQuery || '',
+          page: pageParam,
+          exclude_self: excludeSelf ? 1 : undefined,
+        }),
+      );
       return response.data;
     },
     enabled: open || prefetch === true,
@@ -88,7 +96,7 @@ export default function ServerSelect({
     },
   });
 
-  const servers = data?.pages.flat() ?? [];
+  const servers = (data?.pages.flat() ?? []).filter((s) => !excludeSelf || !s.is_self);
 
   useEffect(() => {
     if (refetch) {

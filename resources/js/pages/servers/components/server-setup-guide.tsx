@@ -30,7 +30,7 @@ export default function ServerSetupGuide({ server, securityScore }: ServerSetupG
 
   const completedCount = (hasSites ? 1 : 0) + (hasSshKeys ? 1 : 0) + (isSecure ? 1 : 0);
 
-  if (dismissed || completedCount === 3) {
+  if (dismissed || server.is_self || completedCount === 3) {
     return null;
   }
 

@@ -14,6 +14,12 @@ class GetServers
 
         $serversQuery = $project->servers();
 
+        if (! empty($validated['exclude_self'])) {
+            $serversQuery->where(function ($query) {
+                $query->where('is_self', false)->orWhereNull('is_self');
+            });
+        }
+
         if (! empty($validated['query'])) {
             $serversQuery->where('name', 'like', "%{$validated['query']}%");
         }
@@ -34,6 +40,10 @@ class GetServers
                 'nullable',
                 'integer',
                 'min:1',
+            ],
+            'exclude_self' => [
+                'nullable',
+                'boolean',
             ],
         ])->validate();
     }

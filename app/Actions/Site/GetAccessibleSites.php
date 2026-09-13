@@ -27,6 +27,9 @@ class GetAccessibleSites
 
         $accessibleServers = Server::query()
             ->whereIn('project_id', $accessibleProjectIds)
+            ->where(function (Builder $query): void {
+                $query->where('is_self', false)->orWhereNull('is_self');
+            })
             ->with('project:id,name')
             ->orderBy('name')
             ->get(['id', 'name', 'project_id']);

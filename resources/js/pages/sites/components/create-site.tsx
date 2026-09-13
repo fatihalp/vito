@@ -80,7 +80,7 @@ type CreateSiteForm = {
 };
 
 export default function CreateSite({
-  server,
+  server: propServer,
   defaultOpen,
   onOpenChange,
   children,
@@ -90,6 +90,7 @@ export default function CreateSite({
   onOpenChange?: (open: boolean) => void;
   children: ReactNode;
 }) {
+  const server = propServer && !propServer.is_self ? propServer : undefined;
   const configs = useConfigs()!;
   const [open, setOpen] = useState(defaultOpen || false);
   const [step, setStep] = useState<1 | 2>(1);
@@ -424,6 +425,7 @@ export default function CreateSite({
                         <Label htmlFor="server">Server</Label>
                         <ServerSelect
                           value={form.data.server}
+                          excludeSelf
                           onValueChange={(value) => form.setData('server', value ? value.id.toString() : '')}
                         />
                         <InputError message={form.errors.server} />
@@ -557,6 +559,7 @@ export default function CreateSite({
                         <Label htmlFor="server">Server</Label>
                         <ServerSelect
                           value={form.data.server}
+                          excludeSelf
                           onValueChange={(value) => form.setData('server', value ? value.id.toString() : '')}
                         />
                         <InputError message={form.errors.server} />

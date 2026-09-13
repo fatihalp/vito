@@ -70,7 +70,11 @@ export function SiteSwitch() {
           <span className="ml-2">All Sites</span>
         </div>
       </CommandItem>
-      <CreateSite defaultOpen={siteFormOpen} onOpenChange={setSiteFormOpen} server={page.props.server}>
+      <CreateSite
+        defaultOpen={siteFormOpen}
+        onOpenChange={setSiteFormOpen}
+        server={page.props.server?.is_self ? undefined : page.props.server}
+      >
         <CommandItem
           value="create-site"
           onSelect={() => {

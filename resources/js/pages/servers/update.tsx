@@ -21,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import { useLogContent } from '@/hooks/use-log-content';
+import { isPendingLog } from '@/lib/log';
 import { cn } from '@/lib/utils';
 
 type PageProps = {
@@ -304,9 +305,16 @@ export default function ServerUpdate() {
             )}
 
             {content && !isCleared && (
-              <div className="text-neutral-200 whitespace-pre-wrap break-all">
-                {content}
-              </div>
+              isPendingLog(content) ? (
+                <div className="flex items-center gap-2 text-amber-400/90 py-6">
+                  <LoaderCircleIcon className="size-4 animate-spin shrink-0" />
+                  <span>Job is queued and will begin automatically...</span>
+                </div>
+              ) : (
+                <div className="text-neutral-200 whitespace-pre-wrap break-all">
+                  {content}
+                </div>
+              )
             )}
 
             {isUpdating && content && (

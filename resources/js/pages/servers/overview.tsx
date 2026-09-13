@@ -63,81 +63,83 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
 
       <ServerSetupGuide server={server} securityScore={securityScore} />
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-4 border-b px-4 py-3">
-          <CardTitle className="text-sm font-semibold">Recent sites</CardTitle>
-          <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
-            <Link href={route('sites', { server: server.id })}>All</Link>
-          </Button>
-        </CardHeader>
-        <CardContent className="p-0">
-          {resources.isError ? (
-            <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-              <span className="text-destructive text-sm">Recent sites could not be loaded.</span>
-              <Button variant="outline" size="sm" onClick={() => void resources.refetch()}>
-                Retry
-              </Button>
-            </div>
-          ) : resources.isLoading ? (
-            <RecentSitesSkeleton />
-          ) : recentSites.length > 0 ? (
-            <div className="divide-y">
-              {recentSites.map((site) => (
-                <div
-                  key={site.id}
-                  className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-2.5 transition-colors"
-                >
-                  <Link
-                    href={route('application', { server: server.id, site: site.id })}
-                    className="flex min-w-0 flex-1 items-center gap-3"
-                    prefetch
+      {!server.is_self && (
+        <Card>
+          <CardHeader className="flex-row items-center justify-between gap-4 border-b px-4 py-3">
+            <CardTitle className="text-sm font-semibold">Recent sites</CardTitle>
+            <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
+              <Link href={route('sites', { server: server.id })}>All</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0">
+            {resources.isError ? (
+              <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
+                <span className="text-destructive text-sm">Recent sites could not be loaded.</span>
+                <Button variant="outline" size="sm" onClick={() => void resources.refetch()}>
+                  Retry
+                </Button>
+              </div>
+            ) : resources.isLoading ? (
+              <RecentSitesSkeleton />
+            ) : recentSites.length > 0 ? (
+              <div className="divide-y">
+                {recentSites.map((site) => (
+                  <div
+                    key={site.id}
+                    className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-2.5 transition-colors"
                   >
-                    <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
-                      <GlobeIcon className="text-muted-foreground size-4" />
-                    </div>
-                    <span className="truncate text-sm font-medium">{site.domain}</span>
-                  </Link>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <Badge variant={site.status_color} className="text-[10px] px-1.5 py-0">{site.status}</Badge>
-                    <a
-                      href={`https://${site.domain}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      aria-label={`Open ${site.domain}`}
-                      className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
-                    >
-                      <ExternalLinkIcon className="size-3.5" />
-                    </a>
                     <Link
                       href={route('application', { server: server.id, site: site.id })}
-                      className="text-muted-foreground hover:text-foreground"
+                      className="flex min-w-0 flex-1 items-center gap-3"
                       prefetch
                     >
-                      <ArrowRightIcon className="size-4" />
+                      <div className="bg-muted flex size-8 shrink-0 items-center justify-center rounded-lg">
+                        <GlobeIcon className="text-muted-foreground size-4" />
+                      </div>
+                      <span className="truncate text-sm font-medium">{site.domain}</span>
                     </Link>
+                    <div className="flex shrink-0 items-center gap-2">
+                      <Badge variant={site.status_color} className="text-[10px] px-1.5 py-0">{site.status}</Badge>
+                      <a
+                        href={`https://${site.domain}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label={`Open ${site.domain}`}
+                        className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
+                      >
+                        <ExternalLinkIcon className="size-3.5" />
+                      </a>
+                      <Link
+                        href={route('application', { server: server.id, site: site.id })}
+                        className="text-muted-foreground hover:text-foreground"
+                        prefetch
+                      >
+                        <ArrowRightIcon className="size-4" />
+                      </Link>
+                    </div>
                   </div>
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
+                <GlobeIcon className="text-muted-foreground size-5" />
+                <div className="flex flex-col gap-0.5">
+                  <h3 className="text-sm font-medium">No recent sites</h3>
+                  <p className="text-muted-foreground text-xs">Sites you open on this server will appear here.</p>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-              <GlobeIcon className="text-muted-foreground size-5" />
-              <div className="flex flex-col gap-0.5">
-                <h3 className="text-sm font-medium">No recent sites</h3>
-                <p className="text-muted-foreground text-xs">Sites you open on this server will appear here.</p>
+                <div className="pt-2">
+                  <CreateSite server={server}>
+                    <Button size="sm" className="gap-1.5 cursor-pointer">
+                      <PlusIcon className="size-3.5" />
+                      Create site
+                    </Button>
+                  </CreateSite>
+                </div>
               </div>
-              <div className="pt-2">
-                <CreateSite server={server}>
-                  <Button size="sm" className="gap-1.5 cursor-pointer">
-                    <PlusIcon className="size-3.5" />
-                    Create site
-                  </Button>
-                </CreateSite>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </Container>
   );
 }
