@@ -144,7 +144,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
   }, [steps, completedSteps, site.status]);
 
   const totalSteps = steps.length;
-  const remainingCount = Math.max(0, totalSteps - completedCount);
 
   // Auto-install command breakdown for Vito sites
   const vitoInstallCommands = useMemo(() => {
@@ -209,6 +208,9 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
       canEditComposer ? { composer_install_command: composerCommand } : {},
       {
         preserveScroll: true,
+        onSuccess: () => {
+          setRetryDialogOpen(false);
+        },
         onError: (errors) => {
           const first = errors && typeof errors === 'object' ? Object.values(errors)[0] : null;
           const message =
@@ -221,7 +223,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
         },
         onFinish: () => {
           setRetrying(false);
-          setRetryDialogOpen(false);
         },
       },
     );
@@ -568,8 +569,12 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
               <LogOutput className="h-[460px] w-full rounded-none border-0 font-mono text-xs">
                 {logError ? (
                   <span className="text-destructive">{logError}</span>
+                ) : isLogLoading && !liveLogContent ? (
+                  <div className="flex h-full min-h-[220px] w-full items-center justify-center py-10">
+                    <Loader2 className="size-6 animate-spin text-muted-foreground" />
+                  </div>
                 ) : (
-                  liveLogContent || (isLogLoading ? 'Connecting to live output stream...' : 'No output recorded yet.')
+                  liveLogContent || 'No output recorded yet.'
                 )}
               </LogOutput>
             ) : (

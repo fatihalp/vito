@@ -99,7 +99,7 @@ class VitoSettingController extends Controller
 
         $zip = new ZipArchive;
         if ($zip->open($uploadedFile->getPathname()) !== true) {
-            throw ValidationException::withMessages(['file' => 'The uploaded file is not a valid zip archive.']);
+            throw ValidationException::withMessages(['backup_file' => 'The uploaded file is not a valid zip archive.']);
         }
 
         
@@ -107,12 +107,18 @@ class VitoSettingController extends Controller
         $zip->close();
 
         
-        File::move($extractPath.'/database.sqlite', storage_path('database.sqlite'));
+        if (File::exists($extractPath.'/database.sqlite')) {
+            File::move($extractPath.'/database.sqlite', storage_path('database.sqlite'));
+        }
         if (File::exists($extractPath.'/.env')) {
             File::move($extractPath.'/.env', base_path('.env'));
         }
-        File::move($extractPath.'/ssh-public.key', storage_path('ssh-public.key'));
-        File::move($extractPath.'/ssh-private.pem', storage_path('ssh-private.pem'));
+        if (File::exists($extractPath.'/ssh-public.key')) {
+            File::move($extractPath.'/ssh-public.key', storage_path('ssh-public.key'));
+        }
+        if (File::exists($extractPath.'/ssh-private.pem')) {
+            File::move($extractPath.'/ssh-private.pem', storage_path('ssh-private.pem'));
+        }
         if (File::exists($extractPath.'/key-pairs')) {
             move_directory($extractPath.'/key-pairs', storage_path('app/key-pairs'));
         }

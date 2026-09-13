@@ -260,11 +260,7 @@ class VitoSite extends PHPSite
             $server->unsetRelation('services');
         }
 
-        $dbName = is_string($dbConfig) && trim($dbConfig) !== ''
-            ? trim($dbConfig)
-            : (is_array($dbConfig) && ! empty($dbConfig['name']) ? trim($dbConfig['name']) : ($this->detectDatabaseNameFromEnv() ?? 'site_'.$this->site->id));
-
-        $dbName = preg_replace('/[^a-zA-Z0-9_]/', '_', $dbName);
+        $dbName = 'site_'.$this->site->id;
 
         $log?->write("Auto-provisioning database '{$dbName}' on server #{$server->id}...\n");
 
@@ -357,21 +353,6 @@ class VitoSite extends PHPSite
         }
     }
 
-    private function detectDatabaseNameFromEnv(): ?string
-    {
-        try {
-            $path = $this->site->resolveEnvPath();
-            $raw = $this->site->getEnv($path);
-            $parsed = EnvParser::parse($raw);
-            $dbName = $parsed['DB_DATABASE']['value'] ?? null;
-            if (is_string($dbName) && trim($dbName) !== '' && ! in_array(trim($dbName), ['laravel', 'forge', 'database', ''], true)) {
-                return trim($dbName);
-            }
-        } catch (Throwable) {
-        }
-
-        return null;
-    }
 
     private function setupLimits(array $config): void
     {

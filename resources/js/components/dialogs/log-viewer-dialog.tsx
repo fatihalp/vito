@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LogOutput from '@/components/log-output';
 import { useLogContent } from '@/hooks/use-log-content';
+import { Loader2 } from 'lucide-react';
 
 type LogViewerDialogProps = {
   open: boolean;
@@ -23,7 +24,11 @@ export default function LogViewerDialog({ open, onOpenChange, serverId, logId, t
         </DialogHeader>
         <LogOutput>
           <>
-            {isLoading && 'Loading...'}
+            {isLoading && (
+              <div className="flex h-full min-h-[220px] w-full items-center justify-center py-10">
+                <Loader2 className="size-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
             {error && <div className="text-destructive">Error: {error}</div>}
             {content && !error && content}
           </>

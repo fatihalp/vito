@@ -46,26 +46,21 @@ class DatabaseController extends Controller
     #[Get('/charsets', name: 'databases.charsets')]
     public function charsets(Server $server): JsonResponse
     {
-        $this->authorize('view', $server);
+        $this->authorize('viewAny', [Database::class, $server]);
 
-        $charsets = [];
-        foreach ($server->database()->type_data['charsets'] as $charset => $value) {
-            $charsets[] = $charset;
-        }
-
-        return response()->json($charsets);
+        return response()->json(array_keys($server->database()?->type_data['charsets'] ?? []));
     }
 
     #[Get('/collations/{charset?}', name: 'databases.collations')]
     public function collations(Server $server, ?string $charset = null): JsonResponse
     {
-        $this->authorize('view', $server);
+        $this->authorize('viewAny', [Database::class, $server]);
 
         if (! $charset) {
-            $charset = $server->database()->type_data['defaultCharset'] ?? null;
+            $charset = $server->database()?->type_data['defaultCharset'] ?? null;
         }
 
-        $charsets = $server->database()->type_data['charsets'] ?? [];
+        $charsets = $server->database()?->type_data['charsets'] ?? [];
 
         return response()->json([
             'default' => data_get($charsets, $charset.'.default'),
