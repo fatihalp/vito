@@ -315,12 +315,7 @@ export default function CreateServer({
 
   const [copySuccess, setCopySuccess] = useState(false);
   const copyToClipboard = () => {
-    const textToCopy =
-      form.data.provider === 'existing'
-        ? `echo "${publicKeyText}" | sudo tee -a /root/.ssh/authorized_keys`
-        : publicKeyText;
-
-    navigator.clipboard.writeText(textToCopy).then(
+    navigator.clipboard.writeText(publicKeyText).then(
       () => {
         setCopySuccess(true);
         setTimeout(() => {
@@ -694,7 +689,7 @@ export default function CreateServer({
                   <Textarea
                     onClick={copyToClipboard}
                     id="public_key"
-                    value={`echo "${publicKeyText}" | sudo tee -a /root/.ssh/authorized_keys`}
+                    value={publicKeyText}
                     readOnly
                     rows={3}
                     className="font-mono text-xs overflow-auto"
