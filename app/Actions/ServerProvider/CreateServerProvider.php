@@ -68,7 +68,7 @@ class CreateServerProvider
             'provider' => [
                 'required',
                 Rule::in(array_keys(config('server-provider.providers'))),
-                Rule::notIn('custom'),
+                Rule::notIn(['custom', 'existing']),
             ],
         ];
 

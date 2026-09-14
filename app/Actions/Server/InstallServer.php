@@ -14,6 +14,7 @@ use App\Jobs\ServerIp\RefreshServerIpsJob;
 use App\Models\Server;
 use App\Notifications\ServerInstallationSucceed;
 use App\ServerProviders\Custom;
+use App\ServerProviders\Existing;
 use Illuminate\Support\Sleep;
 
 class InstallServer
@@ -49,6 +50,12 @@ class InstallServer
     
     public function install(): void
     {
+        if ($this->server->provider === Existing::id()) {
+            $this->connectExisting();
+
+            return;
+        }
+
         $this->progress(5, 'preparing-system');
         $this->server->os()->waitForBoot();
         $this->createUser();
@@ -68,6 +75,27 @@ class InstallServer
             $service->handler()->install();
             $service->update(['status' => ServiceStatus::READY]);
         }
+        $this->progress(100, 'finishing');
+    }
+
+    protected function connectExisting(): void
+    {
+        $this->progress(15, 'connecting-server');
+        $this->createUser();
+        $this->progress(60, 'configuring-monitoring');
+
+        $services = $this->server->services;
+        $currentProgress = 60;
+        $progressPerService = count($services) ? (95 - $currentProgress) / count($services) : 0;
+        foreach ($services as $service) {
+            $currentProgress += $progressPerService;
+            $this->progress($currentProgress, 'configuring- '.$service->name);
+
+            $service->newLog();
+            $service->handler()->install();
+            $service->update(['status' => ServiceStatus::READY]);
+        }
+
         $this->progress(100, 'finishing');
     }
 

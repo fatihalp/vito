@@ -1,4 +1,5 @@
 import {
+  CheckCircle2Icon,
   CheckIcon,
   ChevronsUpDownIcon,
   ClipboardCheckIcon,
@@ -9,6 +10,7 @@ import {
   TriangleAlert,
   WifiIcon,
 } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useForm } from '@inertiajs/react';
@@ -304,12 +306,21 @@ export default function CreateServer({
     if (nameEdited) {
       return;
     }
+    if (form.data.provider === 'existing') {
+      form.setData('name', `existing-${form.data.stage}-${randomSuffix()}`);
+      return;
+    }
     form.setData('name', generateServerName(form.data.role, form.data.stage, form.data.region));
-  }, [form.data.role, form.data.stage, form.data.region, nameEdited]);
+  }, [form.data.role, form.data.stage, form.data.region, form.data.provider, nameEdited]);
 
   const [copySuccess, setCopySuccess] = useState(false);
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(publicKeyText).then(
+    const textToCopy =
+      form.data.provider === 'existing'
+        ? `echo "${publicKeyText}" | sudo tee -a /root/.ssh/authorized_keys`
+        : publicKeyText;
+
+    navigator.clipboard.writeText(textToCopy).then(
       () => {
         setCopySuccess(true);
         setTimeout(() => {
@@ -347,7 +358,18 @@ export default function CreateServer({
     }
   });
 
-  const providerValue = form.data.provider === 'custom' ? 'custom' : form.data.server_provider ? form.data.server_provider.toString() : '';
+  const isExisting = form.data.provider === 'existing';
+  const isCustom = form.data.provider === 'custom';
+  const isDirectSsh = isCustom || isExisting;
+
+  const providerValue =
+    form.data.provider === 'custom'
+      ? 'custom'
+      : form.data.provider === 'existing'
+        ? 'existing'
+        : form.data.server_provider
+          ? form.data.server_provider.toString()
+          : '';
 
   const selectCombinedProvider = async (value: string, providersList = serverProviders) => {
     form.clearErrors();
@@ -359,6 +381,14 @@ export default function CreateServer({
     if (value === 'custom') {
       form.setData('provider', 'custom');
       form.setData('server_provider', 0);
+      return;
+    }
+
+    if (value === 'existing') {
+      form.setData('provider', 'existing');
+      form.setData('server_provider', 0);
+      form.setData('role', 'custom');
+      form.setData('services', baseServices);
       return;
     }
 
@@ -432,9 +462,33 @@ export default function CreateServer({
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="w-full lg:max-w-4xl">
         <SheetHeader>
-          <SheetTitle>Create new server</SheetTitle> <SheetDescription>Fill in the details to create a new server.</SheetDescription>
+          <SheetTitle>{isExisting ? 'Connect existing server' : 'Create new server'}</SheetTitle>
+          <SheetDescription>
+            {isExisting
+              ? 'Connect a pre-existing server to Vito for monitoring and management.'
+              : 'Fill in the details to create a new server.'}
+          </SheetDescription>
         </SheetHeader>
         <Form id="create-server-form" className="p-4" onSubmit={submit}>
+          <div className="pb-2">
+            <Tabs
+              value={isExisting ? 'existing' : 'new'}
+              onValueChange={(val) => {
+                if (val === 'existing') {
+                  selectCombinedProvider('existing');
+                } else {
+                  selectCombinedProvider('custom');
+                }
+              }}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="new">Create New Server</TabsTrigger>
+                <TabsTrigger value="existing">Connect Existing Server</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
           <FormFields>
             <FormField>
               <Label htmlFor="provider">Provider</Label>
@@ -446,8 +500,9 @@ export default function CreateServer({
                   <SelectContent>
                     <SelectGroup>
                       <SelectItem value="custom">{configs.server_provider.providers.custom?.label ?? 'Custom'}</SelectItem>
+                      <SelectItem value="existing">{configs.server_provider.providers.existing?.label ?? 'Existing Server'}</SelectItem>
                       {Object.entries(configs.server_provider.providers)
-                        .filter(([key]) => key !== 'custom')
+                        .filter(([key]) => key !== 'custom' && key !== 'existing')
                         .map(([key, provider]) => {
                           const connections = serverProviders.filter((item: ServerProvider) => item.provider === key);
 
@@ -468,19 +523,21 @@ export default function CreateServer({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                <ConnectServerProvider
-                  defaultProvider={form.data.provider !== 'custom' ? form.data.provider : undefined}
-                  onProviderAdded={fetchServerProviders}
-                >
-                  <Button type="button" variant="outline" size="icon" aria-label="Add server provider">
-                    <WifiIcon />
-                  </Button>
-                </ConnectServerProvider>
+                {!isDirectSsh && (
+                  <ConnectServerProvider
+                    defaultProvider={!isDirectSsh ? form.data.provider : undefined}
+                    onProviderAdded={fetchServerProviders}
+                  >
+                    <Button type="button" variant="outline" size="icon" aria-label="Add server provider">
+                      <WifiIcon />
+                    </Button>
+                  </ConnectServerProvider>
+                )}
               </div>
               <InputError message={form.errors.provider || form.errors.server_provider} />
             </FormField>
 
-            {form.data.provider && form.data.provider !== 'custom' && (
+            {!isDirectSsh && form.data.provider && (
               <div className="grid grid-cols-2 gap-6">
                 <FormField>
                   <Label htmlFor="region">Region</Label>
@@ -618,6 +675,38 @@ export default function CreateServer({
               </>
             )}
 
+            {form.data.provider === 'existing' && (
+              <>
+                <Alert className="border-primary/20 bg-primary/5">
+                  <CheckCircle2Icon className="text-primary size-4" />
+                  <AlertDescription className="space-y-1">
+                    <p className="font-medium text-foreground">Connect an existing server safely</p>
+                    <p className="text-muted-foreground text-xs">
+                      Vito connects via SSH to monitor and manage your server. Existing websites, packages, and SSH keys will <strong>NOT</strong> be deleted. The <strong>Remote Monitor</strong> service will be configured to track CPU, RAM, and Disk metrics.
+                    </p>
+                  </AlertDescription>
+                </Alert>
+                <FormField>
+                  <Label htmlFor="public_key" className="flex items-center gap-2">
+                    Public Key command
+                    {copySuccess ? <ClipboardCheckIcon className="text-success! size-3" /> : <ClipboardIcon className="size-3 cursor-pointer" />}
+                  </Label>
+                  <Textarea
+                    onClick={copyToClipboard}
+                    id="public_key"
+                    value={`echo "${publicKeyText}" | sudo tee -a /root/.ssh/authorized_keys`}
+                    readOnly
+                    rows={3}
+                    className="font-mono text-xs overflow-auto"
+                    spellCheck={false}
+                  ></Textarea>
+                  <p className="text-muted-foreground text-xs">
+                    Run this command on your existing server as root (or sudo) to authorize Vito's SSH key.
+                  </p>
+                </FormField>
+              </>
+            )}
+
             <div className="grid grid-cols-2 items-start gap-6">
               <FormField>
                 <Label htmlFor="role">Server Type</Label>
@@ -692,7 +781,7 @@ export default function CreateServer({
               </FormField>
             </div>
 
-            {form.data.provider === 'custom' && (
+            {isDirectSsh && (
               <div className="grid grid-cols-2 items-start gap-6">
                 <FormField>
                   <Label htmlFor="ip">SSH IP</Label>
@@ -737,7 +826,8 @@ export default function CreateServer({
         <SheetFooter>
           <div className="flex items-center gap-2">
             <Button type="submit" form="create-server-form" tabIndex={4} disabled={form.processing}>
-              {form.processing && <LoaderCircle className="animate-spin" />} Create
+              {form.processing && <LoaderCircle className="animate-spin" />}{' '}
+              {isExisting ? 'Connect' : 'Create'}
             </Button>
             <SheetClose asChild>
               <Button variant="outline" disabled={form.processing}>

@@ -8,6 +8,7 @@ use App\Plugins\RegisterServerProvider;
 use App\ServerProviders\AWS;
 use App\ServerProviders\Custom;
 use App\ServerProviders\DigitalOcean;
+use App\ServerProviders\Existing;
 use App\ServerProviders\Hetzner;
 use App\ServerProviders\Linode;
 use App\ServerProviders\Vultr;
@@ -20,6 +21,7 @@ class ServerProviderServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->custom();
+        $this->existing();
         $this->aws();
         $this->hetzner();
         $this->digitalOcean();
@@ -32,6 +34,15 @@ class ServerProviderServiceProvider extends ServiceProvider
         RegisterServerProvider::make(Custom::id())
             ->label('Custom')
             ->handler(Custom::class)
+            ->defaultUser('root')
+            ->register();
+    }
+
+    private function existing(): void
+    {
+        RegisterServerProvider::make(Existing::id())
+            ->label('Existing Server')
+            ->handler(Existing::class)
             ->defaultUser('root')
             ->register();
     }
