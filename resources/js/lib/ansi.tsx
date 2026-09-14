@@ -5,9 +5,32 @@ import React, { ReactNode } from 'react';
  */
 export function stripAnsi(text: string): string {
   return text
-    .replace(/\u001b\[[0-9;]*[a-zA-Z]/g, '')
-    .replace(/\u001b\][^\u0007\u001b]*(?:\u0007|\u001b\\)/g, '')
+    .replace(/(?:\u001b\[|\x1b\[)[0-9;?]*[a-zA-Z]/g, '')
+    .replace(/(?:\u001b\]|\x1b\])[^\u0007\u001b]*(?:\u0007|\u001b\\)/g, '')
     .replace(/\[(?:\d{1,3}(?:;\d{1,3})*)?m/g, '');
+}
+
+const STATUSES = ['DONE', 'FAIL', 'FAILED', 'SKIPPED', 'OK', 'SUCCESS', 'WARN', 'WARNING', 'INFO', 'RUNNING', 'PENDING', 'ERROR'];
+const STATUS_REGEX = new RegExp(`^(${STATUSES.join('|')})$`, 'i');
+const DURATION_REGEX = /^~?\s*\d+(?:\.\d+)?\s*(?:ms|s|m|h)$/i;
+const DURATION_STATUS_REGEX = new RegExp(`^(~?\\s*\\d+(?:\\.\\d+)?\\s*(?:ms|s|m|h))\\s+(${STATUSES.join('|')})$`, 'i');
+
+function formatTaskLine(description: string, duration: string, status: string): string {
+  const trimmedDesc = description.trimEnd().replace(/\s*\.{2,}\s*$/, '').trimEnd();
+  const descLen = stripAnsi(trimmedDesc).length;
+  const dotCount = Math.max(3, 45 - descLen);
+  const dots = '.'.repeat(dotCount);
+  const upperStatus = status.trim().toUpperCase();
+  const isSuccess = ['DONE', 'OK', 'SUCCESS'].includes(upperStatus);
+  const isFail = ['FAIL', 'FAILED', 'ERROR'].includes(upperStatus);
+  const statusColor = isSuccess ? '\u001b[32;1m' : isFail ? '\u001b[31;1m' : '\u001b[33;1m';
+
+  let result = `${trimmedDesc} \u001b[90m${dots}\u001b[39m`;
+  if (duration && duration.trim()) {
+    result += ` \u001b[90m${duration.trim()}\u001b[39m`;
+  }
+  result += ` ${statusColor}${status.trim()}\u001b[39;22m`;
+  return result;
 }
 
 /**
@@ -20,51 +43,133 @@ export function cleanLogContent(raw: string): string {
   const lines = raw.replace(/\r\n/g, '\n').split('\n');
   const output: string[] = [];
   const total = lines.length;
-  const statusList = ['DONE', 'FAIL', 'FAILED', 'SKIPPED', 'OK', 'SUCCESS'];
 
   for (let i = 0; i < total; i++) {
     let line = lines[i];
 
     // Resolve carriage return overwrites (\r)
     if (line.includes('\r')) {
-      const parts = line.split('\r');
-      line = parts[parts.length - 1] ?? '';
+      const parts = line.split('\r').filter((p) => p.length > 0);
+      if (parts.length > 1) {
+        const last = parts[parts.length - 1]!;
+        const lastPlain = stripAnsi(last).trim();
+        if (/^\.{3,}/.test(lastPlain)) {
+          const prevDesc = parts.slice(0, -1).reverse().find((p) => !stripAnsi(p).trim().startsWith('.'));
+          if (prevDesc) {
+            line = prevDesc.trimEnd() + ' ' + last.trimStart();
+          } else {
+            line = last;
+          }
+        } else {
+          line = last;
+        }
+      } else {
+        line = parts[0] ?? '';
+      }
     }
 
     const plain = stripAnsi(line).trim();
 
-    // Case 1: Check if line consists entirely of dots (e.g. ....) and next line is status
-    if (plain.length >= 3 && /^\.+$/.test(plain)) {
-      const nextLine = i + 1 < total ? stripAnsi(lines[i + 1]).trim().toUpperCase() : '';
-      if (statusList.includes(nextLine)) {
-        if (output.length > 0) {
-          const prev = output.pop()!;
-          const prevPlain = stripAnsi(prev).trim();
-          const dotCount = Math.max(3, 40 - prevPlain.length);
-          const dots = '.'.repeat(dotCount);
-          const status = stripAnsi(lines[i + 1]).trim();
-          const statusColor = ['DONE', 'OK', 'SUCCESS'].includes(nextLine) ? '\u001b[32;1m' : '\u001b[31;1m';
-          output.push(`${prev.trimEnd()} \u001b[90m${dots}\u001b[39m ${statusColor}${status}\u001b[39;22m`);
-          i++; // skip nextLine
+    // 1. Lookahead: Check if line i is a task description and following lines contain dots/duration/status
+    if (plain.length > 0 && !plain.startsWith('.') && i + 1 < total) {
+      const nextPlain = stripAnsi(lines[i + 1]).trim();
+
+      // Case 1A: next line is only dots (e.g. ".....................")
+      if (nextPlain.length >= 3 && /^\.+$/.test(nextPlain)) {
+        if (i + 2 < total) {
+          const line2Plain = stripAnsi(lines[i + 2]).trim();
+
+          // line2 is duration + status (e.g. "0.97ms DONE")
+          const dsMatch = line2Plain.match(DURATION_STATUS_REGEX);
+          if (dsMatch) {
+            output.push(formatTaskLine(line, dsMatch[1], dsMatch[2]));
+            i += 2;
+            continue;
+          }
+
+          // line2 is duration only (e.g. "29.20ms") and line3 is status (e.g. "DONE")
+          if (DURATION_REGEX.test(line2Plain) && i + 3 < total) {
+            const line3Plain = stripAnsi(lines[i + 3]).trim();
+            if (STATUS_REGEX.test(line3Plain)) {
+              output.push(formatTaskLine(line, line2Plain, line3Plain));
+              i += 3;
+              continue;
+            }
+          }
+
+          // line2 is status only (e.g. "DONE")
+          if (STATUS_REGEX.test(line2Plain)) {
+            output.push(formatTaskLine(line, '', line2Plain));
+            i += 2;
+            continue;
+          }
+        }
+      }
+
+      // Case 1B: next line has dots + duration + status (e.g. "....... 1.84ms DONE")
+      const dotsDsMatch = nextPlain.match(
+        new RegExp(`^(\\.{3,})\\s*(~?\\s*\\d+(?:\\.\\d+)?\\s*(?:ms|s|m|h))\\s+(${STATUSES.join('|')})$`, 'i'),
+      );
+      if (dotsDsMatch) {
+        output.push(formatTaskLine(line, dotsDsMatch[2], dotsDsMatch[3]));
+        i += 1;
+        continue;
+      }
+
+      // Case 1C: next line has dots + duration and line2 has status
+      const dotsDurMatch = nextPlain.match(/^(\.{3,})\s*(~?\s*\d+(?:\.\d+)?\s*(?:ms|s|m|h))$/i);
+      if (dotsDurMatch && i + 2 < total) {
+        const line2Plain = stripAnsi(lines[i + 2]).trim();
+        if (STATUS_REGEX.test(line2Plain)) {
+          output.push(formatTaskLine(line, dotsDurMatch[2], line2Plain));
+          i += 2;
           continue;
+        }
+      }
+
+      // Case 1D: next line has dots + status (e.g. "....... DONE")
+      const dotsStatusMatch = nextPlain.match(new RegExp(`^(\\.{3,})\\s+(${STATUSES.join('|')})$`, 'i'));
+      if (dotsStatusMatch) {
+        output.push(formatTaskLine(line, '', dotsStatusMatch[2]));
+        i += 1;
+        continue;
+      }
+    }
+
+    // 2. Backward-looking fallback: current line is dots, merge with previous line in output if available
+    if (plain.length >= 3 && /^\.+$/.test(plain) && output.length > 0) {
+      const prevLine = output[output.length - 1];
+      const prevPlain = stripAnsi(prevLine).trim();
+      if (prevPlain.length > 0 && !prevPlain.startsWith('.')) {
+        if (i + 1 < total) {
+          const nextPlain = stripAnsi(lines[i + 1]).trim();
+          const dsMatch = nextPlain.match(DURATION_STATUS_REGEX);
+          if (dsMatch) {
+            output.pop();
+            output.push(formatTaskLine(prevLine, dsMatch[1], dsMatch[2]));
+            i += 1;
+            continue;
+          }
+          if (DURATION_REGEX.test(nextPlain) && i + 2 < total) {
+            const line2Plain = stripAnsi(lines[i + 2]).trim();
+            if (STATUS_REGEX.test(line2Plain)) {
+              output.pop();
+              output.push(formatTaskLine(prevLine, nextPlain, line2Plain));
+              i += 2;
+              continue;
+            }
+          }
+          if (STATUS_REGEX.test(nextPlain)) {
+            output.pop();
+            output.push(formatTaskLine(prevLine, '', nextPlain));
+            i += 1;
+            continue;
+          }
         }
       }
     }
 
-    // Case 2: Check if line starts with dots and ends with status (e.g. ".................... DONE")
-    const match = plain.match(/^(\.{3,})\s*(DONE|FAIL|FAILED|SKIPPED|OK|SUCCESS)$/i);
-    if (match && output.length > 0) {
-      const prev = output.pop()!;
-      const prevPlain = stripAnsi(prev).trim();
-      const dotCount = Math.max(3, 40 - prevPlain.length);
-      const dots = '.'.repeat(dotCount);
-      const statusWord = match[2].toUpperCase();
-      const statusColor = ['DONE', 'OK', 'SUCCESS'].includes(statusWord) ? '\u001b[32;1m' : '\u001b[31;1m';
-      output.push(`${prev.trimEnd()} \u001b[90m${dots}\u001b[39m ${statusColor}${statusWord}\u001b[39;22m`);
-      continue;
-    }
-
-    // Collapse excessive dot runs within a line
+    // 3. Normalize single-line dot runs
     line = line.replace(/((?:\u001b\[90m|\[90m)?\.(?:\u001b\[39m|\[39m)?|\.){15,}/g, '\u001b[90m....................\u001b[39m');
 
     output.push(line);
@@ -73,7 +178,7 @@ export function cleanLogContent(raw: string): string {
   return output.join('\n');
 }
 
-const ANSI_REGEX = /((?:\u001b\[|\[)(?:\d{1,3}(?:;\d{1,3})*)?m|\u001b\][^\u0007\u001b]*(?:\u0007|\u001b\\))/g;
+const ANSI_REGEX = /((?:\u001b\[|\[)(?:\d{1,3}(?:;\d{1,3})*)?m|(?:\u001b\]|\x1b\])[^\u0007\u001b]*(?:\u0007|\u001b\\)|(?:\u001b\[|\x1b\[)[0-9;?]*[a-zA-Z])/g;
 
 /**
  * Parses ANSI-formatted string into styled React elements.

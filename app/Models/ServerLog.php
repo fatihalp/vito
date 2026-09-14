@@ -128,7 +128,7 @@ class ServerLog extends AbstractModel
             $buf = str_replace('VITO_SSH_ERROR', '', $buf);
         }
         if (Storage::disk($this->disk)->exists($this->name)) {
-            Storage::disk($this->disk)->append($this->name, $buf);
+            Storage::disk($this->disk)->append($this->name, $buf, '');
         } else {
             Storage::disk($this->disk)->put($this->name, $buf);
         }

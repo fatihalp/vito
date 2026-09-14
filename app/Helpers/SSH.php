@@ -95,7 +95,7 @@ class SSH
     protected function writeOutput(string $chunk): void
     {
         if ($this->logDisk && $this->logPath) {
-            Storage::disk($this->logDisk)->append($this->logPath, $chunk);
+            Storage::disk($this->logDisk)->append($this->logPath, $chunk, '');
             if ($this->logOutputCallback) {
                 ($this->logOutputCallback)($chunk);
             }
