@@ -82,11 +82,6 @@ class Project extends Model
         return $userProject?->role;
     }
 
-    public function workflows(): HasMany
-    {
-        return $this->hasMany(Workflow::class);
-    }
-
     public function domains(): HasMany
     {
         return $this->hasMany(Domain::class);

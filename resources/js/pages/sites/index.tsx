@@ -9,7 +9,6 @@ import { asRow } from '@/lib/inertia-table';
 import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
-import CreateSite from '@/pages/sites/components/create-site';
 import { Badge } from '@/components/ui/badge';
 import { WarningsPopover } from '@/components/banners';
 import { getSiteWarningItems } from '@/components/site-banners';
@@ -183,12 +182,18 @@ export default function Sites() {
                 </div>
               )}
               <div className="ml-auto">
-                <CreateSite server={page.props.server}>
-                  <Button>
+                <Button asChild>
+                  <Link
+                    href={
+                      page.props.server
+                        ? route('sites.create', { server: page.props.server.id })
+                        : route('sites.all.create')
+                    }
+                  >
                     <PlusIcon />
                     Create site
-                  </Button>
-                </CreateSite>
+                  </Link>
+                </Button>
               </div>
             </>
           }

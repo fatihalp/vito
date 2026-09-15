@@ -2,7 +2,6 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CommandIcon, SearchIcon } from 'lucide-react';
-import CreateServer from '@/pages/servers/components/create-server';
 import ProjectForm from '@/pages/projects/components/project-form';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -18,7 +17,6 @@ type SearchResult = {
 
 export default function AppCommand() {
   const [open, setOpen] = useState(false);
-  const [openServer, setOpenServer] = useState(false);
   const [openProject, setOpenProject] = useState(false);
   const [queryText, setQueryText] = useState('');
   const [selected, setSelected] = useState<string>('create-server');
@@ -38,7 +36,6 @@ export default function AppCommand() {
   const handleOpenChange = (open: boolean) => {
     setOpen(open);
     if (!open) {
-      setOpenServer(false);
       setOpenProject(false);
     }
   };
@@ -121,11 +118,16 @@ export default function AppCommand() {
             </CommandGroup>
           )}
           <CommandGroup heading="Commands">
-            <CreateServer defaultOpen={openServer} onOpenChange={setOpenServer}>
-              <CommandItem value="create-server" key="cmd-create-server" onSelect={() => setOpenServer(true)}>
-                Create server
-              </CommandItem>
-            </CreateServer>
+            <CommandItem
+              value="create-server"
+              key="cmd-create-server"
+              onSelect={() => {
+                setOpen(false);
+                router.visit(route('servers.create'));
+              }}
+            >
+              Create server
+            </CommandItem>
             <ProjectForm defaultOpen={openProject} onOpenChange={setOpenProject}>
               <CommandItem value="create-project" key="cmd-create-project" onSelect={() => setOpenProject(true)}>
                 Create project

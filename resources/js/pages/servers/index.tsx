@@ -5,7 +5,6 @@ import { type Configs, type SharedData } from '@/types';
 import { asRow } from '@/lib/inertia-table';
 import { VitoTable } from '@/components/vito-table';
 import Heading from '@/components/heading';
-import CreateServer from '@/pages/servers/components/create-server';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -235,12 +234,12 @@ export default function Servers() {
         <div className="flex items-start justify-between">
           <Heading title="Servers" />
           <div className="flex items-center gap-2">
-            <CreateServer>
-              <Button>
+            <Button asChild>
+              <Link href={route('servers.create')}>
                 <PlusIcon />
                 Create server
-              </Button>
-            </CreateServer>
+              </Link>
+            </Button>
           </div>
         </div>
         <VitoTable

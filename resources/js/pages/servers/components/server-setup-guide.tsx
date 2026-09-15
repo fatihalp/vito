@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import CreateSite from '@/pages/sites/components/create-site';
 import type { Server } from '@/types/server';
 import type { SecurityScore } from '@/types/security';
 import { CheckCircle2Icon, XIcon } from 'lucide-react';
@@ -90,11 +89,11 @@ export default function ServerSetupGuide({ server, securityScore }: ServerSetupG
             </div>
             {!hasSites && (
               <div className="shrink-0">
-                <CreateSite server={server}>
-                  <Button size="sm" variant="outline" className="h-7 px-3 text-xs cursor-pointer">
+                <Button size="sm" variant="outline" className="h-7 px-3 text-xs cursor-pointer" asChild>
+                  <Link href={route('sites.create', { server: server.id })}>
                     Create
-                  </Button>
-                </CreateSite>
+                  </Link>
+                </Button>
               </div>
             )}
           </div>

@@ -47,7 +47,6 @@ discards local changes in the Vito directory, so preserve any intentional custom
 - API
 - Plugins
 - Export and Import
-- Workflows and Automations
 - Domains and DNS Management
 
 ## Modern Deployment Default Scripts

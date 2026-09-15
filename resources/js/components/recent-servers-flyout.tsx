@@ -55,7 +55,7 @@ export default function RecentServersFlyout() {
         <div className="py-3 px-2 text-center text-xs text-muted-foreground">
           <p>No servers found.</p>
           <Link
-            href={route('servers')}
+            href={route('servers.create')}
             className="text-primary hover:underline mt-1 inline-block text-xs font-medium"
           >
             Create server

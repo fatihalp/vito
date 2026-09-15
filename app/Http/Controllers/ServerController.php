@@ -90,6 +90,21 @@ class ServerController extends Controller
         return redirect()->route('servers.show', ['server' => $server->id]);
     }
 
+    #[Get('/create', name: 'servers.create')]
+    public function create(): Response
+    {
+        $project = user()->currentProject;
+
+        $this->authorize('create', [Server::class, $project]);
+
+        $serverProviders = ServerProvider::getByProjectId($project->id, user())->get();
+
+        return Inertia::render('servers/create', [
+            'public_key' => __('servers.create.public_key_text', ['public_key' => get_public_key_content()]),
+            'server_providers' => ServerProviderResource::collection($serverProviders),
+        ]);
+    }
+
     #[Get('/{server}', name: 'servers.show')]
     public function show(Server $server): Response
     {

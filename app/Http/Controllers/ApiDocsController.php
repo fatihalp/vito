@@ -32,7 +32,6 @@ class ApiDocsController extends Controller
             'firewall-rules.yaml',
             'server-ssl.yaml',
             'ssh-keys.yaml',
-            'workflows.yaml',
             'domains.yaml',
             'dns-records.yaml',
             'dns-providers.yaml',

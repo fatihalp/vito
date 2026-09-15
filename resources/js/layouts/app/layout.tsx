@@ -95,7 +95,7 @@ export default function Layout({
           style={
             {
               '--primary-sidebar-width': '9.5rem',
-              '--sidebar-width': hasSecondNav && secondNavOpen ? '21.5rem' : '9.5rem',
+              '--sidebar-width': hasSecondNav && secondNavOpen ? '22.5rem' : '9.5rem',
             } as CSSProperties
           }
         >

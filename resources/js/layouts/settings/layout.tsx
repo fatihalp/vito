@@ -13,7 +13,6 @@ import {
   PlugIcon,
   SearchIcon,
   ShieldCheckIcon,
-  WorkflowIcon,
 } from 'lucide-react';
 import { ReactNode } from 'react';
 import Layout from '@/layouts/app/layout';
@@ -72,11 +71,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'Backups',
       href: route('backups.all'),
       icon: CloudUploadIcon,
-    },
-    {
-      title: 'Workflows',
-      href: route('workflows'),
-      icon: WorkflowIcon,
     },
     {
       title: 'Domains',

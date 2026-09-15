@@ -13,7 +13,6 @@ use App\Providers\SiteTypeServiceProvider;
 use App\Providers\SourceControlServiceProvider;
 use App\Providers\StorageProviderServiceProvider;
 use App\Providers\ToolingServiceProvider;
-use App\Providers\WorkflowServiceProvider;
 use Illuminate\Auth\AuthServiceProvider;
 use Illuminate\Auth\Passwords\PasswordResetServiceProvider;
 use Illuminate\Broadcasting\BroadcastServiceProvider;
@@ -133,7 +132,6 @@ return [
         NotificationChannelServiceProvider::class,
         ServiceTypeServiceProvider::class,
         HorizonServiceProvider::class,
-        WorkflowServiceProvider::class,
     ],
 
     

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronsUpDownIcon, GlobeIcon, PlusIcon, SearchIcon } from 'lucide-react';
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import CreateSite from '@/pages/sites/components/create-site';
 import SiteSelect from '@/pages/sites/components/site-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 import siteHelper from '@/lib/site-helper';
@@ -16,7 +15,6 @@ export function SiteSwitch() {
   const page = usePage<SharedData>();
   const { setOpenTransient: setPrimaryNavOpen } = useSidebar();
   const [open, setOpen] = useState(false);
-  const [siteFormOpen, setSiteFormOpen] = useState(false);
   const storedSite = siteHelper.getStoredSite();
   const currentSite = page.props.site || null;
   const [selected, setSelected] = useState<string>(currentSite?.id?.toString() ?? '');
@@ -70,24 +68,25 @@ export function SiteSwitch() {
           <span className="ml-2">All Sites</span>
         </div>
       </CommandItem>
-      <CreateSite
-        defaultOpen={siteFormOpen}
-        onOpenChange={setSiteFormOpen}
-        server={page.props.server?.is_self ? undefined : page.props.server}
+      <CommandItem
+        value="create-site"
+        onSelect={() => {
+          setOpen(false);
+          setPrimaryNavOpen(false);
+          const s = page.props.server?.is_self ? undefined : page.props.server;
+          if (s) {
+            router.visit(route('sites.create', { server: s.id }));
+          } else {
+            router.visit(route('sites.all.create'));
+          }
+        }}
+        className="gap-0 cursor-pointer"
       >
-        <CommandItem
-          value="create-site"
-          onSelect={() => {
-            setSiteFormOpen(true);
-          }}
-          className="gap-0"
-        >
-          <div className="flex items-center">
-            <PlusIcon size={16} />
-            <span className="ml-2">Create new site</span>
-          </div>
-        </CommandItem>
-      </CreateSite>
+        <div className="flex items-center">
+          <PlusIcon size={16} />
+          <span className="ml-2">Create new site</span>
+        </div>
+      </CommandItem>
     </CommandGroup>
   );
 

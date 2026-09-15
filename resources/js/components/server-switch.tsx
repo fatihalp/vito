@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, ServerIcon } from 'lucide-react';
 import { getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import CreateServer from '@/pages/servers/components/create-server';
 import ServerSelect from '@/pages/servers/components/server-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 import serverHelper from '@/lib/server-helper';
@@ -14,7 +13,6 @@ import serverHelper from '@/lib/server-helper';
 export function ServerSwitch() {
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
-  const [serverFormOpen, setServerFormOpen] = useState(false);
   const [selected, setSelected] = useState<string>(page.props.server?.id?.toString() ?? '');
   const initials = getInitials;
   const form = useForm();
@@ -38,20 +36,19 @@ export function ServerSwitch() {
 
   const footer = (
     <CommandGroup>
-      <CreateServer defaultOpen={serverFormOpen} onOpenChange={setServerFormOpen}>
-        <CommandItem
-          value="create-server"
-          onSelect={() => {
-            setServerFormOpen(true);
-          }}
-          className="gap-0"
-        >
-          <div className="flex items-center">
-            <PlusIcon size={5} />
-            <span className="ml-2">Create new server</span>
-          </div>
-        </CommandItem>
-      </CreateServer>
+      <CommandItem
+        value="create-server"
+        onSelect={() => {
+          setOpen(false);
+          router.visit(route('servers.create'));
+        }}
+        className="gap-0 cursor-pointer"
+      >
+        <div className="flex items-center">
+          <PlusIcon className="size-4" />
+          <span className="ml-2">Create new server</span>
+        </div>
+      </CommandItem>
     </CommandGroup>
   );
 

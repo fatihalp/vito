@@ -7,7 +7,6 @@ import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import siteHelper from '@/lib/site-helper';
 import MetricsCards from '@/pages/monitoring/components/metrics-cards';
 import ServerSetupGuide from '@/pages/servers/components/server-setup-guide';
-import CreateSite from '@/pages/sites/components/create-site';
 import { SharedData } from '@/types';
 import type { Server } from '@/types/server';
 import type { SecurityScore } from '@/types/security';
@@ -128,12 +127,12 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
                   <p className="text-muted-foreground text-xs">Sites you open on this server will appear here.</p>
                 </div>
                 <div className="pt-2">
-                  <CreateSite server={server}>
-                    <Button size="sm" className="gap-1.5 cursor-pointer">
+                  <Button size="sm" className="gap-1.5 cursor-pointer" asChild>
+                    <Link href={route('sites.create', { server: server.id })}>
                       <PlusIcon className="size-3.5" />
                       Create site
-                    </Button>
-                  </CreateSite>
+                    </Link>
+                  </Button>
                 </div>
               </div>
             )}

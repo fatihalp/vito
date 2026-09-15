@@ -1,4 +1,6 @@
 import {
+  ArrowLeftIcon,
+  ArrowRightIcon,
   CheckCircle2Icon,
   CheckIcon,
   ChevronsUpDownIcon,
@@ -50,6 +52,12 @@ import HetznerPlanSelect from './hetzner-plan-select';
 import { toast } from 'sonner';
 import { useSocketListener } from '@/hooks/use-socket-events';
 import type { ServerRole } from '@/lib/server-roles';
+
+const STEPS = [
+  { id: 'provider', label: 'Provider' },
+  { id: 'details', label: 'Server Details' },
+  { id: 'services', label: 'Services' },
+];
 
 type PlanOption = {
   label: string;
@@ -246,6 +254,8 @@ export default function CreateServer({
   const publicKeyText = usePublicKeyText();
 
   const [open, setOpen] = useState(defaultOpen || false);
+  const [step, setStep] = useState(0);
+
   useEffect(() => {
     if (defaultOpen) {
       setOpen(defaultOpen);
@@ -296,11 +306,6 @@ export default function CreateServer({
     stage: 'prod',
   });
 
-  const submit: FormEventHandler = (e) => {
-    e.preventDefault();
-    form.post(route('servers'));
-  };
-
   const [nameEdited, setNameEdited] = useState(false);
   useEffect(() => {
     if (nameEdited) {
@@ -343,9 +348,23 @@ export default function CreateServer({
 
   useEffect(() => {
     if (open) {
+      setStep(0);
       fetchServerProviders();
     }
   }, [open]);
+
+  useEffect(() => {
+    const errorKeys = Object.keys(form.errors);
+    if (errorKeys.length === 0) return;
+
+    if (errorKeys.some((k) => ['provider', 'server_provider', 'region', 'plan', 'ip', 'port'].includes(k))) {
+      setStep(0);
+    } else if (errorKeys.some((k) => ['name', 'os', 'role', 'stage'].includes(k))) {
+      setStep(1);
+    } else if (errorKeys.some((k) => k.startsWith('services'))) {
+      setStep(2);
+    }
+  }, [form.errors]);
 
   useSocketListener((event) => {
     if (event.type?.startsWith('server-provider.')) {
@@ -356,6 +375,58 @@ export default function CreateServer({
   const isExisting = form.data.provider === 'existing';
   const isCustom = form.data.provider === 'custom';
   const isDirectSsh = isCustom || isExisting;
+
+  const canGoNextFromStep0 = () => {
+    if (isDirectSsh) {
+      if (!form.data.ip.trim()) {
+        form.setError('ip', 'IP address is required');
+        return false;
+      }
+      if (!form.data.port || form.data.port < 1 || form.data.port > 65535) {
+        form.setError('port', 'Valid port (1-65535) is required');
+        return false;
+      }
+      return true;
+    }
+
+    if (!form.data.server_provider || form.data.server_provider === 0) {
+      form.setError('provider', 'Please select a provider account');
+      return false;
+    }
+    if (!form.data.region) {
+      form.setError('region', 'Please select a region');
+      return false;
+    }
+    if (!form.data.plan) {
+      form.setError('plan', 'Please select a plan');
+      return false;
+    }
+    return true;
+  };
+
+  const canGoNextFromStep1 = () => {
+    if (!form.data.name.trim()) {
+      form.setError('name', 'Server name is required');
+      return false;
+    }
+    if (!form.data.os) {
+      form.setError('os', 'Operating system is required');
+      return false;
+    }
+    return true;
+  };
+
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
+    if (step !== 2) {
+      form.clearErrors();
+      if (step === 0 && !canGoNextFromStep0()) return;
+      if (step === 1 && !canGoNextFromStep1()) return;
+      setStep((s) => s + 1);
+      return;
+    }
+    form.post(route('servers'));
+  };
 
   const providerValue =
     form.data.provider === 'custom'
@@ -455,380 +526,506 @@ export default function CreateServer({
   return (
     <Sheet open={open} onOpenChange={handleOpenChange} modal>
       <SheetTrigger asChild>{children}</SheetTrigger>
-      <SheetContent className="w-full lg:max-w-4xl">
-        <SheetHeader>
-          <SheetTitle>{isExisting ? 'Connect existing server' : 'Create new server'}</SheetTitle>
-          <SheetDescription>
-            {isExisting
-              ? 'Connect a pre-existing server to Vito for monitoring and management.'
-              : 'Fill in the details to create a new server.'}
-          </SheetDescription>
-        </SheetHeader>
-        <Form id="create-server-form" className="p-4" onSubmit={submit}>
-          <div className="pb-2">
-            <Tabs
-              value={isExisting ? 'existing' : 'new'}
-              onValueChange={(val) => {
-                if (val === 'existing') {
-                  selectCombinedProvider('existing');
-                } else {
-                  selectCombinedProvider('custom');
-                }
-              }}
-              className="w-full"
-            >
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="new">Create New Server</TabsTrigger>
-                <TabsTrigger value="existing">Connect Existing Server</TabsTrigger>
-              </TabsList>
-            </Tabs>
+      <SheetContent className="flex w-full flex-col justify-between lg:max-w-3xl">
+        <SheetHeader className="border-b pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <SheetTitle>
+                {isExisting ? 'Connect existing server' : 'Create new server'}
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                {step === 0 && (isExisting ? 'Connect your server via SSH' : 'Choose where to host your server')}
+                {step === 1 && 'Configure server name, role, and operating system'}
+                {step === 2 && 'Review services and launch your server'}
+              </SheetDescription>
+            </div>
+            <div className="text-muted-foreground text-xs font-medium">
+              Step {step + 1} of 3
+            </div>
           </div>
 
-          <FormFields>
-            <FormField>
-              <Label htmlFor="provider">Provider</Label>
-              <div className="flex items-center gap-2">
-                <Select value={providerValue} onValueChange={selectCombinedProvider}>
-                  <SelectTrigger id="provider" className="flex-1">
-                    <SelectValue placeholder="Select a provider" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      <SelectItem value="custom">{configs.server_provider.providers.custom?.label ?? 'Custom'}</SelectItem>
-                      <SelectItem value="existing">{configs.server_provider.providers.existing?.label ?? 'Existing Server'}</SelectItem>
-                      {Object.entries(configs.server_provider.providers)
-                        .filter(([key]) => key !== 'custom' && key !== 'existing')
-                        .map(([key, provider]) => {
-                          const connections = serverProviders.filter((item: ServerProvider) => item.provider === key);
-
-                          if (connections.length === 0) {
-                            return (
-                              <SelectItem key={`provider-${key}`} value={`unavailable-${key}`} disabled>
-                                {provider.label}
-                              </SelectItem>
-                            );
-                          }
-
-                          return connections.map((connection) => (
-                            <SelectItem key={`connection-${connection.id}`} value={connection.id.toString()}>
-                              {provider.label} - {connection.name}
-                            </SelectItem>
-                          ));
-                        })}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                {!isDirectSsh && (
-                  <ConnectServerProvider
-                    defaultProvider={!isDirectSsh ? form.data.provider : undefined}
-                    onProviderAdded={fetchServerProviders}
+          <div className="mt-4 flex items-center">
+            {STEPS.map((s, idx) => {
+              const isCurrent = idx === step;
+              const isDone = idx < step;
+              return (
+                <div key={s.id} className="flex flex-1 items-center last:flex-none">
+                  <button
+                    type="button"
+                    onClick={() => idx < step && setStep(idx)}
+                    disabled={idx > step}
+                    className={cn('flex items-center gap-2', idx < step ? 'cursor-pointer' : 'cursor-default')}
                   >
-                    <Button type="button" variant="outline" size="icon" aria-label="Add server provider">
-                      <WifiIcon />
-                    </Button>
-                  </ConnectServerProvider>
+                    <span
+                      className={cn(
+                        'flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] font-semibold transition-colors',
+                        isCurrent
+                          ? 'bg-primary text-primary-foreground'
+                          : isDone
+                            ? 'bg-primary/15 text-primary'
+                            : 'bg-muted text-muted-foreground',
+                      )}
+                    >
+                      {isDone ? <CheckIcon className="size-3.5" /> : idx + 1}
+                    </span>
+                    <span
+                      className={cn(
+                        'text-xs font-medium',
+                        isCurrent ? 'text-foreground font-semibold' : 'text-muted-foreground',
+                      )}
+                    >
+                      {s.label}
+                    </span>
+                  </button>
+                  {idx < STEPS.length - 1 && (
+                    <div className={cn('mx-3 h-px flex-1', isDone ? 'bg-primary/40' : 'bg-border')} />
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </SheetHeader>
+
+        <Form id="create-server-form" className="flex-1 overflow-y-auto px-4 py-4" onSubmit={submit}>
+          <FormFields>
+            {step === 0 && (
+              <div className="space-y-4">
+                <Tabs
+                  value={isExisting ? 'existing' : isCustom ? 'custom' : 'cloud'}
+                  onValueChange={(val) => {
+                    form.clearErrors();
+                    if (val === 'existing') {
+                      selectCombinedProvider('existing');
+                    } else if (val === 'custom') {
+                      selectCombinedProvider('custom');
+                    } else {
+                      if (serverProviders.length > 0) {
+                        selectCombinedProvider(serverProviders[0].id.toString());
+                      } else {
+                        const firstCloud = Object.keys(configs.server_provider.providers).find(
+                          (k) => k !== 'custom' && k !== 'existing',
+                        );
+                        if (firstCloud) {
+                          form.setData('provider', firstCloud);
+                        }
+                      }
+                    }
+                  }}
+                  className="w-full"
+                >
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="cloud">Cloud Provider</TabsTrigger>
+                    <TabsTrigger value="custom">Custom Server</TabsTrigger>
+                    <TabsTrigger value="existing">Existing Server</TabsTrigger>
+                  </TabsList>
+                </Tabs>
+
+                {!isDirectSsh && (
+                  <div className="space-y-4">
+                    <FormField>
+                      <Label htmlFor="provider">Provider Account</Label>
+                      <div className="flex items-center gap-2">
+                        <Select value={providerValue} onValueChange={selectCombinedProvider}>
+                          <SelectTrigger id="provider" className="flex-1">
+                            <SelectValue placeholder="Select a provider" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectGroup>
+                              {Object.entries(configs.server_provider.providers)
+                                .filter(([key]) => key !== 'custom' && key !== 'existing')
+                                .map(([key, provider]) => {
+                                  const connections = serverProviders.filter(
+                                    (item: ServerProvider) => item.provider === key,
+                                  );
+
+                                  if (connections.length === 0) {
+                                    return (
+                                      <SelectItem key={`provider-${key}`} value={`unavailable-${key}`} disabled>
+                                        {provider.label}
+                                      </SelectItem>
+                                    );
+                                  }
+
+                                  return connections.map((connection) => (
+                                    <SelectItem key={`connection-${connection.id}`} value={connection.id.toString()}>
+                                      {provider.label} - {connection.name}
+                                    </SelectItem>
+                                  ));
+                                })}
+                            </SelectGroup>
+                          </SelectContent>
+                        </Select>
+                        <ConnectServerProvider
+                          defaultProvider={!isDirectSsh ? form.data.provider : undefined}
+                          onProviderAdded={fetchServerProviders}
+                        >
+                          <Button type="button" variant="outline" size="icon" aria-label="Add server provider">
+                            <WifiIcon className="size-4" />
+                          </Button>
+                        </ConnectServerProvider>
+                      </div>
+                      <InputError message={form.errors.provider || form.errors.server_provider} />
+                    </FormField>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <FormField>
+                        <Label htmlFor="region">Region</Label>
+                        {form.data.provider === 'hetzner' ? (
+                          <HetznerRegionSelect
+                            value={form.data.region}
+                            loading={regionLoading}
+                            onChange={(region) => {
+                              selectRegion(region);
+                            }}
+                          />
+                        ) : (
+                          <Popover open={regionOpen} onOpenChange={setRegionOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                id="region"
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={regionOpen}
+                                className="w-full justify-between font-normal"
+                                disabled={form.data.server_provider === 0}
+                              >
+                                {form.data.region ? regions[form.data.region] || form.data.region : 'Select region'}
+                                <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search region..." />
+                                <CommandList>
+                                  <CommandGroup>
+                                    {Object.entries(regions).map(([key, value]) => (
+                                      <CommandItem
+                                        key={`region-${key}`}
+                                        value={value}
+                                        onSelect={() => {
+                                          selectRegion(key);
+                                          setRegionOpen(false);
+                                        }}
+                                      >
+                                        {value}
+                                        <CheckIcon
+                                          className={cn(
+                                            'ml-auto',
+                                            form.data.region === key ? 'opacity-100' : 'opacity-0',
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                        <InputError message={form.errors.region} />
+                      </FormField>
+
+                      <FormField>
+                        <Label htmlFor="plan">Plan</Label>
+                        {form.data.provider === 'hetzner' ? (
+                          <HetznerPlanSelect
+                            value={form.data.plan}
+                            onChange={(plan) => {
+                              selectPlan(plan);
+                            }}
+                          />
+                        ) : (
+                          <Popover open={planOpen} onOpenChange={setPlanOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                id="plan"
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={planOpen}
+                                className="w-full justify-between font-normal"
+                                disabled={form.data.region === ''}
+                              >
+                                {form.data.plan
+                                  ? plans[form.data.plan]
+                                    ? normalizePlan(plans[form.data.plan]).label
+                                    : form.data.plan
+                                  : 'Select plan'}
+                                <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search plan..." />
+                                <CommandList>
+                                  <CommandGroup>
+                                    {Object.entries(plans).map(([key, value]) => {
+                                      const plan = normalizePlan(value);
+                                      return (
+                                        <CommandItem
+                                          key={`plan-${key}`}
+                                          value={plan.label}
+                                          disabled={!plan.available}
+                                          onSelect={() => {
+                                            selectPlan(key);
+                                            setPlanOpen(false);
+                                          }}
+                                        >
+                                          {plan.label}
+                                          {!plan.available && (
+                                            <span className="text-muted-foreground ml-2">(unavailable)</span>
+                                          )}
+                                          <CheckIcon
+                                            className={cn(
+                                              'ml-auto',
+                                              form.data.plan === key ? 'opacity-100' : 'opacity-0',
+                                            )}
+                                          />
+                                        </CommandItem>
+                                      );
+                                    })}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                        <InputError message={form.errors.plan} />
+                      </FormField>
+                    </div>
+                  </div>
+                )}
+
+                {isDirectSsh && (
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 items-start gap-4">
+                      <FormField>
+                        <Label htmlFor="ip">SSH IP</Label>
+                        <Input
+                          id="ip"
+                          type="text"
+                          placeholder="192.168.1.1"
+                          autoComplete="ip"
+                          value={form.data.ip}
+                          onChange={(e) => form.setData('ip', e.target.value)}
+                        />
+                        <InputError message={form.errors.ip} />
+                      </FormField>
+
+                      <FormField>
+                        <Label htmlFor="port">SSH Port</Label>
+                        <Input
+                          id="port"
+                          type="number"
+                          placeholder="22"
+                          autoComplete="port"
+                          value={form.data.port || ''}
+                          onChange={(e) => form.setData('port', parseInt(e.target.value) || 22)}
+                        />
+                        <InputError message={form.errors.port} />
+                      </FormField>
+                    </div>
+
+                    <FormField>
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="public_key" className="text-xs">
+                          {isExisting
+                            ? 'Run this command on your existing server as root:'
+                            : 'Run this command on your fresh server as root:'}
+                        </Label>
+                        <button
+                          type="button"
+                          onClick={copyToClipboard}
+                          className="text-muted-foreground hover:text-foreground flex cursor-pointer items-center gap-1 text-xs"
+                        >
+                          {copySuccess ? (
+                            <ClipboardCheckIcon className="text-success size-3" />
+                          ) : (
+                            <ClipboardIcon className="size-3" />
+                          )}
+                          <span>{copySuccess ? 'Copied' : 'Copy command'}</span>
+                        </button>
+                      </div>
+                      <Textarea
+                        onClick={copyToClipboard}
+                        id="public_key"
+                        value={publicKeyText}
+                        readOnly
+                        rows={3}
+                        className="bg-muted/40 font-mono text-xs overflow-auto resize-none cursor-pointer"
+                        spellCheck={false}
+                      />
+                      <p className="text-muted-foreground text-xs">
+                        {isExisting
+                          ? 'Safely authorizes Vito via SSH. Existing websites, packages, and keys are preserved.'
+                          : 'Adds Vito SSH key to /root/.ssh/authorized_keys for clean provisioning.'}
+                      </p>
+                    </FormField>
+                  </div>
                 )}
               </div>
-              <InputError message={form.errors.provider || form.errors.server_provider} />
-            </FormField>
+            )}
 
-            {!isDirectSsh && form.data.provider && (
-              <div className="grid grid-cols-2 gap-6">
-                <FormField>
-                  <Label htmlFor="region">Region</Label>
-                  {form.data.provider === 'hetzner' ? (
-                    <HetznerRegionSelect
-                      value={form.data.region}
-                      loading={regionLoading}
-                      onChange={(region) => {
-                        selectRegion(region);
+            {step === 1 && (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 items-start gap-4">
+                  <FormField>
+                    <Label htmlFor="role">Server Type</Label>
+                    <Select
+                      value={form.data.role}
+                      onValueChange={(value: CreateServerForm['role']) => {
+                        form.setData('role', value);
+                        form.setData('services', servicesForRole(value));
+                      }}
+                    >
+                      <SelectTrigger id="role">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {configs.server_roles.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.role} />
+                  </FormField>
+
+                  <FormField>
+                    <Label htmlFor="stage">Stage</Label>
+                    <Select
+                      value={form.data.stage}
+                      onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}
+                    >
+                      <SelectTrigger id="stage">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="prod">Prod</SelectItem>
+                        <SelectItem value="beta">Beta</SelectItem>
+                        <SelectItem value="alfa">Alfa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.stage} />
+                  </FormField>
+
+                  <FormField>
+                    <Label htmlFor="name">Server Name</Label>
+                    <Input
+                      id="name"
+                      type="text"
+                      autoComplete="name"
+                      value={form.data.name}
+                      onChange={(e) => {
+                        setNameEdited(true);
+                        form.setData('name', e.target.value);
                       }}
                     />
-                  ) : (
-                    <Popover open={regionOpen} onOpenChange={setRegionOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="region"
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={regionOpen}
-                          className="w-full justify-between font-normal"
-                          disabled={form.data.server_provider === 0}
-                        >
-                          {form.data.region ? regions[form.data.region] || form.data.region : 'Select a region'}
-                          <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Search region..." />
-                          <CommandList>
-                            <CommandGroup>
-                              {Object.entries(regions).map(([key, value]) => (
-                                <CommandItem
-                                  key={`region-${key}`}
-                                  value={value}
-                                  onSelect={() => {
-                                    selectRegion(key);
-                                    setRegionOpen(false);
-                                  }}
-                                >
-                                  {value}
-                                  <CheckIcon className={cn('ml-auto', form.data.region === key ? 'opacity-100' : 'opacity-0')} />
-                                </CommandItem>
-                              ))}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                  <InputError message={form.errors.region} />
-                </FormField>
+                    <InputError message={form.errors.name} />
+                  </FormField>
 
-                <FormField>
-                  <Label htmlFor="plan">Plan</Label>
-                  {form.data.provider === 'hetzner' ? (
-                    <HetznerPlanSelect
-                      value={form.data.plan}
-                      onChange={(plan) => {
-                        selectPlan(plan);
-                      }}
-                    />
-                  ) : (
-                    <Popover open={planOpen} onOpenChange={setPlanOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          id="plan"
-                          variant="outline"
-                          role="combobox"
-                          aria-expanded={planOpen}
-                          className="w-full justify-between font-normal"
-                          disabled={form.data.region === ''}
-                        >
-                          {form.data.plan ? (plans[form.data.plan] ? normalizePlan(plans[form.data.plan]).label : form.data.plan) : 'Select a plan'}
-                          <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                        <Command>
-                          <CommandInput placeholder="Search plan..." />
-                          <CommandList>
-                            <CommandGroup>
-                              {Object.entries(plans).map(([key, value]) => {
-                                const plan = normalizePlan(value);
-                                return (
-                                  <CommandItem
-                                    key={`plan-${key}`}
-                                    value={plan.label}
-                                    disabled={!plan.available}
-                                    onSelect={() => {
-                                      selectPlan(key);
-                                      setPlanOpen(false);
-                                    }}
-                                  >
-                                    {plan.label}
-                                    {!plan.available && <span className="text-muted-foreground ml-2">(unavailable)</span>}
-                                    <CheckIcon className={cn('ml-auto', form.data.plan === key ? 'opacity-100' : 'opacity-0')} />
-                                  </CommandItem>
-                                );
-                              })}
-                            </CommandGroup>
-                          </CommandList>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
-                  )}
-                  <InputError message={form.errors.plan} />
-                </FormField>
-              </div>
-            )}
-
-            {form.data.provider === 'custom' && (
-              <>
-                <Alert>
-                  <TriangleAlert size={5} />
-                  <AlertDescription>
-                    Your server needs to have a new unused installation of supported operating systems and must have a root user. To get started, add
-                    our public key to /root/.ssh/authorized_keys file by running the bellow command on your server as root.
-                  </AlertDescription>
-                </Alert>
-                <FormField>
-                  <Label htmlFor="public_key" className="flex items-center gap-2">
-                    Public Key command
-                    {copySuccess ? <ClipboardCheckIcon className="text-success! size-3" /> : <ClipboardIcon className="size-3 cursor-pointer" />}
-                  </Label>
-                  <Textarea
-                    onClick={copyToClipboard}
-                    id="public_key"
-                    value={publicKeyText}
-                    readOnly
-                    className="justify-between overflow-auto font-normal"
-                    spellCheck={false}
-                  ></Textarea>
-                </FormField>
-              </>
-            )}
-
-            {form.data.provider === 'existing' && (
-              <>
-                <Alert className="border-primary/20 bg-primary/5">
-                  <CheckCircle2Icon className="text-primary size-4" />
-                  <AlertDescription className="space-y-1">
-                    <p className="font-medium text-foreground">Connect an existing server safely</p>
-                    <p className="text-muted-foreground text-xs">
-                      Vito connects via SSH to monitor and manage your server. Existing websites, packages, and SSH keys will <strong>NOT</strong> be deleted. The <strong>Remote Monitor</strong> service will be configured to track CPU, RAM, and Disk metrics.
-                    </p>
-                  </AlertDescription>
-                </Alert>
-                <FormField>
-                  <Label htmlFor="public_key" className="flex items-center gap-2">
-                    Public Key command
-                    {copySuccess ? <ClipboardCheckIcon className="text-success! size-3" /> : <ClipboardIcon className="size-3 cursor-pointer" />}
-                  </Label>
-                  <Textarea
-                    onClick={copyToClipboard}
-                    id="public_key"
-                    value={publicKeyText}
-                    readOnly
-                    rows={3}
-                    className="font-mono text-xs overflow-auto"
-                    spellCheck={false}
-                  ></Textarea>
-                  <p className="text-muted-foreground text-xs">
-                    Run this command on your existing server as root (or sudo) to authorize Vito's SSH key.
-                  </p>
-                </FormField>
-              </>
-            )}
-
-            <div className="grid grid-cols-2 items-start gap-6">
-              <FormField>
-                <Label htmlFor="role">Server Type</Label>
-                <Select
-                  value={form.data.role}
-                  onValueChange={(value: CreateServerForm['role']) => {
-                    form.setData('role', value);
-                    form.setData('services', servicesForRole(value));
-                  }}
-                >
-                  <SelectTrigger id="role">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {configs.server_roles.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <InputError message={form.errors.role} />
-              </FormField>
-              <FormField>
-                <Label htmlFor="stage">Stage</Label>
-                <Select
-                  value={form.data.stage}
-                  onValueChange={(value: 'prod' | 'beta' | 'alfa') => form.setData('stage', value)}
-                >
-                  <SelectTrigger id="stage">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="prod">Prod</SelectItem>
-                    <SelectItem value="beta">Beta</SelectItem>
-                    <SelectItem value="alfa">Alfa</SelectItem>
-                  </SelectContent>
-                </Select>
-                <InputError message={form.errors.stage} />
-              </FormField>
-              <FormField>
-                <Label htmlFor="name">Server Name</Label>
-                <Input
-                  id="name"
-                  type="text"
-                  autoComplete="name"
-                  value={form.data.name}
-                  onChange={(e) => {
-                    setNameEdited(true);
-                    form.setData('name', e.target.value);
-                  }}
-                />
-                <InputError message={form.errors.name} />
-              </FormField>
-              <FormField>
-                <Label htmlFor="os">Operating System</Label>
-                <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
-                  <SelectTrigger id="os">
-                    <SelectValue placeholder="Select an operating system" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectGroup>
-                      {configs.operating_systems.map((value) => (
-                        <SelectItem key={`os-${value}`} value={value}>
-                          {value}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  </SelectContent>
-                </Select>
-                <InputError message={form.errors.os} />
-              </FormField>
-            </div>
-
-            {isDirectSsh && (
-              <div className="grid grid-cols-2 items-start gap-6">
-                <FormField>
-                  <Label htmlFor="ip">SSH IP</Label>
-                  <Input id="ip" type="text" autoComplete="ip" value={form.data.ip} onChange={(e) => form.setData('ip', e.target.value)} />
-                  <InputError message={form.errors.ip} />
-                </FormField>
-
-                <FormField>
-                  <Label htmlFor="port">SSH Port</Label>
-                  <Input
-                    id="port"
-                    type="text"
-                    autoComplete="port"
-                    value={form.data.port}
-                    onChange={(e) => form.setData('port', parseInt(e.target.value))}
-                  />
-                  <InputError message={form.errors.port} />
-                </FormField>
-              </div>
-            )}
-
-            <div>
-              <FormField>
-                <div className="flex items-center justify-between">
-                  <Label>Services</Label>
-                  <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                  <FormField>
+                    <Label htmlFor="os">Operating System</Label>
+                    <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
+                      <SelectTrigger id="os">
+                        <SelectValue placeholder="Select an operating system" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {configs.operating_systems.map((value) => (
+                            <SelectItem key={`os-${value}`} value={value}>
+                              {value}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.os} />
+                  </FormField>
                 </div>
+              </div>
+            )}
+
+            {step === 2 && (
+              <div className="space-y-4">
+                <div className="bg-muted/50 flex flex-wrap items-center gap-2 rounded-lg border px-3 py-2 text-xs">
+                  <span className="font-semibold text-foreground">{form.data.name || 'Unnamed'}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground uppercase">{form.data.stage}</span>
+                  <span className="text-muted-foreground">•</span>
+                  <span className="capitalize">{form.data.provider}</span>
+                  {isDirectSsh && form.data.ip && (
+                    <span className="text-muted-foreground">({form.data.ip})</span>
+                  )}
+                  {!isDirectSsh && form.data.plan && (
+                    <span className="text-muted-foreground">({form.data.plan})</span>
+                  )}
+                  <span className="text-muted-foreground">•</span>
+                  <span className="text-muted-foreground">{form.data.os}</span>
+                </div>
+
                 <div>
-                  <DataTable columns={servicesColumns} data={form.data.services} />
+                  <FormField>
+                    <div className="flex items-center justify-between pb-2">
+                      <Label className="text-sm font-medium">Services</Label>
+                      <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                    </div>
+                    <div className="rounded-md border">
+                      <DataTable columns={servicesColumns} data={form.data.services} />
+                    </div>
+                    {Object.entries(form.errors)
+                      .filter(([key, value]) => key.startsWith('services') && value.length > 0)
+                      .map(([key, value]) => (
+                        <InputError key={key} message={value} />
+                      ))}
+                  </FormField>
                 </div>
-                {Object.entries(form.errors)
-                  .filter(([key, value]) => {
-                    return key.startsWith('services') && value.length > 0;
-                  })
-                  .map(([key, value]) => (
-                    <InputError key={key} message={value} />
-                  ))}
-              </FormField>
-            </div>
+              </div>
+            )}
           </FormFields>
         </Form>
-        <SheetFooter>
-          <div className="flex items-center gap-2">
-            <Button type="submit" form="create-server-form" tabIndex={4} disabled={form.processing}>
-              {form.processing && <LoaderCircle className="animate-spin" />}{' '}
-              {isExisting ? 'Connect' : 'Create'}
-            </Button>
-            <SheetClose asChild>
-              <Button variant="outline" disabled={form.processing}>
-                Cancel
-              </Button>
-            </SheetClose>
+
+        <SheetFooter className="border-t px-4 py-3">
+          <div className="flex w-full items-center justify-between">
+            <div>
+              {step > 0 ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep((s) => s - 1)}
+                  disabled={form.processing}
+                >
+                  <ArrowLeftIcon className="mr-1 size-4" /> Back
+                </Button>
+              ) : (
+                <SheetClose asChild>
+                  <Button variant="outline" disabled={form.processing}>
+                    Cancel
+                  </Button>
+                </SheetClose>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2">
+              {step < 2 ? (
+                <Button
+                  type="button"
+                  onClick={() => {
+                    form.clearErrors();
+                    if (step === 0 && !canGoNextFromStep0()) return;
+                    if (step === 1 && !canGoNextFromStep1()) return;
+                    setStep((s) => s + 1);
+                  }}
+                >
+                  Next <ArrowRightIcon className="ml-1 size-4" />
+                </Button>
+              ) : (
+                <Button type="submit" form="create-server-form" disabled={form.processing}>
+                  {form.processing && <LoaderCircle className="mr-1 animate-spin" />}{' '}
+                  {isExisting ? 'Connect Server' : 'Create Server'}
+                </Button>
+              )}
+            </div>
           </div>
         </SheetFooter>
       </SheetContent>

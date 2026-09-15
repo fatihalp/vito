@@ -49,6 +49,14 @@ class SiteController extends Controller
         ]);
     }
 
+    #[Get('/sites/create', name: 'sites.all.create')]
+    public function createGlobal(Request $request): Response
+    {
+        $this->authorize('viewAny', user()->currentProject);
+
+        return Inertia::render('sites/create');
+    }
+
     #[Get('/servers/{server}/sites', name: 'sites')]
     public function server(Server $server): Response
     {
@@ -56,6 +64,16 @@ class SiteController extends Controller
 
         return Inertia::render('sites/index', [
             'sites' => SiteTable::make($server->sites())->forServer($server)->simplePaginate(),
+        ]);
+    }
+
+    #[Get('/servers/{server}/sites/create', name: 'sites.create')]
+    public function create(Server $server): Response
+    {
+        $this->authorize('create', [Site::class, $server]);
+
+        return Inertia::render('sites/create', [
+            'server' => $server,
         ]);
     }
 

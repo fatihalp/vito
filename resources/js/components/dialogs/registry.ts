@@ -42,8 +42,6 @@ const EditNetworkServer = lazy(() => import('@/pages/networks/components/edit-ne
 const NetworkFirewallRuleForm = lazy(() => import('@/pages/networks/components/firewall-rule-form'));
 const AddNetworkPeer = lazy(() => import('@/pages/networks/components/add-peer'));
 const PeerConfigDialog = lazy(() => import('@/pages/networks/components/peer-config'));
-const ImportWorkflow = lazy(() => import('@/pages/workflows/components/import-workflow'));
-const WorkflowTemplatesDialog = lazy(() => import('@/pages/workflows/components/templates-dialog'));
 const RevealSiteResourceDialog = lazy(() => import('@/pages/site-resources/components/reveal-site-resource-dialog'));
 const InviteProjectUser = lazy(() => import('@/pages/projects/components/invite'));
 const ProjectUsers = lazy(() => import('@/pages/projects/components/users'));
@@ -94,8 +92,6 @@ export const dialogs = {
   networkFirewallForm: NetworkFirewallRuleForm,
   networkAddPeer: AddNetworkPeer,
   networkPeerConfig: PeerConfigDialog,
-  workflowImport: ImportWorkflow,
-  workflowTemplates: WorkflowTemplatesDialog,
   projectInvite: InviteProjectUser,
   projectUsers: ProjectUsers,
   siteResourceReveal: RevealSiteResourceDialog,

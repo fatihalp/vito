@@ -228,7 +228,7 @@ export function AppSidebar({
           id="context-navigation"
           collapsible="none"
           aria-hidden={!secondNavOpen}
-          className={cn('flex flex-1', !secondNavOpen && 'hidden')}
+          className={cn('w-auto flex-1 min-w-0', !secondNavOpen && 'hidden')}
         >
           <SidebarHeader className="min-h-10 justify-center border-b px-2.5 py-1.5">
             <div className="flex min-w-0 items-center justify-between gap-2">
@@ -283,8 +283,8 @@ export function AppSidebar({
                             <CollapsibleTrigger asChild>
                               <SidebarMenuButton isActive={groupActive} disabled={item.isDisabled || false} hidden={item.hidden}>
                                 {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                                <ChevronRightIcon className="ml-auto transition-transform group-data-[state=open]/collapsible:rotate-90" />
+                                <span className="truncate">{item.title}</span>
+                                <ChevronRightIcon className="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                               </SidebarMenuButton>
                             </CollapsibleTrigger>
                             <CollapsibleContent>
@@ -302,12 +302,12 @@ export function AppSidebar({
                                       {childItem.external ? (
                                         <a href={childItem.href} target="_blank">
                                           {childItem.icon && <childItem.icon />}
-                                          <span>{childItem.title}</span>
+                                          <span className="truncate">{childItem.title}</span>
                                         </a>
                                       ) : (
                                         <Link href={childItem.href}>
                                           {childItem.icon && <childItem.icon />}
-                                          <span>{childItem.title}</span>
+                                          <span className="truncate">{childItem.title}</span>
                                         </Link>
                                       )}
                                     </SidebarMenuButton>
