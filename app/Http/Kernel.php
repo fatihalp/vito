@@ -5,6 +5,7 @@ namespace App\Http;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\CanSeeProjectMiddleware;
 use App\Http\Middleware\EncryptCookies;
+use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\HasProjectMiddleware;
@@ -57,6 +58,7 @@ class Kernel extends HttpKernel
             SubstituteBindings::class,
             HandleInertiaRequests::class,
             HandleAppearance::class,
+            EnsurePasswordIsChanged::class,
         ],
 
         'api' => [

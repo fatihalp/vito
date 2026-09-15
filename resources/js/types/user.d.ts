@@ -12,5 +12,6 @@ export interface User {
   projects?: Project[];
   two_factor_enabled: boolean;
   is_admin: boolean;
+  must_change_password: boolean;
   [key: string]: unknown; 
 }

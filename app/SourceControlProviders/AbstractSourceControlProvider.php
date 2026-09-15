@@ -2,15 +2,27 @@
 
 namespace App\SourceControlProviders;
 
+use App\Exceptions\AppError;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
 use App\Exceptions\SourceControlIsNotConnected;
 use App\Models\SourceControl;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Client\Response;
+use Throwable;
 
 abstract class AbstractSourceControlProvider implements SourceControlProvider
 {
     public function __construct(protected SourceControl $sourceControl) {}
+
+    protected function friendlyFetchError(Throwable $e, string $providerLabel, string $action): AppError
+    {
+        if ($e instanceof RequestException && in_array($e->response->status(), [401, 403], true)) {
+            return new AppError("Your {$providerLabel} connection has expired or is no longer valid. Please reconnect it from Source Control settings.");
+        }
+
+        return new AppError("Unable to {$action} from {$providerLabel} right now. Please try again in a moment.");
+    }
 
     public function createRules(array $input): array
     {

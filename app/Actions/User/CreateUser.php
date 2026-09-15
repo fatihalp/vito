@@ -20,15 +20,17 @@ class CreateUser
                 'required',
                 Rule::in([UserRole::ADMIN, UserRole::USER]),
             ],
+            'must_change_password' => ['sometimes', 'boolean'],
         ])->validate();
 
-        
+
         $user = User::query()->create([
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => bcrypt($input['password']),
             'timezone' => 'UTC',
             'is_admin' => $input['role'] === UserRole::ADMIN->value,
+            'must_change_password' => (bool) ($input['must_change_password'] ?? true),
         ]);
 
         return $user;

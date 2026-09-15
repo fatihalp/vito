@@ -59,7 +59,7 @@ const columns: ColumnDef<User>[] = [
     accessorKey: 'created_at',
     header: 'Created At',
     enableSorting: true,
-    cell: ({ row }) => <DateTime date={row.original.created_at} />,
+    cell: ({ row }) => <DateTime date={row.original.created_at} format="YYYY-MM-DD HH:mm" />,
   },
   {
     id: 'actions',

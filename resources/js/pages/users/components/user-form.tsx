@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { User } from '@/types/user';
 import FormSuccessful from '@/components/form-successful';
 
@@ -28,6 +29,7 @@ export default function UserForm({ user, children }: { user?: User; children: Re
     email: user?.email || '',
     password: '',
     role: user?.is_admin ? 'admin' : 'user',
+    must_change_password: user ? !!user.must_change_password : true,
   });
 
   const submit: FormEventHandler = (e) => {
@@ -73,10 +75,25 @@ export default function UserForm({ user, children }: { user?: User; children: Re
                 type="password"
                 id="password"
                 name="password"
+                autoComplete="new-password"
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
               />
               <InputError message={form.errors.password} />
+            </FormField>
+            <FormField>
+              <div className="flex items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <Label htmlFor="must_change_password">Force password change</Label>
+                  <p className="text-muted-foreground text-sm">User must set a new password on next login.</p>
+                </div>
+                <Switch
+                  id="must_change_password"
+                  checked={form.data.must_change_password}
+                  onCheckedChange={(checked) => form.setData('must_change_password', checked)}
+                />
+              </div>
+              <InputError message={form.errors.must_change_password} />
             </FormField>
             <FormField>
               <Label htmlFor="role">Role</Label>

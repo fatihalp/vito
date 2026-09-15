@@ -151,7 +151,7 @@ class GithubApp extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'GitHub App', 'fetch repositories');
         }
     }
 
@@ -180,7 +180,7 @@ class GithubApp extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'GitHub App', 'fetch branches');
         }
     }
 

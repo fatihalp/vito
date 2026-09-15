@@ -66,7 +66,7 @@ export function StatsChart({ title, value, color, dataKey, labelKey, data, forma
                   />
                 }
               />
-              <Area dataKey={dataKey} type="monotone" fill={`url(#${gradientId})`} stroke={color} />
+              <Area dataKey={dataKey} type="monotone" fill={`url(#${gradientId})`} stroke={color} isAnimationActive={false} />
             </AreaChart>
           </ChartContainer>
         )}

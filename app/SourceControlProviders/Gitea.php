@@ -269,7 +269,7 @@ class Gitea extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'Gitea', 'fetch repositories');
         }
     }
 
@@ -297,7 +297,7 @@ class Gitea extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'Gitea', 'fetch branches');
         }
     }
 

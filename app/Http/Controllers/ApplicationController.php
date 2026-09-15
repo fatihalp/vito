@@ -34,9 +34,11 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
+use Spatie\RouteAttributes\Attributes\Where;
 
 #[Prefix('/servers/{server}/sites/{site}')]
 #[Middleware(['auth', 'has-project'])]
+#[Where('site', '[0-9]+')]
 class ApplicationController extends Controller
 {
 

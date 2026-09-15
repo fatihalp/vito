@@ -32,6 +32,7 @@ class User extends Authenticatable
         'current_project_id',
         'is_admin',
         'role',
+        'must_change_password',
     ];
 
     protected $hidden = [
@@ -44,6 +45,7 @@ class User extends Authenticatable
     protected $casts = [
         'role' => UserRole::class,
         'is_admin' => 'boolean',
+        'must_change_password' => 'boolean',
     ];
 
     protected $appends = [];

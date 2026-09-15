@@ -7,6 +7,7 @@ use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
 use App\Actions\SourceControl\GetRepoVitoConfig;
 use App\Actions\SourceControl\GetSourceControls;
+use App\Exceptions\AppError;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\SourceControlResource;
 use App\Http\Resources\UserResource;
@@ -95,7 +96,11 @@ class SourceControlController extends Controller
     {
         $this->authorize('view', $sourceControl);
 
-        return response()->json($sourceControl->provider()->getRepos());
+        try {
+            return response()->json($sourceControl->provider()->getRepos());
+        } catch (AppError $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     #[Get('/{source_control}/repos/nocache', name: 'source-controls.repos.nocache')]
@@ -103,7 +108,11 @@ class SourceControlController extends Controller
     {
         $this->authorize('view', $sourceControl);
 
-        return response()->json($sourceControl->provider()->getRepos(false));
+        try {
+            return response()->json($sourceControl->provider()->getRepos(false));
+        } catch (AppError $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     #[Get('/{source_control}/branches/{repo}', name: 'source-controls.branches')]
@@ -112,7 +121,11 @@ class SourceControlController extends Controller
     {
         $this->authorize('view', $sourceControl);
 
-        return response()->json($sourceControl->provider()->getBranches($repo));
+        try {
+            return response()->json($sourceControl->provider()->getBranches($repo));
+        } catch (AppError $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     #[Get('/{source_control}/branches/nocache/{repo}', name: 'source-controls.branches.nocache')]
@@ -121,7 +134,11 @@ class SourceControlController extends Controller
     {
         $this->authorize('view', $sourceControl);
 
-        return response()->json($sourceControl->provider()->getBranches($repo, false));
+        try {
+            return response()->json($sourceControl->provider()->getBranches($repo, false));
+        } catch (AppError $e) {
+            return response()->json(['message' => $e->getMessage()], 422);
+        }
     }
 
     #[Get('/{source_control}/vito-config/{repo}', name: 'source-controls.vito-config')]

@@ -22,6 +22,10 @@ class UpdateUser
             $user->password = bcrypt($input['password']);
         }
 
+        if (isset($input['must_change_password'])) {
+            $user->must_change_password = (bool) $input['must_change_password'];
+        }
+
         $user->save();
 
         return $user;
@@ -41,6 +45,7 @@ class UpdateUser
                 'required',
                 Rule::in([UserRole::ADMIN, UserRole::USER]),
             ],
+            'must_change_password' => ['sometimes', 'boolean'],
         ])->validate();
     }
 }

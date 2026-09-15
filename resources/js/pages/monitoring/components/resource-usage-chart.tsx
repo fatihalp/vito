@@ -108,7 +108,7 @@ export function ResourceUsageChart({ title, color, dataKey, label, chartData, li
                   />
                 }
               />
-              <Area dataKey={dataKey} type="monotone" fill={`url(#${gradientId})`} stroke={color} />
+              <Area dataKey={dataKey} type="monotone" fill={`url(#${gradientId})`} stroke={color} isAnimationActive={false} />
             </AreaChart>
           </ChartContainer>
         )}

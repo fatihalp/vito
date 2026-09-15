@@ -279,7 +279,7 @@ class Gitlab extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'GitLab', 'fetch repositories');
         }
     }
 
@@ -308,7 +308,7 @@ class Gitlab extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'GitLab', 'fetch branches');
         }
     }
 

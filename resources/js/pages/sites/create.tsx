@@ -400,11 +400,6 @@ export default function CreateSitePage({
                     <h2 className="text-base font-bold text-foreground">
                       {isVitoType ? 'Install with Vito Config' : `Install a ${selectedTypeLabel} application`}
                     </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {isVitoType
-                        ? 'Select repository; Vito will automatically recognize configuration from vito.json'
-                        : 'Configure repository, runtime, and domain settings'}
-                    </p>
                   </div>
                 </div>
 
@@ -498,12 +493,6 @@ export default function CreateSitePage({
                         <div className="flex items-center gap-2.5 text-xs text-muted-foreground p-3.5 rounded-xl border border-primary/20 bg-primary/5">
                           <LoaderCircleIcon className="size-4 animate-spin text-primary shrink-0" />
                           <span>Scanning repository for vito.json configuration...</span>
-                        </div>
-                      )}
-
-                      {!vitoScanning && !form.data.repository && (
-                        <div className="text-xs text-muted-foreground p-4 rounded-xl border border-dashed bg-muted/10 text-center">
-                          Select a repository above. Vito will automatically recognize the vito.json file and configure the site.
                         </div>
                       )}
 

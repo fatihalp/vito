@@ -330,7 +330,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'Bitbucket', 'fetch repositories');
         }
     }
 
@@ -358,7 +358,7 @@ class BitbucketV2 extends AbstractSourceControlProvider
                 'error' => $e->getMessage(),
             ]);
 
-            return [];
+            throw $this->friendlyFetchError($e, 'Bitbucket', 'fetch branches');
         }
     }
 

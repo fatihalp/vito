@@ -16,6 +16,7 @@ class UserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'is_admin' => $this->is_admin,
+            'must_change_password' => (bool) $this->must_change_password,
             'two_factor_enabled' => (bool) $this->two_factor_secret,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
