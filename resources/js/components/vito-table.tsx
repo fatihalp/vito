@@ -313,7 +313,6 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm whitespace-nowrap">Rows per page</span>
                 <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
                   <SelectTrigger className="h-8 w-[70px]">
                     <SelectValue placeholder={String(currentPerPage)} />

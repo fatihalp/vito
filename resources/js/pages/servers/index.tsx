@@ -7,7 +7,6 @@ import { VitoTable } from '@/components/vito-table';
 import Heading from '@/components/heading';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/layouts/app/layout';
 import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon, WifiOffIcon, LoaderCircleIcon } from 'lucide-react';
@@ -41,11 +40,6 @@ const nameCell = ({ row, value }: CellRenderProps) => {
       >
         {name}
       </Link>
-      {isSelf && (
-        <Badge variant="outline" className="text-[11px] gap-1 bg-primary/10 text-primary border-primary/25 font-semibold">
-          Vito Host
-        </Badge>
-      )}
       {isUnreachable && (
         <TooltipProvider delayDuration={0}>
           <Tooltip>
@@ -253,31 +247,6 @@ export default function Servers() {
           }}
           toolbar={
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm">Project</span>
-                <Select
-                  value={page.props.serverScope ?? 'all'}
-                  onValueChange={(project) => {
-                    const url = new URL(window.location.href);
-                    url.searchParams.set('project', project);
-                    url.searchParams.delete('page');
-                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
-                  }}
-                >
-                  <SelectTrigger className="w-40 sm:w-48" aria-label="Filter servers by project">
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Projects</SelectItem>
-                    {(page.props.auth.user.projects ?? []).map((project) => (
-                      <SelectItem key={project.id} value={project.id.toString()}>
-                        {project.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-sm">Group by</span>
                 <Select

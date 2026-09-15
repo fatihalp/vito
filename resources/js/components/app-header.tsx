@@ -2,7 +2,6 @@ import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ProjectSwitch } from '@/components/project-switch';
 import { HeartIcon, MailIcon, SlashIcon, WifiIcon, WifiOffIcon } from 'lucide-react';
 import { ServerSwitch } from '@/components/server-switch';
-import AppCommand from '@/components/app-command';
 import { SiteSwitch } from '@/components/site-switch';
 import { Link, usePage } from '@inertiajs/react';
 import { SharedData } from '@/types';
@@ -78,7 +77,6 @@ export function AppHeader({
             </TooltipTrigger>
             <TooltipContent>Sponsor</TooltipContent>
           </Tooltip>
-          <AppCommand />
         </div>
       </div>
       <SiteHeaderNav />
