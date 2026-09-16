@@ -3,7 +3,7 @@ import { Input } from '@/components/ui/input';
 import { Combobox } from '@/components/ui/combobox';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { toast } from 'sonner';
+import InputError from '@/components/ui/input-error';
 
 interface SelectBranchProps {
   sourceControlId: string;
@@ -16,6 +16,7 @@ interface SelectBranchProps {
 export default function SelectBranch({ sourceControlId, repository, value, onValueChange, placeholder = 'Enter branch' }: SelectBranchProps) {
   const [branches, setBranches] = useState<string[]>([]);
   const [gettingBranches, setGettingBranches] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const refresh = async () => {
     fetchBranches(false);
@@ -23,6 +24,7 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
 
   const fetchBranches = async (useCache: boolean = true) => {
     setBranches([]);
+    setError(undefined);
 
     if (!sourceControlId || !repository) {
       return;
@@ -53,7 +55,7 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
         onValueChange('');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to fetch branches.');
+      setError(error instanceof Error ? error.message : 'Failed to fetch branches.');
       setBranches([]);
     } finally {
       setGettingBranches(false);
@@ -70,23 +72,26 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
   }));
 
   return (
-    <div className="flex items-center gap-2">
-      {gettingBranches && <Input id="branch" type="text" value="" disabled={true} placeholder="Fetching..." />}
-      {!gettingBranches && (branches.length === 0 || !sourceControlId || !repository) && (
-        <Input id="branch" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
-      )}
-      {!gettingBranches && branches.length !== 0 && sourceControlId && repository && (
-        <Combobox
-          items={comboboxItems}
-          value={value}
-          searchText="Filter branches..."
-          noneFoundText="No branches found..."
-          onValueChange={onValueChange}
-        />
-      )}
-      <Button variant="outline" type="button" disabled={gettingBranches || !sourceControlId || !repository} onClick={refresh}>
-        <RefreshCw className={gettingBranches ? 'animate-spin' : ''} />
-      </Button>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        {gettingBranches && <Input id="branch" type="text" value="" disabled={true} placeholder="Fetching..." />}
+        {!gettingBranches && (branches.length === 0 || !sourceControlId || !repository) && (
+          <Input id="branch" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
+        )}
+        {!gettingBranches && branches.length !== 0 && sourceControlId && repository && (
+          <Combobox
+            items={comboboxItems}
+            value={value}
+            searchText="Filter branches..."
+            noneFoundText="No branches found..."
+            onValueChange={onValueChange}
+          />
+        )}
+        <Button variant="outline" type="button" disabled={gettingBranches || !sourceControlId || !repository} onClick={refresh}>
+          <RefreshCw className={gettingBranches ? 'animate-spin' : ''} />
+        </Button>
+      </div>
+      <InputError message={error} />
     </div>
   );
 }

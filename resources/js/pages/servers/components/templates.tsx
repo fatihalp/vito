@@ -40,7 +40,7 @@ function Delete({ template, onTemplateDeleted }: { template: ServerTemplate; onT
   return (
     <Dialog modal={true} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button type="button" variant="outline" size="icon">
           <TrashIcon />
         </Button>
       </DialogTrigger>
@@ -52,9 +52,9 @@ function Delete({ template, onTemplateDeleted }: { template: ServerTemplate; onT
         <p className="p-4">Are you sure you want to delete this template?</p>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">Cancel</Button>
           </DialogClose>
-          <Button variant="destructive" onClick={submit} disabled={form.processing}>
+          <Button type="button" variant="destructive" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             Delete
           </Button>
@@ -130,7 +130,7 @@ function Save({
   return (
     <Dialog modal={true} open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="icon">
+        <Button type="button" variant="outline" size="icon">
           <SaveIcon />
         </Button>
       </DialogTrigger>
@@ -157,9 +157,9 @@ function Save({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">Cancel</Button>
           </DialogClose>
-          <Button onClick={save} disabled={form.processing}>
+          <Button type="button" onClick={save} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             Save
           </Button>
@@ -214,7 +214,7 @@ export default function ServerTemplates({
     <div className="inline-flex items-center gap-2">
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
-          <Button variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
+          <Button type="button" variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
             {query.isFetching && 'Loading...'}
             {!query.isFetching && (value ? value.name : 'Select template...')}
             <ChevronsUpDownIcon className="opacity-50" />

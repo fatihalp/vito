@@ -274,12 +274,14 @@ export default function CreateServerPage({
   const [regions, setRegions] = useState<{ [key: string]: string }>({});
   const [plans, setPlans] = useState<{ [key: string]: string | PlanOption }>({});
 
+  const defaultProvider = providers[0];
+
   const form = useForm<CreateServerForm>({
     role: 'app',
-    provider: 'custom',
-    server_provider: 0,
+    provider: defaultProvider ? defaultProvider.provider : 'custom',
+    server_provider: defaultProvider ? defaultProvider.id : 0,
     name: '',
-    os: 'ubuntu-24-04',
+    os: 'ubuntu_24',
     ip: '',
     port: 22,
     region: '',
@@ -299,6 +301,13 @@ export default function CreateServerPage({
     : isCustom
     ? 'custom'
     : 'cloud';
+
+  useEffect(() => {
+    if (defaultProvider) {
+      fetchRegions(defaultProvider.id, defaultProvider.provider);
+    }
+    // Only for the connection pre-selected on mount; later switches are handled by selectProviderMode/handleProviderSelect.
+  }, []);
 
   useEffect(() => {
     if (!form.data.name) {
@@ -341,6 +350,9 @@ export default function CreateServerPage({
 
   const selectProviderMode = (mode: 'cloud' | 'custom' | 'existing') => {
     form.clearErrors();
+    setRegions({});
+    setPlans({});
+
     if (mode === 'existing') {
       form.setData((prev) => ({
         ...prev,
@@ -368,7 +380,10 @@ export default function CreateServerPage({
           server_provider: firstCloud.id,
           ip: '',
           port: 22,
+          region: '',
+          plan: '',
         }));
+        fetchRegions(firstCloud.id, firstCloud.provider);
       } else {
         form.setData((prev) => ({
           ...prev,
@@ -376,6 +391,8 @@ export default function CreateServerPage({
           server_provider: 0,
           ip: '',
           port: 22,
+          region: '',
+          plan: '',
         }));
       }
     }
@@ -394,7 +411,7 @@ export default function CreateServerPage({
     try {
       const res = await axios.get(
         route('server-providers.plans', {
-          server_provider: serverProvider,
+          serverProvider: serverProvider,
           region: region,
         }),
       );
@@ -419,7 +436,7 @@ export default function CreateServerPage({
     setRegionLoading(true);
     try {
       const regionsRes = await axios.get(
-        route('server-providers.regions', { server_provider: serverProvider }),
+        route('server-providers.regions', { serverProvider: serverProvider }),
       );
       setRegions(regionsRes.data);
 
@@ -530,7 +547,7 @@ export default function CreateServerPage({
   useEffect(() => {
     if (form.hasErrors) {
       const step0Keys = ['provider', 'server_provider', 'region', 'plan', 'ip', 'port'];
-      const step1Keys = ['name', 'os', 'stage', 'role'];
+      const step1Keys = ['name', 'stage'];
       const errors = Object.keys(form.errors);
 
       if (errors.some((k) => step0Keys.includes(k))) {
@@ -609,27 +626,13 @@ export default function CreateServerPage({
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <Label className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">Connection Type</Label>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { id: 'cloud', label: 'Cloud Provider' },
-                        { id: 'custom', label: 'Custom Server' },
-                        { id: 'existing', label: 'Existing Server' },
-                      ].map((m) => (
-                        <button
-                          key={m.id}
-                          type="button"
-                          onClick={() => selectProviderMode(m.id as any)}
-                          className={cn(
-                            'flex flex-col items-center justify-center rounded-xl border p-3 text-xs font-medium transition-all cursor-pointer',
-                            providerMode === m.id
-                              ? 'border-primary bg-primary/5 text-primary font-semibold shadow-xs'
-                              : 'border-border bg-card text-muted-foreground hover:border-border/80 hover:bg-muted/40',
-                          )}
-                        >
-                          <span>{m.label}</span>
-                        </button>
-                      ))}
-                    </div>
+                    <Tabs value={providerMode} onValueChange={(value) => selectProviderMode(value as 'cloud' | 'custom' | 'existing')}>
+                      <TabsList className="grid w-full grid-cols-3">
+                        <TabsTrigger value="cloud">Cloud Provider</TabsTrigger>
+                        <TabsTrigger value="custom">Custom Server</TabsTrigger>
+                        <TabsTrigger value="existing">Existing Server</TabsTrigger>
+                      </TabsList>
+                    </Tabs>
                   </div>
 
                   {!isDirectSsh && (
@@ -650,6 +653,7 @@ export default function CreateServerPage({
                         <Popover open={providerOpen} onOpenChange={setProviderOpen}>
                           <PopoverTrigger asChild>
                             <Button
+                              type="button"
                               variant="outline"
                               role="combobox"
                               className="w-full justify-between font-normal"
@@ -704,6 +708,7 @@ export default function CreateServerPage({
                             <Popover open={regionOpen} onOpenChange={setRegionOpen}>
                               <PopoverTrigger asChild>
                                 <Button
+                                  type="button"
                                   id="region"
                                   variant="outline"
                                   role="combobox"
@@ -762,6 +767,7 @@ export default function CreateServerPage({
                             <Popover open={planOpen} onOpenChange={setPlanOpen}>
                               <PopoverTrigger asChild>
                                 <Button
+                                  type="button"
                                   id="plan"
                                   variant="outline"
                                   role="combobox"
@@ -866,7 +872,7 @@ export default function CreateServerPage({
                               )}
                             </Button>
                           </div>
-                          <pre className="mt-2 max-h-24 overflow-x-auto rounded-lg bg-background p-2.5 font-mono text-[11px] text-muted-foreground border">
+                          <pre className="mt-2 max-h-24 min-w-0 overflow-auto rounded-lg bg-background p-2.5 font-mono text-[11px] whitespace-pre-wrap break-all text-muted-foreground border">
                             {publicKey}
                           </pre>
                         </div>
@@ -878,33 +884,6 @@ export default function CreateServerPage({
 
               {step === 1 && (
                 <div className="space-y-5">
-                  <div>
-                    <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Server Role</Label>
-                    <div className="mt-1.5 grid grid-cols-5 gap-1.5">
-                      {(['app', 'database', 'queue', 'cache', 'custom'] as const).map((r) => (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => {
-                            form.setData((prev) => ({
-                              ...prev,
-                              role: r,
-                              services: servicesForRole(r),
-                            }));
-                          }}
-                          className={cn(
-                            'rounded-lg border py-2 text-center text-xs font-medium capitalize transition-colors cursor-pointer',
-                            form.data.role === r
-                              ? 'border-primary bg-primary/10 text-primary font-semibold'
-                              : 'border-border text-muted-foreground hover:bg-muted/50',
-                          )}
-                        >
-                          {r}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
                   <div>
                     <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Environment / Stage</Label>
                     <div className="mt-1.5 grid grid-cols-3 gap-2">
@@ -935,25 +914,6 @@ export default function CreateServerPage({
                     />
                     <InputError message={form.errors.name} />
                   </FormField>
-
-                  <FormField>
-                    <Label htmlFor="os">Operating System</Label>
-                    <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
-                      <SelectTrigger id="os">
-                        <SelectValue placeholder="Select an operating system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {configs.operating_systems.map((value) => (
-                            <SelectItem key={`os-${value}`} value={value}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                    <InputError message={form.errors.os} />
-                  </FormField>
                 </div>
               )}
 
@@ -974,6 +934,52 @@ export default function CreateServerPage({
                     <span className="text-muted-foreground">•</span>
                     <span className="text-muted-foreground">{form.data.os}</span>
                   </div>
+
+                  <div>
+                    <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Server Role</Label>
+                    <div className="mt-1.5 grid grid-cols-5 gap-1.5">
+                      {(['app', 'database', 'queue', 'cache', 'custom'] as const).map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            form.setData((prev) => ({
+                              ...prev,
+                              role: r,
+                              services: servicesForRole(r),
+                            }));
+                          }}
+                          className={cn(
+                            'rounded-lg border py-2 text-center text-xs font-medium capitalize transition-colors cursor-pointer',
+                            form.data.role === r
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border text-muted-foreground hover:bg-muted/50',
+                          )}
+                        >
+                          {r}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <FormField>
+                    <Label htmlFor="os">Operating System</Label>
+                    <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
+                      <SelectTrigger id="os">
+                        <SelectValue placeholder="Select an operating system" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {configs.operating_systems.map((value) => (
+                            <SelectItem key={`os-${value}`} value={value}>
+                              {value}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                    <InputError message={form.errors.os} />
+                  </FormField>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">

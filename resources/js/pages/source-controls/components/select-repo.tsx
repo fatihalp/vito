@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { Combobox } from '@/components/ui/combobox';
-import { toast } from 'sonner';
+import InputError from '@/components/ui/input-error';
 
 interface SelectRepoProps {
   sourceControlId: string;
@@ -16,6 +16,7 @@ interface SelectRepoProps {
 export default function SelectRepo({ sourceControlId, value, onValueChange, placeholder = 'Enter repository' }: SelectRepoProps) {
   const [repos, setRepos] = useState<string[]>([]);
   const [gettingRepos, setGettingRepos] = useState(false);
+  const [error, setError] = useState<string | undefined>(undefined);
 
   const refresh = async () => {
     fetchRepos(false);
@@ -23,6 +24,7 @@ export default function SelectRepo({ sourceControlId, value, onValueChange, plac
 
   const fetchRepos = async (useCache: boolean = true) => {
     setRepos([]);
+    setError(undefined);
 
     if (!sourceControlId) {
       return;
@@ -46,7 +48,7 @@ export default function SelectRepo({ sourceControlId, value, onValueChange, plac
         onValueChange('');
       }
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : 'Failed to fetch repositories.');
+      setError(error instanceof Error ? error.message : 'Failed to fetch repositories.');
       setRepos([]);
     } finally {
       setGettingRepos(false);
@@ -63,23 +65,26 @@ export default function SelectRepo({ sourceControlId, value, onValueChange, plac
   }));
 
   return (
-    <div className="flex items-center gap-2">
-      {gettingRepos && <Input id="repository" type="text" value="" disabled={true} placeholder="Fetching..." />}
-      {!gettingRepos && (repos.length === 0 || !sourceControlId) && (
-        <Input id="repository" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
-      )}
-      {!gettingRepos && repos.length !== 0 && sourceControlId && (
-        <Combobox
-          items={comboboxItems}
-          value={value}
-          searchText="Filter repositories..."
-          noneFoundText="No repositories found..."
-          onValueChange={onValueChange}
-        />
-      )}
-      <Button variant="outline" type="button" disabled={gettingRepos || !sourceControlId} onClick={refresh}>
-        <RefreshCw className={gettingRepos ? 'animate-spin' : ''} />
-      </Button>
+    <div className="space-y-1.5">
+      <div className="flex items-center gap-2">
+        {gettingRepos && <Input id="repository" type="text" value="" disabled={true} placeholder="Fetching..." />}
+        {!gettingRepos && (repos.length === 0 || !sourceControlId) && (
+          <Input id="repository" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
+        )}
+        {!gettingRepos && repos.length !== 0 && sourceControlId && (
+          <Combobox
+            items={comboboxItems}
+            value={value}
+            searchText="Filter repositories..."
+            noneFoundText="No repositories found..."
+            onValueChange={onValueChange}
+          />
+        )}
+        <Button variant="outline" type="button" disabled={gettingRepos || !sourceControlId} onClick={refresh}>
+          <RefreshCw className={gettingRepos ? 'animate-spin' : ''} />
+        </Button>
+      </div>
+      <InputError message={error} />
     </div>
   );
 }
