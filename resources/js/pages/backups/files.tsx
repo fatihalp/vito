@@ -1,11 +1,11 @@
 import { Head, useForm, usePage } from '@inertiajs/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
-import { CloudUploadIcon, LoaderCircleIcon } from 'lucide-react';
+import { CloudUploadIcon, FileTextIcon, LoaderCircleIcon } from 'lucide-react';
 import { Backup } from '@/types/backup';
 import { DataTable } from '@/components/data-table';
 import { PaginatedData } from '@/types';
@@ -13,6 +13,7 @@ import { BackupFile } from '@/types/backup-file';
 import { columns } from '@/pages/backups/components/file-columns';
 import CopyableBadge from '@/components/copyable-badge';
 import { useRealtime } from '@/hooks/use-socket-events';
+import Logs from '@/pages/server-logs/components/logs';
 
 type Page = {
   server: Server;
@@ -22,6 +23,7 @@ type Page = {
 
 export default function Files() {
   const page = usePage<Page>();
+  const [showLogs, setShowLogs] = useState(false);
   const [files] = useRealtime<BackupFile>(page.props.files, 'backup-file', { backup_id: page.props.backup.id });
 
   const visibleColumns = useMemo(
@@ -52,6 +54,10 @@ export default function Files() {
             <p className="text-muted-foreground text-sm">Here you can manage the backup files</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => setShowLogs((visible) => !visible)} aria-expanded={showLogs} aria-controls="backup-server-logs">
+              <FileTextIcon />
+              {showLogs ? 'Hide logs' : 'View logs'}
+            </Button>
             <Button onClick={runBackup}>
               {runBackupForm.processing ? <LoaderCircleIcon className="animate-spin" /> : <CloudUploadIcon />}
               <span className="hidden lg:block">Run backup</span>
@@ -60,6 +66,18 @@ export default function Files() {
         </HeaderContainer>
 
         <DataTable columns={visibleColumns} paginatedData={files} />
+        {showLogs && (
+          <section id="backup-server-logs" className="flex flex-col gap-4" aria-label="Server diagnostic logs">
+            <div className="flex flex-col gap-1">
+              <h3 className="text-lg font-semibold">Server diagnostic logs</h3>
+              <p className="text-muted-foreground text-sm">
+                Logs from all operations on this server. Match the time of the failed backup, then open the backup, upload, or deletion log to see its output.
+                This list refreshes every five seconds.
+              </p>
+            </div>
+            <Logs server={page.props.server} />
+          </section>
+        )}
       </Container>
     </ServerLayout>
   );

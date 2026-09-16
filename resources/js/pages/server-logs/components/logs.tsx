@@ -25,7 +25,12 @@ export default function Logs({ server, site }: { server: Server; site?: Site }) 
 
   return (
     <>
-      {query.isLoading ? (
+      {query.isError ? (
+        <div role="alert" className="flex items-center gap-2 text-sm">
+          <span>Unable to load server logs.</span>
+          <button type="button" className="underline" onClick={() => void query.refetch()}>Try again</button>
+        </div>
+      ) : query.isLoading ? (
         <TableSkeleton rows={5} cells={3} />
       ) : (
         <DataTable
