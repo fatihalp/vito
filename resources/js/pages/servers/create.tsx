@@ -223,7 +223,8 @@ const servicesColumns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'actions',
-    header: () => <AddService />,
+    header: () => null,
+    enableSorting: false,
     cell: ({ row }) => {
       const isBaseService = baseServices.some((service) => service.name === row.original.name);
 
@@ -232,17 +233,15 @@ const servicesColumns: ColumnDef<Service>[] = [
       }
 
       return (
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            className="cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
-            onClick={() => {
-              EventBus.emit('remove-service', row.original);
-            }}
-          >
-            <TrashIcon className="size-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
+          onClick={() => {
+            EventBus.emit('remove-service', row.original);
+          }}
+        >
+          <TrashIcon className="size-4" />
+        </button>
       );
     },
   },
@@ -536,11 +535,11 @@ export default function CreateServerPage({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    if (step < 2) {
-      if (step === 0 && canGoNextFromStep0()) setStep(1);
-      if (step === 1 && canGoNextFromStep1()) setStep(2);
-      return;
-    }
+    if (step === 0 && canGoNextFromStep0()) setStep(1);
+    if (step === 1 && canGoNextFromStep1()) setStep(2);
+  };
+
+  const createServer = () => {
     form.post(route('servers.store'));
   };
 
@@ -962,29 +961,35 @@ export default function CreateServerPage({
                     </div>
                   </div>
 
-                  <FormField>
-                    <Label htmlFor="os">Operating System</Label>
-                    <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
-                      <SelectTrigger id="os">
-                        <SelectValue placeholder="Select an operating system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {configs.operating_systems.map((value) => (
-                            <SelectItem key={`os-${value}`} value={value}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Operating System</Label>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {configs.operating_systems.map((value) => (
+                        <button
+                          key={`os-${value}`}
+                          type="button"
+                          onClick={() => form.setData('os', value)}
+                          className={cn(
+                            'rounded-lg border px-3 py-2 text-center text-xs font-medium transition-colors cursor-pointer',
+                            form.data.os === value
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border text-muted-foreground hover:bg-muted/50',
+                          )}
+                        >
+                          {value.replace('_', ' ').replace(/^./, (c) => c.toUpperCase())}
+                        </button>
+                      ))}
+                    </div>
                     <InputError message={form.errors.os} />
-                  </FormField>
+                  </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">Services</Label>
-                      <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                      <div className="flex items-center gap-2">
+                        <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                        <AddService />
+                      </div>
                     </div>
                     <div className="rounded-xl border overflow-hidden">
                       <DataTable columns={servicesColumns} data={form.data.services} />
@@ -1031,7 +1036,7 @@ export default function CreateServerPage({
                     Next <ArrowRightIcon className="ml-1.5 size-4" />
                   </Button>
                 ) : (
-                  <Button type="submit" disabled={form.processing}>
+                  <Button type="button" onClick={createServer} disabled={form.processing}>
                     {form.processing && <LoaderCircle className="mr-1.5 animate-spin size-4" />}
                     {isExisting ? 'Connect Server' : 'Create Server'}
                   </Button>

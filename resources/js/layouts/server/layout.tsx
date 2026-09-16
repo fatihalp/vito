@@ -62,7 +62,13 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       if (method === 'get' || (url.pathname !== serverPath && !url.pathname.startsWith(`${serverPath}/`))) return;
 
       const action = url.pathname.slice(serverPath.length);
-      if (['/switch', '/status', '/start'].includes(action) || /^\/sites\/\d+\/switch$/.test(action)) return;
+      if (
+        (method === 'delete' && (action === '' || action === '/')) ||
+        ['/switch', '/status', '/start', '/settings/update', '/transfer'].includes(action) ||
+        /^\/sites\/\d+\/switch$/.test(action)
+      ) {
+        return;
+      }
 
       event.preventDefault();
       toast.warning('This server is offline. Saved data is available in read-only mode. Start or reconnect the server before making changes.');
