@@ -520,7 +520,7 @@ expectValidationError(fn () => $restores->create($user, $backup->fresh(), [...$r
 Queue::fake();
 $restore = $restores->create($user, $backup->fresh(), $restoreInput);
 $restored = $restore->server;
-expectPgBackRest($restored->provider === 'hetzner' && $restored->os->value === 'ubuntu_24' && $restored->database()?->version === '18' && $restored->services()->where('name', 'ufw')->exists(), 'The new server must match the source OS and PostgreSQL version, with a firewall.');
+expectPgBackRest($restored->provider === 'hetzner' && $restored->os->value === 'ubuntu_24' && $restored->database()?->version === '18' && $restored->services()->where('name', 'ufw')->doesntExist(), 'The new server must match the source OS and PostgreSQL version, without requiring a firewall.');
 expectPgBackRest($restore->status === App\Enums\BackupRestoreStatus::WAITING_FOR_SERVER && Queue::pushed(App\Jobs\Backup\RestoreToNewServerJob::class)->count() === 1, 'The restore must wait for the new server.');
 
 Queue::fake();

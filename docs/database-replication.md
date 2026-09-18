@@ -27,7 +27,10 @@ standbys. Everything is built on pgBackRest:
 
 - Servers in the same project, with PostgreSQL installed by Vito on the same
   major version.
-- A firewall service (ufw) on the primary and every replica.
+- A firewall service (ufw) is optional. When the primary has one, Vito opens
+  PostgreSQL (5432) and pgBackRest (8432) there only to each replica's private
+  address; without one, `pg_hba.conf` and pgBackRest's TLS client certificates
+  still limit access to the replicas.
 - The replica server has no databases or backups in Vito and is not in another
   cluster. **All PostgreSQL data on it is replaced.**
 - An S3 or S3-compatible storage provider.

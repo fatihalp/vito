@@ -110,7 +110,6 @@ class RestoreToNewServer
             'role' => ServerRole::DATABASE->value,
             'services' => [
                 ['type' => 'database', 'name' => 'postgresql', 'version' => (string) $requirements['postgresql']],
-                ['type' => 'firewall', 'name' => 'ufw', 'version' => 'latest'],
                 ['type' => 'monitoring', 'name' => 'remote-monitor', 'version' => 'latest'],
             ],
         ]);

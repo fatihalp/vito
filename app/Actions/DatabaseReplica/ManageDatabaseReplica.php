@@ -335,7 +335,6 @@ class ManageDatabaseReplica
             $primary->database()?->name !== 'postgresql' => __('Replicas need a PostgreSQL service on the primary server.'),
             $replicaServer->database()?->name !== 'postgresql' => __('Install PostgreSQL on the replica server first.'),
             (int) $replicaServer->database()->version !== (int) $primary->database()->version => __('The replica must run the same PostgreSQL major version as the primary (:version).', ['version' => $primary->database()->version]),
-            ! $primary->firewall() || ! $replicaServer->firewall() => __('Both servers need a firewall service, so PostgreSQL is only reachable from the replica.'),
             $cluster !== null && $cluster->primary_server_id !== $primary->id => __('This server is a replica. Create replicas from the primary of its cluster.'),
             $cluster !== null && $cluster->status !== PostgresClusterStatus::ACTIVE => __('The cluster is failing over, try again when it finishes.'),
             PostgresCluster::forServer($replicaServer) !== null => __('The selected server already belongs to a PostgreSQL cluster.'),

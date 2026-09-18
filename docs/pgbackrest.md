@@ -207,9 +207,10 @@ in time after the oldest backup.
 
 Vito then:
 
-1. Creates the server with the source's OS, PostgreSQL version, ufw and
-   monitoring (status **waiting for the server**), and waits up to two hours for
-   the installation.
+1. Creates the server with the source's OS, PostgreSQL version and monitoring
+   (status **waiting for the server**), and waits up to two hours for the
+   installation. A firewall isn't installed; PostgreSQL on the new server listens
+   on localhost only.
 2. Installs pgBackRest and writes a config for the new server's data directory.
 3. Runs the restore as the transient unit `vito-pgbackrest-restore-<id>`
    (status **restoring**, with the latest output line). It clears the new
