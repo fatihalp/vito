@@ -215,7 +215,12 @@ Vito then:
 3. Runs the restore as the transient unit `vito-pgbackrest-restore-<id>`
    (status **restoring**, with the latest output line). It clears the new
    server's data directory, and restores with `--archive-mode=off` so the copy
-   never archives WAL into this repository. Then it starts PostgreSQL and waits
+   never archives WAL into this repository. Before starting PostgreSQL it sets
+   `max_connections`, `max_worker_processes`, `max_wal_senders`,
+   `max_prepared_transactions` and `max_locks_per_transaction` to the source's
+   values from the restored `pg_control` (`conf.d/zz-vito-restore.conf`), because
+   recovery aborts when any of them is lower than on the source. If the WAL
+   raises one later, the restore raises it too and restarts PostgreSQL. Then it starts PostgreSQL and waits
    until WAL replay reaches the restore point and PostgreSQL is promoted. If
    PostgreSQL stops during replay, for example because the point in time is
    after the last archived WAL, the unit fails with the PostgreSQL log.

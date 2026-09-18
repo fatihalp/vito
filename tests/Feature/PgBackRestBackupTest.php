@@ -536,6 +536,9 @@ expectPgBackRest($restore->fresh()->status === App\Enums\BackupRestoreStatus::RE
 expectPgBackRest(str_contains($script, "--archive-mode=off  restore") && ! str_contains($script, '--type=') && str_contains($script, 'find "$PGDATA" -mindepth 1 -delete'), 'The latest restore must replay all WAL without archiving.');
 expectPgBackRest(str_contains($script, "'ALTER SYSTEM RESET archive_mode'") && str_contains($script, 'rm -f /etc/pgbackrest/pgbackrest.conf'), 'The restored server must not keep archiving settings or repository credentials.');
 expectPgBackRest(str_contains($script, "WHERE rolname LIKE 'vito\\\\_replica\\\\_%' LOOP EXECUTE format('DROP ROLE %I'"), 'The restored server must not keep the replication logins of the source cluster.');
+expectPgBackRest(str_contains($script, "'/usr/lib/postgresql/18/bin/pg_controldata'") && str_contains($script, 'max_prepared_transactions:max_prepared_xacts') && str_contains($script, "'/etc/postgresql/18/main/conf.d/zz-vito-restore.conf'"),
+    'A restore must start PostgreSQL with max_connections and the other recovery settings of the source cluster.');
+expectPgBackRest(str_contains($script, 'is a lower setting than on the primary server, where its value was') && str_contains($script, 'systemctl restart "$SERVICE"'), 'A restore must raise a setting the WAL needs and restart instead of failing.');
 expectPgBackRest(str_contains($ssh->writes['/etc/pgbackrest/pgbackrest.conf']['content'] ?? '', 'pg1-path=/var/lib/postgresql/18/main'), 'The new server must get a pgBackRest config for its own data directory.');
 
 $ssh->responses = ['systemctl show' => "LoadState=loaded\nActiveState=active\nSubState=running\nResult=success\n", 'journalctl' => 'P00   INFO: restore file /var/lib/postgresql/18/main/base/1/1259'];

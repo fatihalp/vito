@@ -172,6 +172,7 @@ class RestoreToNewServer
 
         $this->unit($restore)->start(view('ssh.pgbackrest.restore', [
             'dataDirectory' => $postgres['data_directory'],
+            'confDirectory' => PostgresReplication::confDirectory($server),
             'version' => $version,
             'stanza' => $backup->pgBackRest()->stanza(),
             'options' => $options,
