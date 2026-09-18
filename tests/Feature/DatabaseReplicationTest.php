@@ -170,7 +170,6 @@ $input = ['replica_server_id' => $standby->id, 'max_slot_wal_keep_size_gb' => '6
 
 expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'replica_server_id' => $primary->id]), 'A server must not replicate itself.');
 expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'replica_server_id' => $old->id]), 'Replicas must run the same major version.');
-expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'replica_server_id' => $bare->id]), 'Replicas must require a firewall on both servers.');
 $userDatabase = Database::query()->create(['server_id' => $standby->id, 'name' => 'app', 'status' => 'ready']);
 expectReplicationValidation(fn () => $replicas->create($primary, $input), 'A replica server with databases must be refused.');
 $userDatabase->delete();
@@ -496,6 +495,9 @@ expectReplication($networkPrepare->prepare($movingCluster->fresh(), $joiner) ===
 expectReplication(count($cloud['networks']) === $networksBefore && in_array(77, $cloud['attached'][105] ?? [], true), 'Joining must reuse the cluster network, not create another one.');
 expectReplication($hetznerNetwork->kind() === 'Hetzner private network' && $wireguard->kind() === 'WireGuard'
     && (new App\Http\Resources\PostgresClusterResource($movingCluster->fresh()))->toArray(request())['network']['kind'] === 'Hetzner private network', 'Admins must see whether a cluster uses the Hetzner network or WireGuard.');
+
+$open = PostgresCluster::query()->create(['project_id' => 1, 'primary_server_id' => $bare->id, 'stanza' => 'pg-bare-1']);
+expectReplication(app(App\Actions\PostgresCluster\SyncPostgresClusterFirewall::class)->sync($open) === true && FirewallRule::query()->where('note', 'like', "vito-pg:{$open->id}:%")->doesntExist(), 'A primary without a firewall service must not block replicas.');
 
 $tunnel = App\Models\Network::query()->create(['project_id' => 1, 'name' => 'tunnel', 'type' => 'wireguard', 'status' => 'active', 'cidr' => '100.64.5.0/24', 'cidr_canonical' => '100.64.5.0/24', 'port' => 51820]);
 $tunnelMembers = collect([[$cloudPrimary, '100.64.5.2', 'KEY-PRIMARY='], [$cloudReplica, '100.64.5.3', 'KEY-REPLICA=']])

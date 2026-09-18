@@ -110,7 +110,6 @@ class RestoreToNewServer
             'role' => ServerRole::DATABASE->value,
             'services' => [
                 ['type' => 'database', 'name' => 'postgresql', 'version' => (string) $requirements['postgresql']],
-                ['type' => 'firewall', 'name' => 'ufw', 'version' => 'latest'],
                 ['type' => 'monitoring', 'name' => 'remote-monitor', 'version' => 'latest'],
             ],
         ]);
@@ -173,6 +172,7 @@ class RestoreToNewServer
 
         $this->unit($restore)->start(view('ssh.pgbackrest.restore', [
             'dataDirectory' => $postgres['data_directory'],
+            'confDirectory' => PostgresReplication::confDirectory($server),
             'version' => $version,
             'stanza' => $backup->pgBackRest()->stanza(),
             'options' => $options,
