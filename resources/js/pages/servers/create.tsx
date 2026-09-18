@@ -10,6 +10,7 @@ import {
   PlusIcon,
   ServerIcon,
   TrashIcon,
+  TriangleAlertIcon,
   WifiIcon,
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -223,7 +224,8 @@ const servicesColumns: ColumnDef<Service>[] = [
   },
   {
     accessorKey: 'actions',
-    header: () => <AddService />,
+    header: () => null,
+    enableSorting: false,
     cell: ({ row }) => {
       const isBaseService = baseServices.some((service) => service.name === row.original.name);
 
@@ -232,17 +234,15 @@ const servicesColumns: ColumnDef<Service>[] = [
       }
 
       return (
-        <div className="flex items-center justify-end">
-          <button
-            type="button"
-            className="cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
-            onClick={() => {
-              EventBus.emit('remove-service', row.original);
-            }}
-          >
-            <TrashIcon className="size-4" />
-          </button>
-        </div>
+        <button
+          type="button"
+          className="cursor-pointer text-muted-foreground hover:text-destructive transition-colors"
+          onClick={() => {
+            EventBus.emit('remove-service', row.original);
+          }}
+        >
+          <TrashIcon className="size-4" />
+        </button>
       );
     },
   },
@@ -272,6 +272,8 @@ export default function CreateServerPage({
   const [regionOpen, setRegionOpen] = useState(false);
   const [planOpen, setPlanOpen] = useState(false);
   const [regionLoading, setRegionLoading] = useState(false);
+  const [planLoading, setPlanLoading] = useState(false);
+  const [regionsError, setRegionsError] = useState<string | null>(null);
   const [regions, setRegions] = useState<{ [key: string]: string }>({});
   const [plans, setPlans] = useState<{ [key: string]: string | PlanOption }>({});
 
@@ -353,6 +355,7 @@ export default function CreateServerPage({
     form.clearErrors();
     setRegions({});
     setPlans({});
+    setRegionsError(null);
 
     if (mode === 'existing') {
       form.setData((prev) => ({
@@ -402,7 +405,11 @@ export default function CreateServerPage({
   const fetchServerProviders = async () => {
     try {
       const response = await axios.get<ServerProvider[]>(route('server-providers.json'));
-      setProviders(response.data);
+      const list = Array.isArray(response.data) ? response.data : (response.data as any)?.data || [];
+      setProviders(list);
+      if (list.length > 0 && form.data.server_provider === 0) {
+        handleProviderSelect(list[0]);
+      }
     } catch {
       // silent
     }
@@ -416,7 +423,7 @@ export default function CreateServerPage({
           region: region,
         }),
       );
-      setPlans(res.data);
+      setPlans(res.data || {});
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Could not fetch plans');
     }
@@ -424,8 +431,15 @@ export default function CreateServerPage({
 
   const selectRegion = async (region: string, providerId = form.data.server_provider) => {
     form.setData('region', region);
+    form.setData('plan', '');
+    setPlans({});
     if (region !== '' && providerId > 0) {
-      await fetchPlans(providerId, region);
+      setPlanLoading(true);
+      try {
+        await fetchPlans(providerId, region);
+      } finally {
+        setPlanLoading(false);
+      }
     }
   };
 
@@ -435,11 +449,18 @@ export default function CreateServerPage({
 
   const fetchRegions = async (serverProvider: number, providerName?: string) => {
     setRegionLoading(true);
+    setRegionsError(null);
     try {
       const regionsRes = await axios.get(
         route('server-providers.regions', { serverProvider: serverProvider }),
       );
-      setRegions(regionsRes.data);
+      const data = regionsRes.data || {};
+      if (Object.keys(data).length === 0) {
+        setRegions({});
+        setRegionsError('No regions returned by this provider. The credentials or token may be invalid.');
+      } else {
+        setRegions(data);
+      }
 
       if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
         try {
@@ -448,7 +469,7 @@ export default function CreateServerPage({
           if (validLatencies.length > 0) {
             validLatencies.sort((a, b) => a[1] - b[1]);
             const bestRegion = validLatencies[0][0];
-            if (regionsRes.data[bestRegion]) {
+            if (data[bestRegion]) {
               await selectRegion(bestRegion, serverProvider);
             }
           }
@@ -457,7 +478,10 @@ export default function CreateServerPage({
         }
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Could not fetch regions');
+      const msg = err.response?.data?.message || 'Could not fetch regions from provider';
+      setRegions({});
+      setRegionsError(msg);
+      toast.error(msg);
     } finally {
       setRegionLoading(false);
     }
@@ -471,6 +495,9 @@ export default function CreateServerPage({
       region: '',
       plan: '',
     }));
+    setRegions({});
+    setPlans({});
+    setRegionsError(null);
     setProviderOpen(false);
     await fetchRegions(p.id, p.provider);
   };
@@ -537,11 +564,11 @@ export default function CreateServerPage({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    if (step < 2) {
-      if (step === 0 && canGoNextFromStep0()) setStep(1);
-      if (step === 1 && canGoNextFromStep1()) setStep(2);
-      return;
-    }
+    if (step === 0 && canGoNextFromStep0()) setStep(1);
+    if (step === 1 && canGoNextFromStep1()) setStep(2);
+  };
+
+  const createServer = () => {
     if (!roleConfirmed) {
       return;
     }
@@ -641,110 +668,73 @@ export default function CreateServerPage({
 
                   {!isDirectSsh && (
                     <div className="space-y-4">
-                      <FormField>
-                        <div className="flex items-center justify-between pb-1">
-                          <Label>Cloud Provider</Label>
+                      {providers.length === 0 ? (
+                        <div className="rounded-xl border border-dashed p-6 text-center">
+                          <ServerIcon className="mx-auto size-8 text-muted-foreground/60 mb-2" />
+                          <p className="text-sm font-medium text-foreground">No cloud providers connected</p>
+                          <p className="text-xs text-muted-foreground mt-1 mb-4">
+                            Connect your cloud provider account (Hetzner, DigitalOcean, AWS, etc.) to deploy servers.
+                          </p>
                           <ConnectServerProvider
-                            defaultProvider={!isDirectSsh ? form.data.provider : undefined}
+                            defaultProvider="hetzner"
                             onProviderAdded={fetchServerProviders}
                           >
-                            <Button type="button" variant="outline" size="icon" aria-label="Add server provider">
-                              <WifiIcon className="size-4" />
+                            <Button type="button">
+                              <PlusIcon className="mr-1.5 size-4" />
+                              Connect Cloud Provider
                             </Button>
                           </ConnectServerProvider>
+                          <InputError message={form.errors.server_provider} className="mt-2 text-center" />
                         </div>
+                      ) : (
+                        <>
+                          <FormField>
+                            <div className="flex items-center justify-between pb-1">
+                              <Label>Cloud Provider</Label>
+                              <ConnectServerProvider
+                                defaultProvider={!isDirectSsh ? form.data.provider : undefined}
+                                onProviderAdded={fetchServerProviders}
+                              >
+                                <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1.5 cursor-pointer">
+                                  <PlusIcon className="size-3.5" />
+                                  <span>Connect new</span>
+                                </Button>
+                              </ConnectServerProvider>
+                            </div>
 
-                        <Popover open={providerOpen} onOpenChange={setProviderOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              role="combobox"
-                              className="w-full justify-between font-normal"
-                            >
-                              {providers.find((p) => p.id === form.data.server_provider)?.name ||
-                                'Select cloud provider...'}
-                              <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
-                            <Command>
-                              <CommandInput placeholder="Search provider..." />
-                              <CommandList>
-                                <CommandGroup>
-                                  {providers.map((provider) => (
-                                    <CommandItem
-                                      key={provider.id}
-                                      value={provider.name}
-                                      onSelect={() => handleProviderSelect(provider)}
-                                    >
-                                      <CheckIcon
-                                        className={cn(
-                                          'mr-2 size-4',
-                                          form.data.server_provider === provider.id
-                                            ? 'opacity-100'
-                                            : 'opacity-0',
-                                        )}
-                                      />
-                                      {provider.name}
-                                    </CommandItem>
-                                  ))}
-                                </CommandGroup>
-                              </CommandList>
-                            </Command>
-                          </PopoverContent>
-                        </Popover>
-                        <InputError message={form.errors.server_provider} />
-                      </FormField>
-
-                      {Object.keys(regions).length > 0 && (
-                        <FormField>
-                          <Label htmlFor="region">Region</Label>
-                          {isHetzner ? (
-                            <HetznerRegionSelect
-                              value={form.data.region}
-                              loading={regionLoading}
-                              onChange={(region) => {
-                                selectRegion(region);
-                              }}
-                            />
-                          ) : (
-                            <Popover open={regionOpen} onOpenChange={setRegionOpen}>
+                            <Popover open={providerOpen} onOpenChange={setProviderOpen}>
                               <PopoverTrigger asChild>
                                 <Button
                                   type="button"
-                                  id="region"
                                   variant="outline"
                                   role="combobox"
-                                  aria-expanded={regionOpen}
                                   className="w-full justify-between font-normal"
-                                  disabled={form.data.server_provider === 0}
                                 >
-                                  {form.data.region ? regions[form.data.region] || form.data.region : 'Select region'}
+                                  {providers.find((p) => p.id === form.data.server_provider)?.name ||
+                                    'Select cloud provider...'}
                                   <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
                                 </Button>
                               </PopoverTrigger>
-                              <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                              <PopoverContent className="w-(--radix-popover-trigger-width) p-0">
                                 <Command>
-                                  <CommandInput placeholder="Search region..." />
+                                  <CommandInput placeholder="Search provider..." />
                                   <CommandList>
                                     <CommandGroup>
-                                      {Object.entries(regions).map(([key, value]) => (
+                                      {providers.map((provider) => (
                                         <CommandItem
-                                          key={`region-${key}`}
-                                          value={value}
-                                          onSelect={() => {
-                                            selectRegion(key);
-                                            setRegionOpen(false);
-                                          }}
+                                          key={provider.id}
+                                          value={provider.name}
+                                          onSelect={() => handleProviderSelect(provider)}
                                         >
-                                          {value}
                                           <CheckIcon
                                             className={cn(
-                                              'ml-auto size-4',
-                                              form.data.region === key ? 'opacity-100' : 'opacity-0'
+                                              'mr-2 size-4',
+                                              form.data.server_provider === provider.id
+                                                ? 'opacity-100'
+                                                : 'opacity-0',
                                             )}
                                           />
+                                          {provider.name}
                                         </CommandItem>
                                       ))}
                                     </CommandGroup>
@@ -752,76 +742,217 @@ export default function CreateServerPage({
                                 </Command>
                               </PopoverContent>
                             </Popover>
-                          )}
-                          <InputError message={form.errors.region} />
-                        </FormField>
-                      )}
+                            <InputError message={form.errors.server_provider} />
+                          </FormField>
 
-                      {Object.keys(plans).length > 0 && (
-                        <FormField>
-                          <Label htmlFor="plan">Server Plan</Label>
-                          {isHetzner ? (
-                            <HetznerPlanSelect
-                              value={form.data.plan}
-                              onChange={(plan) => {
-                                selectPlan(plan);
-                              }}
-                            />
-                          ) : (
-                            <Popover open={planOpen} onOpenChange={setPlanOpen}>
-                              <PopoverTrigger asChild>
+                          {regionsError && (
+                            <div className="flex items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+                              <div className="flex items-center gap-2 min-w-0">
+                                <TriangleAlertIcon className="size-3.5 shrink-0" />
+                                <span className="truncate">{regionsError}</span>
+                              </div>
+                              <div className="flex items-center gap-1 shrink-0">
                                 <Button
                                   type="button"
-                                  id="plan"
-                                  variant="outline"
-                                  role="combobox"
-                                  aria-expanded={planOpen}
-                                  className="w-full justify-between font-normal"
-                                  disabled={form.data.region === ''}
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-6 px-2 text-xs hover:bg-destructive/20 hover:text-destructive"
+                                  onClick={() => form.data.server_provider && fetchRegions(form.data.server_provider, form.data.provider)}
+                                  disabled={regionLoading}
                                 >
-                                  {form.data.plan
-                                    ? plans[form.data.plan]
-                                      ? normalizePlan(plans[form.data.plan]).label
-                                      : form.data.plan
-                                    : 'Select plan'}
-                                  <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                                  {regionLoading ? <LoaderCircle className="size-3 animate-spin" /> : 'Retry'}
                                 </Button>
-                              </PopoverTrigger>
-                              <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
-                                <Command>
-                                  <CommandInput placeholder="Search plan..." />
-                                  <CommandList>
-                                    <CommandGroup>
-                                      {Object.entries(plans).map(([key, value]) => {
-                                        const plan = normalizePlan(value);
-                                        return (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  asChild
+                                  className="h-6 px-2 text-xs hover:bg-destructive/20 hover:text-destructive"
+                                >
+                                  <Link href={route('server-providers')}>Settings</Link>
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+
+                          <FormField>
+                            <Label htmlFor="region">Region</Label>
+                            {regionLoading ? (
+                              <Button
+                                type="button"
+                                id="region"
+                                variant="outline"
+                                disabled
+                                className="w-full justify-between font-normal text-muted-foreground"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <LoaderCircle className="size-4 animate-spin" />
+                                  Loading regions...
+                                </span>
+                              </Button>
+                            ) : Object.keys(regions).length === 0 ? (
+                              <Button
+                                type="button"
+                                id="region"
+                                variant="outline"
+                                disabled
+                                className="w-full justify-between font-normal text-muted-foreground"
+                              >
+                                <span>No regions available</span>
+                              </Button>
+                            ) : isHetzner ? (
+                              <HetznerRegionSelect
+                                value={form.data.region}
+                                loading={regionLoading}
+                                onChange={(region) => {
+                                  selectRegion(region);
+                                }}
+                              />
+                            ) : (
+                              <Popover open={regionOpen} onOpenChange={setRegionOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    id="region"
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={regionOpen}
+                                    className="w-full justify-between font-normal"
+                                    disabled={form.data.server_provider === 0}
+                                  >
+                                    {form.data.region ? regions[form.data.region] || form.data.region : 'Select region'}
+                                    <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search region..." />
+                                    <CommandList>
+                                      <CommandGroup>
+                                        {Object.entries(regions).map(([key, value]) => (
                                           <CommandItem
-                                            key={`plan-${key}`}
-                                            value={plan.label}
-                                            disabled={!plan.available}
+                                            key={`region-${key}`}
+                                            value={value}
                                             onSelect={() => {
-                                              selectPlan(key);
-                                              setPlanOpen(false);
+                                              selectRegion(key);
+                                              setRegionOpen(false);
                                             }}
                                           >
-                                            {plan.label}
+                                            {value}
                                             <CheckIcon
                                               className={cn(
                                                 'ml-auto size-4',
-                                                form.data.plan === key ? 'opacity-100' : 'opacity-0'
+                                                form.data.region === key ? 'opacity-100' : 'opacity-0'
                                               )}
                                             />
                                           </CommandItem>
-                                        );
-                                      })}
-                                    </CommandGroup>
-                                  </CommandList>
-                                </Command>
-                              </PopoverContent>
-                            </Popover>
-                          )}
-                          <InputError message={form.errors.plan} />
-                        </FormField>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            <InputError message={form.errors.region} />
+                          </FormField>
+
+                          <FormField>
+                            <Label htmlFor="plan">Server Plan</Label>
+                            {!form.data.region ? (
+                              <Button
+                                type="button"
+                                id="plan"
+                                variant="outline"
+                                disabled
+                                className="w-full justify-between font-normal text-muted-foreground"
+                              >
+                                <span>Select a region first</span>
+                              </Button>
+                            ) : planLoading ? (
+                              <Button
+                                type="button"
+                                id="plan"
+                                variant="outline"
+                                disabled
+                                className="w-full justify-between font-normal text-muted-foreground"
+                              >
+                                <span className="flex items-center gap-2">
+                                  <LoaderCircle className="size-4 animate-spin" />
+                                  Loading plans...
+                                </span>
+                              </Button>
+                            ) : Object.keys(plans).length === 0 ? (
+                              <Button
+                                type="button"
+                                id="plan"
+                                variant="outline"
+                                disabled
+                                className="w-full justify-between font-normal text-muted-foreground"
+                              >
+                                <span>No plans available</span>
+                              </Button>
+                            ) : isHetzner ? (
+                              <HetznerPlanSelect
+                                value={form.data.plan}
+                                onChange={(plan) => {
+                                  selectPlan(plan);
+                                }}
+                              />
+                            ) : (
+                              <Popover open={planOpen} onOpenChange={setPlanOpen}>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    type="button"
+                                    id="plan"
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={planOpen}
+                                    className="w-full justify-between font-normal"
+                                    disabled={form.data.region === ''}
+                                  >
+                                    {form.data.plan
+                                      ? plans[form.data.plan]
+                                        ? normalizePlan(plans[form.data.plan]).label
+                                        : form.data.plan
+                                      : 'Select plan'}
+                                    <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search plan..." />
+                                    <CommandList>
+                                      <CommandGroup>
+                                        {Object.entries(plans).map(([key, value]) => {
+                                          const plan = normalizePlan(value);
+                                          return (
+                                            <CommandItem
+                                              key={`plan-${key}`}
+                                              value={plan.label}
+                                              disabled={!plan.available}
+                                              onSelect={() => {
+                                                selectPlan(key);
+                                                setPlanOpen(false);
+                                              }}
+                                            >
+                                              {plan.label}
+                                              <CheckIcon
+                                                className={cn(
+                                                  'ml-auto size-4',
+                                                  form.data.plan === key ? 'opacity-100' : 'opacity-0'
+                                                )}
+                                              />
+                                            </CommandItem>
+                                          );
+                                        })}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            )}
+                            <InputError message={form.errors.plan} />
+                          </FormField>
+                        </>
                       )}
                     </div>
                   )}
@@ -970,29 +1101,35 @@ export default function CreateServerPage({
                     </div>
                   </div>
 
-                  <FormField>
-                    <Label htmlFor="os">Operating System</Label>
-                    <Select value={form.data.os} onValueChange={(value) => form.setData('os', value)}>
-                      <SelectTrigger id="os">
-                        <SelectValue placeholder="Select an operating system" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          {configs.operating_systems.map((value) => (
-                            <SelectItem key={`os-${value}`} value={value}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
+                  <div>
+                    <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Operating System</Label>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">
+                      {configs.operating_systems.map((value) => (
+                        <button
+                          key={`os-${value}`}
+                          type="button"
+                          onClick={() => form.setData('os', value)}
+                          className={cn(
+                            'rounded-lg border px-3 py-2 text-center text-xs font-medium transition-colors cursor-pointer',
+                            form.data.os === value
+                              ? 'border-primary bg-primary/10 text-primary font-semibold'
+                              : 'border-border text-muted-foreground hover:bg-muted/50',
+                          )}
+                        >
+                          {value.replace('_', ' ').replace(/^./, (c) => c.toUpperCase())}
+                        </button>
+                      ))}
+                    </div>
                     <InputError message={form.errors.os} />
-                  </FormField>
+                  </div>
 
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <Label className="text-sm font-medium">Services</Label>
-                      <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                      <div className="flex items-center gap-2">
+                        <ServerTemplates services={form.data.services} onTemplateChanged={serverTemplateChanged} />
+                        <AddService />
+                      </div>
                     </div>
                     <div className="rounded-xl border overflow-hidden">
                       <DataTable columns={servicesColumns} data={form.data.services} />
@@ -1039,7 +1176,7 @@ export default function CreateServerPage({
                     Next <ArrowRightIcon className="ml-1.5 size-4" />
                   </Button>
                 ) : (
-                  <Button type="submit" disabled={form.processing || !roleConfirmed}>
+                  <Button type="button" onClick={createServer} disabled={form.processing || !roleConfirmed}>
                     {form.processing && <LoaderCircle className="mr-1.5 animate-spin size-4" />}
                     {isExisting ? 'Connect Server' : 'Create Server'}
                   </Button>

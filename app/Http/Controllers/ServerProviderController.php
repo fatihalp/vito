@@ -25,7 +25,6 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class ServerProviderController extends Controller
 {
-
     #[Get('/', name: 'server-providers')]
     public function index(): Response
     {
@@ -75,7 +74,21 @@ class ServerProviderController extends Controller
     {
         $this->authorize('view', $serverProvider);
 
-        return response()->json($serverProvider->provider()->regions());
+        try {
+            $regions = $serverProvider->provider()->regions();
+
+            if (empty($regions)) {
+                return response()->json([
+                    'message' => 'No regions available for this provider. Please verify credentials.',
+                ], 422);
+            }
+
+            return response()->json($regions);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage() ?: 'Could not fetch regions from provider.',
+            ], 422);
+        }
     }
 
     #[Get('{serverProvider}/regions/{region}/plans', name: 'server-providers.plans')]
@@ -83,7 +96,15 @@ class ServerProviderController extends Controller
     {
         $this->authorize('view', $serverProvider);
 
-        return response()->json($serverProvider->provider()->plans($region));
+        try {
+            $plans = $serverProvider->provider()->plans($region);
+
+            return response()->json($plans);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage() ?: 'Could not fetch plans from provider.',
+            ], 422);
+        }
     }
 
     #[Delete('{serverProvider}', name: 'server-providers.destroy')]
