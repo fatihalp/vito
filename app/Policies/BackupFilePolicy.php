@@ -25,6 +25,11 @@ class BackupFilePolicy
         return $this->hasServerReadAccess($user, $server);
     }
 
+    public function download(User $user, BackupFile $backupFile): bool
+    {
+        return $user->isAdmin() && $this->view($user, $backupFile);
+    }
+
     public function create(User $user, Backup $backup): bool
     {
         $server = $backup->server;

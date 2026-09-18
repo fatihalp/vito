@@ -1,4 +1,4 @@
-import { Head, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import { Server } from '@/types/server';
 import { ServerIpAddress } from '@/types/server-ip';
@@ -16,6 +16,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/compon
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
 import { useDialog } from '@/hooks/use-dialog';
+import { NetworkServer } from '@/types/network';
+import { Badge } from '@/components/ui/badge';
 
 const autoRefreshedServers = new Set<number>();
 
@@ -24,6 +26,7 @@ export default function ServerNetwork() {
     server: Server;
     ipAddresses: InertiaTableData;
     interfaces: string[];
+    networks: NetworkServer[];
   }>();
   const dialog = useDialog();
   const [refreshing, setRefreshing] = useState(false);
@@ -66,6 +69,34 @@ export default function ServerNetwork() {
             </Button>
           </div>
         </HeaderContainer>
+
+        {page.props.networks.length > 0 && (
+          <section className="flex flex-col gap-3" aria-label="Private networks">
+            <h3 className="text-lg font-semibold">Private networks</h3>
+            {page.props.networks.map((member) => (
+              <div key={member.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-md border p-3 text-sm">
+                <span className="flex flex-wrap items-center gap-2">
+                  {member.network && (
+                    <>
+                      <Link href={route('networks.show', { network: member.network.id })} className="font-medium underline">
+                        {member.network.name}
+                      </Link>
+                      <Badge variant={member.network.type === 'wireguard' ? 'success' : 'info'}>{member.network.kind}</Badge>
+                    </>
+                  )}
+                </span>
+                <span className="flex items-center gap-2">
+                  <span className="font-mono">{member.private_ip ?? member.ip ?? '-'}</span>
+                  {member.connected === null ? (
+                    <Badge variant={member.status_color}>{member.status}</Badge>
+                  ) : (
+                    <Badge variant={member.connected ? 'success' : 'danger'}>{member.connected ? 'connected' : 'no recent handshake'}</Badge>
+                  )}
+                </span>
+              </div>
+            ))}
+          </section>
+        )}
 
         <VitoTable
           tableData={page.props.ipAddresses}

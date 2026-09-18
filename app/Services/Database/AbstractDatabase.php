@@ -229,8 +229,8 @@ abstract class AbstractDatabase extends AbstractService implements Database
     {
         $tempPath = $backupFile->tempPath($this->service->server);
 
-        $backupFile->backup->storage->provider()->ssh($this->service->server)->download(
-            $backupFile->path(),
+        $backupFile->currentStorage()->provider()->ssh($this->service->server)->download(
+            $backupFile->currentPath(),
             $tempPath,
         );
 

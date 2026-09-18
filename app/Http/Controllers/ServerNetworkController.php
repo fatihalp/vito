@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Actions\ServerIp\ManageServerIp;
 use App\Actions\ServerIp\RefreshServerIps;
 use App\Exceptions\SSHError;
+use App\Http\Resources\NetworkServerResource;
+use App\Models\NetworkServer;
 use App\Models\Server;
 use App\Models\ServerIpAddress;
 use App\Tables\Servers\ServerIpAddressTable;
@@ -35,6 +37,9 @@ class ServerNetworkController extends Controller
                 ->distinct()
                 ->orderBy('interface')
                 ->pluck('interface'),
+            'networks' => NetworkServerResource::collection(
+                NetworkServer::query()->where('server_id', $server->id)->with('network.serverProvider', 'serverIpAddress')->orderBy('id')->get()
+            ),
         ]);
     }
 

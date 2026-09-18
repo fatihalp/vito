@@ -13,29 +13,34 @@ import { useConfigs } from '@/stores/bootstrap-store';
 import StorageProviderSelect from '@/pages/storage-providers/components/storage-provider-select';
 import DatabaseSelect from '@/pages/databases/components/database-select';
 import ServerSelect from '@/pages/servers/components/server-select';
+import PgBackRestFields, { PgBackRestSettings, pgBackRestDefaults } from '@/pages/backups/components/pgbackrest-fields';
 
 export default function CreateBackup({ open, onOpenChange, server }: { open: boolean; onOpenChange: (open: boolean) => void; server?: Server }) {
   const configs = useConfigs()!;
   const [selectedServer, setSelectedServer] = useState<Server | undefined>(undefined);
   const activeServer = server ?? selectedServer;
 
-  const form = useForm<{
-    type: string;
-    database: string;
-    path: string;
-    storage: string;
-    interval: string;
-    custom_interval: string;
-    keep: string;
-  }>({
+  const form = useForm<
+    {
+      type: string;
+      database: string;
+      path: string;
+      storage: string;
+      interval: string;
+      custom_interval: string;
+      keep: string;
+    } & PgBackRestSettings
+  >({
     type: 'file',
     database: '',
     path: '',
     storage: '',
-    interval: 'daily',
+    interval: '0 0 * * *',
     custom_interval: '',
     keep: '10',
+    ...pgBackRestDefaults(),
   });
+  const isPgBackRest = form.data.type === 'pgbackrest';
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -65,7 +70,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                   value={selectedServer ? String(selectedServer.id) : ''}
                   onValueChange={(value) => {
                     setSelectedServer(value);
-                    if (!value?.services?.database) {
+                    if (!value?.services?.database || (form.data.type === 'pgbackrest' && value.services.database !== 'postgresql')) {
                       form.setData('type', 'file');
                     }
                     form.setData('database', '');
@@ -77,7 +82,10 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
             {}
             <FormField>
               <Label htmlFor="type">Backup Type</Label>
-              <Select value={form.data.type} onValueChange={(value) => form.setData('type', value)}>
+              <Select
+                value={form.data.type}
+                onValueChange={(value) => form.setData('type', value)}
+              >
                 <SelectTrigger id="type">
                   <SelectValue placeholder="Select backup type" />
                 </SelectTrigger>
@@ -85,11 +93,20 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                   <SelectGroup>
                     <SelectItem value="file">File Backup</SelectItem>
                     {activeServer?.services?.database && <SelectItem value="database">Database Backup</SelectItem>}
+                    {activeServer?.services?.database === 'postgresql' && <SelectItem value="pgbackrest">PostgreSQL cluster (pgBackRest)</SelectItem>}
                   </SelectGroup>
                 </SelectContent>
               </Select>
               <InputError message={form.errors.type} />
             </FormField>
+
+            {isPgBackRest && (
+              <div className="text-muted-foreground rounded-md border p-3 text-sm">
+                Backs up the whole PostgreSQL cluster straight to S3 with pgBackRest: parallel, compressed and encrypted, with point-in-time recovery from
+                continuously archived WAL. Vito installs pgBackRest and turns on WAL archiving, which restarts PostgreSQL once if archiving is off. Copy the
+                encryption passphrase from the backup's menu and keep it somewhere safe; the backups can't be restored without it.
+              </div>
+            )}
 
             {}
             {form.data.type === 'database' && activeServer && (
@@ -130,11 +147,12 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                 name="storage"
                 value={form.data.storage}
                 onValueChange={(value) => form.setData('storage', value)}
+                filter={isPgBackRest ? (storageProvider) => storageProvider.provider === 's3' : undefined}
               />
               <InputError message={form.errors.storage} />
             </FormField>
 
-            {}
+            {!isPgBackRest && (
             <FormField>
               <Label htmlFor="interval">Interval</Label>
               <Select value={form.data.interval} onValueChange={(value) => form.setData('interval', value)}>
@@ -153,9 +171,9 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
               </Select>
               <InputError message={form.errors.interval} />
             </FormField>
+            )}
 
-            {}
-            {form.data.interval === 'custom' && (
+            {!isPgBackRest && form.data.interval === 'custom' && (
               <FormField>
                 <Label htmlFor="custom_interval">Custom interval (crontab)</Label>
                 <Input
@@ -169,12 +187,15 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
               </FormField>
             )}
 
-            {}
-            <FormField>
-              <Label htmlFor="keep">Backups to keep</Label>
-              <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
-              <InputError message={form.errors.keep} />
-            </FormField>
+            {!isPgBackRest && (
+              <FormField>
+                <Label htmlFor="keep">Backups to keep</Label>
+                <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
+                <InputError message={form.errors.keep} />
+              </FormField>
+            )}
+
+            {isPgBackRest && <PgBackRestFields data={form.data} errors={form.errors} onChange={(key, value) => form.setData(key, value)} />}
           </FormFields>
         </Form>
         <SheetFooter>

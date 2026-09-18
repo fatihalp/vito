@@ -41,3 +41,4 @@ opencode.json
 !.claude/commands/
 .opencode
 public/build/*
+/storage/framework/testing

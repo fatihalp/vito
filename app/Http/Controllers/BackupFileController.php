@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Backup\ManageBackupFile;
 use App\Actions\Backup\RestoreBackup;
 use App\Http\Resources\BackupFileResource;
+use App\Http\Resources\BackupRestoreResource;
 use App\Http\Resources\BackupResource;
 use App\Models\Backup;
 use App\Models\BackupFile;
+use App\Models\NotificationChannel;
 use App\Models\Server;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -35,6 +39,20 @@ class BackupFileController extends Controller
             'files' => BackupFileResource::collection(
                 $backup->files()->with('backup')->latest()->simplePaginate(config('web.pagination_size'))
             ),
+            'hasNotificationChannels' => NotificationChannel::query()->exists(),
+            'restores' => BackupRestoreResource::collection($backup->restores()->with('server', 'file')->latest('id')->limit(10)->get()),
+        ]);
+    }
+
+    #[Get('/{backupFile}/download', name: 'backup-files.download')]
+    public function download(Server $server, Backup $backup, BackupFile $backupFile): JsonResponse
+    {
+        abort_unless($backup->server_id === $server->id && $backupFile->backup_id === $backup->id, 404);
+
+        $this->authorize('download', $backupFile);
+
+        return response()->json([
+            'url' => app(ManageBackupFile::class)->downloadUrl($backupFile),
         ]);
     }
 

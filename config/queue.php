@@ -38,11 +38,31 @@ return [
             'connection' => 'default',
             'queue' => 'ssh',
             'timeout' => 1200,
-            
-            
-            
-            
+
+
+
+
             'retry_after' => max(300, (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        'storage-migration' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'storage-migration',
+            'timeout' => 1800,
+            'retry_after' => max(300, (int) env('STORAGE_MIGRATION_JOB_TIMEOUT', 1800)) + 60,
+            'block_for' => null,
+            'after_commit' => false,
+        ],
+
+        'storage-migration-scan' => [
+            'driver' => 'redis',
+            'connection' => 'default',
+            'queue' => 'storage-migration-scan',
+            'timeout' => 21600,
+            'retry_after' => max(300, (int) env('STORAGE_MIGRATION_SCAN_TIMEOUT', 21600)) + 60,
             'block_for' => null,
             'after_commit' => false,
         ],

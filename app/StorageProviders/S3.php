@@ -10,6 +10,9 @@ use App\SSH\Storage\Storage;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+use RuntimeException;
+use Throwable;
 
 class S3 extends AbstractStorageProvider
 {
@@ -74,7 +77,7 @@ class S3 extends AbstractStorageProvider
             'key' => 'required',
             'secret' => 'required',
             'region' => 'required',
-            'bucket' => 'required',
+            'bucket' => ['required', 'regex:/^\s*[A-Za-z0-9][A-Za-z0-9._-]{1,254}\s*$/'],
             'path' => 'nullable',
         ];
     }
@@ -135,13 +138,95 @@ class S3 extends AbstractStorageProvider
     {
         try {
             $this->buildClientConfig($credentials);
-            $this->getClient()->listBuckets();
+            $this->probe($credentials);
 
             return true;
-        } catch (S3Exception $e) {
-            Log::error('Failed to connect to the provider', ['exception' => $e]);
+        } catch (Throwable $e) {
+            $secrets = array_filter([$credentials['key'] ?? null, $credentials['secret'] ?? null], fn (?string $value): bool => (string) $value !== '');
+
+            Log::error('Failed to connect to the provider', [
+                'error' => str_replace([...$secrets, ...array_map(rawurlencode(...), $secrets)], '<redacted>', $e->getMessage()),
+            ]);
 
             return false;
+        }
+    }
+
+    public function canRead(array $credentials): bool
+    {
+        try {
+            $this->buildClientConfig($credentials);
+            $client = $this->getClient();
+            $bucket = trim((string) $credentials['bucket']);
+            $prefix = trim((string) ($credentials['path'] ?? ''), '/');
+
+            $client->listObjectsV2(array_filter([
+                'Bucket' => $bucket,
+                'Prefix' => $prefix !== '' ? $prefix.'/' : null,
+                'MaxKeys' => 1,
+            ], fn ($value) => $value !== null));
+
+            return true;
+        } catch (Throwable $e) {
+            Log::error('Failed to verify read access to the provider', ['exception' => $e]);
+
+            return false;
+        }
+    }
+
+    public function presignedUrl(array $credentials, string $key, string $expiry = '+15 minutes', array $parameters = []): string
+    {
+        $this->buildClientConfig($credentials);
+        $client = $this->getClient();
+
+        $command = $client->getCommand('GetObject', [
+            ...$parameters,
+            'Bucket' => trim((string) $credentials['bucket']),
+            'Key' => $key,
+        ]);
+
+        return (string) $client->createPresignedRequest($command, $expiry)->getUri();
+    }
+
+    private function probe(array $credentials): void
+    {
+        $client = $this->getClient();
+        $bucket = trim((string) $credentials['bucket']);
+        $prefix = trim((string) ($credentials['path'] ?? ''), '/');
+        $key = ($prefix !== '' ? $prefix.'/' : '').'.vito-connection-test-'.Str::random(8);
+        $body = 'vito-connection-test-'.Str::random(8);
+
+        try {
+            $client->putObject([
+                'Bucket' => $bucket,
+                'Key' => $key,
+                'Body' => $body,
+                'ContentMD5' => base64_encode(md5($body, true)),
+            ]);
+
+            try {
+                $object = $client->getObject([
+                    'Bucket' => $bucket,
+                    'Key' => $key,
+                ]);
+
+                if ((string) $object['Body'] !== $body) {
+                    throw new RuntimeException('The connection test object did not round-trip correctly.');
+                }
+            } catch (S3Exception $e) {
+                if (! in_array($e->getAwsErrorCode(), ['AccessDenied', 'AllAccessDisabled'], true)) {
+                    throw $e;
+                }
+            }
+        } finally {
+            try {
+                $client->deleteObject([
+                    'Bucket' => $bucket,
+                    'Key' => $key,
+                ]);
+            } catch (Throwable) {
+
+            }
         }
     }
 

@@ -4,11 +4,14 @@ namespace App\Models;
 
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
+use App\SSH\PgBackRest;
+use Cron\CronExpression;
 use Database\Factories\BackupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 class Backup extends AbstractModel
 {
@@ -24,6 +27,8 @@ class Backup extends AbstractModel
         'interval',
         'keep_backups',
         'status',
+        'configuration',
+        'health',
     ];
 
     protected $casts = [
@@ -34,6 +39,12 @@ class Backup extends AbstractModel
         'type' => BackupType::class,
         'status' => BackupStatus::class,
         'enabled' => 'boolean',
+        'configuration' => 'encrypted:json',
+        'health' => 'array',
+    ];
+
+    protected $hidden = [
+        'configuration',
     ];
 
     public static function boot(): void
@@ -46,7 +57,44 @@ class Backup extends AbstractModel
                 
                 $file->delete();
             });
+            $backup->restores()->delete();
         });
+    }
+
+    public function restores(): HasMany
+    {
+        return $this->hasMany(BackupRestore::class);
+    }
+
+    public function cluster(): HasOne
+    {
+        return $this->hasOne(PostgresCluster::class, 'backup_id');
+    }
+
+    public function pgBackRest(): PgBackRest
+    {
+        return new PgBackRest($this);
+    }
+
+    /**
+     * The latest time the cron expression was due at or before $at, or null for an invalid or impossible expression such as 30 February.
+     */
+    public static function lastDue(?string $expression, Carbon $at): ?Carbon
+    {
+        if ($expression === null || ! CronExpression::isValidExpression($expression)) {
+            return null;
+        }
+
+        return rescue(fn (): Carbon => Carbon::instance((new CronExpression($expression))->getPreviousRunDate($at, 0, true, config('app.timezone'))), null, false);
+    }
+
+    public function target(): ?string
+    {
+        return match ($this->type) {
+            BackupType::FILE => $this->path,
+            BackupType::DATABASE => $this->database?->name,
+            BackupType::PGBACKREST => __('PostgreSQL cluster'),
+        };
     }
 
     public function isCustomInterval(): bool

@@ -32,9 +32,19 @@ class NetworkServerTable extends Table
                 ->value(fn (NetworkServer $member): string => $this->hasFirewall($member) ? 'Yes' : 'No')
                 ->badge(colorField: '_firewall_color'),
             Column::data('_firewall_color', fn (NetworkServer $member): string => $this->hasFirewall($member) ? 'success' : 'danger'),
+            Column::make('handshake', 'Last handshake')
+                ->value(fn (NetworkServer $member): ?string => $member->last_handshake_at?->diffForHumans())
+                ->badge(colorField: '_handshake_color')
+                ->fallback('-'),
+            Column::data('_handshake_color', fn (NetworkServer $member): string => match ($member->connected()) {
+                true => 'success',
+                false => 'danger',
+                null => 'gray',
+            }),
             EnumColumn::make('status', 'Status'),
             Column::data('id'),
             Column::data('server_id'),
+            Column::data('server_name', fn (NetworkServer $member): string => $member->server->name),
             ActionsColumn::make(),
         ];
     }

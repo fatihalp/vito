@@ -85,7 +85,7 @@ class S3 extends AbstractStorage
     }
 
     
-    private function prepareS3Path(string $path, string $prefix = ''): string
+    public static function prepareS3Path(string $path, string $prefix = ''): string
     {
         $path = trim($path);
         $path = ltrim($path, '/');

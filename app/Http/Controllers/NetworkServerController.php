@@ -9,9 +9,12 @@ use App\Actions\Network\UpdateNetworkServerIp;
 use App\Enums\NetworkType;
 use App\Models\Network;
 use App\Models\NetworkServer;
+use App\Services\VPN\WireGuard;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Delete;
+use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
@@ -35,6 +38,22 @@ class NetworkServerController extends Controller
         }
 
         return back()->with('info', 'Servers are being added to the network.');
+    }
+
+    #[Get('/{networkServer}/config', name: 'networks.servers.config')]
+    public function config(Network $network, NetworkServer $networkServer): JsonResponse
+    {
+        $this->authorize('view', $network);
+        $this->ensureBelongsToNetwork($network, $networkServer);
+        abort_unless($network->type === NetworkType::WIREGUARD, 404);
+
+        $wireGuard = $networkServer->server->service(WireGuard::type())?->handler();
+        abort_unless($wireGuard instanceof WireGuard, 404);
+
+        return response()->json([
+            'config' => $wireGuard->config($networkServer),
+            'status' => rescue(fn (): string => $wireGuard->status($network), null, false),
+        ])->header('Cache-Control', 'no-store');
     }
 
     #[Post('/{networkServer}/sync', name: 'networks.servers.sync')]

@@ -51,6 +51,18 @@ class Network extends AbstractModel
         return $this->belongsTo(ServerProvider::class);
     }
 
+    /**
+     * How members reach each other, such as "Hetzner private network" or "WireGuard".
+     */
+    public function kind(): string
+    {
+        return match ($this->type) {
+            NetworkType::PROVIDER => __(':provider private network', ['provider' => config('server-provider.providers.'.$this->serverProvider?->provider.'.label') ?? __('Cloud')]),
+            NetworkType::WIREGUARD => __('WireGuard'),
+            NetworkType::CUSTOM => __('Custom private network'),
+        };
+    }
+
     
     public function servers(): HasMany
     {

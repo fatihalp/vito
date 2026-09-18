@@ -28,6 +28,12 @@ return [
     
     'backup_run_timeout' => (int) env('BACKUP_RUN_TIMEOUT', 3600),
 
+    'pgbackrest_strategies' => array_filter(explode(',', (string) env('PGBACKREST_STRATEGIES', 'standard'))),
+
+    'backup_overdue_grace_minutes' => (int) env('BACKUP_OVERDUE_GRACE_MINUTES', 60),
+
+    'backup_alert_reminder_hours' => (int) env('BACKUP_ALERT_REMINDER_HOURS', 24),
+
     
     'ws_host' => env('WS_HOST', '127.0.0.1'),
     'ws_port' => env('WS_PORT', '8085'),

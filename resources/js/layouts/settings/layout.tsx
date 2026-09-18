@@ -1,5 +1,6 @@
 import { type NavItem, SharedData } from '@/types';
 import {
+  ArrowLeftRightIcon,
   BellIcon,
   CloudIcon,
   CloudUploadIcon,
@@ -71,6 +72,11 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'Backups',
       href: route('backups.all'),
       icon: CloudUploadIcon,
+    },
+    {
+      title: 'Storage Migrations',
+      href: route('storage-migrations'),
+      icon: ArrowLeftRightIcon,
     },
     {
       title: 'Domains',

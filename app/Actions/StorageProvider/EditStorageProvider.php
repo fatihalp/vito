@@ -2,6 +2,7 @@
 
 namespace App\Actions\StorageProvider;
 
+use App\Actions\Backup\ManagePgBackRest;
 use App\Models\StorageProvider;
 use App\StorageProviders\StorageProvider as StorageProviderContract;
 use Illuminate\Support\Facades\Log;
@@ -38,13 +39,19 @@ class EditStorageProvider
         $storageProvider->profile = $input['name'];
         $storageProvider->project_id = isset($input['global']) && $input['global'] ? null : $storageProvider->user->currentProject?->id;
 
-        if ($credentials !== $storageProvider->credentials) {
+        $credentialsChanged = $credentials !== $storageProvider->credentials;
+
+        if ($credentialsChanged) {
             $storageProvider->credentials = $credentials;
         }
 
         $storageProvider->save();
 
         $provider->forgetCachedState();
+
+        if ($credentialsChanged) {
+            app(ManagePgBackRest::class)->storageChanged($storageProvider);
+        }
 
         return $storageProvider;
     }

@@ -1,14 +1,26 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
-import { Link, useForm } from '@inertiajs/react';
+import { Link, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { Backup } from '@/types/backup';
+import { SharedData } from '@/types';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Edit({ backup }: { backup: Backup }) {
   const dialog = useDialog();
 
   return <DropdownMenuItem onSelect={() => dialog.backupEdit.open({ backup })}>Edit</DropdownMenuItem>;
+}
+
+function Passphrase({ backup }: { backup: Backup }) {
+  const dialog = useDialog();
+  const isAdmin = usePage<SharedData>().props.auth.user?.is_admin;
+
+  if (backup.type !== 'pgbackrest' || !isAdmin) {
+    return null;
+  }
+
+  return <DropdownMenuItem onSelect={() => dialog.pgBackRestPassphrase.open({ backup })}>Encryption passphrase</DropdownMenuItem>;
 }
 
 function ToggleEnabled({ backup }: { backup: Backup }) {
@@ -29,7 +41,8 @@ function ToggleEnabled({ backup }: { backup: Backup }) {
 
 function Delete({ backup }: { backup: Backup }) {
   const dialog = useDialog();
-  const target = (backup.type === 'database' ? backup.database?.name : backup.path) ?? `#${backup.id}`;
+  const target =
+    (backup.type === 'pgbackrest' ? 'PostgreSQL cluster' : backup.type === 'database' ? backup.database?.name : backup.path) ?? `#${backup.id}`;
 
   return (
     <DropdownMenuItem
@@ -37,7 +50,10 @@ function Delete({ backup }: { backup: Backup }) {
       onSelect={() =>
         dialog.confirm.open({
           title: `Delete backup [${target}]`,
-          description: `Are you sure you want to delete this backup: ${target}? All backup files will be deleted and this action cannot be undone.`,
+          description:
+            backup.type === 'pgbackrest'
+              ? 'Vito stops pgBackRest backups and WAL archiving on this server. Backups already in S3 are kept. Save the encryption passphrase first, because without it they cannot be restored.'
+              : `Are you sure you want to delete this backup: ${target}? All backup files will be deleted and this action cannot be undone.`,
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -68,6 +84,7 @@ export default function BackupActions({ backup }: { backup: Backup }) {
             <DropdownMenuItem asChild>
               <Link href={route('backup-files', { server: backup.server_id, backup: backup.id })}>Files</Link>
             </DropdownMenuItem>
+            <Passphrase backup={backup} />
             <DropdownMenuSeparator />
             <Delete backup={backup} />
           </DropdownMenuContent>

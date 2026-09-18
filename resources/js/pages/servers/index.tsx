@@ -182,6 +182,7 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
     if (w.key === 'reboot_required') return 'Restart required';
     if (w.key === 'updates_available') return `${w.count ?? ''} package ${w.count === 1 ? 'update' : 'updates'} available`;
     if (w.key === 'kernel_update_available') return 'Kernel update available';
+    if (w.key === 'backups_need_attention') return `${w.count} ${w.count === 1 ? 'backup needs' : 'backups need'} attention`;
     return w.key;
   };
 

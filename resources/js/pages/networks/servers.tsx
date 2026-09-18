@@ -93,6 +93,19 @@ export default function NetworkServers() {
                     {isWireGuard && (
                       <DropdownMenuItem
                         onSelect={() =>
+                          dialog.networkServerConfig.open({
+                            networkId: network.id,
+                            memberId: member.id,
+                            name: asRow<{ server_name: string }>(row, ['server_name']).server_name,
+                          })
+                        }
+                      >
+                        Configuration
+                      </DropdownMenuItem>
+                    )}
+                    {isWireGuard && (
+                      <DropdownMenuItem
+                        onSelect={() =>
                           dialog.confirm.open({
                             title: 'Regenerate configuration',
                             description: 'Re-apply the network configuration to this server.',

@@ -6,7 +6,6 @@ use App\Actions\Network\ApplyNetworkFirewall;
 use App\Actions\Network\DispatchNetworkServerSync;
 use App\Actions\Network\RecomputeNetworkStatus;
 use App\DTOs\SocketEventDTO;
-use App\Enums\NetworkPeerStatus;
 use App\Enums\NetworkServerStatus;
 use App\Enums\NetworkStatus;
 use App\Enums\NetworkType;
@@ -47,7 +46,6 @@ class ReconcileNetworksCommand extends Command
         Network::query()
             ->where('type', NetworkType::WIREGUARD)
             ->where('status', NetworkStatus::ACTIVE)
-            ->whereHas('peers', fn ($query) => $query->where('status', '!=', NetworkPeerStatus::DISABLED))
             ->get()
             ->each(fn (Network $network) => dispatch(new PollPeerHandshakesJob($network))->onQueue('ssh'));
     }

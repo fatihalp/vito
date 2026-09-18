@@ -115,6 +115,34 @@ return [
             'timeout' => env('HORIZON_SSH_CERTBOT_TIMEOUT', 600),
             'nice' => env('HORIZON_SSH_CERTBOT_NICE', 0),
         ],
+
+        'storage-migration' => [
+            'connection' => 'storage-migration',
+            'queue' => ['storage-migration'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => env('HORIZON_STORAGE_MIGRATION_MAX_PROCESSES', 1),
+            'maxTime' => env('HORIZON_STORAGE_MIGRATION_MAX_TIME', 0),
+            'maxJobs' => env('HORIZON_STORAGE_MIGRATION_MAX_JOBS', 0),
+            'memory' => env('HORIZON_STORAGE_MIGRATION_MEMORY', 128),
+            'tries' => env('HORIZON_STORAGE_MIGRATION_TRIES', 1),
+            'timeout' => env('HORIZON_STORAGE_MIGRATION_TIMEOUT', 1800),
+            'nice' => env('HORIZON_STORAGE_MIGRATION_NICE', 0),
+        ],
+
+        'storage-migration-scan' => [
+            'connection' => 'storage-migration-scan',
+            'queue' => ['storage-migration-scan'],
+            'balance' => 'auto',
+            'autoScalingStrategy' => 'time',
+            'maxProcesses' => env('HORIZON_STORAGE_MIGRATION_SCAN_MAX_PROCESSES', 1),
+            'maxTime' => env('HORIZON_STORAGE_MIGRATION_SCAN_MAX_TIME', 0),
+            'maxJobs' => env('HORIZON_STORAGE_MIGRATION_SCAN_MAX_JOBS', 0),
+            'memory' => env('HORIZON_STORAGE_MIGRATION_SCAN_MEMORY', 128),
+            'tries' => env('HORIZON_STORAGE_MIGRATION_SCAN_TRIES', 1),
+            'timeout' => env('HORIZON_STORAGE_MIGRATION_SCAN_TIMEOUT', 21600),
+            'nice' => env('HORIZON_STORAGE_MIGRATION_SCAN_NICE', 0),
+        ],
     ],
 
     'environments' => [
@@ -127,6 +155,12 @@ return [
             ],
             'ssh-certbot' => [
                 'maxProcesses' => env('HORIZON_SSH_CERTBOT_MAX_PROCESSES', 1),
+            ],
+            'storage-migration' => [
+                'maxProcesses' => env('HORIZON_STORAGE_MIGRATION_MAX_PROCESSES', 1),
+            ],
+            'storage-migration-scan' => [
+                'maxProcesses' => env('HORIZON_STORAGE_MIGRATION_SCAN_MAX_PROCESSES', 1),
             ],
         ],
     ],

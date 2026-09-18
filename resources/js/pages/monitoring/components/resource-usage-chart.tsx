@@ -4,17 +4,16 @@ import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 
 import { Card, CardContent } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
-import { Metric } from '@/types/metric';
 import { Button } from '@/components/ui/button';
 import { router } from '@inertiajs/react';
 import { cn } from '@/lib/utils';
 
-interface Props {
+interface Props<T extends object> {
   title: string;
   color: string;
-  dataKey: keyof Metric;
+  dataKey: keyof T & string;
   label: string;
-  chartData: Metric[];
+  chartData: T[];
   link?: string;
   formatter?: (value: unknown, name: unknown) => string | number;
   single?: boolean;
@@ -23,7 +22,7 @@ interface Props {
   valueFormatter?: (value: unknown) => string | number;
 }
 
-export function ResourceUsageChart({ title, color, dataKey, label, chartData, link, formatter, single, height, showXAxis, valueFormatter }: Props) {
+export function ResourceUsageChart<T extends object>({ title, color, dataKey, label, chartData, link, formatter, single, height, showXAxis, valueFormatter }: Props<T>) {
   const gradientId = useId();
   const resolvedHeight = height ?? (single ? 'large' : 'small');
   const heightClass = resolvedHeight === 'large' ? 'h-[400px]' : resolvedHeight === 'medium' ? 'h-[200px]' : 'h-[100px]';

@@ -139,6 +139,12 @@ class Server extends AbstractModel
                     $backup->delete();
                 });
                 $server->metrics()->delete();
+                PostgresCluster::query()
+                    ->where('primary_server_id', $server->id)
+                    ->each(fn (PostgresCluster $cluster) => $cluster->delete());
+                DatabaseReplica::query()
+                    ->where('replica_server_id', $server->id)
+                    ->each(fn (DatabaseReplica $replica) => $replica->delete());
                 \App\Models\CommandExecution::where('server_id', $server->id)->delete();
                 \App\Models\File::where('server_id', $server->id)->delete();
                 $server->services()->delete();
@@ -293,6 +299,11 @@ class Server extends AbstractModel
     }
 
     
+    public function postgresCluster(): ?PostgresCluster
+    {
+        return PostgresCluster::forServer($this);
+    }
+
     public function latestMetric(): HasOne
     {
         return $this->hasOne(Metric::class)->latestOfMany();
@@ -587,6 +598,12 @@ class Server extends AbstractModel
                 'key' => 'kernel_update_available',
                 'count' => $this->kernel_updates,
             ];
+        }
+
+        $backups = $this->backups()->whereNotNull('health')->count();
+
+        if ($backups > 0) {
+            $warnings[] = ['key' => 'backups_need_attention', 'count' => $backups];
         }
 
         $latestMetric = $this->relationLoaded('latestMetric')

@@ -30,8 +30,15 @@ const CreateCommand = lazy(() => import('@/pages/commands/components/create-comm
 const ExecuteCommand = lazy(() => import('@/pages/commands/components/execute'));
 const EditRedirect = lazy(() => import('@/pages/redirects/components/edit-redirect'));
 const CreateBackup = lazy(() => import('@/pages/backups/components/create-backup'));
+const CreateStorageMigration = lazy(() => import('@/pages/storage-migrations/components/create-storage-migration'));
+const RenameStorageMigration = lazy(() => import('@/pages/storage-migrations/components/rename-storage-migration'));
+const CreateDatabaseReplica = lazy(() => import('@/pages/database-replicas/components/create-database-replica'));
+const PromoteDatabaseReplica = lazy(() => import('@/pages/database-replicas/components/promote-database-replica'));
 const EditBackup = lazy(() => import('@/pages/backups/components/edit-backup'));
 const RestoreBackup = lazy(() => import('@/pages/backups/components/restore-backup'));
+const PgBackRestPassphrase = lazy(() => import('@/pages/backups/components/pgbackrest-passphrase'));
+const PgBackRestRestore = lazy(() => import('@/pages/backups/components/pgbackrest-restore'));
+const RestoreToServer = lazy(() => import('@/pages/backups/components/restore-to-server'));
 const SiteFeatureAction = lazy(() => import('@/pages/site-features/components/feature-action'));
 const ServerFeatureAction = lazy(() => import('@/pages/server-features/components/feature-action'));
 const Fail2banForm = lazy(() => import('@/pages/security/components/fail2ban-form'));
@@ -42,6 +49,7 @@ const EditNetworkServer = lazy(() => import('@/pages/networks/components/edit-ne
 const NetworkFirewallRuleForm = lazy(() => import('@/pages/networks/components/firewall-rule-form'));
 const AddNetworkPeer = lazy(() => import('@/pages/networks/components/add-peer'));
 const PeerConfigDialog = lazy(() => import('@/pages/networks/components/peer-config'));
+const NetworkServerConfigDialog = lazy(() => import('@/pages/networks/components/server-config'));
 const RevealSiteResourceDialog = lazy(() => import('@/pages/site-resources/components/reveal-site-resource-dialog'));
 const InviteProjectUser = lazy(() => import('@/pages/projects/components/invite'));
 const ProjectUsers = lazy(() => import('@/pages/projects/components/users'));
@@ -82,6 +90,13 @@ export const dialogs = {
   backupCreate: CreateBackup,
   backupEdit: EditBackup,
   backupRestore: RestoreBackup,
+  pgBackRestPassphrase: PgBackRestPassphrase,
+  pgBackRestRestore: PgBackRestRestore,
+  backupRestoreToServer: RestoreToServer,
+  storageMigrationCreate: CreateStorageMigration,
+  storageMigrationRename: RenameStorageMigration,
+  databaseReplicaCreate: CreateDatabaseReplica,
+  databaseReplicaPromote: PromoteDatabaseReplica,
   siteFeatureAction: SiteFeatureAction,
   serverFeatureAction: ServerFeatureAction,
   fail2banForm: Fail2banForm,
@@ -92,6 +107,7 @@ export const dialogs = {
   networkFirewallForm: NetworkFirewallRuleForm,
   networkAddPeer: AddNetworkPeer,
   networkPeerConfig: PeerConfigDialog,
+  networkServerConfig: NetworkServerConfigDialog,
   projectInvite: InviteProjectUser,
   projectUsers: ProjectUsers,
   siteResourceReveal: RevealSiteResourceDialog,

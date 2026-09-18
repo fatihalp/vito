@@ -19,6 +19,10 @@ class ManageBackup
     
     public function create(Server $server, array $input): Backup
     {
+        if (($input['type'] ?? null) === BackupType::PGBACKREST->value) {
+            return app(ManagePgBackRest::class)->create($server, $input);
+        }
+
         $this->validate($server, $input);
 
         $backupType = BackupType::from($input['type'] ?? BackupType::DATABASE->value);
@@ -42,6 +46,12 @@ class ManageBackup
 
     public function update(Backup $backup, array $input): void
     {
+        if ($backup->type === BackupType::PGBACKREST) {
+            app(ManagePgBackRest::class)->update($backup, $input);
+
+            return;
+        }
+
         $backup->interval = $input['interval'] == 'custom' ? $input['custom_interval'] : $input['interval'];
         $backup->keep_backups = $input['keep'];
         $backup->save();
@@ -49,6 +59,12 @@ class ManageBackup
 
     public function delete(Backup $backup): void
     {
+        if ($backup->type === BackupType::PGBACKREST && $backup->cluster?->replicas()->exists()) {
+            throw ValidationException::withMessages([
+                'backup' => __('Replicas are built from and back up to this pgBackRest repository. Delete the replicas first.'),
+            ]);
+        }
+
         $backup->status = BackupStatus::DELETING;
         $backup->save();
 

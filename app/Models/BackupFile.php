@@ -5,6 +5,8 @@ namespace App\Models;
 use App\Actions\Backup\ManageBackupFile;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupType;
+use App\Enums\StorageMigrationItemStatus;
+use App\Enums\StorageMigrationStatus;
 use App\Facades\Notifier;
 use App\Notifications\FailedToDeleteBackupFileFromProvider;
 use App\StorageProviders\Dropbox;
@@ -30,17 +32,28 @@ class BackupFile extends AbstractModel
         'status',
         'restored_to',
         'restored_at',
+        'progress',
+        'server_id',
+        'type',
+        'database_size',
     ];
 
     protected $casts = [
         'backup_id' => 'integer',
+        'progress' => 'float',
+        'server_id' => 'integer',
         'restored_at' => 'datetime',
         'status' => BackupFileStatus::class,
+        'database_size' => 'integer',
     ];
 
     protected static function booted(): void
     {
         static::created(function (BackupFile $backupFile): void {
+            if ($backupFile->backup->type === BackupType::PGBACKREST) {
+                return;
+            }
+
             $keep = $backupFile->backup->keep_backups;
             if ($backupFile->backup->files()->count() > $keep) {
                 
@@ -135,10 +148,46 @@ class BackupFile extends AbstractModel
         );
     }
 
-    
+
     public function backup(): BelongsTo
     {
         return $this->belongsTo(Backup::class);
+    }
+
+    public function server(): BelongsTo
+    {
+        return $this->belongsTo(Server::class);
+    }
+
+    public function activeMigrationItem(): ?StorageMigrationItem
+    {
+        $storageMigrations = StorageMigration::query()
+            ->where('target_storage_id', $this->backup->storage_id)
+            ->where('status', '!=', StorageMigrationStatus::COMPLETED)
+            ->whereNotNull('started_at')
+            ->with('source')
+            ->latest('id')
+            ->get();
+
+        foreach ($storageMigrations as $storageMigration) {
+            try {
+                $item = $storageMigration->items()->where('backup_file_id', $this->id)->first();
+            } catch (Throwable $e) {
+                if ($this->created_at?->gt($storageMigration->started_at)) {
+                    continue;
+                }
+
+                throw $e;
+            }
+
+            if ($item) {
+                return in_array($item->status, [StorageMigrationItemStatus::COPIED, StorageMigrationItemStatus::SKIPPED], true)
+                    ? null
+                    : $item->setRelation('storageMigration', $storageMigration);
+            }
+        }
+
+        return null;
     }
 
     public function tempPath(?Server $server = null): string
@@ -148,11 +197,11 @@ class BackupFile extends AbstractModel
         return '/home/'.($server ?? $this->backup->server)->getSshUser().'/'.$this->name.$extension;
     }
 
-    public function path(): string
+    public function path(?StorageProvider $storage = null): string
     {
-        $storage = $this->backup->storage;
+        $storage ??= $this->backup->storage;
 
-        
+
         $backupName = $this->backup->type === BackupType::FILE
             ? basename($this->backup->path)
             : $this->backup->database->name;
@@ -170,11 +219,31 @@ class BackupFile extends AbstractModel
         };
     }
 
+    public function currentStorage(): StorageProvider
+    {
+        $item = $this->activeMigrationItem();
+
+        return $item ? $item->storageMigration->source : $this->backup->storage;
+    }
+
+    public function currentPath(): string
+    {
+        $item = $this->activeMigrationItem();
+
+        return $item ? $item->source_key : $this->path();
+    }
+
     public function deleteFile(): void
     {
+        if ($this->backup->type === BackupType::PGBACKREST) {
+            $this->delete();
+
+            return;
+        }
+
         try {
-            $storage = $this->backup->storage->provider()->ssh($this->backup->server);
-            $storage->delete($this->path());
+            $storage = $this->currentStorage()->provider()->ssh($this->backup->server);
+            $storage->delete($this->currentPath());
         } catch (Throwable $e) {
             $this->status = BackupFileStatus::DELETE_FAILED;
             $this->message = Str::limit($e->getMessage(), 1000);

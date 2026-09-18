@@ -15,12 +15,19 @@ use App\Models\Database;
 use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class RestoreBackup
 {
     
     public function restore(BackupFile $backupFile, array $input): void
     {
+        if ($backupFile->backup->type === BackupType::PGBACKREST) {
+            throw ValidationException::withMessages([
+                'backup' => __('Restore pgBackRest backups with the restore commands shown in Vito.'),
+            ]);
+        }
+
         $this->validate($backupFile, $input, $backupFile->backup->type);
 
         $backup = $backupFile->backup;

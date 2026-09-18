@@ -25,6 +25,11 @@ class BackupPolicy
         return $this->hasServerReadAccess($user, $server);
     }
 
+    public function viewPassphrase(User $user, Backup $backup): bool
+    {
+        return $user->isAdmin() && $this->view($user, $backup);
+    }
+
     public function create(User $user, Server $server): bool
     {
         return $this->hasWriteAccess($user, $server->project)

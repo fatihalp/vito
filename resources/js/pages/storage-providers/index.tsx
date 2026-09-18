@@ -10,6 +10,7 @@ import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import Edit from '@/pages/storage-providers/components/edit';
 import Delete from '@/pages/storage-providers/components/delete';
+import TestConnection from '@/pages/storage-providers/components/test-connection';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
 
@@ -48,6 +49,7 @@ export default function StorageProviders() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     <Edit storageProvider={storageProvider} />
+                    <TestConnection storageProvider={storageProvider} />
                     <DropdownMenuSeparator />
                     <Delete storageProvider={storageProvider} />
                   </DropdownMenuContent>

@@ -87,9 +87,14 @@ class Project extends Model
         return $this->hasMany(Domain::class);
     }
 
-    
+
     public function networks(): HasMany
     {
         return $this->hasMany(Network::class);
+    }
+
+    public function storageMigrations(): HasMany
+    {
+        return $this->hasMany(StorageMigration::class);
     }
 }
