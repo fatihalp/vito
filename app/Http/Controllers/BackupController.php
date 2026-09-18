@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Backup\CheckBackupHealth;
 use App\Actions\Backup\ManageBackup;
+use App\Actions\Backup\RestoreToNewServer;
 use App\Actions\Backup\RunBackup;
+use App\Enums\BackupType;
 use App\Http\Resources\BackupFileResource;
 use App\Http\Resources\BackupResource;
 use App\Models\Backup;
 use App\Models\BackupFile;
+use App\Models\NotificationChannel;
+use App\Models\PostgresCluster;
 use App\Models\Server;
 use App\Tables\BackupTable;
 use Illuminate\Http\JsonResponse;
@@ -32,6 +37,8 @@ class BackupController extends Controller
 
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make(user()->currentProject->backups())->simplePaginate(),
+            'attention' => app(CheckBackupHealth::class)->attention(user()->currentProject->backups()),
+            'hasNotificationChannels' => NotificationChannel::query()->exists(),
         ]);
     }
 
@@ -40,8 +47,15 @@ class BackupController extends Controller
     {
         $this->authorize('viewAny', [Backup::class, $server]);
 
+        $cluster = PostgresCluster::forServer($server);
+
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make($server->backups())->forServer($server)->simplePaginate(),
+            'attention' => app(CheckBackupHealth::class)->attention($server->backups()),
+            'hasNotificationChannels' => NotificationChannel::query()->exists(),
+            'replicaOf' => $cluster !== null && $cluster->primary_server_id !== $server->id
+                ? ['server_id' => $cluster->primary_server_id, 'name' => $cluster->primary?->name, 'backup_id' => $cluster->backup_id]
+                : null,
         ]);
     }
 
@@ -80,6 +94,41 @@ class BackupController extends Controller
 
         return back()
             ->with('success', 'Backup updated successfully.');
+    }
+
+    #[Get('/servers/{server}/backups/{backup}/passphrase', name: 'backups.passphrase')]
+    public function passphrase(Server $server, Backup $backup): JsonResponse
+    {
+        abort_unless($backup->server_id === $server->id && $backup->type === BackupType::PGBACKREST, 404);
+
+        $this->authorize('viewPassphrase', $backup);
+
+        return response()->json([
+            'passphrase' => $backup->configuration['cipher_pass'],
+        ]);
+    }
+
+    #[Get('/servers/{server}/backups/{backup}/restore-to-server', name: 'backups.restore-to-server.requirements')]
+    public function restoreRequirements(Server $server, Backup $backup): JsonResponse
+    {
+        abort_unless($backup->server_id === $server->id && $backup->type === BackupType::PGBACKREST, 404);
+
+        $this->authorize('view', $backup);
+
+        return response()->json(app(RestoreToNewServer::class)->requirements($backup));
+    }
+
+    #[Post('/servers/{server}/backups/{backup}/restore-to-server', name: 'backups.restore-to-server')]
+    public function restoreToServer(Request $request, Server $server, Backup $backup): RedirectResponse
+    {
+        abort_unless($backup->server_id === $server->id && $backup->type === BackupType::PGBACKREST, 404);
+
+        $this->authorize('viewPassphrase', $backup);
+        $this->authorize('create', [Server::class, $server->project]);
+
+        app(RestoreToNewServer::class)->create(user(), $backup, $request->all());
+
+        return back()->with('info', 'The new server is being created. The restore starts as soon as it is ready.');
     }
 
     #[Post('/servers/{server}/backups/{backup}/run', name: 'backups.run')]

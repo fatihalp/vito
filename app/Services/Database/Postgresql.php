@@ -2,6 +2,7 @@
 
 namespace App\Services\Database;
 
+use App\Actions\PostgresCluster\SyncPostgresListenAddresses;
 use App\DTOs\ServiceLog;
 use App\Exceptions\SSHCommandError;
 use App\Exceptions\SSHError;
@@ -79,7 +80,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         $this->service->server->ssh()->exec(
             view($this->getNetworkingScriptView('write-networking'), [
                 ...$this->networkingScriptData(),
-                'address' => $enable ? '0.0.0.0' : 'localhost',
+                'address' => $this->listenAddresses($enable),
                 'open' => $enable,
             ]),
             ($enable ? 'enable' : 'disable').'-postgresql-networking'
@@ -98,7 +99,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
     
     protected function verifyNetworking(bool $expectedOpen): void
     {
-        $expected = $expectedOpen ? '0.0.0.0' : 'localhost';
+        $expected = $this->listenAddresses($expectedOpen);
 
         if (! $this->networkingValueMatches($this->networkingListenAddresses(), $expected)) {
             throw new SSHCommandError("{$this->service->name} is not listening on {$expected} after the restart.");
@@ -116,7 +117,18 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
             return null;
         }
 
-        return $this->networkingValueMatches($output, '0.0.0.0', '*', '::');
+        return collect(explode(',', $output))
+            ->map(fn (string $value): string => trim($value))
+            ->intersect(['0.0.0.0', '*', '::'])
+            ->isNotEmpty();
+    }
+
+    public function listenAddresses(bool $open): string
+    {
+        return implode(',', array_filter([
+            $open ? '0.0.0.0' : 'localhost',
+            SyncPostgresListenAddresses::privateAddress($this->service->server),
+        ]));
     }
 
     

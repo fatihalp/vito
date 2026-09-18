@@ -12,6 +12,10 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('backups:run')->everyMinute();
         $schedule->command('backups:reconcile')->everyThirtyMinutes();
+        $schedule->command('backups:check-archiving')->everyFifteenMinutes();
+        $schedule->command('backups:check-health')->everyFifteenMinutes();
+        $schedule->command('database-replicas:check')->everyMinute()->withoutOverlapping(5);
+        $schedule->command('postgres-clusters:rotate-certificates')->dailyAt('03:15');
         $schedule->command('metrics:delete-older-metrics')->daily();
         $schedule->command('db:vacuum')->daily();
         $schedule->command('metrics:get')->everyMinute()->withoutOverlapping(5);

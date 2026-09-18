@@ -8,6 +8,7 @@ use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
 use App\Events\SocketEvent;
 use App\Http\Resources\NetworkPeerResource;
+use App\Http\Resources\NetworkServerResource;
 use App\Models\Network;
 use App\Models\NetworkServer;
 use App\Models\ServerLog;
@@ -30,6 +31,8 @@ class PollPeerHandshakesJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("network-{$this->network->id}-handshakes", function (): void {
+            $handshakes = [];
+
             foreach ($this->reachableMembers() as $member) {
                 $service = $member->server->service(WireGuard::type());
 
@@ -37,13 +40,13 @@ class PollPeerHandshakesJob implements ShouldQueue
                     continue;
                 }
 
-                
-                $handler = $service->handler();
-
-                $this->apply($handler->latestHandshakes($this->network));
-
-                return;
+                foreach (rescue(fn (): array => $service->handler()->latestHandshakes($this->network), [], false) as $key => $epoch) {
+                    $handshakes[$key] = max($handshakes[$key] ?? 0, $epoch);
+                }
             }
+
+            $this->apply($handshakes);
+            $this->applyToMembers($handshakes);
         });
     }
 
@@ -79,6 +82,29 @@ class PollPeerHandshakesJob implements ShouldQueue
                 projectId: $this->network->project_id,
                 type: 'network-peer.updated',
                 data: new NetworkPeerResource($peer),
+            ));
+        }
+    }
+
+    /**
+     * @param  array<string, int>  $handshakes
+     */
+    private function applyToMembers(array $handshakes): void
+    {
+        foreach ($this->network->servers()->whereNotNull('public_key')->with('server')->get() as $member) {
+            $epoch = $handshakes[$member->public_key] ?? 0;
+
+            if ($epoch <= 0 || $member->last_handshake_at?->greaterThanOrEqualTo(Carbon::createFromTimestamp($epoch))) {
+                continue;
+            }
+
+            $member->last_handshake_at = Carbon::createFromTimestamp($epoch);
+            $member->save();
+
+            SocketEvent::dispatch(new SocketEventDTO(
+                projectId: $this->network->project_id,
+                type: 'network-server.updated',
+                data: new NetworkServerResource($member),
             ));
         }
     }

@@ -67,7 +67,8 @@ export interface Server {
 export type ServerWarning =
   | { key: 'updates_available'; count: number }
   | { key: 'reboot_required' }
-  | { key: 'kernel_update_available'; count: number };
+  | { key: 'kernel_update_available'; count: number }
+  | { key: 'backups_need_attention'; count: number };
 
 export interface ServerFeature {
   label: string;

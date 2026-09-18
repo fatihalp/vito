@@ -1,5 +1,6 @@
 import { type NavItem } from '@/types';
 import {
+  CopyIcon,
   BoxIcon,
   ChartLineIcon,
   ClockIcon,
@@ -127,6 +128,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           title: server.counts?.database_users !== undefined ? `Database users (${server.counts.database_users})` : 'Database users',
           href: route('database-users', { server: serverId }),
           icon: UsersIcon,
+        },
+        {
+          title: 'Replication',
+          href: route('database-replicas', { server: serverId }),
+          icon: CopyIcon,
+          hidden: services['database'] !== 'postgresql',
         },
       ],
     },

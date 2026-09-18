@@ -12,6 +12,7 @@ export default function ServerBanners({ server }: { server: Server }) {
   const rebootRequiredWarning = warnings.find((w) => w.key === 'reboot_required');
   const updatesWarning = warnings.find((w) => w.key === 'updates_available');
   const kernelUpdateWarning = warnings.find((w) => w.key === 'kernel_update_available');
+  const backupsWarning = warnings.find((w) => w.key === 'backups_need_attention');
 
   if (rebootRequiredWarning) {
     items.push({
@@ -70,6 +71,19 @@ export default function ServerBanners({ server }: { server: Server }) {
           <Link href={route('servers.update', { server: server.id, type: 'kernel', start: 1 })}>
             Update &amp; restart
           </Link>
+        </Button>
+      ),
+    });
+  }
+
+  if (backupsWarning) {
+    items.push({
+      key: 'backups-need-attention',
+      title: `${backupsWarning.count} ${backupsWarning.count === 1 ? 'backup needs' : 'backups need'} attention`,
+      description: 'A backup failed, stopped running on schedule, or pgBackRest reported a WAL or repository problem.',
+      action: (
+        <Button variant="outline" size="sm" asChild className="cursor-pointer">
+          <Link href={route('backups', { server: server.id })}>View backups</Link>
         </Button>
       ),
     });

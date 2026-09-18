@@ -10,18 +10,23 @@ import { Input } from '@/components/ui/input';
 import { Backup } from '@/types/backup';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import PgBackRestFields, { PgBackRestSettings, pgBackRestDefaults } from '@/pages/backups/components/pgbackrest-fields';
 
 export default function EditBackup({ open, onOpenChange, backup }: { open: boolean; onOpenChange: (open: boolean) => void; backup: Backup }) {
   const configs = useConfigs()!;
 
-  const form = useForm<{
-    interval: string;
-    custom_interval: string;
-    keep: string;
-  }>({
+  const isPgBackRest = backup.type === 'pgbackrest';
+  const form = useForm<
+    {
+      interval: string;
+      custom_interval: string;
+      keep: string;
+    } & PgBackRestSettings
+  >({
     interval: configs.cronjob_intervals[backup.interval] ? backup.interval : 'custom',
     custom_interval: backup.interval,
     keep: backup.keep_backups.toString(),
+    ...pgBackRestDefaults(backup),
   });
 
   const submit = (e: FormEvent) => {
@@ -40,7 +45,7 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
         </DialogHeader>
         <Form id="edit-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
-            {}
+            {!isPgBackRest && (
             <FormField>
               <Label htmlFor="interval">Interval</Label>
               <Select value={form.data.interval} onValueChange={(value) => form.setData('interval', value)}>
@@ -59,9 +64,9 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
               </Select>
               <InputError message={form.errors.interval} />
             </FormField>
+            )}
 
-            {}
-            {form.data.interval === 'custom' && (
+            {!isPgBackRest && form.data.interval === 'custom' && (
               <FormField>
                 <Label htmlFor="custom_interval">Custom interval (crontab)</Label>
                 <Input
@@ -75,12 +80,17 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
               </FormField>
             )}
 
-            {}
-            <FormField>
-              <Label htmlFor="keep">Backups to keep</Label>
-              <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
-              <InputError message={form.errors.keep} />
-            </FormField>
+            {!isPgBackRest && (
+              <FormField>
+                <Label htmlFor="keep">Backups to keep</Label>
+                <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
+                <InputError message={form.errors.keep} />
+              </FormField>
+            )}
+
+            {isPgBackRest && (
+              <PgBackRestFields data={form.data} errors={form.errors} onChange={(key, value) => form.setData(key, value)} />
+            )}
           </FormFields>
         </Form>
         <DialogFooter>

@@ -5,6 +5,7 @@ namespace App\Jobs\Backup;
 use App\Actions\Backup\BroadcastBackupUpdate;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
+use App\Enums\BackupType;
 use App\Events\SocketEvent;
 use App\Models\Backup;
 use App\Models\ServerLog;
@@ -26,6 +27,11 @@ class DeleteJob implements ShouldQueue
         $this->run("backup-{$this->backup->id}", function () {
             $projectId = $this->backup->server->project_id;
             $backupId = $this->backup->id;
+
+            if ($this->backup->type === BackupType::PGBACKREST) {
+                $this->backup->pgBackRest()->disableArchiving();
+                $this->backup->cluster?->delete();
+            }
 
             foreach ($this->backup->files as $file) {
                 $file->status = BackupFileStatus::DELETING;

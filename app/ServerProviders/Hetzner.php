@@ -9,13 +9,15 @@ use App\Exceptions\PrivateNetworkSyncError;
 use App\Exceptions\ServerProviderError;
 use App\Facades\Notifier;
 use App\Notifications\FailedToDeleteServerFromProvider;
+use App\Support\Cidr;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Sleep;
 
-class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
+class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
 {
     protected string $apiUrl = 'https://api.hetzner.cloud/v1';
 
@@ -36,6 +38,91 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
             $this->fetchAll('/servers', 'servers'),
             $instanceIds,
         );
+    }
+
+    public function attachPrivateNetwork(array $instanceIds, string $name, ?string $networkId = null): ?array
+    {
+        $servers = array_map(fn (string $id): array => $this->api('get', '/servers/'.$id)['server'], $instanceIds);
+        $zones = array_values(array_unique(array_map(fn (array $server): string => (string) ($server['location']['network_zone'] ?? $server['datacenter']['location']['network_zone'] ?? ''), $servers)));
+
+        if (count($zones) !== 1 || $zones[0] === '') {
+            return null;
+        }
+
+        $networks = $this->fetchAll('/networks', 'networks');
+        $attached = array_merge(...array_map(fn (array $server): array => array_column($server['private_net'] ?? [], 'network'), $servers));
+        $network = collect($networks)->first(fn (array $network): bool => ($networkId !== null ? (string) $network['id'] === $networkId : in_array($network['id'], $attached, true))
+            && in_array($zones[0], array_column($network['subnets'] ?? [], 'network_zone'), true));
+
+        if ($networkId !== null && $network === null) {
+            return null;
+        }
+
+        $created = $network === null;
+
+        if ($created) {
+            $range = $this->freeRange(array_column($networks, 'ip_range'));
+            $network = $this->api('post', '/networks', [
+                'name' => $name,
+                'ip_range' => $range,
+                'subnets' => [['type' => 'cloud', 'network_zone' => $zones[0], 'ip_range' => str_replace('/16', '/24', $range)]],
+                'labels' => ['managed-by' => 'vito'],
+            ])['network'];
+        }
+
+        foreach ($servers as $server) {
+            if (! in_array($network['id'], array_column($server['private_net'] ?? [], 'network'), true)) {
+                $this->waitForAction($this->api('post', '/servers/'.$server['id'].'/actions/attach_to_network', ['network' => $network['id']])['action']);
+            }
+        }
+
+        return ['id' => (string) $network['id'], 'managed' => $created || ($network['labels']['managed-by'] ?? null) === 'vito'];
+    }
+
+    /**
+     * @param  list<string>  $used
+     */
+    private function freeRange(array $used): string
+    {
+        foreach (range(20, 250) as $octet) {
+            $range = "10.{$octet}.0.0/16";
+
+            if (! collect($used)->contains(fn (string $taken): bool => Cidr::overlaps($taken, $range))) {
+                return $range;
+            }
+        }
+
+        throw new ServerProviderError(__('There is no free 10.x.0.0/16 range left for a new Hetzner network.'));
+    }
+
+    /**
+     * @param  array{id: int, status: string, error?: array{message?: string}|null}  $action
+     */
+    private function waitForAction(array $action): void
+    {
+        for ($attempt = 0; $action['status'] === 'running' && $attempt < 30; $attempt++) {
+            Sleep::for(2)->seconds();
+            $action = $this->api('get', '/actions/'.$action['id'])['action'];
+        }
+
+        if ($action['status'] !== 'success') {
+            throw new ServerProviderError($action['error']['message'] ?? __('Hetzner did not finish attaching the server to the private network.'));
+        }
+    }
+
+    /**
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function api(string $method, string $path, array $data = []): array
+    {
+        $response = Http::withToken($this->serverProvider->getCredentials()['token'])->{$method}($this->apiUrl.$path, $data);
+
+        if (! $response->successful()) {
+            $this->providerError($response);
+        }
+
+        return $response->json();
     }
 
     
@@ -221,6 +308,10 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
                         'name' => $type['name'],
                         'label' => $label,
                         'available' => $available,
+                        'cores' => (int) $type['cores'],
+                        'memory' => (float) $type['memory'],
+                        'disk' => (int) $type['disk'],
+                        'architecture' => $type['architecture'] ?? null,
                     ];
                 })
                 ->filter()
@@ -229,6 +320,10 @@ class Hetzner extends AbstractProvider implements ProvidesPrivateNetworks
                     $plan['name'] => [
                         'label' => $plan['label'],
                         'available' => $plan['available'],
+                        'cores' => $plan['cores'],
+                        'memory' => $plan['memory'],
+                        'disk' => $plan['disk'],
+                        'architecture' => $plan['architecture'],
                     ],
                 ])
                 ->toArray();

@@ -20,6 +20,7 @@ class NetworkResource extends JsonResource
             'type' => $this->type->getText(),
             'type_value' => $this->type->value,
             'type_color' => $this->type->getColor(),
+            'kind' => $this->kind(),
             'addressing_pool' => $this->addressing_pool->getText(),
             'cidr' => $this->cidr,
             'port' => $this->port,

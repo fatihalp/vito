@@ -7,6 +7,7 @@ export interface Network {
   type: string;
   type_value: string;
   type_color: StatusColor;
+  kind: string;
   addressing_pool: string;
   cidr: string | null;
   port: number | null;
@@ -28,9 +29,12 @@ export interface NetworkServer {
   network_id: number;
   server_id: number;
   server_name?: string;
+  network?: { id: number; name: string; type: string; kind: string; cidr: string | null };
   ip: string | null;
   private_ip?: string | null;
   public_key: string | null;
+  last_handshake_at: string | null;
+  connected: boolean | null;
   status: string;
   status_color: StatusColor;
   created_at: string;

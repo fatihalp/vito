@@ -92,14 +92,7 @@ class WireGuard extends AbstractService implements VPN
     public function configureNetwork(NetworkServer $membership): void
     {
         $network = $membership->network;
-
-        $content = view('ssh.services.wireguard.conf', [
-            'address' => $membership->ip,
-            'prefix' => $this->prefix($network),
-            'listenPort' => $network->port,
-            'privateKey' => $membership->private_key,
-            'peers' => $this->peers($membership),
-        ])->render();
+        $content = $this->config($membership, withPrivateKey: true);
 
         $log = ServerLog::newLog($this->service->server, "configure-wireguard-{$network->id}");
         $log->save();
@@ -115,6 +108,28 @@ class WireGuard extends AbstractService implements VPN
             ]),
             'configure-wireguard'
         );
+    }
+
+    /**
+     * The WireGuard configuration of a member. Without $withPrivateKey the key is replaced by a note, so it can be shown to admins.
+     */
+    public function config(NetworkServer $membership, bool $withPrivateKey = false): string
+    {
+        return view('ssh.services.wireguard.conf', [
+            'address' => $membership->ip,
+            'prefix' => $this->prefix($membership->network),
+            'listenPort' => $membership->network->port,
+            'privateKey' => $withPrivateKey ? $membership->private_key : __('(hidden, stored only on the server)'),
+            'peers' => $this->peers($membership),
+        ])->render();
+    }
+
+    /**
+     * The live `wg show` output of the network's interface on this server. It lists public keys, endpoints, handshakes and traffic, never private keys.
+     */
+    public function status(Network $network): string
+    {
+        return $this->service->server->ssh()->clearLog()->exec('sudo wg show '.escapeshellarg('wg-vito-'.$network->id));
     }
 
     

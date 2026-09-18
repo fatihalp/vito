@@ -40,6 +40,27 @@ class ManageRule
         return $rule;
     }
 
+    public function allow(Server $server, int $port, string $ip, string $name): FirewallRule
+    {
+        return FirewallRule::query()
+            ->where('server_id', $server->id)
+            ->where('type', 'allow')
+            ->where('protocol', 'tcp')
+            ->where('port', (string) $port)
+            ->where(fn ($query) => $query->where('source', $ip)->orWhereNull('source'))
+            ->whereIn('status', [FirewallRuleStatus::READY, FirewallRuleStatus::CREATING, FirewallRuleStatus::UPDATING])
+            ->first()
+            ?? $this->create($server, [
+                'name' => $name,
+                'type' => 'allow',
+                'protocol' => 'tcp',
+                'port' => (string) $port,
+                'source_any' => false,
+                'source' => $ip,
+                'mask' => str_contains($ip, ':') ? 128 : 32,
+            ]);
+    }
+
     public function delete(FirewallRule $rule): void
     {
         $rule->status = FirewallRuleStatus::DELETING;

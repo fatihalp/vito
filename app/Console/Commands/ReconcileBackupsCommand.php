@@ -3,15 +3,18 @@
 namespace App\Console\Commands;
 
 use App\Actions\Backup\BroadcastBackupUpdate;
+use App\Actions\Backup\CheckBackupHealth;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
+use App\Enums\BackupRestoreStatus;
 use App\Enums\BackupStatus;
 use App\Events\SocketEvent;
 use App\Facades\Notifier;
 use App\Http\Resources\BackupFileResource;
 use App\Models\Backup;
 use App\Models\BackupFile;
-use App\Notifications\BackupFailed;
+use App\Models\BackupRestore;
+use App\Jobs\Backup\RestoreToNewServerJob;
 use App\Notifications\FailedToDeleteBackupFileFromProvider;
 use App\Notifications\RestoreFailed;
 use Illuminate\Console\Command;
@@ -47,20 +50,25 @@ class ReconcileBackupsCommand extends Command
             });
 
         Backup::query()
-            ->where('status', BackupStatus::DELETING)
+            ->whereIn('status', [BackupStatus::DELETING, BackupStatus::INSTALLING])
             ->where('updated_at', '<', $threshold)
             ->whereHas('server')
             ->with('server')
             ->chunkById(100, function ($chunk) use (&$backups): void {
-                
+
                 foreach ($chunk as $backup) {
-                    $backup->status = null;
+                    $backup->status = $backup->status === BackupStatus::INSTALLING ? BackupStatus::FAILED : null;
                     $backup->save();
                     $backups++;
 
                     app(BroadcastBackupUpdate::class)->broadcast($backup);
                 }
             });
+
+        BackupRestore::query()
+            ->whereIn('status', [BackupRestoreStatus::WAITING_FOR_SERVER, BackupRestoreStatus::RESTORING])
+            ->where('updated_at', '<', now()->subMinutes(30))
+            ->each(fn (BackupRestore $restore) => dispatch(new RestoreToNewServerJob($restore))->onQueue('ssh'));
 
         $this->info("{$files} stuck backup files and {$backups} backups reconciled");
     }
@@ -87,7 +95,7 @@ class ReconcileBackupsCommand extends Command
         match ($previous) {
             BackupFileStatus::RESTORING => Notifier::send($server, new RestoreFailed($server, $file)),
             BackupFileStatus::DELETING => Notifier::send($server, new FailedToDeleteBackupFileFromProvider($file)),
-            default => Notifier::send($server, new BackupFailed($file->backup)),
+            default => app(CheckBackupHealth::class)->check($file->backup),
         };
     }
 }

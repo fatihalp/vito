@@ -46,8 +46,8 @@ class RestoreFileJob implements ShouldQueue
         $this->run("backup-file-{$this->backupFile->id}", function () use ($server) {
             $tempBackupPath = $this->backupFile->tempPath();
 
-            $this->backupFile->backup->storage->provider()->ssh($server)->download(
-                $this->backupFile->path(),
+            $this->backupFile->currentStorage()->provider()->ssh($server)->download(
+                $this->backupFile->currentPath(),
                 $tempBackupPath
             );
 

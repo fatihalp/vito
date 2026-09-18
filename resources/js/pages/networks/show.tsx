@@ -51,7 +51,7 @@ export default function NetworkOverview() {
           <div className="space-y-3">
             <Heading title="Overview" description={network.name} />
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant={network.type_color}>{network.type}</Badge>
+              <Badge variant={network.type_color}>{network.kind}</Badge>
               <Badge variant={network.status_color}>{network.status}</Badge>
               {network.cidr && (
                 <MetaChip label="CIDR">

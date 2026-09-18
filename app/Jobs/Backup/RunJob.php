@@ -3,18 +3,18 @@
 namespace App\Jobs\Backup;
 
 use App\Actions\Backup\BroadcastBackupUpdate;
+use App\Actions\Backup\CheckBackupHealth;
+use App\Actions\Backup\ManagePgBackRest;
 use App\Actions\Backup\RunBackup;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupType;
 use App\Events\SocketEvent;
-use App\Facades\Notifier;
 use App\Http\Resources\BackupFileResource;
 use App\Models\Backup;
 use App\Models\BackupFile;
 use App\Models\ServerLog;
 use App\Models\Service;
-use App\Notifications\BackupFailed;
 use App\Services\Database\Database;
 use App\Traits\UniqueQueue;
 use Exception;
@@ -45,6 +45,12 @@ class RunJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("backup-{$this->backup->id}", function () {
+            if ($this->backup->type === BackupType::PGBACKREST) {
+                app(ManagePgBackRest::class)->run($this->file);
+
+                return;
+            }
+
             if ($this->backup->type === BackupType::DATABASE) {
                 
                 $service = $this->backup->server->database();
@@ -62,6 +68,7 @@ class RunJob implements ShouldQueue
             $this->file->save();
             $this->broadcastFileUpdate();
             app(BroadcastBackupUpdate::class)->broadcast($this->backup);
+            app(CheckBackupHealth::class)->check($this->backup);
         });
     }
 
@@ -74,7 +81,7 @@ class RunJob implements ShouldQueue
         $this->broadcastFileUpdate();
         ServerLog::log($this->backup->server, 'run-backup-failed', $e->getMessage());
         $this->cleanupTempFile();
-        Notifier::send($this->backup->server, new BackupFailed($this->backup));
+        app(CheckBackupHealth::class)->check($this->backup);
     }
 
     private function cleanupTempFile(): void

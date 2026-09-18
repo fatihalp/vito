@@ -2,7 +2,6 @@
 
 namespace App\Tables;
 
-use App\Enums\BackupType;
 use App\Http\Resources\BackupResource;
 use App\Models\Backup;
 use App\Models\Server;
@@ -45,7 +44,7 @@ class BackupTable extends Table
             ...$columns,
             EnumColumn::make('type', 'Type')->sortable(),
             Column::make('target', 'Target')
-                ->value(fn (Backup $backup) => $backup->type === BackupType::FILE ? $backup->path : $backup->database?->name)
+                ->value(fn (Backup $backup) => $backup->target())
                 ->fallback('-'),
             Column::make('storage.profile', 'Storage'),
             BadgeColumn::make('last_file_status', 'Last file')

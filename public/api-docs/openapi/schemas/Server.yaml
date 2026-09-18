@@ -110,17 +110,17 @@ properties:
     example: ['ssl', 'backups', 'monitoring']
   warnings:
     type: array
-    description: 'Active warnings for the server (available updates, kernel updates, reboot required).'
+    description: 'Active warnings for the server (available updates, kernel updates, reboot required, backups that need attention).'
     items:
       type: object
       properties:
         key:
           type: string
-          enum: ['updates_available', 'kernel_update_available', 'reboot_required']
+          enum: ['updates_available', 'kernel_update_available', 'reboot_required', 'backups_need_attention']
           example: 'updates_available'
         count:
           type: integer
-          description: 'Present for update-related warnings; absent for reboot_required.'
+          description: 'Number of available updates, or of backups that need attention; absent for reboot_required.'
           example: 5
     example:
       - key: 'updates_available'

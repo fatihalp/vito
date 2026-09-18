@@ -8,7 +8,9 @@ use App\Actions\StorageProvider\DeleteStorageProvider;
 use App\Actions\StorageProvider\EditStorageProvider;
 use App\Http\Resources\StorageProviderResource;
 use App\Models\StorageProvider;
+use App\StorageProviders\S3;
 use App\Tables\StorageProviderTable;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -90,6 +92,33 @@ class StorageProviderController extends Controller
         }
 
         return to_route('storage-providers')->with('success', 'Storage provider created.');
+    }
+
+    #[Post('/{storageProvider}/test', name: 'storage-providers.test')]
+    public function test(Request $request, StorageProvider $storageProvider): JsonResponse
+    {
+        $this->authorize('view', $storageProvider);
+
+        if (! $storageProvider->hasProviderHandler()) {
+            return response()->json(['connected' => false]);
+        }
+
+        $handler = $storageProvider->provider();
+        $readOnly = $request->query('mode') === 'read' && $handler instanceof S3;
+
+        try {
+            $connected = $readOnly
+                ? $handler->canRead($storageProvider->credentials)
+                : $handler->connect($storageProvider->credentials);
+        } catch (Throwable $e) {
+            Log::error('Failed to test storage provider connection', [
+                'storage_provider_id' => $storageProvider->id,
+                'exception' => get_class($e),
+            ]);
+            $connected = false;
+        }
+
+        return response()->json(['connected' => $connected]);
     }
 
     #[Patch('/{storageProvider}', name: 'storage-providers.update')]

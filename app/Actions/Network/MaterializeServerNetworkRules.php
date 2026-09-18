@@ -219,7 +219,7 @@ class MaterializeServerNetworkRules
         $sources = [];
 
         foreach ($this->peers($network, $server) as $peer) {
-            $ip = $peer->server_ip_address_id !== null ? $peer->serverIpAddress?->ip : $peer->ip;
+            $ip = $peer->address();
 
             if ($ip === null || ! Cidr::isValidAddress($ip)) {
                 continue;

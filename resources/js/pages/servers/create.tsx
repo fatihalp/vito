@@ -260,6 +260,7 @@ export default function CreateServerPage({
   const publicKey = initialPublicKey || bootstrapPublicKey;
 
   const [step, setStep] = useState<number>(0);
+  const [roleConfirmed, setRoleConfirmed] = useState(false);
   const [copiedKey, setCopiedKey] = useState(false);
   const [providers, setProviders] = useState<ServerProvider[]>(() => {
     if (Array.isArray(initialProviders)) return initialProviders;
@@ -539,6 +540,9 @@ export default function CreateServerPage({
     if (step < 2) {
       if (step === 0 && canGoNextFromStep0()) setStep(1);
       if (step === 1 && canGoNextFromStep1()) setStep(2);
+      return;
+    }
+    if (!roleConfirmed) {
       return;
     }
     form.post(route('servers.store'));
@@ -937,6 +941,9 @@ export default function CreateServerPage({
 
                   <div>
                     <Label className="text-xs font-semibold uppercase text-muted-foreground tracking-wider">Server Role</Label>
+                    {!roleConfirmed && (
+                      <div className="text-muted-foreground mt-1 text-xs">Confirm the role for this server before continuing.</div>
+                    )}
                     <div className="mt-1.5 grid grid-cols-5 gap-1.5">
                       {(['app', 'database', 'queue', 'cache', 'custom'] as const).map((r) => (
                         <button
@@ -948,6 +955,7 @@ export default function CreateServerPage({
                               role: r,
                               services: servicesForRole(r),
                             }));
+                            setRoleConfirmed(true);
                           }}
                           className={cn(
                             'rounded-lg border py-2 text-center text-xs font-medium capitalize transition-colors cursor-pointer',
@@ -1031,7 +1039,7 @@ export default function CreateServerPage({
                     Next <ArrowRightIcon className="ml-1.5 size-4" />
                   </Button>
                 ) : (
-                  <Button type="submit" disabled={form.processing}>
+                  <Button type="submit" disabled={form.processing || !roleConfirmed}>
                     {form.processing && <LoaderCircle className="mr-1.5 animate-spin size-4" />}
                     {isExisting ? 'Connect Server' : 'Create Server'}
                   </Button>

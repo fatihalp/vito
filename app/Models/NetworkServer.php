@@ -22,6 +22,7 @@ class NetworkServer extends AbstractModel
         'private_key',
         'status',
         'sync_attempts',
+        'last_handshake_at',
     ];
 
     protected $casts = [
@@ -31,6 +32,7 @@ class NetworkServer extends AbstractModel
         'sync_attempts' => 'integer',
         'status' => NetworkServerStatus::class,
         'private_key' => 'encrypted',
+        'last_handshake_at' => 'datetime',
     ];
 
     protected $hidden = [
@@ -38,6 +40,20 @@ class NetworkServer extends AbstractModel
     ];
 
     
+    public function address(): ?string
+    {
+        return $this->server_ip_address_id !== null ? $this->serverIpAddress?->ip : $this->ip;
+    }
+
+    /**
+     * Whether WireGuard exchanged a handshake with this server recently. Keepalives renew it every two minutes and handshakes are
+     * polled every three, so a working link is never older than five minutes. Null when nothing was observed yet.
+     */
+    public function connected(): ?bool
+    {
+        return $this->last_handshake_at?->gt(now()->subMinutes(5));
+    }
+
     public function network(): BelongsTo
     {
         return $this->belongsTo(Network::class);
