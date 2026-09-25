@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToProjectOrGlobal;
+use App\Traits\HasProjectScopedQueries;
 
 use App\Notifications\NotificationInterface;
 use Database\Factories\NotificationChannelFactory;
@@ -13,7 +13,7 @@ use Illuminate\Notifications\Notifiable;
 
 class NotificationChannel extends AbstractModel
 {
-    use BelongsToProjectOrGlobal;
+    use HasProjectScopedQueries;
     
     use HasFactory;
 

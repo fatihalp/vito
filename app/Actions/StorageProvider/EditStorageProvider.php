@@ -12,8 +12,12 @@ use Throwable;
 
 class EditStorageProvider
 {
-    
-    public function edit(StorageProvider $storageProvider, array $input): StorageProvider
+    /**
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    public function edit(StorageProvider $storageProvider, array $input, ?int $projectId): StorageProvider
     {
         if (! $storageProvider->hasProviderHandler()) {
             throw ValidationException::withMessages([
@@ -37,7 +41,7 @@ class EditStorageProvider
         }
 
         $storageProvider->profile = $input['name'];
-        $storageProvider->project_id = isset($input['global']) && $input['global'] ? null : $storageProvider->user->currentProject?->id;
+        $storageProvider->project_id = $projectId;
 
         $credentialsChanged = $credentials !== $storageProvider->credentials;
 

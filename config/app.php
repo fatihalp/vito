@@ -140,7 +140,7 @@ return [
         
     ])->toArray(),
 
-    'version' => '4.0.1',
+    'version' => '4.1.1',
 
     'demo' => env('APP_DEMO', false),
 

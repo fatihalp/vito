@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToProjectOrGlobal;
-
+use App\Traits\HasProjectScopedQueries;
 use Database\Factories\ServerProviderFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,9 +11,10 @@ use Illuminate\Support\Facades\Cache;
 
 class ServerProvider extends AbstractModel
 {
-    use BelongsToProjectOrGlobal;
+    use HasProjectScopedQueries;
     
     use HasFactory;
+
 
     protected $fillable = [
         'user_id',
@@ -67,7 +66,9 @@ class ServerProvider extends AbstractModel
         return $this->belongsTo(Project::class);
     }
 
-    
+    /**
+     * @return array<string>
+     */
     public static function regions(?int $id): array
     {
         if ($id === null || $id === 0) {

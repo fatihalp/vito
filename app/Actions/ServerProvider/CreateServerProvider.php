@@ -16,8 +16,12 @@ use Illuminate\Validation\ValidationException;
 
 class CreateServerProvider
 {
-    
-    public function create(User $user, array $input): ServerProvider
+    /**
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    public function create(User $user, array $input, ?int $projectId): ServerProvider
     {
         $this->validate($input);
 
@@ -38,7 +42,7 @@ class CreateServerProvider
         $serverProvider->profile = $input['name'];
         $serverProvider->provider = $input['provider'];
         $serverProvider->credentials = $provider->credentialData($input);
-        $serverProvider->project_id = isset($input['global']) && $input['global'] ? null : $user->currentProject?->id;
+        $serverProvider->project_id = $projectId;
         $serverProvider->save();
 
         SocketEvent::dispatch(new SocketEventDTO(

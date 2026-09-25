@@ -10,8 +10,12 @@ use Illuminate\Validation\ValidationException;
 
 class ConnectSourceControl
 {
-    
-    public function connect(User $user, array $input): SourceControl
+    /**
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    public function connect(User $user, array $input, ?int $projectId): SourceControl
     {
         $this->validate($input);
 
@@ -19,7 +23,7 @@ class ConnectSourceControl
             'provider' => $input['provider'],
             'profile' => $input['name'],
             'url' => isset($input['url']) && $input['url'] ? $input['url'] : null,
-            'project_id' => isset($input['global']) && $input['global'] ? null : $user->currentProject?->id,
+            'project_id' => $projectId,
             'user_id' => $user->id,
         ]);
 

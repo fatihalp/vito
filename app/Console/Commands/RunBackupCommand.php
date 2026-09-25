@@ -7,6 +7,8 @@ use App\Actions\Backup\RunBackup;
 use App\Enums\BackupType;
 use App\Models\Backup;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class RunBackupCommand extends Command
 {
@@ -17,19 +19,30 @@ class RunBackupCommand extends Command
     public function handle(): void
     {
         $total = 0;
+        $failed = 0;
 
         Backup::query()
             ->where('enabled', true)
             ->whereNull('status')
             ->whereHas('server')
             ->with('server')
-            ->chunkById(100, function ($backups) use (&$total): void {
+            ->chunkById(100, function ($backups) use (&$total, &$failed): void {
+                /** @var Backup $backup */
                 foreach ($backups as $backup) {
-                    $total += (int) rescue(fn (): bool => $this->start($backup), false);
+                    try {
+                        $total += (int) $this->start($backup);
+                    } catch (Throwable $e) {
+                        Log::warning('Failed to run backup', [
+                            'backup_id' => $backup->id,
+                            'server_id' => $backup->server_id,
+                            'error' => $e->getMessage(),
+                        ]);
+                        $failed++;
+                    }
                 }
             });
 
-        $this->info("{$total} backups started");
+        $this->info("{$total} backups started, {$failed} failed");
     }
 
     /**
