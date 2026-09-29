@@ -3,6 +3,8 @@
 namespace App\Actions\DatabaseReplica;
 
 use App\Actions\Backup\ManagePgBackRest;
+use App\Actions\Database\SyncDatabases;
+use App\Actions\Database\SyncDatabaseUsers;
 use App\Actions\Network\RemoveServerFromNetwork;
 use App\Actions\PostgresCluster\IssueClusterCertificates;
 use App\Actions\PostgresCluster\PreparePostgresClusterNetwork;
@@ -205,6 +207,11 @@ class ManageDatabaseReplica
             'message' => null,
         ]);
         app(BroadcastDatabaseReplicaUpdate::class)->broadcast($replica);
+
+        rescue(function () use ($replica): void {
+            app(SyncDatabases::class)->sync($replica->replica);
+            app(SyncDatabaseUsers::class)->sync($replica->replica);
+        });
 
         dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh');
 
