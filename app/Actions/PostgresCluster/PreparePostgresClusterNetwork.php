@@ -3,17 +3,16 @@
 namespace App\Actions\PostgresCluster;
 
 use App\Actions\Network\AddServersToNetwork;
+use App\Actions\Network\AttachProviderNetwork;
 use App\Actions\Network\CreateNetwork;
 use App\Actions\Network\DeleteNetwork;
 use App\Actions\Network\FindSharedNetwork;
 use App\Actions\Network\ManageNetworkFirewallRule;
-use App\Actions\Network\SyncProviderNetworks;
 use App\Enums\NetworkServerStatus;
 use App\Enums\NetworkType;
 use App\Models\Network;
 use App\Models\PostgresCluster;
 use App\Models\Server;
-use App\ServerProviders\AttachesPrivateNetworks;
 use RuntimeException;
 
 class PreparePostgresClusterNetwork
@@ -108,29 +107,7 @@ class PreparePostgresClusterNetwork
 
     private function attachProviderNetwork(PostgresCluster $cluster, Server $primary, Server $node, ?Network $into = null): ?Network
     {
-        $provider = $primary->provider_id !== null && $primary->provider_id === $node->provider_id ? $primary->serverProvider?->provider() : null;
-
-        if (! $provider instanceof AttachesPrivateNetworks) {
-            return null;
-        }
-
-        $ids = collect([$primary, $node])->map(fn (Server $server): string => (string) ($server->provider_data[$provider->instanceIdKey()] ?? ''));
-        $attached = $ids->contains('') ? null : $provider->attachPrivateNetwork($ids->all(), 'vito-postgres-'.$cluster->stanza, $into?->external_id);
-
-        if ($attached === null) {
-            return null;
-        }
-
-        app(SyncProviderNetworks::class)->forProject($primary->project);
-
-        $network = $primary->project->networks()->where('server_provider_id', $primary->provider_id)->where('external_id', $attached['id'])->first()
-            ?? throw new RuntimeException(__('The provider attached both servers to a private network, but Vito could not load it. Sync the networks on the Networks page and retry.'));
-
-        if ($attached['managed']) {
-            $network->firewallRules()->where('name', 'Allow all')->get()->each(fn ($rule) => app(ManageNetworkFirewallRule::class)->delete($rule));
-        }
-
-        return $network;
+        return app(AttachProviderNetwork::class)->attach($primary, $node, 'vito-postgres-'.$cluster->stanza, $into);
     }
 
     private function createWireGuard(PostgresCluster $cluster, Server $primary, Server $node): Network

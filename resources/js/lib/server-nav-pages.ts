@@ -1,4 +1,5 @@
 import {
+  ArrowUpCircleIcon,
   BoxIcon,
   ChartLineIcon,
   ClockIcon,
@@ -33,6 +34,7 @@ export const SERVER_NAV_PAGES: ServerNavPage[] = [
   { key: 'Databases', label: 'Databases', routeName: 'databases', icon: DatabaseIcon },
   { key: 'Database users', label: 'Database users', routeName: 'database-users', icon: UsersIcon },
   { key: 'Replication', label: 'Replication', routeName: 'database-replicas', icon: CopyIcon },
+  { key: 'Version upgrade', label: 'Version upgrade', routeName: 'database-upgrades', icon: ArrowUpCircleIcon },
   { key: 'CronJobs', label: 'CronJobs', routeName: 'cronjobs', icon: ClockIcon },
   { key: 'Workers', label: 'Workers', routeName: 'workers', icon: ListEndIcon },
   { key: 'Services', label: 'Services', routeName: 'services', icon: CogIcon },
