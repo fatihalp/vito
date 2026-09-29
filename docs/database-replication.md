@@ -147,6 +147,14 @@ checks again every 15 seconds, for up to 30 minutes.
 `MonitorDatabaseReplicaSeedJob` checks the unit every 30 seconds and marks the
 replica ready when it finishes.
 
+## Databases on a replica
+
+A replica holds a physical copy of the primary, so its databases and users arrive
+through replication rather than through Vito. When a replica becomes ready, Vito
+imports both lists so they show on the replica's Databases and Users pages, with
+a note that they mirror the primary; **Sync** refreshes them. Creating and
+deleting stays on the primary, because a replica is read-only.
+
 ## Health and metrics
 
 `database-replicas:check` runs every minute. Each check runs one query on each

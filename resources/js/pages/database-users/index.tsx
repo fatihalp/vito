@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { DatabaseUser } from '@/types/database-user';
 import Container from '@/components/container';
@@ -8,7 +8,8 @@ import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
 import { TableActionTrigger } from '@/components/table-action-trigger';
-import { PlusIcon } from 'lucide-react';
+import { InfoIcon, PlusIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import CreateDatabaseUser from '@/pages/database-users/components/create-database-user';
 
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -20,6 +21,7 @@ type Page = {
   server: Server;
   databaseUsers: InertiaTableData;
   usesHost: boolean;
+  replicaOf?: { server_id: number; name: string | null } | null;
 };
 
 export default function DatabaseUsers() {
@@ -56,14 +58,34 @@ export default function DatabaseUsers() {
             >
               Sync
             </Button>
-            <CreateDatabaseUser server={page.props.server.id} usesHost={usesHost}>
-              <Button>
-                <PlusIcon />
-                <span className="hidden lg:block">Create</span>
-              </Button>
-            </CreateDatabaseUser>
+            {!page.props.replicaOf && (
+              <CreateDatabaseUser server={page.props.server.id} usesHost={usesHost}>
+                <Button>
+                  <PlusIcon />
+                  <span className="hidden lg:block">Create</span>
+                </Button>
+              </CreateDatabaseUser>
+            )}
           </div>
         </HeaderContainer>
+
+        {page.props.replicaOf && (
+          <Alert>
+            <InfoIcon />
+            <AlertTitle>This server is a PostgreSQL replica of {page.props.replicaOf.name}</AlertTitle>
+            <AlertDescription>
+              <p>
+                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Vito imports the list when
+                the replica is built; use Sync to refresh it.
+              </p>
+              {page.props.replicaOf.server_id && (
+                <Link href={route('database-users', { server: page.props.replicaOf.server_id })} className="text-foreground underline">
+                  Open the primary
+                </Link>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
 
         <VitoTable
           tableData={page.props.databaseUsers}

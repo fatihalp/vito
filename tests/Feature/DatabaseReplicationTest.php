@@ -257,8 +257,11 @@ expectReplication(str_contains((string) $ssh->ran('pg-primary', 'pg_drop_replica
 $replica->update(['status' => DatabaseReplicaStatus::SEEDING, 'message' => null]);
 
 $ssh->responses['systemctl show'] = "LoadState=loaded\nActiveState=active\nSubState=exited\nResult=success\n";
+$ssh->responses['database_name'] = " database_name | charset | collation\n---------------+---------+-----------\n shop          | UTF8    | C.utf8\n postgres      | UTF8    | C.utf8\n(2 rows)\n";
 Queue::fake();
 expectReplication($replicas->monitorSeed($replica->fresh()) === true && $replica->fresh()->status === DatabaseReplicaStatus::READY, 'A finished restore must make the replica ready.');
+expectReplication($standby->databases()->pluck('name')->all() === ['shop'], 'A ready replica must list the databases it replicates: '.$standby->databases()->pluck('name')->toJson());
+unset($ssh->responses['database_name']);
 
 $ssh->responses['VITO_PRIMARY'] = "VITO_PRIMARY|t|reserved|1048576|65536|streaming|2048|1.5|2.5|3.5\n";
 $ssh->responses['VITO_REPLICA'] = "VITO_REPLICA|t|streaming|0|9000\n";
