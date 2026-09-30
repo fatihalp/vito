@@ -19,6 +19,8 @@ import {
   DownloadIcon,
   GitCommitHorizontalIcon,
   LoaderCircleIcon,
+  RocketIcon,
+  RotateCcwIcon,
   TerminalIcon,
   TimerIcon,
   UserIcon,
@@ -113,9 +115,26 @@ export default function DeploymentShow() {
             )}
 
             {deployment.commit_data.name && (
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1.5" title="Commit author">
                 <UserIcon className="size-3.5" />
                 <span>{deployment.commit_data.name}</span>
+              </div>
+            )}
+
+            {deployment.trigger && (
+              <div className="flex items-center gap-1.5">
+                <RocketIcon className="size-3.5" />
+                <span>Deployed by {deployment.deployed_by ?? 'System'}</span>
+                {deployment.trigger_color && <Badge variant={deployment.trigger_color}>{deployment.trigger}</Badge>}
+              </div>
+            )}
+
+            {deployment.rolled_back_at && (
+              <div className="flex items-center gap-1.5">
+                <RotateCcwIcon className="size-3.5" />
+                <span>
+                  Rolled back by {deployment.rolled_back_by ?? 'System'} <DateTime date={deployment.rolled_back_at} relative />
+                </span>
               </div>
             )}
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Actions\Site\Deploy;
+use App\Enums\DeploymentTrigger;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DeploymentResource;
@@ -10,6 +11,7 @@ use App\Models\Deployment;
 use App\Models\Project;
 use App\Models\Server;
 use App\Models\Site;
+use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
@@ -29,7 +31,7 @@ class DeploymentController extends Controller
         $this->validateRoute($project, $server, $site);
 
         $deployments = $site->deployments()
-            ->with(['log'])
+            ->with(['log', 'user', 'rolledBackBy'])
             ->latest()
             ->simplePaginate(25);
 
@@ -37,14 +39,14 @@ class DeploymentController extends Controller
     }
 
     #[Post('/', name: 'api.projects.servers.sites.deployments.store', middleware: 'ability:write')]
-    public function store(Project $project, Server $server, Site $site): DeploymentResource
+    public function store(Request $request, Project $project, Server $server, Site $site): DeploymentResource
     {
         $this->authorize('update', [$site, $server]);
 
         $this->validateRoute($project, $server, $site);
 
         try {
-            $deployment = app(Deploy::class)->run($site);
+            $deployment = app(Deploy::class)->run($site, user: $request->user(), trigger: DeploymentTrigger::API);
 
             return new DeploymentResource($deployment);
         } catch (DeploymentScriptIsEmptyException) {
@@ -63,7 +65,7 @@ class DeploymentController extends Controller
             abort(404, 'Deployment not found for this site');
         }
 
-        return new DeploymentResource($deployment);
+        return new DeploymentResource($deployment->load('user', 'rolledBackBy'));
     }
 
     private function validateRoute(Project $project, Server $server, ?Site $site = null): void

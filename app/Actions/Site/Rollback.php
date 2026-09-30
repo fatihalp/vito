@@ -5,11 +5,12 @@ namespace App\Actions\Site;
 use App\Enums\DeploymentStatus;
 use App\Jobs\Site\RollbackJob;
 use App\Models\Deployment;
+use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 class Rollback
 {
-    public function run(Deployment $deployment): void
+    public function run(Deployment $deployment, ?User $user = null): void
     {
         $site = $deployment->site;
         
@@ -28,6 +29,8 @@ class Rollback
         }
 
         $deployment->status = DeploymentStatus::DEPLOYING;
+        $deployment->rolled_back_by_id = $user?->id;
+        $deployment->rolled_back_at = now();
         $deployment->save();
 
         dispatch(new RollbackJob($deployment));

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Actions\Site\Deploy;
+use App\Enums\DeploymentTrigger;
 use App\Exceptions\FailedToDestroyGitHook;
 use App\Http\Controllers\Controller;
 use App\Models\GitHook;
@@ -42,7 +43,7 @@ class GitHookController extends Controller
             $webhookBranch = $sourceControl->provider()->getWebhookBranch($request->array());
             if ($action == 'deploy' && $gitHook->site->branch === $webhookBranch) {
                 try {
-                    app(Deploy::class)->run($gitHook->site);
+                    app(Deploy::class)->run($gitHook->site, trigger: DeploymentTrigger::WEBHOOK);
                 } catch (Throwable $e) {
                     ServerLog::log(
                         $gitHook->site->server,

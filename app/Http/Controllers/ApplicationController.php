@@ -120,7 +120,7 @@ class ApplicationController extends Controller
         }
 
         return Inertia::render('application/deployments/show', [
-            'deployment' => new DeploymentResource($deployment->load('log')),
+            'deployment' => new DeploymentResource($deployment->load('log', 'user', 'rolledBackBy')),
         ]);
     }
 
@@ -137,17 +137,17 @@ class ApplicationController extends Controller
     
 
     #[Post('/deploy', name: 'application.deploy')]
-    public function deploy(Server $server, Site $site): RedirectResponse
+    public function deploy(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
-        app(Deploy::class)->run($site);
+        app(Deploy::class)->run($site, user: $request->user());
 
         return back()->with('info', 'Deployment started, please wait...');
     }
 
     #[Post('/rollback/{deployment}', name: 'application.rollback')]
-    public function rollback(Server $server, Site $site, Deployment $deployment): RedirectResponse
+    public function rollback(Request $request, Server $server, Site $site, Deployment $deployment): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
@@ -155,7 +155,7 @@ class ApplicationController extends Controller
             return back()->with('error', 'Invalid deployment selected for rollback.');
         }
 
-        app(Rollback::class)->run($deployment);
+        app(Rollback::class)->run($deployment, $request->user());
 
         return back()->with('info', 'Rollback started, please wait...');
     }
