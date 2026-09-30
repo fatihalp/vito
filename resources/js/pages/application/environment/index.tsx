@@ -15,6 +15,7 @@ import {
   ArrowLeftIcon,
   CheckIcon,
   FileCode2Icon,
+  HistoryIcon,
   InfoIcon,
   LoaderCircleIcon,
   PlusIcon,
@@ -27,6 +28,7 @@ import { useAppearance } from '@/hooks/use-appearance';
 import { registerDotEnvLanguage } from '@/lib/editor';
 import { EnvVariable } from '@/types/env';
 import EnvVariableRow from '@/pages/application/components/env-variable-row';
+import EnvHistory from '@/pages/application/components/env-history';
 import { generateUniqueKey } from '@/lib/env';
 import { rowId } from '@/lib/utils';
 import { errorMessage } from '@/lib/errors';
@@ -73,6 +75,7 @@ function EnvironmentEditorContent() {
   const [canEdit, setCanEdit] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const form = useForm<{ path: string; env?: string; variables?: Array<{ key: string; value: string; is_secret: boolean }> }>({
     path: envPath,
@@ -121,7 +124,7 @@ function EnvironmentEditorContent() {
 
   const submit = (e?: FormEvent) => {
     if (e) e.preventDefault();
-    if (canEdit !== true) {
+    if (canEdit !== true || showHistory) {
       return;
     }
     if (mode === 'variables' && (hasDuplicates || variables.length === 0)) {
@@ -156,7 +159,7 @@ function EnvironmentEditorContent() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [form.processing, busy, canEdit, mode, rawContent, variables, envPath]);
+  }, [form.processing, busy, canEdit, mode, rawContent, variables, envPath, showHistory]);
 
   const queryError = useMemo(() => (query.isError ? errorMessage(query.error, 'Failed to read the .env file') : null), [query.isError, query.error]);
 
@@ -319,6 +322,19 @@ function EnvironmentEditorContent() {
             {canEdit === true && (
               <Button
                 type="button"
+                variant={showHistory ? 'secondary' : 'outline'}
+                size="sm"
+                onClick={() => setShowHistory((value) => !value)}
+                className="h-9 gap-1.5 cursor-pointer text-xs"
+              >
+                <HistoryIcon className="size-3.5" />
+                <span>{showHistory ? 'Back to Editor' : 'History'}</span>
+              </Button>
+            )}
+
+            {canEdit === true && !showHistory && (
+              <Button
+                type="button"
                 variant="outline"
                 size="sm"
                 onClick={switchMode}
@@ -342,6 +358,7 @@ function EnvironmentEditorContent() {
               disabled={
                 form.processing ||
                 busy ||
+                showHistory ||
                 query.isError ||
                 canEdit !== true ||
                 (mode === 'variables' && (hasDuplicates || variables.length === 0))
@@ -381,7 +398,16 @@ function EnvironmentEditorContent() {
         )}
 
         <Card className="overflow-hidden border flex-1 flex flex-col min-h-[550px]">
-          {mode === 'classic' ? (
+          {showHistory ? (
+            <EnvHistory
+              server={server}
+              site={site}
+              path={envPath}
+              current={query.data?.env ?? ''}
+              hasUnsavedChanges={isDirty}
+              onRestored={() => void query.refetch()}
+            />
+          ) : mode === 'classic' ? (
             <div className="flex flex-col flex-1 h-full min-h-[550px]">
               {variables.some((variable) => variable.managedBy) && (
                 <div className="border-b bg-muted/30 px-4 py-2.5 flex items-center gap-2 text-xs text-muted-foreground">

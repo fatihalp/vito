@@ -2,6 +2,8 @@
 
 namespace App\Actions\SiteResource;
 
+use App\Actions\Site\RecordEnvVersion;
+use App\Enums\EnvVersionSource;
 use App\Helpers\EnvParser;
 use App\Models\Site;
 use App\Models\SiteResource;
@@ -9,6 +11,7 @@ use App\Enums\SiteResourceStatus;
 
 class SyncManagedEnvironment
 {
+    public function __construct(private RecordEnvVersion $recordEnvVersion) {}
     
     public function managed(Site $site): array
     {
@@ -33,7 +36,7 @@ class SyncManagedEnvironment
     public function sync(Site $site, ?SiteResource $removed = null): void
     {
         $path = $site->resolveEnvPath();
-        $raw = $site->getEnv($path);
+        $raw = $site->server->os()->readFile($path);
         $changes = [];
 
         if ($removed) {
@@ -49,11 +52,9 @@ class SyncManagedEnvironment
             $changes[$key] = $managed['value'];
         }
 
-        $site->server->os()->write(
-            $path,
-            EnvParser::patch($raw, $changes),
-            $site->user,
-        );
+        $content = EnvParser::patch($raw, $changes);
+        $site->server->os()->write($path, $content, $site->user);
+        $this->recordEnvVersion->record($site, $path, $raw, $content, EnvVersionSource::RESOURCE);
 
         $secretKeys = array_values(array_diff(
             EnvParser::secretKeys($site->env_variables),

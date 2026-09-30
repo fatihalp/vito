@@ -11,7 +11,9 @@ use App\Actions\Site\StringifyEnv;
 use App\Actions\Site\UpdateDeploymentScript;
 use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
+use App\Enums\EnvVersionSource;
 use App\Http\Resources\DeploymentScriptResource;
+use App\Http\Resources\EnvVersionResource;
 use App\Http\Resources\DeploymentResource;
 use App\Http\Resources\CronJobResource;
 use App\Http\Resources\LoadBalancerServerResource;
@@ -19,6 +21,7 @@ use App\Http\Resources\WorkerResource;
 use App\Actions\Domain\ToggleDomainProxy;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
+use App\Models\EnvVersion;
 use App\Models\Server;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
@@ -26,6 +29,7 @@ use App\Tables\DeploymentTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -227,9 +231,52 @@ class ApplicationController extends Controller
     {
         $this->authorize('update', [$site, $server]);
 
-        app(UpdateEnv::class)->update($site, $request->input());
+        app(UpdateEnv::class)->update($site, $request->input(), $request->user());
 
         return back()->with('success', '.env file updated successfully.');
+    }
+
+    #[Get('/env/versions', name: 'application.env-versions')]
+    public function envVersions(Request $request, Server $server, Site $site): ResourceCollection
+    {
+        $this->authorize('revealEnv', [$site, $server]);
+
+        $versions = $site->envVersions()
+            ->with('user')
+            ->where('path', $site->resolveEnvPath($request->string('path')->toString() ?: null))
+            ->latest('id')
+            ->get();
+
+        return EnvVersionResource::collection($versions);
+    }
+
+    #[Get('/env/versions/{envVersion}', name: 'application.env-versions.show')]
+    public function envVersion(Server $server, Site $site, EnvVersion $envVersion): JsonResponse
+    {
+        $this->authorize('revealEnv', [$site, $server]);
+
+        abort_if($envVersion->site_id !== $site->id, 404);
+
+        return response()->json(['content' => $envVersion->content]);
+    }
+
+    #[Post('/env/versions/{envVersion}/restore', name: 'application.env-versions.restore')]
+    public function restoreEnvVersion(Request $request, Server $server, Site $site, EnvVersion $envVersion): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+        $this->authorize('revealEnv', [$site, $server]);
+
+        abort_if($envVersion->site_id !== $site->id, 404);
+
+        app(UpdateEnv::class)->update(
+            $site,
+            ['env' => $envVersion->content, 'path' => $envVersion->path],
+            $request->user(),
+            EnvVersionSource::RESTORE,
+            $envVersion,
+        );
+
+        return back()->with('success', '.env version restored successfully.');
     }
 
     

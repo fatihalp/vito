@@ -283,6 +283,7 @@ class SSH
                 view('ssh.os.write-file', [
                     'tmpPath' => $tmpRemotePath,
                     'path' => $remotePath,
+                    'size' => $storageDisk->size($tmpName),
                 ])
             );
         } catch (Throwable $e) {
