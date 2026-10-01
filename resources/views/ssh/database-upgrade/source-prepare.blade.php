@@ -32,7 +32,9 @@ sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database) 
 @endif
 
 @foreach ($databases as $database)
-sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database) !!} -c "SELECT format('CREATE PUBLICATION %I FOR ALL TABLES', '{!! $publication !!}') WHERE NOT EXISTS (SELECT 1 FROM pg_publication WHERE pubname = '{!! $publication !!}') \gexec" > /dev/null
+if [ "$(sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database) !!} -c "SELECT 1 FROM pg_publication WHERE pubname = :'pub'" -v pub={!! escapeshellarg($publication) !!})" != "1" ]; then
+    sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database) !!} -c "CREATE PUBLICATION :\"pub\" FOR ALL TABLES" -v pub={!! escapeshellarg($publication) !!} > /dev/null
+fi
 @endforeach
 
 echo "VITO_WAL_LEVEL=$(sudo -u postgres psql -XtAc 'SHOW wal_level')"

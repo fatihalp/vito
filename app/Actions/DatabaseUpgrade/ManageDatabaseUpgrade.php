@@ -221,6 +221,11 @@ class ManageDatabaseUpgrade
         // admin a status that never moves and no reason at all.
         $since = $upgrade->configuration['preparing_since'] ?? null;
 
+        if ($since === null) {
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'preparing_since' => now()->toIso8601String()]]);
+            $since = null;
+        }
+
         if ($since !== null && Carbon::parse($since)->lt(now()->subMinutes(30))) {
             throw new RuntimeException(__('The upgrade did not get past ":step" within 30 minutes.', ['step' => $upgrade->step]));
         }

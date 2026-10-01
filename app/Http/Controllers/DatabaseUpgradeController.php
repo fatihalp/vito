@@ -120,9 +120,9 @@ class DatabaseUpgradeController extends Controller
         return ServerLog::query()
             ->whereIn('server_id', array_filter([$upgrade->source_server_id, $upgrade->target_server_id]))
             ->where(fn ($query) => $query
-                ->where('name', 'like', 'database-upgrade%')
-                ->orWhere('name', 'vito-upgrade-'.$upgrade->id)
-                ->orWhere('name', 'postgres-private-interface'))
+                ->where('name', 'like', '%database-upgrade%')
+                ->orWhere('name', 'like', '%vito-upgrade-'.$upgrade->id.'%')
+                ->orWhere('name', 'like', '%postgres-private-interface%'))
             ->where('created_at', '>=', $upgrade->created_at)
             ->with('server')
             ->latest('id')

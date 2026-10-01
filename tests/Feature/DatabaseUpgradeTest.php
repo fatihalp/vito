@@ -268,7 +268,7 @@ $prepared = $ssh->ran('pg-old', 'CREATE PUBLICATION');
 expectUpgrade(str_contains($prepared, "'{$upgrade->username}' '".$address($target)."/32'") && ! str_contains($prepared, $upgrade->password), 'pg_hba.conf must allow the new server only, without logging the password.');
 expectUpgrade(str_contains($prepared, "wal_level = 'logical'") && str_contains($prepared, 'max_replication_slots = 11') && str_contains($prepared, 'REPLICA IDENTITY FULL'), 'The old server must get the settings and replica identities logical replication needs.');
 foreach (['app', 'shop'] as $database) {
-    expectUpgrade(str_contains($prepared, "-d '{$database}' -c \"SELECT format('CREATE PUBLICATION"), "The database {$database} must be published.");
+    expectUpgrade(str_contains($prepared, "-d '{$database}' -c \"CREATE PUBLICATION :\\\"pub\\\" FOR ALL TABLES\""), "The database {$database} must be published.");
 }
 
 $passfile = $ssh->writes['pg-new:/var/lib/postgresql/.vito-upgrade-'.$upgrade->id.'.pgpass'] ?? null;
@@ -361,6 +361,14 @@ DatabaseUpgrade::query()->whereKey($upgrade->id)->update(['status' => 'copying',
 Queue::fake();
 Artisan::call('database-replicas:check');
 expectUpgrade(Queue::pushed(RunDatabaseUpgradeJob::class)->count() === 1, 'An upgrade Vito stopped watching must be picked up again.');
+
+// psql only accepts a backslash meta-command from a file or on its own, never mixed into -c with SQL: putting
+// \gexec there answered "syntax error at or near \\" on the real terminal while every faked test passed.
+foreach (glob(dirname(__DIR__, 2).'/resources/views/ssh/database-upgrade/*.blade.php') as $script) {
+    foreach (preg_split('/\R/', file_get_contents($script)) ?: [] as $line) {
+        expectUpgrade(preg_match('/ -c "[^"]*\\\\[a-z]/', $line) !== 1, 'A psql -c argument must not carry a backslash command: '.basename($script).' -> '.trim($line));
+    }
+}
 
 $ssh->failures = ['pg_largeobject_metadata'];
 Illuminate\Support\Facades\Auth::loginUsingId($user->id);
