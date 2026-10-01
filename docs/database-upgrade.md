@@ -112,6 +112,32 @@ the `pg_hba` rule and the settings file from the old server, and lets it take
 writes again. The new server is kept — delete it yourself when you no longer
 need it.
 
+## How long it takes
+
+The copy is the part that costs time, and the time it costs decides everything
+else: the old server cannot recycle the WAL the new one has not applied yet, so
+a long copy is also a large pile of WAL on the server you are migrating away
+from.
+
+Vito copies the rows into tables that carry only their primary key, unique and
+exclusion indexes, and builds the rest afterwards, concurrently. Measured on two
+Hetzner cax11 servers (2 vCPU, 3 GB, ARM) with 12 million rows, 3.1 GB of heap
+and 1.4 GB of indexes:
+
+| | copy | indexes | total |
+|---|---|---|---|
+| indexes already on the table | 243 s (45 GB/h) | — | 243 s |
+| indexes built afterwards | **81 s (135 GB/h)** | 96 s | 177 s |
+
+Building them concurrently costs almost nothing — on the same hardware, a btree
+over 5 million rows took 4 seconds either way and a GIN index 22 against 26 —
+and it lets the new server keep applying changes while it builds, so the old
+server keeps releasing WAL throughout.
+
+Take those rates as a floor for your own hardware, and multiply: a database of
+a few hundred GB is an overnight copy. Past roughly that, weigh this against
+`pg_upgrade`, whose downtime does not grow with the size of the database.
+
 ## What it has been proven against
 
 One full 17 → 18 migration of a 0.3 GB database under continuous writes

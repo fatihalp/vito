@@ -106,7 +106,7 @@ WHERE c.relkind = 'i' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
     AND NOT i.indisprimary AND NOT i.indisunique
     AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = c.oid);
 VITO_SQL
-    sed -E 's/^CREATE INDEX /CREATE INDEX IF NOT EXISTS /' /tmp/$SUB-indexes.sql | sudo -u postgres tee "$INDEX_FILE" > /dev/null
+    sed -E 's/^CREATE INDEX /CREATE INDEX CONCURRENTLY IF NOT EXISTS /' /tmp/$SUB-indexes.sql | sudo -u postgres tee "$INDEX_FILE" > /dev/null
     rm -f /tmp/$SUB-indexes.sql
 
     sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d "$DB" <<'VITO_SQL' | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null
@@ -143,14 +143,32 @@ wait_for_copy() {
     echo "The first copy of $DB is done"
 }
 
+# Concurrently, because an ordinary index build locks the table against the rows still arriving, and everything the
+# apply worker cannot write is WAL the old server has to keep. It costs two table scans instead of one; it buys an old
+# server that keeps releasing WAL while the new one builds.
 build_indexes() {
     DB="$1"
     SUB="$2"
     INDEX_FILE="/var/lib/postgresql/$SUB-indexes.sql"
 
     if [ -s "$INDEX_FILE" ]; then
-        echo "Building $(grep -c 'CREATE INDEX' "$INDEX_FILE" || true) indexes of $DB"
+        # A concurrent build that was interrupted leaves an index behind that is invalid and never used again.
+        sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d "$DB" <<'VITO_SQL' | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null
+SELECT format('DROP INDEX %I.%I;', n.nspname, c.relname)
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+JOIN pg_index i ON i.indexrelid = c.oid
+WHERE c.relkind = 'i' AND NOT i.indisvalid AND n.nspname NOT IN ('pg_catalog', 'information_schema');
+VITO_SQL
+
+        echo "Building $(grep -c 'CREATE INDEX' "$INDEX_FILE" || true) indexes of $DB while the rows keep arriving"
         sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" -f "$INDEX_FILE" > /dev/null
+
+        UNFINISHED=$(sudo -u postgres psql -XtAq -d "$DB" -c "SELECT count(*) FROM pg_index i JOIN pg_class c ON c.oid = i.indexrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE NOT i.indisvalid AND n.nspname NOT IN ('pg_catalog', 'information_schema')")
+        if [ "$UNFINISHED" != "0" ]; then
+            echo "ERROR: $UNFINISHED indexes of $DB could not be built; run this again once the cause is gone"
+            exit 1
+        fi
     fi
 
     sudo -u postgres psql -X -q -d "$DB" -c 'ANALYZE' > /dev/null

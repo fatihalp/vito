@@ -290,7 +290,8 @@ foreach ([
 expectUpgrade(! str_contains($copy, $upgrade->password), 'The copy script must not contain the password.');
 // Rows arrive far faster into a table without secondary indexes, and the indexes are cheaper to build once at the
 // end than to maintain row by row. Primary keys, unique and exclusion indexes stay: the apply worker needs them.
-foreach (['DROP INDEX %I.%I', 'NOT i.indisprimary AND NOT i.indisunique', 'wait_for_copy', 'build_indexes', 'CREATE INDEX IF NOT EXISTS'] as $needle) {
+foreach (['DROP INDEX %I.%I', 'NOT i.indisprimary AND NOT i.indisunique', 'wait_for_copy', 'build_indexes',
+    'CREATE INDEX CONCURRENTLY IF NOT EXISTS', 'NOT i.indisvalid', 'could not be built'] as $needle) {
     expectUpgrade(str_contains($copy, $needle), "The copy script must defer the secondary indexes: {$needle}.");
 }
 expectUpgrade(strpos($copy, 'CREATE SUBSCRIPTION') < strpos($copy, 'build_indexes()'), 'The indexes must be built after the copy, not before it.');
