@@ -331,7 +331,12 @@ class ManageDatabaseUpgrade
 
         if ($upgrade->seeded()) {
             $this->step($upgrade, __('Reserving every change :server makes from now on', ['server' => $source->name]));
-            $positions = $replication->createSlots();
+
+            // The position a slot starts handing out changes from is only knowable when it is created: afterwards the
+            // catalogue shows where its WAL is kept, which is earlier, and restoring to that would skip the commits in
+            // between. So the position recorded at creation wins over anything read back later.
+            $positions = [...$replication->createSlots(), ...($upgrade->configuration['slot_lsn'] ?? [])];
+            $positions = array_filter($positions, fn (string $lsn): bool => $lsn !== '');
 
             if (count($positions) < count($upgrade->databases())) {
                 throw new RuntimeException(__('Vito could not reserve the changes of every database on :server.', ['server' => $source->name]));

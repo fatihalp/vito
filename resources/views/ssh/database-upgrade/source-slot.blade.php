@@ -6,7 +6,7 @@ VITO_SQL
 
 if [ "$HAS_SLOT" = "1" ]; then
     LSN=$(sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database['name']) !!} -v slot={!! escapeshellarg($database['slot']) !!} <<'VITO_SQL'
-SELECT confirmed_flush_lsn FROM pg_replication_slots WHERE slot_name = :'slot';
+SELECT coalesce(confirmed_flush_lsn, restart_lsn) FROM pg_replication_slots WHERE slot_name = :'slot';
 VITO_SQL
 )
 else

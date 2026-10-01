@@ -437,7 +437,7 @@ expectUpgrade($seeded->status === DatabaseUpgradeStatus::SEEDING, 'A seeded upgr
 expectUpgrade(($seeded->configuration['slot_lsn']['app'] ?? null) === '0/16B3C70', 'The position each slot starts at must be kept, because the restore and the subscription both have to match it.');
 
 $seedScript = $ssh->ran($seededTarget->name, 'vito-upgrade-seed-'.$seeded->id);
-foreach (['--type=lsn --target=', "'0/16B3C70'", 'pg_upgradecluster --method=upgrade --link', 'pg_dropcluster "$OLD" main --stop', 'analyze-in-stages'] as $needle) {
+foreach (['--type=lsn --target=', "'0/16B3C70'", 'pg_upgradecluster --method=upgrade --link', 'pg_dropcluster --stop "$OLD" main', 'pg_createcluster --port 5432', 'analyze-in-stages'] as $needle) {
     expectUpgrade(str_contains((string) $seedScript, $needle), "The seed script must contain {$needle}.");
 }
 expectUpgrade(strpos((string) $seedScript, 'restore') < strpos((string) $seedScript, 'pg_upgradecluster'), 'The copy must be restored before it is upgraded.');
