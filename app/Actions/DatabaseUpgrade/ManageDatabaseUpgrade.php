@@ -588,12 +588,12 @@ class ManageDatabaseUpgrade
         $replicas = PostgresCluster::forServer($source)?->streamingReplicas()->count() ?? 0;
 
         return array_values(array_filter([
-            $replicas === 0 ? null : __('The :count streaming replicas of this server keep following it, not the new server. Build replicas of the new server after the switch.', ['count' => $replicas]),
-            $sum('without_key') === 0 ? null : __('While the copy runs, UPDATE and DELETE fail on the :count tables that have no primary key. Let Vito set REPLICA IDENTITY FULL on them, or give them a primary key first.', ['count' => $sum('without_key')]),
-            $sum('unlogged') === 0 ? null : __('The :count unlogged tables are created empty on the new server: logical replication never copies their rows.', ['count' => $sum('unlogged')]),
-            $sum('materialized_views') === 0 ? null : __('The :count materialized views are created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.', ['count' => $sum('materialized_views')]),
-            $sum('large_objects') === 0 ? null : __('The :count large objects are not copied. Move them yourself if your application uses them.', ['count' => $sum('large_objects')]),
-            $extensions->isEmpty() ? null : __('The extensions :names must exist for PostgreSQL on the new server, else copying the schema fails.', ['names' => $extensions->implode(', ')]),
+            $replicas === 0 ? null : trans_choice('{1}The streaming replica of this server keeps following it, not the new server. Build a replica of the new server after the switch.|[2,*]The :count streaming replicas of this server keep following it, not the new server. Build replicas of the new server after the switch.', $replicas),
+            $sum('without_key') === 0 ? null : trans_choice('{1}While the copy runs, UPDATE and DELETE fail on the one table that has no primary key. Let Vito set REPLICA IDENTITY FULL on it, or give it a primary key first.|[2,*]While the copy runs, UPDATE and DELETE fail on the :count tables that have no primary key. Let Vito set REPLICA IDENTITY FULL on them, or give them a primary key first.', $sum('without_key')),
+            $sum('unlogged') === 0 ? null : trans_choice('{1}The one unlogged table is created empty on the new server: logical replication never copies its rows.|[2,*]The :count unlogged tables are created empty on the new server: logical replication never copies their rows.', $sum('unlogged')),
+            $sum('materialized_views') === 0 ? null : trans_choice('{1}The one materialized view is created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.|[2,*]The :count materialized views are created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.', $sum('materialized_views')),
+            $sum('large_objects') === 0 ? null : trans_choice('{1}The one large object is not copied. Move it yourself if your application uses it.|[2,*]The :count large objects are not copied. Move them yourself if your application uses them.', $sum('large_objects')),
+            $extensions->isEmpty() ? null : trans_choice('{1}The extension :names must exist for PostgreSQL on the new server, else copying the schema fails.|[2,*]The extensions :names must exist for PostgreSQL on the new server, else copying the schema fails.', $extensions->count(), ['names' => $extensions->implode(', ')]),
             __('Tables created on the old server after the copy starts are not copied. Hold your migrations until the switch.'),
         ]));
     }
