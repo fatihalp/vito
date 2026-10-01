@@ -70,6 +70,25 @@ VITO_SQL
     sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -c "$DDL"
     touch "$STATE/$SUB.created"
 
+    # Grants and settings on the database itself are not part of a schema dump: without them an application can find
+    # its tables there and still be refused at the door.
+    echo "Copying the grants and settings of $DB"
+    sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d "$CONN" <<'VITO_SQL' | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null
+SELECT format('GRANT %s ON DATABASE %I TO %s;', a.privilege_type, d.datname,
+    CASE WHEN a.grantee = 0 THEN 'PUBLIC' ELSE quote_ident(pg_get_userbyid(a.grantee)) END)
+FROM pg_database d, aclexplode(d.datacl) a
+WHERE d.datname = current_database()
+UNION ALL
+SELECT CASE WHEN s.setrole = 0
+    THEN format('ALTER DATABASE %I SET %s = %L;', d.datname, split_part(c, '=', 1), substr(c, strpos(c, '=') + 1))
+    ELSE format('ALTER ROLE %I IN DATABASE %I SET %s = %L;', pg_get_userbyid(s.setrole), d.datname, split_part(c, '=', 1), substr(c, strpos(c, '=') + 1))
+    END
+FROM pg_db_role_setting s
+JOIN pg_database d ON d.oid = s.setdatabase
+CROSS JOIN unnest(s.setconfig) c
+WHERE d.datname = current_database();
+VITO_SQL
+
     echo "Copying the schema of $DB"
     sudo -u postgres "$PG_DUMP" -d "$CONN" --schema-only --no-publications --no-subscriptions --quote-all-identifiers \
         | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null

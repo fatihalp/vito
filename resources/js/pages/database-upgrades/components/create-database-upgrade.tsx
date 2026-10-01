@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Server } from '@/types/server';
@@ -31,6 +32,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
     version: '',
     restart: false,
     replica_identity: 'full',
+    wal_keep_gb: '',
   });
   const setData = form.setData;
 
@@ -49,6 +51,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
       .then((response) => {
         setRequirements(response.data);
         setError(null);
+        setData('wal_keep_gb', String(response.data.wal_keep_gb));
       })
       .catch((failure: { response?: { data?: { message?: string } } }) => {
         setRequirements(null);
@@ -176,6 +179,25 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   updates on those tables while the copy runs, and costs nothing once it is over.
                 </p>
                 <InputError message={form.errors.replica_identity} />
+              </FormField>
+            )}
+
+            {requirements && (
+              <FormField>
+                <Label htmlFor="upgrade-wal">WAL {requirements.source} keeps for the copy (GB)</Label>
+                <Input
+                  id="upgrade-wal"
+                  type="number"
+                  min={1}
+                  value={form.data.wal_keep_gb}
+                  onChange={(e) => form.setData('wal_keep_gb', e.target.value)}
+                />
+                <p className="text-muted-foreground text-sm">
+                  Until the new server has applied everything, {requirements.source} keeps the WAL it still needs. This caps it: if the new server falls
+                  further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away
+                  from. The default is a quarter of its free disk.
+                </p>
+                <InputError message={form.errors.wal_keep_gb} />
               </FormField>
             )}
 

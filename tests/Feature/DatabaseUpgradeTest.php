@@ -189,7 +189,7 @@ expectUpgrade(collect($needs['warnings'])->contains(fn (string $warning): bool =
     && collect($needs['warnings'])->contains(fn (string $warning): bool => str_contains($warning, 'large objects'))
     && collect($needs['warnings'])->contains(fn (string $warning): bool => str_contains($warning, 'pgcrypto, postgis')), 'The warnings must name what is not copied: '.json_encode($needs['warnings']));
 
-$input = ['name' => 'pg-new', 'server_provider' => $hetzner->id, 'region' => 'nbg1', 'plan' => 'cax11', 'version' => '18', 'restart' => true, 'replica_identity' => 'full'];
+$input = ['name' => 'pg-new', 'server_provider' => $hetzner->id, 'region' => 'nbg1', 'plan' => 'cax11', 'version' => '18', 'restart' => true, 'replica_identity' => 'full', 'wal_keep_gb' => '25'];
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'version' => '16']), 'An older PostgreSQL version must be refused.');
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'restart' => false]), 'The restart of the old server must be confirmed.');
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'plan' => 'cax01']), 'A plan without enough disk must be refused.');
@@ -267,6 +267,9 @@ expectUpgrade($ssh->ran('pg-old', "sudo install -m 600 -o postgres -g postgres /
 $prepared = $ssh->ran('pg-old', 'CREATE PUBLICATION');
 expectUpgrade(str_contains($prepared, "'{$upgrade->username}' '".$address($target)."/32'") && ! str_contains($prepared, $upgrade->password), 'pg_hba.conf must allow the new server only, without logging the password.');
 expectUpgrade(str_contains($prepared, "wal_level = 'logical'") && str_contains($prepared, 'max_replication_slots = 11') && str_contains($prepared, 'REPLICA IDENTITY FULL'), 'The old server must get the settings and replica identities logical replication needs.');
+expectUpgrade(str_contains($prepared, "max_slot_wal_keep_size = '25GB'"), 'The old server must keep only the WAL the admin allowed, so a slow copy cannot fill its disk.');
+expectUpgrade(str_contains($copy ?? $ssh->ran('pg-new', 'systemd-run') ?? '', 'GRANT %s ON DATABASE %I TO %s') && str_contains($ssh->ran('pg-new', 'systemd-run') ?? '', 'pg_db_role_setting'),
+    'The grants and settings of each database must travel with it.');
 foreach (['app', 'shop'] as $database) {
     expectUpgrade(str_contains($prepared, "-d '{$database}' -v pub='vito_upgrade_{$upgrade->id}'"), "The database {$database} must be published.");
 }
@@ -306,6 +309,13 @@ Queue::fake();
 $upgrade->refresh();
 expectUpgrade($upgrade->status === DatabaseUpgradeStatus::STREAMING && $upgrade->caught_up_at !== null, 'An upgrade that copied everything must wait for the switch.');
 expectUpgrade($notifier->sent[0] instanceof DatabaseUpgradeUpdated, 'The admin must hear when the new server is in sync.');
+
+$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|0|lost\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|true|0|reserved\nVITO_READ_ONLY=off\n";
+Queue::fake();
+(new RunDatabaseUpgradeJob($upgrade))->handle();
+expectUpgrade($upgrade->fresh()->status === DatabaseUpgradeStatus::FAILED && str_contains((string) $upgrade->fresh()->message, 'dropped WAL the copy had not applied'),
+    'A slot the old server invalidated must stop the upgrade with the reason, not keep copying into a hole.');
+$upgrade->update(['status' => DatabaseUpgradeStatus::STREAMING, 'message' => null, 'finished_at' => null]);
 
 $ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|0|reserved\nVITO_READ_ONLY=off\n";
 Queue::fake();

@@ -16,6 +16,7 @@ sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -f "$SQL_FILE" > /dev/null
 @endif
     echo "max_replication_slots = {{ (int) $slots }}"
     echo "max_wal_senders = {{ (int) $senders }}"
+    echo "max_slot_wal_keep_size = '{{ (int) $walKeepGb }}GB'"
 } | sudo tee "$CONF_DIR/zz-vito-upgrade.conf" > /dev/null
 sudo chmod 644 "$CONF_DIR/zz-vito-upgrade.conf"
 sudo -u postgres psql -XtAc 'SELECT pg_reload_conf()' > /dev/null

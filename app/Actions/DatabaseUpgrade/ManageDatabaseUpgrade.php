@@ -73,6 +73,10 @@ class ManageDatabaseUpgrade
                 || $senders > $inspect['max_wal_senders'],
             'read_only' => $inspect['read_only'],
             'wal_level' => $inspect['wal_level'],
+            // While the copy runs, the old server keeps every byte of WAL the new one has not applied. Unbounded, a
+            // long copy fills its disk and stops the database it is supposed to be migrating away from; capped, the
+            // copy fails instead and can be started again. A quarter of the free disk leaves room for everything else.
+            'wal_keep_gb' => $metric === null ? 50 : max(10, min(200, (int) floor($metric->disk_free / 1024 * 0.25))),
             'required_slots' => $slots,
             'required_senders' => $senders,
             'tables_without_key' => $inspect['tables_without_key'],
@@ -113,6 +117,7 @@ class ManageDatabaseUpgrade
             'version' => ['required', Rule::in($requirements['versions'])],
             'restart' => [$requirements['restart_needed'] ? 'accepted' : 'nullable'],
             'replica_identity' => [$requirements['tables_without_key_count'] > 0 ? 'required' : 'nullable', Rule::in(['full', 'leave'])],
+            'wal_keep_gb' => ['required', 'integer', 'min:1', 'max:10000'],
         ], [
             'restart.accepted' => __('PostgreSQL on :source needs settings that only apply after a restart, so confirm the restart.', ['source' => $source->name]),
         ])->validate();
@@ -164,6 +169,7 @@ class ManageDatabaseUpgrade
             'preflight' => [
                 ...$requirements,
                 'replica_identity' => $validated['replica_identity'] ?? 'leave',
+                'wal_keep_gb' => (int) $validated['wal_keep_gb'],
             ],
         ]);
 
@@ -370,6 +376,24 @@ class ManageDatabaseUpgrade
             $upgrade->update(['message' => __('PostgreSQL on the new server reported :errors replication errors. Check its PostgreSQL log; the copy retries until the cause is gone.', ['errors' => $errors])]);
         } elseif ($upgrade->message !== null) {
             $upgrade->update(['message' => null]);
+        }
+
+        $lost = array_values(array_filter($slots, fn (array $slot): bool => $slot['wal_status'] === 'lost'));
+        $unreserved = array_values(array_filter($slots, fn (array $slot): bool => $slot['wal_status'] === 'unreserved'));
+
+        if ($lost !== []) {
+            $this->fail($upgrade, __('The old server dropped WAL the copy had not applied yet, because the new server fell more than :gb GB behind. Nothing on :server was changed; cancel this upgrade and start it again, with a larger allowance or less load.', [
+                'gb' => $upgrade->preflight['wal_keep_gb'] ?? '?',
+                'server' => $upgrade->source->name,
+            ]));
+
+            return true;
+        }
+
+        if ($unreserved !== []) {
+            $upgrade->record(__('The new server is close to the :gb GB of WAL the old one keeps for it; if it falls further behind, the copy has to start again.', [
+                'gb' => $upgrade->preflight['wal_keep_gb'] ?? '?',
+            ]), 'error');
         }
 
         if (count($slots) < count($upgrade->databases()) && $upgrade->status === DatabaseUpgradeStatus::STREAMING) {

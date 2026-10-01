@@ -54,7 +54,12 @@ export default function DatabaseUpgrades() {
         ['Databases', upgrade.databases.map((database) => database.name).join(', ') || '-'],
         ['Data to copy', gigabytes(upgrade.databases.reduce((total, database) => total + database.size, 0))],
         ['Private network', upgrade.network ? `${upgrade.network.name} (${upgrade.network.kind})` : 'being set up'],
-        ['Behind by', upgrade.lag_bytes === null ? '-' : `${(upgrade.lag_bytes / 1048576).toFixed(1)} MB of WAL`],
+        [
+          'Behind by',
+          upgrade.lag_bytes === null
+            ? '-'
+            : `${(upgrade.lag_bytes / 1048576).toFixed(1)} MB of WAL${upgrade.wal_keep_gb ? ` (of ${upgrade.wal_keep_gb} GB kept)` : ''}`,
+        ],
         ['Started', new Date(upgrade.created_at).toLocaleString()],
       ]
     : [];

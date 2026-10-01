@@ -89,6 +89,7 @@ class PostgresLogicalReplication
             'replicaIdentity' => ($preflight['replica_identity'] ?? 'leave') === 'full',
             'slots' => $preflight['required_slots'],
             'senders' => $preflight['required_senders'],
+            'walKeepGb' => $preflight['wal_keep_gb'] ?? 50,
             'databases' => $names,
             'publication' => $this->publication(),
         ]), 'database-upgrade-source');

@@ -33,6 +33,7 @@ class DatabaseUpgradeResource extends JsonResource
             'databases' => $this->databases(),
             'lag_bytes' => $this->configuration['lag_bytes'] ?? null,
             'restart_needed' => (bool) ($this->preflight['restart_needed'] ?? false),
+            'wal_keep_gb' => $this->preflight['wal_keep_gb'] ?? null,
             'warnings' => $this->preflight['warnings'] ?? [],
             'network' => $this->network === null ? null : [
                 'name' => $this->network->name,

@@ -30,6 +30,7 @@ export interface DatabaseUpgrade {
   databases: UpgradeDatabase[];
   lag_bytes: number | null;
   restart_needed: boolean;
+  wal_keep_gb: number | null;
   warnings: string[];
   network: { name: string; kind: string; type: string } | null;
   events: { at: string; level: 'info' | 'waiting' | 'error'; message: string }[];
@@ -52,6 +53,7 @@ export interface UpgradeRequirements {
   read_only: boolean;
   required_slots: number;
   required_senders: number;
+  wal_keep_gb: number;
   tables_without_key: string[];
   tables_without_key_count: number;
   warnings: string[];

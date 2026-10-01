@@ -52,6 +52,13 @@ with `ALTER TABLE … REPLICA IDENTITY DEFAULT`.
   confirm before the upgrade starts. Open connections are dropped at that moment.
 - A firewall service (ufw) is optional. When the old server has one, Vito opens
   5432 there only to the new server's private address.
+- Room for the WAL the old server keeps while the copy runs. Until the new
+  server has applied everything, the old one cannot recycle that WAL, and a copy
+  of a large database runs for hours. Vito caps it — a quarter of the free disk
+  by default, and yours to set — so a copy that falls too far behind **stops the
+  upgrade** instead of filling the disk of the server you are migrating away
+  from. Nothing on the old server is changed when that happens; cancel and start
+  again with a larger allowance, or at a quieter time.
 
 ## How Vito runs it
 
@@ -67,8 +74,9 @@ with `ALTER TABLE … REPLICA IDENTITY DEFAULT`.
    one `CREATE PUBLICATION … FOR ALL TABLES` per database.
 4. **Prepares the new server**: enough background workers, the roles of the old
    server with their password hashes, one database per source database with the
-   same owner, encoding and locale, and the schema through `pg_dump
-   --schema-only` run by the *new* server's `pg_dump` over the private network.
+   same owner, encoding, locale, grants and per-database settings, and the schema
+   through `pg_dump --schema-only` run by the *new* server's `pg_dump` over the
+   private network.
 5. **Subscribes** once per database and follows the first copy table by table.
    The page shows the progress; you get a notification when everything is copied
    and the new server keeps up.
@@ -104,6 +112,16 @@ the `pg_hba` rule and the settings file from the old server, and lets it take
 writes again. The new server is kept — delete it yourself when you no longer
 need it.
 
+## What it has been proven against
+
+One full 17 → 18 migration of a 0.3 GB database under continuous writes
+(~5 transactions a second, including updates and deletes on a table with no
+primary key), with row counts, a money sum and every sequence verified identical
+afterwards. That is one run at small scale: rehearse on a copy of your own
+database, at its real size, before trusting it with the original. What that
+rehearsal tells you — how long the copy takes and how much WAL piles up while it
+does — is exactly what decides whether the real one is safe.
+
 ## Troubleshooting
 
 - **The copy reports replication errors.** The page shows the count; the cause is
@@ -111,8 +129,10 @@ need it.
   common ones are an extension that is not installed there and a table created on
   the old server after the schema was copied. Logical replication retries by
   itself once the cause is gone.
-- **A slot disappeared.** Vito stops the upgrade instead of letting the new
-  server fall behind silently. Cancel and start again.
+- **A slot disappeared, or the old server dropped WAL the copy still needed.**
+  Vito stops the upgrade rather than let the new server fall behind silently.
+  Neither server is changed by this; cancel and start again, with a larger WAL
+  allowance if that was the cause.
 - **The old server is read-only and you want to go back.** Nothing was removed
   from it, so cancel the upgrade (or run the `ALTER SYSTEM RESET` above) and
   point your applications back.
