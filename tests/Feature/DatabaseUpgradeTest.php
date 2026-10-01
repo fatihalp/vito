@@ -343,6 +343,15 @@ expectUpgrade(str_contains($cutover, "backend_type = 'client backend'") && str_c
 $switch = $ssh->ran('pg-new', 'pg_catalog.setval');
 expectUpgrade(str_contains($switch, 'FROM pg_sequences') && str_contains($switch, 'DROP SUBSCRIPTION') && str_contains($switch, "vito_upgrade_{$upgrade->id}_1"), 'The switch must copy the sequence values and stop every subscription.');
 $cleanup = $ssh->ran('pg-old', 'DROP PUBLICATION');
+// The switch left the server read-only, and DDL is refused in a read-only transaction, so every cleanup session
+// has to make itself writable first — else the publication, the role and the slots stay behind for ever.
+foreach (preg_split('/\R/', (string) $cleanup) ?: [] as $index => $line) {
+    if (preg_match('/^(DROP|SELECT pg_(drop_replication_slot|terminate_backend)|ALTER SYSTEM)/', trim($line)) === 1) {
+        $block = array_slice(preg_split('/\R/', (string) $cleanup) ?: [], 0, $index);
+        $opened = array_filter($block, fn (string $earlier): bool => str_contains($earlier, 'SET default_transaction_read_only = off'));
+        expectUpgrade($opened !== [], 'Cleaning up must turn the session writable before: '.trim($line));
+    }
+}
 expectUpgrade(str_contains($cleanup, 'DROP ROLE IF EXISTS') && str_contains($cleanup, 'pg_drop_replication_slot') && ! str_contains($cleanup, 'RESET default_transaction_read_only'), 'Cleaning up must remove what Vito added and leave the old server read-only.');
 expectUpgrade(! str_contains($cleanup, 'BEGIN VITO UPGRADE') || str_contains($cleanup, "sed -i '/^# BEGIN VITO UPGRADE"), 'The pg_hba rule of the upgrade must be removed.');
 expectUpgrade(FirewallRule::query()->where('note', 'vito-pg-upgrade:'.$upgrade->id.':5432')->value('status') === FirewallRuleStatus::DELETING, 'The firewall rule of the upgrade must be removed.');
