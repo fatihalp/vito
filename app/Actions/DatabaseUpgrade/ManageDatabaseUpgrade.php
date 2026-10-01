@@ -57,11 +57,8 @@ class ManageDatabaseUpgrade
         $senders = max($inspect['max_wal_senders'], $inspect['used_senders'] + $count);
 
         return [
+            ...$this->versions($source),
             'version' => $version,
-            'versions' => array_values(array_filter(
-                config('service.services.postgresql.versions', []),
-                fn (string $candidate): bool => is_numeric($candidate) && (int) $candidate > $version,
-            )),
             'databases' => $inspect['databases'],
             'database_size' => $size,
             'storage_gb' => (int) ceil($size / 1073741824 * 1.3 + 10),
@@ -79,6 +76,26 @@ class ManageDatabaseUpgrade
             'tables_without_key' => $inspect['tables_without_key'],
             'tables_without_key_count' => (int) array_sum(array_column($inspect['databases'], 'without_key')),
             'warnings' => $this->warnings($source, $inspect),
+        ];
+    }
+
+    /**
+     * The versions this server could move to, from what Vito already knows about it. Needs no connection, so the dialog
+     * can offer them while the deeper check still runs.
+     *
+     * @return array{version: int, versions: list<string>, source: string}
+     */
+    public function versions(Server $source): array
+    {
+        $version = (int) ($source->database()?->name === 'postgresql' ? $source->database()->version : 0);
+
+        return [
+            'version' => $version,
+            'versions' => array_values(array_filter(
+                config('service.services.postgresql.versions', []),
+                fn (string $candidate): bool => is_numeric($candidate) && (int) $candidate > $version,
+            )),
+            'source' => $source->name,
         ];
     }
 

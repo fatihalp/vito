@@ -19,6 +19,7 @@ function gigabytes(bytes: number): string {
 }
 
 export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { open: boolean; onOpenChange: (open: boolean) => void; server: Server }) {
+  const [versions, setVersions] = useState<{ version: number; versions: string[]; source: string } | null>(null);
   const [requirements, setRequirements] = useState<UpgradeRequirements | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [planFit, setPlanFit] = useState<PlanFit>({ blocked: null, warnings: [] });
@@ -37,11 +38,17 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
     if (!open) return;
 
     axios
+      .get<{ version: number; versions: string[]; source: string }>(route('database-upgrades.versions', { server: server.id }))
+      .then((response) => {
+        setVersions(response.data);
+        setData('version', response.data.versions[0] ?? '');
+      })
+      .catch(() => setVersions(null));
+    axios
       .get<UpgradeRequirements>(route('database-upgrades.requirements', { server: server.id }))
       .then((response) => {
         setRequirements(response.data);
         setError(null);
-        setData('version', response.data.versions[0] ?? '');
       })
       .catch((failure: { response?: { data?: { message?: string } } }) => {
         setRequirements(null);
@@ -75,6 +82,10 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               </Alert>
             )}
 
+            {requirements === null && error === null && (
+              <p className="text-muted-foreground text-sm">Checking what {server.name} holds. On a server Vito cannot reach, this takes about half a minute.</p>
+            )}
+
             {requirements && (
               <>
                 <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
@@ -106,34 +117,32 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               </>
             )}
 
-            {requirements && requirements.versions.length === 0 && (
+            {versions && versions.versions.length === 0 && (
               <Alert>
-                <AlertTitle>PostgreSQL {requirements.version} is the newest version Vito installs</AlertTitle>
-                <AlertDescription>There is no newer major version to move {requirements.source} to yet.</AlertDescription>
+                <AlertTitle>PostgreSQL {versions.version} is the newest version Vito installs</AlertTitle>
+                <AlertDescription>There is no newer major version to move {versions.source} to yet.</AlertDescription>
               </Alert>
             )}
 
             <FormField>
               <Label>PostgreSQL version</Label>
-              <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!requirements?.versions.length}>
+              <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!versions?.versions.length}>
                 <SelectTrigger>
                   <SelectValue
                     placeholder={
-                      requirements === null
-                        ? error
-                          ? 'Unavailable'
-                          : 'Reading the current version…'
-                        : requirements.versions.length === 0
-                          ? `PostgreSQL ${requirements.version} is already the newest`
+                      versions === null
+                        ? 'Reading the current version…'
+                        : versions.versions.length === 0
+                          ? `PostgreSQL ${versions.version} is already the newest`
                           : 'Select a version'
                     }
                   />
                 </SelectTrigger>
                 <SelectContent>
-                  {(requirements?.versions ?? []).map((version) => (
+                  {(versions?.versions ?? []).map((version) => (
                     <SelectItem key={version} value={version}>
                       PostgreSQL {version}
-                      {requirements ? ` (now ${requirements.version})` : ''}
+                      {versions ? ` (now ${versions.version})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>

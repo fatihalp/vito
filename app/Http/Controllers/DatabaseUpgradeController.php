@@ -34,6 +34,14 @@ class DatabaseUpgradeController extends Controller
         ]);
     }
 
+    #[Get('/versions', name: 'database-upgrades.versions')]
+    public function versions(Server $server): JsonResponse
+    {
+        $this->authorize('create', [DatabaseUpgrade::class, $server]);
+
+        return response()->json(app(ManageDatabaseUpgrade::class)->versions($server));
+    }
+
     #[Get('/requirements', name: 'database-upgrades.requirements')]
     public function requirements(Server $server): JsonResponse
     {
