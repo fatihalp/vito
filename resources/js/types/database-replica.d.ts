@@ -23,7 +23,7 @@ export interface DatabaseReplica {
   primary_server_name: string | null;
   replica_server_id: number;
   replica_server_name: string | null;
-  status: 'pending' | 'waiting_for_backup' | 'configuring' | 'seeding' | 'ready' | 'failed' | 'needs_rebuild' | 'promoting' | 'deleting';
+  status: 'pending' | 'waiting_for_backup' | 'waiting_for_server' | 'configuring' | 'seeding' | 'ready' | 'failed' | 'needs_rebuild' | 'promoting' | 'deleting';
   status_color: BadgeColor;
   health: 'healthy' | 'warning' | 'critical' | 'unknown';
   health_color: BadgeColor;

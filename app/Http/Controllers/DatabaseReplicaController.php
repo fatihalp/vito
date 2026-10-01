@@ -65,12 +65,25 @@ class DatabaseReplicaController extends Controller
         ]);
     }
 
+    #[Get('/requirements', name: 'database-replicas.requirements')]
+    public function requirements(Server $server): JsonResponse
+    {
+        $this->authorize('create', [DatabaseReplica::class, $server]);
+
+        $replicas = app(ManageDatabaseReplica::class);
+
+        return response()->json([
+            'requirements' => $replicas->requirements($server),
+            'candidates' => $replicas->candidates($server),
+        ]);
+    }
+
     #[Post('/', name: 'database-replicas.store')]
     public function store(Request $request, Server $server): RedirectResponse
     {
         $this->authorize('create', [DatabaseReplica::class, $server]);
 
-        app(ManageDatabaseReplica::class)->create($server, $request->all());
+        app(ManageDatabaseReplica::class)->create($request->user(), $server, $request->all());
 
         return back()->with('info', 'The replica is being set up...');
     }

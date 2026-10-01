@@ -28,7 +28,7 @@ class SetupDatabaseReplicaJob implements ShouldQueue
         $this->run("postgres-cluster-{$this->replica->postgres_cluster_id}", function (): void {
             $this->replica->refresh();
 
-            if (! in_array($this->replica->status, [DatabaseReplicaStatus::PENDING, DatabaseReplicaStatus::CONFIGURING], true)) {
+            if (! in_array($this->replica->status, [DatabaseReplicaStatus::PENDING, DatabaseReplicaStatus::WAITING_FOR_SERVER, DatabaseReplicaStatus::CONFIGURING], true)) {
                 return;
             }
 
@@ -39,6 +39,12 @@ class SetupDatabaseReplicaJob implements ShouldQueue
             }
 
             if (app(ManageDatabaseReplica::class)->setup($this->replica)) {
+                return;
+            }
+
+            if ($this->replica->refresh()->status === DatabaseReplicaStatus::WAITING_FOR_SERVER) {
+                dispatch(new self($this->replica, $this->waits))->onQueue('ssh')->delay(now()->addMinute());
+
                 return;
             }
 
