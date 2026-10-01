@@ -26,6 +26,7 @@ use App\Models\ServerProvider;
 use App\Models\User;
 use App\Notifications\DatabaseUpgradeUpdated;
 use App\SSH\PostgresLogicalReplication;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -198,6 +199,7 @@ class ManageDatabaseUpgrade
         $upgrade->update([
             'status' => DatabaseUpgradeStatus::PREPARING,
             'step' => __('Connecting both servers to the private network'),
+            'configuration' => [...($upgrade->configuration ?? []), 'preparing_since' => now()->toIso8601String()],
         ]);
     }
 
@@ -211,6 +213,15 @@ class ManageDatabaseUpgrade
 
         if ($upgrade->target === null) {
             throw new RuntimeException(__('The new server was deleted.'));
+        }
+
+        // Every step here waits for something — a network, a restart, a firewall rule — by answering "not yet" and
+        // being asked again a minute later. A step that can never finish would otherwise wait for ever, showing the
+        // admin a status that never moves and no reason at all.
+        $since = $upgrade->configuration['preparing_since'] ?? null;
+
+        if ($since !== null && Carbon::parse($since)->lt(now()->subMinutes(30))) {
+            throw new RuntimeException(__('The upgrade did not get past ":step" within 30 minutes.', ['step' => $upgrade->step]));
         }
 
         $this->step($upgrade, __('Connecting both servers to the private network'));

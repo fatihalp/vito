@@ -224,6 +224,8 @@ Queue::fake();
 (new RunDatabaseUpgradeJob($upgrade))->handle();
 expectUpgrade(Queue::pushed(ToggleNetworkingJob::class)->count() === 1 && $source->database()->status->value === 'restarting', 'PostgreSQL on the old server must listen on the private address.');
 
+expectUpgrade($source->database()->handler()->listenAddresses(false) === 'localhost,'.$address($source),
+    'PostgreSQL on the old server must be told to listen on the address the new server reaches it on: '.$source->database()->handler()->listenAddresses(false));
 $source->database()->update(['status' => 'ready']);
 $ssh->responses['SHOW listen_addresses'] = 'localhost,'.$address($source);
 Queue::fake();
@@ -231,6 +233,17 @@ Queue::fake();
 $rule = FirewallRule::query()->where('note', 'vito-pg-upgrade:'.$upgrade->id.':5432')->first();
 expectUpgrade($rule !== null && $rule->server_id === $source->id && $rule->source === $address($target) && $rule->port === '5432', 'Only the new server may reach PostgreSQL on the old one.');
 $rule->update(['status' => FirewallRuleStatus::READY]);
+
+$stalled = DatabaseUpgrade::query()->find($upgrade->id);
+$stalled->update(['configuration' => [...$stalled->configuration, 'preparing_since' => now()->subHours(1)->toIso8601String()]]);
+$stalledError = null;
+try {
+    $upgrades->prepare($stalled->fresh());
+} catch (Throwable $e) {
+    $stalledError = $e->getMessage();
+}
+expectUpgrade($stalledError !== null && str_contains($stalledError, 'did not get past'), 'A preparation step that never finishes must fail with the step it stopped on, not wait for ever: '.$stalledError);
+$stalled->update(['configuration' => [...$stalled->configuration, 'preparing_since' => now()->toIso8601String()]]);
 
 $ssh->responses['CREATE PUBLICATION'] = "VITO_WAL_LEVEL=replica\nVITO_MAX_REPLICATION_SLOTS=10\nVITO_MAX_WAL_SENDERS=10\nVITO_PORT=5432\nVITO_SSL=on\n";
 Queue::fake();
