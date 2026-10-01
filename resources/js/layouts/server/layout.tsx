@@ -1,5 +1,6 @@
 import { type NavItem } from '@/types';
 import {
+  ArrowUpCircleIcon,
   CopyIcon,
   BoxIcon,
   ChartLineIcon,
@@ -139,6 +140,12 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           title: 'Replication',
           href: route('database-replicas', { server: serverId }),
           icon: CopyIcon,
+          hidden: services['database'] !== 'postgresql',
+        },
+        {
+          title: 'Version upgrade',
+          href: route('database-upgrades', { server: serverId }),
+          icon: ArrowUpCircleIcon,
           hidden: services['database'] !== 'postgresql',
         },
       ],

@@ -18,12 +18,12 @@ class SyncPostgresListenAddresses
     }
 
     /**
-     * Makes PostgreSQL on the server listen on its private cluster address. This restarts PostgreSQL once.
-     * Returns false until PostgreSQL listens there.
+     * Makes PostgreSQL on the server listen on the given private address, or on its private cluster address.
+     * This restarts PostgreSQL once. Returns false until PostgreSQL listens there.
      */
-    public function ensure(Server $server): bool
+    public function ensure(Server $server, ?string $address = null): bool
     {
-        $address = self::privateAddress($server);
+        $address ??= self::privateAddress($server);
         $service = $server->database();
         $handler = $service?->hasHandler() ? $service->handler() : null;
 

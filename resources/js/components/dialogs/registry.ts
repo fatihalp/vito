@@ -34,6 +34,7 @@ const CreateStorageMigration = lazy(() => import('@/pages/storage-migrations/com
 const RenameStorageMigration = lazy(() => import('@/pages/storage-migrations/components/rename-storage-migration'));
 const CreateDatabaseReplica = lazy(() => import('@/pages/database-replicas/components/create-database-replica'));
 const PromoteDatabaseReplica = lazy(() => import('@/pages/database-replicas/components/promote-database-replica'));
+const CreateDatabaseUpgrade = lazy(() => import('@/pages/database-upgrades/components/create-database-upgrade'));
 const EditBackup = lazy(() => import('@/pages/backups/components/edit-backup'));
 const RestoreBackup = lazy(() => import('@/pages/backups/components/restore-backup'));
 const PgBackRestPassphrase = lazy(() => import('@/pages/backups/components/pgbackrest-passphrase'));
@@ -97,6 +98,7 @@ export const dialogs = {
   storageMigrationRename: RenameStorageMigration,
   databaseReplicaCreate: CreateDatabaseReplica,
   databaseReplicaPromote: PromoteDatabaseReplica,
+  databaseUpgradeCreate: CreateDatabaseUpgrade,
   siteFeatureAction: SiteFeatureAction,
   serverFeatureAction: ServerFeatureAction,
   fail2banForm: Fail2banForm,

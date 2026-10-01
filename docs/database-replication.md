@@ -23,6 +23,9 @@ standbys. Everything is built on pgBackRest:
   ufw: 5432 and 8432 open to each replica's private IP only
 ```
 
+A replica is not an upgrade: both servers run the same major version. To move to
+a newer PostgreSQL, see [version upgrades](database-upgrade.md).
+
 ## Requirements
 
 - Servers in the same project, with PostgreSQL installed by Vito on the same
