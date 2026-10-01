@@ -22,6 +22,7 @@ class DatabaseUpgradeResource extends JsonResource
             'target_server_name' => $this->target?->name,
             'source_version' => $this->source_version,
             'target_version' => $this->target_version,
+            'mode' => $this->mode,
             'state' => $this->status->value,
             'status' => $this->status->getText(),
             'status_color' => $this->status->getColor(),

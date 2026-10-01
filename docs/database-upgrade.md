@@ -18,6 +18,26 @@ byte-for-byte copy that must run the same major version; logical replication
 copies rows, so the two servers may run different versions, different processor
 architectures and different page layouts.
 
+## Two ways the new server gets the data
+
+**Copying every row** over the private network is the simple one: nothing is
+required beyond the two servers, and it is fine up to tens of GB.
+
+**Starting from the backup** is the one for a large database. Vito reserves the
+old server's changes with a replication slot, restores its newest pgBackRest
+backup onto the new server **up to exactly the position that slot starts at**,
+upgrades that copy with `pg_upgradecluster --link`, and then replicates only
+what happened after. The rows come out of the backup repository, so the old
+server is never read for them, and the restore runs at the speed of the
+repository rather than of logical replication. It needs a pgBackRest backup of
+the old server — the Backups page — and enough disk on the new server for a
+physical copy, indexes and all.
+
+The position is what makes it exact: the slot is created first, the restore
+stops at that position, and the subscription's replication origin is set to it.
+Nothing between the backup and that position is replayed twice, and nothing
+after it is missed.
+
 ## What it does and does not copy
 
 Copied: every database (except `postgres` and the templates), all roles with

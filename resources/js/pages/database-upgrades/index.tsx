@@ -51,6 +51,7 @@ export default function DatabaseUpgrades() {
         ['Old server', upgrade.source_server_name ?? '-'],
         ['New server', upgrade.target_server_name ?? '-'],
         ['PostgreSQL', `${upgrade.source_version ?? '?'} → ${upgrade.target_version}`],
+        ['Data comes from', upgrade.mode === 'seeded' ? 'the latest backup, then the changes since' : 'every row over the private network'],
         ['Databases', upgrade.databases.map((database) => database.name).join(', ') || '-'],
         ['Data to copy', gigabytes(upgrade.databases.reduce((total, database) => total + database.size, 0))],
         ['Private network', upgrade.network ? `${upgrade.network.name} (${upgrade.network.kind})` : 'being set up'],

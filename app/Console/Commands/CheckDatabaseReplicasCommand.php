@@ -36,6 +36,7 @@ class CheckDatabaseReplicasCommand extends Command
             ->whereIn('status', [
                 DatabaseUpgradeStatus::WAITING_FOR_SERVER,
                 DatabaseUpgradeStatus::PREPARING,
+                DatabaseUpgradeStatus::SEEDING,
                 DatabaseUpgradeStatus::COPYING,
                 DatabaseUpgradeStatus::STREAMING,
             ])

@@ -2,6 +2,7 @@
 
 namespace App\SSH;
 
+use App\Enums\BackupType;
 use App\Exceptions\SSHCommandError;
 use App\Models\DatabaseUpgrade;
 use App\Models\Server;
@@ -174,6 +175,71 @@ class PostgresLogicalReplication
     }
 
     /**
+     * Reserves the changes from this moment on, one slot per database, and returns the position each one starts at.
+     * Created before the backup is restored: everything the old server writes from here is kept for the new one.
+     *
+     * @return array<string, string>
+     */
+    public function createSlots(): array
+    {
+        $output = $this->upgrade->source->ssh()->exec(view('ssh.database-upgrade.source-slot', [
+            'databases' => $this->databases(),
+        ]), 'database-upgrade-slots');
+
+        $positions = [];
+
+        foreach (self::rows($output, 'VITO_LSN') as $row) {
+            if (($row[1] ?? '') !== '') {
+                $positions[$row[0]] = $row[1];
+            }
+        }
+
+        return $positions;
+    }
+
+    /**
+     * Restores the newest backup onto the new server, up to the position the slots start at, and upgrades that copy to
+     * the new major version. Only what happened after that position still has to be replicated.
+     */
+    public function startSeed(string $lsn): void
+    {
+        $target = $this->upgrade->target;
+        $backup = $this->upgrade->source->backups()->where('type', BackupType::PGBACKREST)->firstOrFail();
+        $oldVersion = (int) $this->upgrade->source_version;
+
+        $target->ssh()->exec(view('ssh.pgbackrest.install-package'), 'pgbackrest-install');
+        $backup->pgBackRest()->writeConfig($target, '/var/lib/postgresql/'.$oldVersion.'/main', 5432);
+
+        $this->seedUnit()->start(view('ssh.database-upgrade.seed-target', [
+            'oldVersion' => $oldVersion,
+            'newVersion' => (int) $this->upgrade->target_version,
+            'stanza' => $backup->pgBackRest()->stanza(),
+            'lsn' => $lsn,
+            'attempts' => 360,
+            'publication' => $this->publication(),
+            'databases' => $this->databases(),
+        ])->render(), 'Vito PostgreSQL seed');
+    }
+
+    public function seedUnit(): TransientUnit
+    {
+        return new TransientUnit($this->upgrade->target, 'vito-upgrade-seed-'.$this->upgrade->id);
+    }
+
+    /**
+     * Points the restored copy at the old server, starting from the position it was restored to.
+     */
+    public function subscribeSeeded(): void
+    {
+        $this->writePassfile();
+
+        $this->upgrade->target->ssh()->exec(view('ssh.database-upgrade.target-subscribe-seeded', [
+            'databases' => $this->databases(),
+            'publication' => $this->publication(),
+        ]), 'database-upgrade-subscribe', timeout: 600);
+    }
+
+    /**
      * How far the first copy got, per database, on the new server.
      *
      * @return list<array{name: string, tables: int, copied: int, workers: int, errors: int, seconds_since_change: int}>
@@ -270,13 +336,15 @@ class PostgresLogicalReplication
     }
 
     /**
-     * @return list<array{name: string, subscription: string, conninfo: string}>
+     * @return list<array{name: string, subscription: string, slot: string, lsn: string, conninfo: string}>
      */
     public function databases(): array
     {
         return array_map(fn (array $database): array => [
             'name' => $database['name'],
             'subscription' => $this->upgrade->subscriptionName($database['name']),
+            'slot' => $this->upgrade->subscriptionName($database['name']),
+            'lsn' => $this->upgrade->configuration['slot_lsn'][$database['name']] ?? '0/0',
             'conninfo' => $this->conninfo($database['name']),
         ], $this->upgrade->databases());
     }

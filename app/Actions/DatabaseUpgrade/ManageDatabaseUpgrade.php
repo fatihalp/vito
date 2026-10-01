@@ -9,6 +9,8 @@ use App\Actions\PostgresCluster\SyncPostgresListenAddresses;
 use App\Actions\Server\CreateServer;
 use App\Actions\Service\Manage;
 use App\Actions\Service\SyncServiceStatus;
+use App\Enums\BackupFileStatus;
+use App\Enums\BackupType;
 use App\Enums\DatabaseUpgradeStatus;
 use App\Enums\FirewallRuleStatus;
 use App\Enums\ServerRole;
@@ -82,6 +84,7 @@ class ManageDatabaseUpgrade
             'tables_without_key' => $inspect['tables_without_key'],
             'tables_without_key_count' => (int) array_sum(array_column($inspect['databases'], 'without_key')),
             'warnings' => $this->warnings($source, $inspect),
+            'seed' => $this->seedable($source),
         ];
     }
 
@@ -105,6 +108,35 @@ class ManageDatabaseUpgrade
         ];
     }
 
+    /**
+     * Whether the new server can start from a physical backup instead of copying every row over the wire, and the
+     * storage that needs: a physical copy is the size of the old server's data directory, indexes and all.
+     *
+     * @return array{available: bool, reason: ?string, stanza: ?string, taken_at: ?string}
+     */
+    public function seedable(Server $source): array
+    {
+        $backup = $source->backups()->where('type', BackupType::PGBACKREST)->first();
+        $file = $backup?->files()->where('status', BackupFileStatus::CREATED)->latest('id')->first();
+
+        $stanza = $backup === null ? null : rescue(fn (): ?string => $backup->pgBackRest()->stanza(), null, false);
+
+        $reason = match (true) {
+            $backup === null => __('This server has no pgBackRest backup. Add one on the Backups page, let a full backup finish, and the new server can start from it.'),
+            $backup->status !== null => __('The pgBackRest backup of this server is not ready.'),
+            $file === null => __('No backup has finished yet.'),
+            $stanza === null => __('Vito cannot tell which pgBackRest stanza this backup writes to.'),
+            default => null,
+        };
+
+        return [
+            'available' => $reason === null,
+            'reason' => $reason,
+            'stanza' => $reason === null ? $stanza : null,
+            'taken_at' => $file?->created_at?->toIso8601String(),
+        ];
+    }
+
     public function create(User $user, Server $source, array $input): DatabaseUpgrade
     {
         $requirements = $this->requirements($source);
@@ -118,6 +150,7 @@ class ManageDatabaseUpgrade
             'restart' => [$requirements['restart_needed'] ? 'accepted' : 'nullable'],
             'replica_identity' => [$requirements['tables_without_key_count'] > 0 ? 'required' : 'nullable', Rule::in(['full', 'leave'])],
             'wal_keep_gb' => ['required', 'integer', 'min:1', 'max:10000'],
+            'mode' => ['required', Rule::in(['logical', 'seeded'])],
         ], [
             'restart.accepted' => __('PostgreSQL on :source needs settings that only apply after a restart, so confirm the restart.', ['source' => $source->name]),
         ])->validate();
@@ -127,6 +160,7 @@ class ManageDatabaseUpgrade
 
         $error = match (true) {
             $source->database()?->name !== 'postgresql' => __('Only a PostgreSQL server can be upgraded this way.'),
+            $validated['mode'] === 'seeded' && ! $requirements['seed']['available'] => $requirements['seed']['reason'],
             $requirements['databases'] === [] => __('This server has no database to move.'),
             DatabaseUpgrade::forServer($source) !== null => __('This server is already taking part in an upgrade.'),
             isset($plan['disk']) && $plan['disk'] < $requirements['storage_gb'] => __('This plan has :disk GB of disk, but the databases of :source need at least :required GB.', [
@@ -157,6 +191,7 @@ class ManageDatabaseUpgrade
 
         $suffix = Str::lower(Str::random(10));
         $upgrade = DatabaseUpgrade::query()->create([
+            'mode' => $validated['mode'],
             'project_id' => $source->project_id,
             'source_server_id' => $source->id,
             'target_server_id' => $server->id,
@@ -294,6 +329,32 @@ class ManageDatabaseUpgrade
             return $this->restart($upgrade, $source, 'source');
         }
 
+        if ($upgrade->seeded()) {
+            $this->step($upgrade, __('Reserving every change :server makes from now on', ['server' => $source->name]));
+            $positions = $replication->createSlots();
+
+            if (count($positions) < count($upgrade->databases())) {
+                throw new RuntimeException(__('Vito could not reserve the changes of every database on :server.', ['server' => $source->name]));
+            }
+
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'slot_lsn' => $positions]]);
+            $upgrade->record(__('The new server will start from :positions.', ['positions' => implode(', ', array_map(
+                fn (string $database, string $lsn): string => $database.' at '.$lsn,
+                array_keys($positions),
+                $positions,
+            ))]));
+
+            $this->step($upgrade, __('Restoring the backup of :server onto the new server', ['server' => $source->name]));
+            $replication->startSeed(min($positions));
+
+            $upgrade->update([
+                'status' => DatabaseUpgradeStatus::SEEDING,
+                'step' => __('Restoring the backup of :server onto the new server', ['server' => $source->name]),
+            ]);
+
+            return true;
+        }
+
         $this->step($upgrade, __('Preparing PostgreSQL on the new server'));
         $target = $replication->prepareTargetSettings();
         $count = count($upgrade->databases());
@@ -325,6 +386,51 @@ class ManageDatabaseUpgrade
         }
 
         $replication = $upgrade->replication();
+
+        if ($upgrade->status === DatabaseUpgradeStatus::SEEDING) {
+            $unit = $replication->seedUnit();
+            $state = $unit->state();
+
+            if ($state === 'running') {
+                $line = trim(Str::afterLast($unit->output(1, 'cat'), "\n"));
+                $upgrade->update(['step' => $line !== '' ? Str::limit($line, 250) : $upgrade->step]);
+                $upgrade->record($line !== '' ? Str::limit($line, 250) : __('Restoring the backup onto the new server'));
+
+                return false;
+            }
+
+            if ($state !== 'succeeded') {
+                $reason = $state === 'missing'
+                    ? __('Restoring the backup onto the new server stopped before it finished, for example because the server restarted.')
+                    : $unit->failureReason();
+                $unit->cleanup();
+                $this->fail($upgrade, $reason !== '' ? $reason : __('Restoring the backup onto the new server failed.'));
+
+                return true;
+            }
+
+            $unit->cleanup();
+            $upgrade->record(__('The backup is restored and upgraded to PostgreSQL :version.', ['version' => $upgrade->target_version]));
+
+            $this->step($upgrade, __('Preparing PostgreSQL on the new server'));
+            $settings = $replication->prepareTargetSettings();
+
+            if ($settings['max_logical_replication_workers'] < count($upgrade->databases()) || $settings['max_replication_slots'] < count($upgrade->databases())) {
+                return $this->restart($upgrade, $upgrade->target, 'target');
+            }
+
+            $this->step($upgrade, __('Following the changes :server made since the backup', ['server' => $upgrade->source->name]));
+            $replication->subscribeSeeded();
+
+            $upgrade->update([
+                'status' => DatabaseUpgradeStatus::COPYING,
+                'step' => __('Catching up with :server', ['server' => $upgrade->source->name]),
+                'configuration' => [...($upgrade->configuration ?? []), 'copy_prepared' => true],
+            ]);
+            $upgrade->record(__('The new server is catching up with everything :server did since the backup.', ['server' => $upgrade->source->name]));
+
+            return false;
+        }
 
         // Only until it has finished: the unit is cleaned up the moment it succeeds, and a cleaned-up unit reads as
         // missing, which looked exactly like a copy that had died.

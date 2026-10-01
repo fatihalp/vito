@@ -30,6 +30,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
     region: '',
     plan: '',
     version: '',
+    mode: 'logical',
     restart: false,
     replica_identity: 'full',
     wal_keep_gb: '',
@@ -125,6 +126,31 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                 <AlertTitle>PostgreSQL {versions.version} is the newest version Vito installs</AlertTitle>
                 <AlertDescription>There is no newer major version to move {versions.source} to yet.</AlertDescription>
               </Alert>
+            )}
+
+            {requirements && (
+              <FormField>
+                <Label>How the new server gets the data</Label>
+                <Select value={form.data.mode} onValueChange={(mode) => form.setData('mode', mode)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="logical">Copy every row over the private network</SelectItem>
+                    <SelectItem value="seeded" disabled={!requirements.seed.available}>
+                      Start from the latest backup, then replicate only what came after
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-sm">
+                  {form.data.mode === 'seeded'
+                    ? `Vito restores the backup of ${requirements.source} onto the new server, upgrades that copy to the version you pick, and then replays only the changes made since. For a large database this turns days of copying into hours, and the old server is never read for it — the rows come from the backup repository.`
+                    : requirements.seed.available
+                      ? 'Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster.'
+                      : `Every row travels over the private network. ${requirements.seed.reason}`}
+                </p>
+                <InputError message={form.errors.mode} />
+              </FormField>
             )}
 
             <FormField>

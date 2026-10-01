@@ -16,6 +16,7 @@ class DatabaseUpgrade extends AbstractModel
         'target_server_id',
         'network_id',
         'owns_network',
+        'mode',
         'source_version',
         'target_version',
         'username',
@@ -72,6 +73,15 @@ class DatabaseUpgrade extends AbstractModel
     public function replication(): PostgresLogicalReplication
     {
         return new PostgresLogicalReplication($this);
+    }
+
+    /**
+     * A seeded upgrade starts the new server from a physical backup and replicates only what happened since, instead
+     * of copying every row over the wire.
+     */
+    public function seeded(): bool
+    {
+        return $this->mode === 'seeded';
     }
 
     /**

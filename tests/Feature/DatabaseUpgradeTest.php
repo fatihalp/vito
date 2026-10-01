@@ -189,7 +189,7 @@ expectUpgrade(collect($needs['warnings'])->contains(fn (string $warning): bool =
     && collect($needs['warnings'])->contains(fn (string $warning): bool => str_contains($warning, 'large objects'))
     && collect($needs['warnings'])->contains(fn (string $warning): bool => str_contains($warning, 'pgcrypto, postgis')), 'The warnings must name what is not copied: '.json_encode($needs['warnings']));
 
-$input = ['name' => 'pg-new', 'server_provider' => $hetzner->id, 'region' => 'nbg1', 'plan' => 'cax11', 'version' => '18', 'restart' => true, 'replica_identity' => 'full', 'wal_keep_gb' => '25'];
+$input = ['mode' => 'logical', 'name' => 'pg-new', 'server_provider' => $hetzner->id, 'region' => 'nbg1', 'plan' => 'cax11', 'version' => '18', 'restart' => true, 'replica_identity' => 'full', 'wal_keep_gb' => '25'];
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'version' => '16']), 'An older PostgreSQL version must be refused.');
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'restart' => false]), 'The restart of the old server must be confirmed.');
 expectUpgradeValidation(fn () => $upgrades->create($user, $source, [...$input, 'plan' => 'cax01']), 'A plan without enough disk must be refused.');
@@ -385,6 +385,77 @@ $ssh->commands = [];
 $cancelled = $ssh->ran('pg-old', 'DROP PUBLICATION');
 expectUpgrade($upgrade->fresh()->status === DatabaseUpgradeStatus::CANCELLED && str_contains($cancelled, 'RESET default_transaction_read_only'), 'Cancelling must let the old server take writes again.');
 expectUpgrade(str_contains((string) $ssh->ran('pg-new', 'DROP SUBSCRIPTION'), 'drop_subscription') && ! str_contains((string) $ssh->ran('pg-new', 'DROP SUBSCRIPTION'), 'pg_catalog.setval'), 'Cancelling must stop the subscriptions without copying the sequence values.');
+
+// === a seeded upgrade: the new server starts from a physical backup and replicates only what came after ===
+$seedable = $upgrades->seedable($source->fresh());
+expectUpgrade(! $seedable['available'] && str_contains((string) $seedable['reason'], 'no pgBackRest backup'), 'Without a backup the new server cannot be seeded from one: '.json_encode($seedable));
+expectUpgradeValidation(fn () => $upgrades->create($user, $source->fresh(), [...$input, 'mode' => 'seeded']), 'A seeded upgrade without a backup must be refused.');
+
+$storage = App\Models\StorageProvider::withoutEvents(fn () => App\Models\StorageProvider::query()->create([
+    'user_id' => $user->id, 'profile' => 'Backups', 'provider' => 's3',
+    'credentials' => ['api_url' => 'https://s3.example.test', 'key' => 'k', 'secret' => 's', 'region' => 'eu', 'bucket' => 'b', 'path' => ''],
+]));
+$backup = App\Models\Backup::withoutEvents(fn () => App\Models\Backup::query()->create([
+    'type' => 'pgbackrest', 'server_id' => $source->id, 'storage_id' => $storage->id, 'status' => null,
+    'configuration' => [
+        'stanza' => 'pg-old-1', 'strategy' => 'standard', 'pg_path' => '/var/lib/postgresql/17/main', 'pg_port' => 5432,
+        'cipher_pass' => 'a-passphrase', 'process_max' => 4, 'wal_queue_max_gb' => 10, 'retention' => ['full' => 5],
+    ],
+    'interval' => '0 2 * * *', 'keep_backups' => 5,
+]));
+App\Models\PostgresCluster::query()->create(['project_id' => 1, 'primary_server_id' => $source->id, 'backup_id' => $backup->id, 'stanza' => 'pg-old-1']);
+App\Models\BackupFile::withoutEvents(fn () => App\Models\BackupFile::query()->create([
+    'backup_id' => $backup->id, 'name' => '20261001-020000F', 'status' => App\Enums\BackupFileStatus::CREATED, 'type' => 'full',
+]));
+expectUpgrade($upgrades->seedable($source->fresh())['available'], 'A finished pgBackRest backup must make the seeded mode available.');
+
+$upgrade->update(['status' => DatabaseUpgradeStatus::CANCELLED, 'finished_at' => now()]);
+Queue::fake();
+$seeded = $upgrades->create($user, $source->fresh(), [...$input, 'mode' => 'seeded', 'name' => 'pg-seeded']);
+$seeded->target->update(['status' => 'ready']);
+$seededTarget = $seeded->target;
+expectUpgrade($seeded->seeded() && $seeded->status === DatabaseUpgradeStatus::WAITING_FOR_SERVER, 'A seeded upgrade must start by waiting for its server.');
+
+$ssh->responses['VITO_LSN|'] = "VITO_LSN|app|0/16B3C70\nVITO_LSN|shop|0/16B3D10\n";
+$ssh->commands = [];
+(new RunDatabaseUpgradeJob($seeded))->handle();   // the server is ready, so the preparation starts
+(new RunDatabaseUpgradeJob($seeded))->handle();   // which creates the private network
+$seededNetwork = $seeded->fresh()->network;
+expectUpgrade($seededNetwork !== null, 'A seeded upgrade must get a private network too.');
+$seededNetwork->servers()->update(['status' => NetworkServerStatus::ACTIVE]);
+$ssh->responses['SHOW listen_addresses'] = 'localhost,'.$seededNetwork->servers()->where('server_id', $source->id)->value('ip');
+(new RunDatabaseUpgradeJob($seeded))->handle();
+FirewallRule::query()->where('note', 'vito-pg-upgrade:'.$seeded->id.':5432')->update(['status' => FirewallRuleStatus::READY]);
+(new RunDatabaseUpgradeJob($seeded))->handle();
+$seeded->refresh();
+
+if ($seeded->status !== DatabaseUpgradeStatus::SEEDING) {
+    (new RunDatabaseUpgradeJob($seeded->fresh()))->handle();
+    $seeded->refresh();
+}
+expectUpgrade($seeded->status === DatabaseUpgradeStatus::SEEDING, 'A seeded upgrade must restore the backup instead of copying the rows: '.$seeded->status->value.' / '.$seeded->step.' / '.json_encode(array_slice($seeded->events ?? [], -3)));
+expectUpgrade(($seeded->configuration['slot_lsn']['app'] ?? null) === '0/16B3C70', 'The position each slot starts at must be kept, because the restore and the subscription both have to match it.');
+
+$seedScript = $ssh->ran($seededTarget->name, 'vito-upgrade-seed-'.$seeded->id);
+foreach (['--type=lsn --target=', "'0/16B3C70'", 'pg_upgradecluster --method=upgrade --link', 'pg_dropcluster "$OLD" main --stop', 'analyze-in-stages'] as $needle) {
+    expectUpgrade(str_contains((string) $seedScript, $needle), "The seed script must contain {$needle}.");
+}
+expectUpgrade(strpos((string) $seedScript, 'restore') < strpos((string) $seedScript, 'pg_upgradecluster'), 'The copy must be restored before it is upgraded.');
+
+$ssh->responses['systemctl show'] = "LoadState=loaded\nActiveState=active\nSubState=exited\nResult=success\n";
+$ssh->responses['max_logical_replication_workers = '] = "VITO_MAX_WORKER_PROCESSES=14\nVITO_MAX_LOGICAL_REPLICATION_WORKERS=6\nVITO_MAX_REPLICATION_SLOTS=10\n";
+$ssh->commands = [];
+(new RunDatabaseUpgradeJob($seeded->fresh()))->handle();
+$seeded->refresh();
+
+$subscribe = $ssh->ran($seededTarget->name, 'CREATE SUBSCRIPTION');
+foreach (['copy_data = false', 'create_slot = false', "slot_name = :'slot'", 'pg_replication_origin_advance', "0/16B3C70"] as $needle) {
+    expectUpgrade(str_contains((string) $subscribe, $needle), "The seeded subscription must contain {$needle}.");
+}
+expectUpgrade($seeded->status === DatabaseUpgradeStatus::COPYING && ($seeded->configuration['copy_prepared'] ?? false) === true,
+    'Once the copy is restored and following the old server, the upgrade is catching up: '.$seeded->status->value);
+$seeded->update(['status' => DatabaseUpgradeStatus::CANCELLED, 'finished_at' => now()]);
+$upgrade->update(['status' => DatabaseUpgradeStatus::COPYING, 'finished_at' => null]);
 
 DatabaseUpgrade::query()->whereKey($upgrade->id)->update(['status' => 'copying', 'updated_at' => now()->subHour()]);
 Queue::fake();
