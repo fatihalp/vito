@@ -79,6 +79,8 @@ $ssh = new class extends SSH
 
     public array $responses = [];
 
+    public array $failures = [];
+
     public function init(Server $server, ?string $asUser = null): self
     {
         $this->server = $server;
@@ -90,6 +92,12 @@ $ssh = new class extends SSH
     {
         $command = (string) $command;
         $this->commands[] = ['server' => $this->server->name, 'command' => $command];
+
+        foreach ($this->failures as $needle) {
+            if (str_contains($command, $needle)) {
+                throw new App\Exceptions\SSHConnectionError('Cannot connect to 203.0.113.10:22. Error 60. Operation timed out');
+            }
+        }
 
         foreach ($this->responses as $needle => $response) {
             if (str_contains($command, $needle)) {
@@ -341,4 +349,11 @@ Queue::fake();
 Artisan::call('database-replicas:check');
 expectUpgrade(Queue::pushed(RunDatabaseUpgradeJob::class)->count() === 1, 'An upgrade Vito stopped watching must be picked up again.');
 
-echo "PostgreSQL version upgrade preflight, preparation, copy, switch and cancel checks passed.\n";
+$ssh->failures = ['pg_largeobject_metadata'];
+Illuminate\Support\Facades\Auth::loginUsingId($user->id);
+$unreachable = app(App\Http\Controllers\DatabaseUpgradeController::class)->requirements($source);
+expectUpgrade($unreachable->getStatusCode() === 422 && str_contains((string) $unreachable->getContent(), 'Operation timed out'),
+    'A server Vito cannot reach must say so in the dialog instead of leaving it empty: '.$unreachable->getContent());
+$ssh->failures = [];
+
+echo "PostgreSQL version upgrade preflight, preparation, copy, switch, cancel and unreachable-server checks passed.\n";

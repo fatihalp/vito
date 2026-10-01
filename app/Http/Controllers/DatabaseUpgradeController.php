@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\DatabaseUpgrade\ManageDatabaseUpgrade;
+use App\Exceptions\SSHError;
 use App\Http\Resources\DatabaseUpgradeResource;
 use App\Models\DatabaseUpgrade;
 use App\Models\Server;
@@ -38,7 +39,13 @@ class DatabaseUpgradeController extends Controller
     {
         $this->authorize('create', [DatabaseUpgrade::class, $server]);
 
-        return response()->json(app(ManageDatabaseUpgrade::class)->requirements($server));
+        try {
+            return response()->json(app(ManageDatabaseUpgrade::class)->requirements($server));
+        } catch (SSHError $e) {
+            return response()->json([
+                'message' => __('Vito could not read the PostgreSQL settings of :server: :error', ['server' => $server->name, 'error' => $e->getMessage()]),
+            ], 422);
+        }
     }
 
     #[Post('/', name: 'database-upgrades.store')]

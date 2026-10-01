@@ -43,9 +43,9 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
         setError(null);
         setData('version', response.data.versions[0] ?? '');
       })
-      .catch(() => {
+      .catch((failure: { response?: { data?: { message?: string } } }) => {
         setRequirements(null);
-        setError('Vito could not read the PostgreSQL settings of this server.');
+        setError(failure.response?.data?.message ?? `Vito could not reach ${server.name} to read its PostgreSQL settings.`);
       });
   }, [open, server.id, setData]);
 
@@ -106,11 +106,28 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               </>
             )}
 
+            {requirements && requirements.versions.length === 0 && (
+              <Alert>
+                <AlertTitle>PostgreSQL {requirements.version} is the newest version Vito installs</AlertTitle>
+                <AlertDescription>There is no newer major version to move {requirements.source} to yet.</AlertDescription>
+              </Alert>
+            )}
+
             <FormField>
               <Label>PostgreSQL version</Label>
               <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!requirements?.versions.length}>
                 <SelectTrigger>
-                  <SelectValue placeholder={requirements ? 'Select a version' : 'Reading the current version…'} />
+                  <SelectValue
+                    placeholder={
+                      requirements === null
+                        ? error
+                          ? 'Unavailable'
+                          : 'Reading the current version…'
+                        : requirements.versions.length === 0
+                          ? `PostgreSQL ${requirements.version} is already the newest`
+                          : 'Select a version'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {(requirements?.versions ?? []).map((version) => (
