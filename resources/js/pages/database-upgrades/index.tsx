@@ -1,7 +1,7 @@
 import { Head, Link, usePage, usePoll } from '@inertiajs/react';
 import { ArrowRightIcon, PlusIcon } from 'lucide-react';
 import { Server } from '@/types/server';
-import { DatabaseUpgrade } from '@/types/database-upgrade';
+import { DatabaseUpgrade, UpgradeLog } from '@/types/database-upgrade';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -12,10 +12,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import ServerLayout from '@/layouts/server/layout';
 import { useDialog } from '@/hooks/use-dialog';
+import { useState } from 'react';
+import axios from 'axios';
+import LogOutput from '@/components/log-output';
 
 type Page = {
   server: Server;
   upgrade: DatabaseUpgrade | null;
+  logs: UpgradeLog[];
 };
 
 function gigabytes(bytes: number): string {
@@ -25,7 +29,19 @@ function gigabytes(bytes: number): string {
 export default function DatabaseUpgrades() {
   const page = usePage<Page>();
   const dialog = useDialog();
-  const { server, upgrade } = page.props;
+  const { server, upgrade, logs } = page.props;
+  const [output, setOutput] = useState<string | null>(null);
+  const [loadingOutput, setLoadingOutput] = useState(false);
+
+  const showOutput = () => {
+    if (!upgrade) return;
+    setLoadingOutput(true);
+    axios
+      .get<{ content: string }>(route('database-upgrades.output', { server: upgrade.source_server_id, databaseUpgrade: upgrade.id }))
+      .then((response) => setOutput(response.data.content))
+      .catch(() => setOutput('Vito could not read the copy output.'))
+      .finally(() => setLoadingOutput(false));
+  };
   const isSource = !upgrade || upgrade.source_server_id === server.id;
 
   usePoll(upgrade?.active ? 15000 : 60000, { only: ['upgrade'] });
@@ -35,10 +51,16 @@ export default function DatabaseUpgrades() {
         ['Old server', upgrade.source_server_name ?? '-'],
         ['New server', upgrade.target_server_name ?? '-'],
         ['PostgreSQL', `${upgrade.source_version ?? '?'} → ${upgrade.target_version}`],
+        ['Data comes from', upgrade.mode === 'seeded' ? 'the latest backup, then the changes since' : 'every row over the private network'],
         ['Databases', upgrade.databases.map((database) => database.name).join(', ') || '-'],
         ['Data to copy', gigabytes(upgrade.databases.reduce((total, database) => total + database.size, 0))],
         ['Private network', upgrade.network ? `${upgrade.network.name} (${upgrade.network.kind})` : 'being set up'],
-        ['Behind by', upgrade.lag_bytes === null ? '-' : `${(upgrade.lag_bytes / 1048576).toFixed(1)} MB of WAL`],
+        [
+          'Behind by',
+          upgrade.lag_bytes === null
+            ? '-'
+            : `${(upgrade.lag_bytes / 1048576).toFixed(1)} MB of WAL${upgrade.wal_keep_gb ? ` (of ${upgrade.wal_keep_gb} GB kept)` : ''}`,
+        ],
         ['Started', new Date(upgrade.created_at).toLocaleString()],
       ]
     : [];
@@ -169,6 +191,59 @@ export default function DatabaseUpgrades() {
                 </CardContent>
               </Card>
             )}
+
+            <Card>
+              <CardContent className="flex flex-col gap-3 p-4 text-sm">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="font-medium">Activity</p>
+                  {upgrade.target_server_id && (
+                    <Button variant="outline" size="sm" onClick={showOutput} disabled={loadingOutput}>
+                      {loadingOutput ? 'Reading the copy output…' : 'Copy output'}
+                    </Button>
+                  )}
+                </div>
+
+                {upgrade.events.length === 0 ? (
+                  <p className="text-muted-foreground">Nothing recorded yet.</p>
+                ) : (
+                  <ol className="flex max-h-80 flex-col gap-1 overflow-y-auto">
+                    {[...upgrade.events].reverse().map((event) => (
+                      <li key={`${event.at}-${event.message}`} className="flex gap-3">
+                        <span className="text-muted-foreground shrink-0 font-mono text-xs">
+                          {new Date(event.at).toLocaleTimeString()}
+                        </span>
+                        <span className={event.level === 'error' ? 'text-destructive' : event.level === 'waiting' ? 'text-muted-foreground' : ''}>
+                          {event.message}
+                        </span>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+
+                {output !== null && <LogOutput>{output}</LogOutput>}
+
+                {logs.length > 0 && (
+                  <div className="flex flex-col gap-1 border-t pt-3">
+                    <p className="text-muted-foreground">Commands Vito ran on the servers</p>
+                    <div className="flex max-h-56 flex-col gap-1 overflow-y-auto">
+                      {logs.map((log) => (
+                        <button
+                          key={log.id}
+                          type="button"
+                          className="flex items-center justify-between gap-4 rounded px-1 py-0.5 text-left hover:bg-accent"
+                          onClick={() => dialog.logViewer.open({ serverId: log.server_id, logId: log.id, title: `${log.name} on ${log.server_name ?? 'the server'}` })}
+                        >
+                          <span className="font-mono text-xs">{log.name}</span>
+                          <span className="text-muted-foreground shrink-0 text-xs">
+                            {log.server_name} · {log.created_at ? new Date(log.created_at).toLocaleTimeString() : ''}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             <div className="flex flex-wrap gap-2">
               {upgrade.target_server_id && (

@@ -26,6 +26,20 @@ standbys. Everything is built on pgBackRest:
 A replica is not an upgrade: both servers run the same major version. To move to
 a newer PostgreSQL, see [version upgrades](database-upgrade.md).
 
+## The replica server
+
+Vito can **create the server for you**, which is the default: pick a provider,
+region and plan, and Vito installs the same operating system and PostgreSQL
+major version as the primary, with nothing else on it. The dialog shows the disk,
+vCPU and memory the replica needs to keep up, and refuses a plan that is too
+small or on another processor architecture.
+
+You can still **use a server you already have**. Vito only offers servers it can
+safely take: same project, ready, PostgreSQL on the same major version, not in
+another cluster, and without databases or backups of its own. Every other server
+is listed with the reason it cannot be used, and because the replica's data
+directory is wiped, you confirm by typing the server's name.
+
 ## Requirements
 
 - Servers in the same project, with PostgreSQL installed by Vito on the same

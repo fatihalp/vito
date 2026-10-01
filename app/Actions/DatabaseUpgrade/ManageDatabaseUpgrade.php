@@ -9,11 +9,14 @@ use App\Actions\PostgresCluster\SyncPostgresListenAddresses;
 use App\Actions\Server\CreateServer;
 use App\Actions\Service\Manage;
 use App\Actions\Service\SyncServiceStatus;
+use App\Enums\BackupFileStatus;
+use App\Enums\BackupType;
 use App\Enums\DatabaseUpgradeStatus;
 use App\Enums\FirewallRuleStatus;
 use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
+use App\Exceptions\SSHError;
 use App\Facades\Notifier;
 use App\Jobs\DatabaseUpgrade\CancelDatabaseUpgradeJob;
 use App\Jobs\DatabaseUpgrade\FinishDatabaseUpgradeJob;
@@ -26,6 +29,7 @@ use App\Models\ServerProvider;
 use App\Models\User;
 use App\Notifications\DatabaseUpgradeUpdated;
 use App\SSH\PostgresLogicalReplication;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -57,11 +61,8 @@ class ManageDatabaseUpgrade
         $senders = max($inspect['max_wal_senders'], $inspect['used_senders'] + $count);
 
         return [
+            ...$this->versions($source),
             'version' => $version,
-            'versions' => array_values(array_filter(
-                config('service.services.postgresql.versions', []),
-                fn (string $candidate): bool => is_numeric($candidate) && (int) $candidate > $version,
-            )),
             'databases' => $inspect['databases'],
             'database_size' => $size,
             'storage_gb' => (int) ceil($size / 1073741824 * 1.3 + 10),
@@ -74,11 +75,65 @@ class ManageDatabaseUpgrade
                 || $senders > $inspect['max_wal_senders'],
             'read_only' => $inspect['read_only'],
             'wal_level' => $inspect['wal_level'],
+            // While the copy runs, the old server keeps every byte of WAL the new one has not applied. Unbounded, a
+            // long copy fills its disk and stops the database it is supposed to be migrating away from; capped, the
+            // copy fails instead and can be started again. A quarter of the free disk leaves room for everything else.
+            'wal_keep_gb' => $metric === null ? 50 : max(10, min(200, (int) floor($metric->disk_free / 1024 * 0.25))),
             'required_slots' => $slots,
             'required_senders' => $senders,
             'tables_without_key' => $inspect['tables_without_key'],
             'tables_without_key_count' => (int) array_sum(array_column($inspect['databases'], 'without_key')),
             'warnings' => $this->warnings($source, $inspect),
+            'seed' => $this->seedable($source),
+        ];
+    }
+
+    /**
+     * The versions this server could move to, from what Vito already knows about it. Needs no connection, so the dialog
+     * can offer them while the deeper check still runs.
+     *
+     * @return array{version: int, versions: list<string>, source: string}
+     */
+    public function versions(Server $source): array
+    {
+        $version = (int) ($source->database()?->name === 'postgresql' ? $source->database()->version : 0);
+
+        return [
+            'version' => $version,
+            'versions' => array_values(array_filter(
+                config('service.services.postgresql.versions', []),
+                fn (string $candidate): bool => is_numeric($candidate) && (int) $candidate > $version,
+            )),
+            'source' => $source->name,
+        ];
+    }
+
+    /**
+     * Whether the new server can start from a physical backup instead of copying every row over the wire, and the
+     * storage that needs: a physical copy is the size of the old server's data directory, indexes and all.
+     *
+     * @return array{available: bool, reason: ?string, stanza: ?string, taken_at: ?string}
+     */
+    public function seedable(Server $source): array
+    {
+        $backup = $source->backups()->where('type', BackupType::PGBACKREST)->first();
+        $file = $backup?->files()->where('status', BackupFileStatus::CREATED)->latest('id')->first();
+
+        $stanza = $backup === null ? null : rescue(fn (): ?string => $backup->pgBackRest()->stanza(), null, false);
+
+        $reason = match (true) {
+            $backup === null => __('This server has no pgBackRest backup. Add one on the Backups page, let a full backup finish, and the new server can start from it.'),
+            $backup->status !== null => __('The pgBackRest backup of this server is not ready.'),
+            $file === null => __('No backup has finished yet.'),
+            $stanza === null => __('Vito cannot tell which pgBackRest stanza this backup writes to.'),
+            default => null,
+        };
+
+        return [
+            'available' => $reason === null,
+            'reason' => $reason,
+            'stanza' => $reason === null ? $stanza : null,
+            'taken_at' => $file?->created_at?->toIso8601String(),
         ];
     }
 
@@ -94,6 +149,8 @@ class ManageDatabaseUpgrade
             'version' => ['required', Rule::in($requirements['versions'])],
             'restart' => [$requirements['restart_needed'] ? 'accepted' : 'nullable'],
             'replica_identity' => [$requirements['tables_without_key_count'] > 0 ? 'required' : 'nullable', Rule::in(['full', 'leave'])],
+            'wal_keep_gb' => ['required', 'integer', 'min:1', 'max:10000'],
+            'mode' => ['required', Rule::in(['logical', 'seeded'])],
         ], [
             'restart.accepted' => __('PostgreSQL on :source needs settings that only apply after a restart, so confirm the restart.', ['source' => $source->name]),
         ])->validate();
@@ -103,6 +160,7 @@ class ManageDatabaseUpgrade
 
         $error = match (true) {
             $source->database()?->name !== 'postgresql' => __('Only a PostgreSQL server can be upgraded this way.'),
+            $validated['mode'] === 'seeded' && ! $requirements['seed']['available'] => $requirements['seed']['reason'],
             $requirements['databases'] === [] => __('This server has no database to move.'),
             DatabaseUpgrade::forServer($source) !== null => __('This server is already taking part in an upgrade.'),
             isset($plan['disk']) && $plan['disk'] < $requirements['storage_gb'] => __('This plan has :disk GB of disk, but the databases of :source need at least :required GB.', [
@@ -133,6 +191,7 @@ class ManageDatabaseUpgrade
 
         $suffix = Str::lower(Str::random(10));
         $upgrade = DatabaseUpgrade::query()->create([
+            'mode' => $validated['mode'],
             'project_id' => $source->project_id,
             'source_server_id' => $source->id,
             'target_server_id' => $server->id,
@@ -145,6 +204,7 @@ class ManageDatabaseUpgrade
             'preflight' => [
                 ...$requirements,
                 'replica_identity' => $validated['replica_identity'] ?? 'leave',
+                'wal_keep_gb' => (int) $validated['wal_keep_gb'],
             ],
         ]);
 
@@ -181,6 +241,7 @@ class ManageDatabaseUpgrade
         $upgrade->update([
             'status' => DatabaseUpgradeStatus::PREPARING,
             'step' => __('Connecting both servers to the private network'),
+            'configuration' => [...($upgrade->configuration ?? []), 'preparing_since' => now()->toIso8601String()],
         ]);
     }
 
@@ -196,18 +257,47 @@ class ManageDatabaseUpgrade
             throw new RuntimeException(__('The new server was deleted.'));
         }
 
+        // Every step here waits for something — a network, a restart, a firewall rule — by answering "not yet" and
+        // being asked again a minute later. A step that can never finish would otherwise wait for ever, showing the
+        // admin a status that never moves and no reason at all.
+        $since = $upgrade->configuration['preparing_since'] ?? null;
+
+        if ($since === null) {
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'preparing_since' => now()->toIso8601String()]]);
+            $since = null;
+        }
+
+        if ($since !== null && Carbon::parse($since)->lt(now()->subMinutes(30))) {
+            throw new RuntimeException(__('The upgrade did not get past ":step" within 30 minutes.', ['step' => $upgrade->step]));
+        }
+
         $this->step($upgrade, __('Connecting both servers to the private network'));
         if (! app(PrepareDatabaseUpgradeNetwork::class)->prepare($upgrade)) {
+            $upgrade->record(__('Waiting for both servers to become members of the private network.'), 'waiting');
+
             return false;
         }
 
+        $upgrade->record(__('Both servers are on :network: :source and :target.', [
+            'network' => $upgrade->network?->name ?? __('the private network'),
+            'source' => $upgrade->configuration['source_address'] ?? '?',
+            'target' => $upgrade->configuration['target_address'] ?? '?',
+        ]));
+
         $this->step($upgrade, __('Making PostgreSQL on :server listen on its private address', ['server' => $source->name]));
         if (! app(SyncPostgresListenAddresses::class)->ensure($source, $upgrade->configuration['source_address'] ?? null)) {
+            $upgrade->record(__('PostgreSQL on :server does not answer on :address yet; it is being restarted to listen there.', [
+                'server' => $source->name,
+                'address' => $upgrade->configuration['source_address'] ?? '?',
+            ]), 'waiting');
+
             return false;
         }
 
         $this->step($upgrade, __('Opening the firewall of :server for the new server', ['server' => $source->name]));
         if (! $this->firewall($upgrade)) {
+            $upgrade->record(__('Waiting for the firewall rule on :server to be applied.', ['server' => $source->name]), 'waiting');
+
             return false;
         }
 
@@ -220,10 +310,54 @@ class ManageDatabaseUpgrade
             'source_ssl' => $settings['ssl'],
         ]]);
 
+        $upgrade->record(__('Publications and the replication user are in place on :server (wal_level :level, :slots slots, :senders senders).', [
+            'server' => $source->name,
+            'level' => $settings['wal_level'],
+            'slots' => $settings['max_replication_slots'],
+            'senders' => $settings['max_wal_senders'],
+        ]));
+
         if ($settings['wal_level'] !== 'logical'
             || $settings['max_replication_slots'] < $upgrade->preflight['required_slots']
             || $settings['max_wal_senders'] < $upgrade->preflight['required_senders']) {
+            $upgrade->record(__('PostgreSQL on :server needs wal_level logical, :slots slots and :senders senders, which only apply after a restart.', [
+                'server' => $source->name,
+                'slots' => $upgrade->preflight['required_slots'],
+                'senders' => $upgrade->preflight['required_senders'],
+            ]), 'waiting');
+
             return $this->restart($upgrade, $source, 'source');
+        }
+
+        if ($upgrade->seeded()) {
+            $this->step($upgrade, __('Reserving every change :server makes from now on', ['server' => $source->name]));
+
+            // The position a slot starts handing out changes from is only knowable when it is created: afterwards the
+            // catalogue shows where its WAL is kept, which is earlier, and restoring to that would skip the commits in
+            // between. So the position recorded at creation wins over anything read back later.
+            $positions = [...$replication->createSlots(), ...($upgrade->configuration['slot_lsn'] ?? [])];
+            $positions = array_filter($positions, fn (string $lsn): bool => $lsn !== '');
+
+            if (count($positions) < count($upgrade->databases())) {
+                throw new RuntimeException(__('Vito could not reserve the changes of every database on :server.', ['server' => $source->name]));
+            }
+
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'slot_lsn' => $positions]]);
+            $upgrade->record(__('The new server will start from :positions.', ['positions' => implode(', ', array_map(
+                fn (string $database, string $lsn): string => $database.' at '.$lsn,
+                array_keys($positions),
+                $positions,
+            ))]));
+
+            $this->step($upgrade, __('Restoring the backup of :server onto the new server', ['server' => $source->name]));
+            $replication->startSeed(min($positions));
+
+            $upgrade->update([
+                'status' => DatabaseUpgradeStatus::SEEDING,
+                'step' => __('Restoring the backup of :server onto the new server', ['server' => $source->name]),
+            ]);
+
+            return true;
         }
 
         $this->step($upgrade, __('Preparing PostgreSQL on the new server'));
@@ -231,6 +365,8 @@ class ManageDatabaseUpgrade
         $count = count($upgrade->databases());
 
         if ($target['max_logical_replication_workers'] < $count || $target['max_replication_slots'] < $count) {
+            $upgrade->record(__('The new server needs :count replication workers, which only apply after a restart.', ['count' => $count]), 'waiting');
+
             return $this->restart($upgrade, $upgrade->target, 'target');
         }
 
@@ -256,7 +392,54 @@ class ManageDatabaseUpgrade
 
         $replication = $upgrade->replication();
 
-        if ($upgrade->status === DatabaseUpgradeStatus::COPYING) {
+        if ($upgrade->status === DatabaseUpgradeStatus::SEEDING) {
+            $unit = $replication->seedUnit();
+            $state = $unit->state();
+
+            if ($state === 'running') {
+                $line = trim(Str::afterLast($unit->output(1, 'cat'), "\n"));
+                $upgrade->update(['step' => $line !== '' ? Str::limit($line, 250) : $upgrade->step]);
+                $upgrade->record($line !== '' ? Str::limit($line, 250) : __('Restoring the backup onto the new server'));
+
+                return false;
+            }
+
+            if ($state !== 'succeeded') {
+                $reason = $state === 'missing'
+                    ? __('Restoring the backup onto the new server stopped before it finished, for example because the server restarted.')
+                    : $unit->failureReason();
+                $unit->cleanup();
+                $this->fail($upgrade, $reason !== '' ? $reason : __('Restoring the backup onto the new server failed.'));
+
+                return true;
+            }
+
+            $unit->cleanup();
+            $upgrade->record(__('The backup is restored and upgraded to PostgreSQL :version.', ['version' => $upgrade->target_version]));
+
+            $this->step($upgrade, __('Preparing PostgreSQL on the new server'));
+            $settings = $replication->prepareTargetSettings();
+
+            if ($settings['max_logical_replication_workers'] < count($upgrade->databases()) || $settings['max_replication_slots'] < count($upgrade->databases())) {
+                return $this->restart($upgrade, $upgrade->target, 'target');
+            }
+
+            $this->step($upgrade, __('Following the changes :server made since the backup', ['server' => $upgrade->source->name]));
+            $replication->subscribeSeeded();
+
+            $upgrade->update([
+                'status' => DatabaseUpgradeStatus::COPYING,
+                'step' => __('Catching up with :server', ['server' => $upgrade->source->name]),
+                'configuration' => [...($upgrade->configuration ?? []), 'copy_prepared' => true],
+            ]);
+            $upgrade->record(__('The new server is catching up with everything :server did since the backup.', ['server' => $upgrade->source->name]));
+
+            return false;
+        }
+
+        // Only until it has finished: the unit is cleaned up the moment it succeeds, and a cleaned-up unit reads as
+        // missing, which looked exactly like a copy that had died.
+        if ($upgrade->status === DatabaseUpgradeStatus::COPYING && ! ($upgrade->configuration['copy_prepared'] ?? false)) {
             $unit = $replication->prepareUnit();
             $state = $unit->state();
 
@@ -268,6 +451,7 @@ class ManageDatabaseUpgrade
             }
 
             if ($state !== 'succeeded') {
+                $upgrade->record(__('The copy on the new server stopped.'), 'error');
                 $reason = $state === 'missing'
                     ? __('The copy on the new server stopped before it finished, for example because the server restarted.')
                     : $unit->failureReason();
@@ -278,6 +462,8 @@ class ManageDatabaseUpgrade
             }
 
             $unit->cleanup();
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'copy_prepared' => true]]);
+            $upgrade->record(__('The roles, the databases and the schemas are on the new server; it is catching up now.'));
         }
 
         $databases = $replication->targetStatus();
@@ -297,9 +483,28 @@ class ManageDatabaseUpgrade
         ]]);
 
         if ($errors > 0) {
+            $upgrade->record(__('The new server reported :errors replication errors; its PostgreSQL log holds the cause.', ['errors' => $errors]), 'error');
             $upgrade->update(['message' => __('PostgreSQL on the new server reported :errors replication errors. Check its PostgreSQL log; the copy retries until the cause is gone.', ['errors' => $errors])]);
         } elseif ($upgrade->message !== null) {
             $upgrade->update(['message' => null]);
+        }
+
+        $lost = array_values(array_filter($slots, fn (array $slot): bool => $slot['wal_status'] === 'lost'));
+        $unreserved = array_values(array_filter($slots, fn (array $slot): bool => $slot['wal_status'] === 'unreserved'));
+
+        if ($lost !== []) {
+            $this->fail($upgrade, __('The old server dropped WAL the copy had not applied yet, because the new server fell more than :gb GB behind. Nothing on :server was changed; cancel this upgrade and start it again, with a larger allowance or less load.', [
+                'gb' => $upgrade->preflight['wal_keep_gb'] ?? '?',
+                'server' => $upgrade->source->name,
+            ]));
+
+            return true;
+        }
+
+        if ($unreserved !== []) {
+            $upgrade->record(__('The new server is close to the :gb GB of WAL the old one keeps for it; if it falls further behind, the copy has to start again.', [
+                'gb' => $upgrade->preflight['wal_keep_gb'] ?? '?',
+            ]), 'error');
         }
 
         if (count($slots) < count($upgrade->databases()) && $upgrade->status === DatabaseUpgradeStatus::STREAMING) {
@@ -316,6 +521,7 @@ class ManageDatabaseUpgrade
                 'step' => null,
                 'caught_up_at' => now(),
             ]);
+            $upgrade->record(__('Every table is copied and the new server keeps up; it is ready for the switch.'));
             Notifier::send($upgrade->source, new DatabaseUpgradeUpdated($upgrade));
 
             return false;
@@ -323,9 +529,34 @@ class ManageDatabaseUpgrade
 
         if (! $synced && $upgrade->status === DatabaseUpgradeStatus::COPYING) {
             $upgrade->update(['step' => __('Copying :copied of :tables tables', ['copied' => $copied, 'tables' => $tables])]);
+            $upgrade->record(__('Copied :copied of :tables tables, :lag MB of changes behind.', [
+                'copied' => $copied,
+                'tables' => $tables,
+                'lag' => round($lag / 1048576, 1),
+            ]));
         }
 
         return false;
+    }
+
+    /**
+     * What the copy itself wrote on the new server: roles, databases, schemas and the subscriptions, line by line.
+     */
+    public function output(DatabaseUpgrade $upgrade): string
+    {
+        if ($upgrade->target === null) {
+            return __('The new server was deleted.');
+        }
+
+        try {
+            $output = $upgrade->replication()->prepareUnit()->output(400, 'cat');
+        } catch (SSHError $e) {
+            return __('Vito could not read the copy output from :server: :error', ['server' => $upgrade->target->name, 'error' => $e->getMessage()]);
+        }
+
+        return $output !== '' && ! str_contains($output, '-- No entries --')
+            ? $output
+            : __('The copy on :server has not written any output yet.', ['server' => $upgrade->target->name]);
     }
 
     /**
@@ -390,6 +621,10 @@ class ManageDatabaseUpgrade
             'step' => null,
             'finished_at' => now(),
         ]);
+        $upgrade->record(__('The switch finished at :lsn; :server no longer takes writes.', [
+            'lsn' => $cutover['lsn'],
+            'server' => $upgrade->source->name,
+        ]));
 
         Notifier::send($upgrade->target, new DatabaseUpgradeUpdated($upgrade));
     }
@@ -437,6 +672,7 @@ class ManageDatabaseUpgrade
             'step' => null,
             'finished_at' => now(),
         ]);
+        $upgrade->record(__('The upgrade was cancelled and :server takes writes again.', ['server' => $upgrade->source?->name ?? __('the old server')]));
     }
 
     public function delete(DatabaseUpgrade $upgrade): void
@@ -452,6 +688,7 @@ class ManageDatabaseUpgrade
 
     public function fail(DatabaseUpgrade $upgrade, string $message): void
     {
+        $upgrade->record($message, 'error');
         $upgrade->update([
             'status' => DatabaseUpgradeStatus::FAILED,
             'step' => null,
@@ -542,6 +779,7 @@ class ManageDatabaseUpgrade
             'step' => __('Restarting PostgreSQL on :server', ['server' => $server->name]),
         ]);
 
+        $upgrade->record(__('Restarting PostgreSQL on :server (attempt :attempt of 3).', ['server' => $server->name, 'attempt' => $restarts + 1]), 'waiting');
         app(Manage::class)->restart($service);
 
         return false;
@@ -558,6 +796,7 @@ class ManageDatabaseUpgrade
     private function step(DatabaseUpgrade $upgrade, string $step): void
     {
         $upgrade->update(['step' => $step]);
+        $upgrade->record($step);
     }
 
     /**
@@ -571,12 +810,12 @@ class ManageDatabaseUpgrade
         $replicas = PostgresCluster::forServer($source)?->streamingReplicas()->count() ?? 0;
 
         return array_values(array_filter([
-            $replicas === 0 ? null : __('The :count streaming replicas of this server keep following it, not the new server. Build replicas of the new server after the switch.', ['count' => $replicas]),
-            $sum('without_key') === 0 ? null : __('While the copy runs, UPDATE and DELETE fail on the :count tables that have no primary key. Let Vito set REPLICA IDENTITY FULL on them, or give them a primary key first.', ['count' => $sum('without_key')]),
-            $sum('unlogged') === 0 ? null : __('The :count unlogged tables are created empty on the new server: logical replication never copies their rows.', ['count' => $sum('unlogged')]),
-            $sum('materialized_views') === 0 ? null : __('The :count materialized views are created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.', ['count' => $sum('materialized_views')]),
-            $sum('large_objects') === 0 ? null : __('The :count large objects are not copied. Move them yourself if your application uses them.', ['count' => $sum('large_objects')]),
-            $extensions->isEmpty() ? null : __('The extensions :names must exist for PostgreSQL on the new server, else copying the schema fails.', ['names' => $extensions->implode(', ')]),
+            $replicas === 0 ? null : trans_choice('{1}The streaming replica of this server keeps following it, not the new server. Build a replica of the new server after the switch.|[2,*]The :count streaming replicas of this server keep following it, not the new server. Build replicas of the new server after the switch.', $replicas),
+            $sum('without_key') === 0 ? null : trans_choice('{1}While the copy runs, UPDATE and DELETE fail on the one table that has no primary key. Let Vito set REPLICA IDENTITY FULL on it, or give it a primary key first.|[2,*]While the copy runs, UPDATE and DELETE fail on the :count tables that have no primary key. Let Vito set REPLICA IDENTITY FULL on them, or give them a primary key first.', $sum('without_key')),
+            $sum('unlogged') === 0 ? null : trans_choice('{1}The one unlogged table is created empty on the new server: logical replication never copies its rows.|[2,*]The :count unlogged tables are created empty on the new server: logical replication never copies their rows.', $sum('unlogged')),
+            $sum('materialized_views') === 0 ? null : trans_choice('{1}The one materialized view is created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.|[2,*]The :count materialized views are created empty. Run REFRESH MATERIALIZED VIEW on the new server after the switch.', $sum('materialized_views')),
+            $sum('large_objects') === 0 ? null : trans_choice('{1}The one large object is not copied. Move it yourself if your application uses it.|[2,*]The :count large objects are not copied. Move them yourself if your application uses them.', $sum('large_objects')),
+            $extensions->isEmpty() ? null : trans_choice('{1}The extension :names must exist for PostgreSQL on the new server, else copying the schema fails.|[2,*]The extensions :names must exist for PostgreSQL on the new server, else copying the schema fails.', $extensions->count(), ['names' => $extensions->implode(', ')]),
             __('Tables created on the old server after the copy starts are not copied. Hold your migrations until the switch.'),
         ]));
     }

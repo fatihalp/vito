@@ -37,6 +37,7 @@ class RunDatabaseUpgradeJob implements ShouldQueue
                     case DatabaseUpgradeStatus::PREPARING:
                         $action->prepare($upgrade);
                         break;
+                    case DatabaseUpgradeStatus::SEEDING:
                     case DatabaseUpgradeStatus::COPYING:
                     case DatabaseUpgradeStatus::STREAMING:
                         if ($action->monitor($upgrade)) {

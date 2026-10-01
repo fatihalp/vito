@@ -165,23 +165,30 @@ $storage = StorageProvider::withoutEvents(fn () => StorageProvider::query()->cre
     'credentials' => ['api_url' => 'https://fsn1.your-objectstorage.com', 'key' => 'access', 'secret' => 'secret', 'region' => 'eu-central', 'bucket' => 'db', 'path' => ''],
 ]));
 $replicas = app(ManageDatabaseReplica::class);
+$user = App\Models\User::factory()->create(['is_admin' => true]);
 $backupInput = ['storage' => $storage->id, 'strategy' => 'standard', 'process_max' => '4', 'wal_queue_max_gb' => '10'];
-$input = ['replica_server_id' => $standby->id, 'max_slot_wal_keep_size_gb' => '64', 'backup' => $backupInput];
+$input = ['mode' => 'existing', 'replica_server_id' => $standby->id, 'confirmation' => $standby->name, 'max_slot_wal_keep_size_gb' => '64', 'backup' => $backupInput];
 
-expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'replica_server_id' => $primary->id]), 'A server must not replicate itself.');
-expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'replica_server_id' => $old->id]), 'Replicas must run the same major version.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, [...$input, 'replica_server_id' => $primary->id, 'confirmation' => $primary->name]), 'A server must not replicate itself.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, [...$input, 'replica_server_id' => $old->id, 'confirmation' => $old->name]), 'Replicas must run the same major version.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, [...$input, 'confirmation' => '']), 'Replacing the data of an existing server must be confirmed by name.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, [...$input, 'confirmation' => 'pg-stand']), 'A confirmation that does not match the server name must be refused.');
 $userDatabase = Database::query()->create(['server_id' => $standby->id, 'name' => 'app', 'status' => 'ready']);
-expectReplicationValidation(fn () => $replicas->create($primary, $input), 'A replica server with databases must be refused.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, $input), 'A replica server with databases must be refused.');
 $userDatabase->delete();
-expectReplicationValidation(fn () => $replicas->create($primary, [...$input, 'backup' => []]), 'A primary without backups must get a backup strategy with the replica.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, [...$input, 'backup' => []]), 'A primary without backups must get a backup strategy with the replica.');
 
-$replica = $replicas->create($primary, $input);
+$candidates = collect($replicas->candidates($primary))->keyBy('name');
+expectReplication($candidates['pg-primary']['issue'] === 'This is the primary.' && $candidates['pg-standby']['issue'] === null, 'The candidate list must mark the primary and offer an empty server of the same version.');
+expectReplication(str_contains((string) $candidates['pg-old']['issue'], 'Runs PostgreSQL 16'), 'A server on another major version must say so instead of being selectable: '.json_encode($candidates['pg-old']));
+
+$replica = $replicas->create($user, $primary, $input);
 $cluster = PostgresCluster::forServer($primary);
 $backup = $cluster->backup;
 expectReplication($backup !== null && $backup->configuration['strategy'] === 'standard', 'Creating the first replica must create the backup strategy.');
 expectReplication($replica->fresh()->status === DatabaseReplicaStatus::WAITING_FOR_BACKUP && Queue::pushed(SetupDatabaseReplicaJob::class)->isEmpty(), 'A replica must wait for the first full backup.');
 expectReplication(! str_contains((string) DB::table('database_replicas')->value('password'), $replica->password), 'The replication password must be stored encrypted.');
-expectReplicationValidation(fn () => $replicas->create($primary, $input), 'A server already in a cluster must be refused.');
+expectReplicationValidation(fn () => $replicas->create($user, $primary, $input), 'A server already in a cluster must be refused.');
 
 $backup->update(['status' => null, 'configuration' => [...$backup->configuration, 'pg_path' => '/var/lib/postgresql/17/main', 'pg_port' => 5432]]);
 BackupFile::withoutEvents(fn () => BackupFile::query()->create(['backup_id' => $backup->id, 'name' => '20260917-020000F', 'status' => BackupFileStatus::CREATED, 'type' => 'full']));
@@ -434,6 +441,13 @@ Illuminate\Support\Facades\Http::fake(function (Illuminate\Http\Client\Request $
     ];
 
     return match (true) {
+        $path === '/v1/server_types' => Illuminate\Support\Facades\Http::response(['server_types' => array_map(fn (array $type): array => [
+            'name' => $type[0], 'cores' => $type[1], 'memory' => $type[2], 'disk' => $type[3], 'architecture' => 'arm',
+            'locations' => [['name' => 'nbg1', 'available' => true]], 'prices' => [],
+        ], [['cax11', 2, 4, 40], ['cax01', 1, 2, 10]])]),
+        $request->method() === 'GET' && $path === '/v1/ssh_keys' => Illuminate\Support\Facades\Http::response(['ssh_keys' => []]),
+        $request->method() === 'POST' && $path === '/v1/ssh_keys' => Illuminate\Support\Facades\Http::response(['ssh_key' => ['id' => 9]], 201),
+        $request->method() === 'POST' && $path === '/v1/servers' => Illuminate\Support\Facades\Http::response(['server' => ['id' => 909, 'public_net' => ['ipv4' => ['ip' => '198.51.100.9']]]], 201),
         $request->method() === 'GET' && $path === '/v1/networks' => Illuminate\Support\Facades\Http::response(['networks' => $cloud['networks'], 'meta' => ['pagination' => ['next_page' => null]]]),
         $request->method() === 'GET' && $path === '/v1/servers' => Illuminate\Support\Facades\Http::response(['servers' => array_map($server, array_keys($cloud['zones'])), 'meta' => ['pagination' => ['next_page' => null]]]),
         $request->method() === 'POST' && $path === '/v1/networks' => (function () use (&$cloud, $request) {
@@ -515,4 +529,37 @@ expectReplication($tunnelMembers[0]->fresh()->connected() === true && $tunnelMem
 $shown = app(App\Services\VPN\WireGuard::class, ['service' => $cloudReplica->service('vpn')])->config($tunnelMembers[1]->fresh());
 expectReplication(str_contains($shown, 'Address = 100.64.5.3/24') && str_contains($shown, 'PublicKey = KEY-PRIMARY=') && ! str_contains($shown, 'PRIVATE-'), 'The configuration shown to admins must hide the private key.');
 
-echo "PostgreSQL cluster network, TLS, restore, backups from standby, health, failover, fencing, rebuild, deletion, Hetzner network and WireGuard status checks passed.\n";
+Illuminate\Support\Facades\Storage::fake(config('core.key_pairs_disk'));
+$owner = $makeCloudServer('cloud-owner', 110, 'eu-central');
+DatabaseReplicaMetric::query()->where('id', '>', 0)->delete();
+App\Models\Metric::query()->create(['server_id' => $owner->id, 'load' => 0.2, 'cpu_cores' => 2, 'memory_total' => 3897096, 'memory_used' => 1000000, 'memory_free' => 2897096, 'disk_total' => 40960, 'disk_used' => 20000, 'disk_free' => 20960]);
+$needs = $replicas->requirements($owner->fresh());
+expectReplication($needs['storage_gb'] === 29 && $needs['postgresql'] === '17' && $needs['os'] === 'ubuntu_24', 'A replica server must be sized from the data the primary holds: '.json_encode($needs));
+
+$newInput = ['mode' => 'new', 'name' => 'cloud-owner-replica', 'server_provider' => $hetzner->id, 'region' => 'nbg1', 'plan' => 'cax11', 'max_slot_wal_keep_size_gb' => '64', 'backup' => $backupInput];
+expectReplicationValidation(fn () => $replicas->create($user, $owner->fresh(), [...$newInput, 'plan' => 'cax01']), 'A plan too small for the databases of the primary must be refused.');
+
+Queue::fake();
+$provisioned = $replicas->create($user, $owner->fresh(), $newInput);
+$newServer = $provisioned->replica;
+expectReplication($newServer->name === 'cloud-owner-replica' && $newServer->database()?->version === '17' && $newServer->os->value === 'ubuntu_24' && ! $newServer->isReady(),
+    'Vito must create the replica server itself with the PostgreSQL version of the primary.');
+expectReplication($newServer->services()->where('name', 'ufw')->doesntExist() && $newServer->services()->where('name', 'remote-monitor')->exists(), 'The replica server must get PostgreSQL and monitoring only.');
+expectReplication($provisioned->status === DatabaseReplicaStatus::WAITING_FOR_BACKUP, 'A replica of a primary without backups must wait for the first backup.');
+
+$provisionedBackup = $provisioned->cluster->backup;
+$provisionedBackup->update(['status' => null, 'configuration' => [...$provisionedBackup->configuration, 'pg_path' => '/var/lib/postgresql/17/main', 'pg_port' => 5432]]);
+BackupFile::withoutEvents(fn () => BackupFile::query()->create(['backup_id' => $provisionedBackup->id, 'name' => '20260930-020000F', 'status' => BackupFileStatus::CREATED, 'type' => 'full']));
+Queue::fake();
+$replicas->backupAvailable($provisioned->cluster->fresh());
+expectReplication($provisioned->fresh()->status === DatabaseReplicaStatus::PENDING, 'The first finished backup must move a provisioned replica out of waiting.');
+Queue::fake();
+(new SetupDatabaseReplicaJob($provisioned->fresh()))->handle();
+expectReplication($provisioned->fresh()->status === DatabaseReplicaStatus::WAITING_FOR_SERVER && Queue::pushed(SetupDatabaseReplicaJob::class)->count() === 1,
+    'Setup must wait for the new server instead of touching it while it installs.');
+
+DatabaseReplica::query()->whereKey($provisioned->id)->update(['created_at' => now()->subHours(3)]);
+expectReplication(rescue(fn (): bool => $replicas->setup($provisioned->fresh()), fn (Throwable $e): bool => str_contains($e->getMessage(), 'was not ready within two hours'), false) === true,
+    'A server that never becomes ready must stop the replica instead of waiting forever.');
+
+echo "PostgreSQL cluster network, TLS, restore, backups from standby, health, failover, fencing, rebuild, deletion, Hetzner network, WireGuard status and replica server provisioning checks passed.\n";

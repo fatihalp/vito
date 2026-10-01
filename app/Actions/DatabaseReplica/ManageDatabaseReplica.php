@@ -11,12 +11,14 @@ use App\Actions\PostgresCluster\PreparePostgresClusterNetwork;
 use App\Actions\PostgresCluster\SyncPostgresClusterFirewall;
 use App\Actions\PostgresCluster\SyncPostgresClusterHosts;
 use App\Actions\PostgresCluster\SyncPostgresListenAddresses;
+use App\Actions\Server\MatchingServer;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupStatus;
 use App\Enums\DatabaseReplicaHealth;
 use App\Enums\DatabaseReplicaStatus;
 use App\Enums\PostgresClusterStatus;
+use App\Enums\ServerStatus;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHError;
 use App\Facades\Notifier;
@@ -28,6 +30,8 @@ use App\Models\DatabaseReplica;
 use App\Models\PostgresCluster;
 use App\Models\Server;
 use App\Models\ServerLog;
+use App\Models\ServerProvider;
+use App\Models\User;
 use App\Notifications\DatabaseReplicaFailed;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -38,9 +42,9 @@ use Throwable;
 
 class ManageDatabaseReplica
 {
-    public function create(Server $primary, array $input): DatabaseReplica
+    public function create(User $user, Server $primary, array $input): DatabaseReplica
     {
-        $replicaServer = $this->validate($primary, $input);
+        $replicaServer = $this->resolve($user, $primary, $input);
         $cluster = PostgresCluster::forServer($primary);
 
         if ($cluster?->backup === null) {
@@ -90,6 +94,10 @@ class ManageDatabaseReplica
     {
         $cluster = $replica->cluster;
         $rebuild = ($replica->configuration['rebuild'] ?? false) === true;
+
+        if (! $this->serverReady($replica)) {
+            return false;
+        }
 
         $replica->update(['status' => DatabaseReplicaStatus::CONFIGURING]);
         app(BroadcastDatabaseReplicaUpdate::class)->broadcast($replica);
@@ -327,25 +335,123 @@ class ManageDatabaseReplica
         }
     }
 
-    private function validate(Server $primary, array $input): Server
+    /**
+     * What a server that replicates this one needs: room for its databases, and the vCPU, memory, operating system and
+     * processor architecture of the primary.
+     *
+     * @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string}
+     */
+    public function requirements(Server $primary): array
     {
+        $backup = PostgresCluster::forServer($primary)?->backup;
+
+        return app(MatchingServer::class)->requirements(
+            $primary,
+            $backup?->files()->where('status', BackupFileStatus::CREATED)->max('database_size'),
+            $primary->database()?->version,
+        );
+    }
+
+    /**
+     * The servers of the project that could hold a replica, each with the reason it cannot when it cannot, so the admin
+     * never picks a server whose data would be replaced by accident.
+     *
+     * @return list<array{id: int, name: string, ip: ?string, postgresql: ?string, databases: int, sites: int, issue: ?string}>
+     */
+    public function candidates(Server $primary): array
+    {
+        return $primary->project->servers()
+            ->with('services')
+            ->withCount('databases', 'sites')
+            ->get()
+            ->map(fn (Server $server): array => [
+                'id' => $server->id,
+                'name' => $server->name,
+                'ip' => $server->ip,
+                'postgresql' => $server->database()?->name === 'postgresql' ? $server->database()->version : null,
+                'databases' => (int) $server->databases_count,
+                'sites' => (int) $server->sites_count,
+                'issue' => $this->candidateIssue($primary, $server),
+            ])
+            ->sortBy(fn (array $candidate): array => [$candidate['issue'] === null ? 0 : 1, $candidate['name']])
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Why this server cannot become a replica of the primary, or null when it can.
+     */
+    public function candidateIssue(Server $primary, Server $candidate): ?string
+    {
+        return match (true) {
+            $candidate->id === $primary->id => __('This is the primary.'),
+            $candidate->project_id !== $primary->project_id => __('In another project.'),
+            ! $candidate->isReady() => __('Not ready.'),
+            $candidate->database()?->name !== 'postgresql' => __('No PostgreSQL service. Install PostgreSQL on it first.'),
+            (int) $candidate->database()->version !== (int) $primary->database()?->version => __('Runs PostgreSQL :version, the primary runs :primary.', [
+                'version' => $candidate->database()->version,
+                'primary' => $primary->database()?->version,
+            ]),
+            PostgresCluster::forServer($candidate) !== null => __('Already belongs to a PostgreSQL cluster.'),
+            $candidate->databases()->exists() => __('Holds databases, which a replica would replace.'),
+            $candidate->backups()->exists() => __('Has backups of its own.'),
+            default => null,
+        };
+    }
+
+    /**
+     * Returns false while the server Vito created for this replica is still being installed.
+     */
+    private function serverReady(DatabaseReplica $replica): bool
+    {
+        $server = $replica->replica;
+
+        if ($server->status === ServerStatus::INSTALLATION_FAILED) {
+            throw new RuntimeException(__('Installing :server failed. Check its logs, then delete this replica and create it again.', ['server' => $server->name]));
+        }
+
+        if ($server->isReady()) {
+            return true;
+        }
+
+        if ($replica->created_at->lt(now()->subHours(2))) {
+            throw new RuntimeException(__('The server :server was not ready within two hours.', ['server' => $server->name]));
+        }
+
+        if ($replica->status !== DatabaseReplicaStatus::WAITING_FOR_SERVER) {
+            $replica->update(['status' => DatabaseReplicaStatus::WAITING_FOR_SERVER]);
+            app(BroadcastDatabaseReplicaUpdate::class)->broadcast($replica);
+        }
+
+        return false;
+    }
+
+    /**
+     * Validates the input and returns the server to build the replica on: one Vito creates at a provider, or an
+     * existing server whose PostgreSQL data the admin confirmed may be replaced.
+     */
+    private function resolve(User $user, Server $primary, array $input): Server
+    {
+        $new = ($input['mode'] ?? 'existing') === 'new';
+
         Validator::make($input, [
-            'replica_server_id' => ['required', 'integer', Rule::exists('servers', 'id')->where('project_id', $primary->project_id)],
+            'mode' => ['required', Rule::in(['new', 'existing'])],
             'max_slot_wal_keep_size_gb' => ['required', 'integer', 'min:1', 'max:10000'],
+            ...($new ? [
+                'name' => ['required', 'string', 'max:255'],
+                'server_provider' => ['required', 'integer'],
+                'region' => ['required', 'string'],
+                'plan' => ['required', 'string'],
+            ] : [
+                'replica_server_id' => ['required', 'integer', Rule::exists('servers', 'id')->where('project_id', $primary->project_id)],
+            ]),
         ])->validate();
 
-        $replicaServer = Server::query()->findOrFail((int) $input['replica_server_id']);
         $cluster = PostgresCluster::forServer($primary);
         $error = match (true) {
-            $replicaServer->id === $primary->id => __('A server cannot replicate itself.'),
-            ! $replicaServer->isReady() => __('The replica server is not ready.'),
             $primary->database()?->name !== 'postgresql' => __('Replicas need a PostgreSQL service on the primary server.'),
-            $replicaServer->database()?->name !== 'postgresql' => __('Install PostgreSQL on the replica server first.'),
-            (int) $replicaServer->database()->version !== (int) $primary->database()->version => __('The replica must run the same PostgreSQL major version as the primary (:version).', ['version' => $primary->database()->version]),
             $cluster !== null && $cluster->primary_server_id !== $primary->id => __('This server is a replica. Create replicas from the primary of its cluster.'),
             $cluster !== null && $cluster->status !== PostgresClusterStatus::ACTIVE => __('The cluster is failing over, try again when it finishes.'),
-            PostgresCluster::forServer($replicaServer) !== null => __('The selected server already belongs to a PostgreSQL cluster.'),
-            $replicaServer->databases()->exists() || $replicaServer->backups()->exists() => __('The replica server must not have databases or backups, because all of its PostgreSQL data is replaced.'),
             $cluster?->backup?->status === BackupStatus::FAILED => __('The pgBackRest backup of this server failed to set up. Fix it before adding replicas.'),
             default => null,
         };
@@ -353,6 +459,29 @@ class ManageDatabaseReplica
         if ($error !== null) {
             throw ValidationException::withMessages(['replica_server_id' => $error]);
         }
+
+        if ($new) {
+            $requirements = $this->requirements($primary);
+            $matching = app(MatchingServer::class);
+            $provider = ServerProvider::query()->find($input['server_provider']);
+
+            $matching->check($requirements, $matching->plan($provider, $input['region'], $input['plan']));
+
+            return $matching->create($user, $primary, $input, $requirements);
+        }
+
+        $replicaServer = Server::query()->findOrFail((int) $input['replica_server_id']);
+        $issue = $this->candidateIssue($primary, $replicaServer);
+
+        if ($issue !== null) {
+            throw ValidationException::withMessages(['replica_server_id' => $issue]);
+        }
+
+        Validator::make($input, [
+            'confirmation' => ['required', 'string', Rule::in([$replicaServer->name])],
+        ], [
+            'confirmation.in' => __('Type :server exactly to confirm that all PostgreSQL data on it is replaced.', ['server' => $replicaServer->name]),
+        ])->validate();
 
         return $replicaServer;
     }

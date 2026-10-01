@@ -4,11 +4,10 @@ namespace App\Actions\Backup;
 
 use App\Actions\Database\SyncDatabases;
 use App\Actions\Database\SyncDatabaseUsers;
-use App\Actions\Server\CreateServer;
+use App\Actions\Server\MatchingServer;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupRestoreStatus;
 use App\Enums\BackupType;
-use App\Enums\ServerRole;
 use App\Enums\ServerStatus;
 use App\Facades\Notifier;
 use App\Jobs\Backup\RestoreToNewServerJob;
@@ -32,31 +31,17 @@ use RuntimeException;
 class RestoreToNewServer
 {
     /**
-     * What the new server needs. Storage covers the largest database the backups hold plus 20% growth, WAL replay and the
-     * operating system; before a backup reports its database size, the disk the source server uses stands in for it.
-     * vCPU, memory and architecture come from the source server's plan, else from its latest metrics.
+     * What the new server needs, sized by the largest database the backups hold.
      *
      * @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string}
      */
     public function requirements(Backup $backup): array
     {
-        $source = $backup->server;
-        $metric = $source->latestMetric()->first();
-        $databaseSize = $backup->files()->where('status', BackupFileStatus::CREATED)->max('database_size');
-        $basis = $databaseSize ?? ($metric !== null ? $metric->disk_used * 1048576 : null);
-        $plan = rescue(fn (): ?array => $source->serverProvider?->provider()->plans($source->provider_data['region'] ?? null)[$source->provider_data['plan'] ?? ''] ?? null, null, false);
-
-        return [
-            'database_size' => $databaseSize === null ? null : (int) $databaseSize,
-            'storage_gb' => $basis === null ? null : (int) ceil($basis / 1073741824 * 1.2 + ($databaseSize !== null ? 12 : 5)),
-            'measured' => $databaseSize !== null,
-            'cores' => $plan['cores'] ?? $metric?->cpu_cores,
-            'memory_gb' => $plan['memory'] ?? ($metric !== null ? round($metric->memory_total / 1048576, 1) : null),
-            'architecture' => $plan['architecture'] ?? null,
-            'os' => $source->os->value,
-            'postgresql' => $source->database()?->version ?? $backup->files()->latest('id')->value('database_version'),
-            'source' => $source->name,
-        ];
+        return app(MatchingServer::class)->requirements(
+            $backup->server,
+            $backup->files()->where('status', BackupFileStatus::CREATED)->max('database_size'),
+            $backup->server->database()?->version ?? $backup->files()->latest('id')->value('database_version'),
+        );
     }
 
     public function create(User $user, Backup $backup, array $input): BackupRestore
@@ -82,37 +67,12 @@ class RestoreToNewServer
         ])->validate();
 
         $requirements = $this->requirements($backup);
+        $matching = app(MatchingServer::class);
         $provider = ServerProvider::query()->find($validated['server_provider']);
-        $plan = rescue(fn (): ?array => $provider?->provider()->plans($validated['region'])[$validated['plan']] ?? null, null, false);
 
-        if (isset($plan['disk'], $requirements['storage_gb']) && $plan['disk'] < $requirements['storage_gb']) {
-            throw ValidationException::withMessages([
-                'plan' => __('This plan has :disk GB of disk, but the restore needs at least :required GB.', ['disk' => $plan['disk'], 'required' => $requirements['storage_gb']]),
-            ]);
-        }
+        $matching->check($requirements, $matching->plan($provider, $validated['region'], $validated['plan']));
 
-        if (isset($plan['architecture'], $requirements['architecture']) && $plan['architecture'] !== $requirements['architecture']) {
-            throw ValidationException::withMessages([
-                'plan' => __(':source runs on :architecture. PostgreSQL data files are not safe to restore on another processor architecture, so choose a :architecture plan.', [
-                    'source' => $requirements['source'],
-                    'architecture' => $requirements['architecture'],
-                ]),
-            ]);
-        }
-
-        $server = app(CreateServer::class)->create($user, $backup->server->project, [
-            'provider' => $provider?->provider,
-            'server_provider' => $validated['server_provider'],
-            'region' => $validated['region'],
-            'plan' => $validated['plan'],
-            'name' => $validated['name'],
-            'os' => $requirements['os'],
-            'role' => ServerRole::DATABASE->value,
-            'services' => [
-                ['type' => 'database', 'name' => 'postgresql', 'version' => (string) $requirements['postgresql']],
-                ['type' => 'monitoring', 'name' => 'remote-monitor', 'version' => 'latest'],
-            ],
-        ]);
+        $server = $matching->create($user, $backup->server, $validated, $requirements);
 
         $restore = $backup->restores()->create([
             'backup_file_id' => $validated['target'] === 'backup' ? $validated['backup_file_id'] : null,

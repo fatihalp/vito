@@ -19,7 +19,8 @@ export interface DatabaseUpgrade {
   target_server_name: string | null;
   source_version: string | null;
   target_version: string;
-  state: 'waiting_for_server' | 'preparing' | 'copying' | 'streaming' | 'finishing' | 'cancelling' | 'completed' | 'failed' | 'cancelled';
+  mode: 'logical' | 'seeded';
+  state: 'waiting_for_server' | 'preparing' | 'seeding' | 'copying' | 'streaming' | 'finishing' | 'cancelling' | 'completed' | 'failed' | 'cancelled';
   status: string;
   status_color: BadgeColor;
   active: boolean;
@@ -30,8 +31,10 @@ export interface DatabaseUpgrade {
   databases: UpgradeDatabase[];
   lag_bytes: number | null;
   restart_needed: boolean;
+  wal_keep_gb: number | null;
   warnings: string[];
   network: { name: string; kind: string; type: string } | null;
+  events: { at: string; level: 'info' | 'waiting' | 'error'; message: string }[];
   caught_up_at: string | null;
   finished_at: string | null;
   created_at: string;
@@ -51,7 +54,17 @@ export interface UpgradeRequirements {
   read_only: boolean;
   required_slots: number;
   required_senders: number;
+  wal_keep_gb: number;
+  seed: { available: boolean; reason: string | null; stanza: string | null; taken_at: string | null };
   tables_without_key: string[];
   tables_without_key_count: number;
   warnings: string[];
+}
+
+export interface UpgradeLog {
+  id: number;
+  name: string;
+  server_id: number;
+  server_name: string | null;
+  created_at: string | null;
 }

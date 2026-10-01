@@ -127,7 +127,7 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
     {
         return implode(',', array_filter([
             $open ? '0.0.0.0' : 'localhost',
-            SyncPostgresListenAddresses::privateAddress($this->service->server),
+            ...SyncPostgresListenAddresses::privateAddresses($this->service->server),
         ]));
     }
 

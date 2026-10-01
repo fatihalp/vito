@@ -11,32 +11,8 @@ import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Backup } from '@/types/backup';
 import { BackupFile } from '@/types/backup-file';
-import { ServerProvider } from '@/types/server-provider';
 import { RestoreRequirements } from '@/types/backup-restore';
-
-type Plan = { label: string; available: boolean; cores?: number; memory?: number; disk?: number; architecture?: string | null };
-
-function fit(plan: Plan, requirements: RestoreRequirements | null): { blocked: string | null; warnings: string[] } {
-  if (!requirements) return { blocked: null, warnings: [] };
-
-  const warnings: string[] = [];
-  let blocked: string | null = null;
-
-  if (plan.disk !== undefined && requirements.storage_gb !== null && plan.disk < requirements.storage_gb) {
-    blocked = `${plan.disk} GB disk is too small`;
-  }
-  if (plan.architecture && requirements.architecture && plan.architecture !== requirements.architecture) {
-    blocked = `${plan.architecture} processor, ${requirements.source} is ${requirements.architecture}`;
-  }
-  if (plan.cores !== undefined && requirements.cores !== null && plan.cores < requirements.cores) {
-    warnings.push(`fewer vCPU than ${requirements.source}`);
-  }
-  if (plan.memory !== undefined && requirements.memory_gb !== null && plan.memory < requirements.memory_gb) {
-    warnings.push(`less memory than ${requirements.source}`);
-  }
-
-  return { blocked, warnings };
-}
+import ProvisionServerFields, { PlanFit } from '@/pages/servers/components/provision-server-fields';
 
 export default function RestoreToServer({
   open,
@@ -50,9 +26,7 @@ export default function RestoreToServer({
   file?: BackupFile;
 }) {
   const [requirements, setRequirements] = useState<RestoreRequirements | null>(null);
-  const [providers, setProviders] = useState<ServerProvider[]>([]);
-  const [regions, setRegions] = useState<Record<string, string>>({});
-  const [plans, setPlans] = useState<Record<string, Plan>>({});
+  const [planFit, setPlanFit] = useState<PlanFit>({ blocked: null, warnings: [] });
   const form = useForm({
     name: `restore-${backup.pgbackrest?.stanza ?? backup.id}`,
     server_provider: '',
@@ -62,7 +36,6 @@ export default function RestoreToServer({
     backup_file_id: file ? String(file.id) : '',
     target_time: '',
   });
-  const selected = plans[form.data.plan] ? fit(plans[form.data.plan], requirements) : null;
 
   useEffect(() => {
     if (!open) return;
@@ -71,32 +44,7 @@ export default function RestoreToServer({
       .get<RestoreRequirements>(route('backups.restore-to-server.requirements', { server: backup.server_id, backup: backup.id }))
       .then((response) => setRequirements(response.data))
       .catch(() => setRequirements(null));
-    axios
-      .get<ServerProvider[]>(route('server-providers.json'))
-      .then((response) => setProviders(response.data))
-      .catch(() => setProviders([]));
   }, [open, backup.server_id, backup.id]);
-
-  const selectProvider = (id: string) => {
-    form.setData((data) => ({ ...data, server_provider: id, region: '', plan: '' }));
-    setRegions({});
-    setPlans({});
-    axios
-      .get<Record<string, string>>(route('server-providers.regions', { serverProvider: id }))
-      .then((response) => setRegions(response.data))
-      .catch(() => setRegions({}));
-  };
-
-  const selectRegion = (region: string) => {
-    form.setData((data) => ({ ...data, region, plan: '' }));
-    setPlans({});
-    axios
-      .get<Record<string, Plan | string>>(route('server-providers.plans', { serverProvider: form.data.server_provider, region }))
-      .then((response) =>
-        setPlans(Object.fromEntries(Object.entries(response.data).map(([name, plan]) => [name, typeof plan === 'string' ? { label: plan, available: true } : plan]))),
-      )
-      .catch(() => setPlans({}));
-  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -151,70 +99,14 @@ export default function RestoreToServer({
               )}
             </div>
 
-            <FormField>
-              <Label htmlFor="restore-name">Server name</Label>
-              <Input id="restore-name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-              <InputError message={form.errors.name} />
-            </FormField>
-
-            <FormField>
-              <Label>Provider</Label>
-              <Select value={form.data.server_provider} onValueChange={selectProvider}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a server provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {providers.map((provider) => (
-                    <SelectItem key={provider.id} value={String(provider.id)}>
-                      {provider.name} ({provider.provider})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <InputError message={form.errors.server_provider} />
-            </FormField>
-
-            <FormField>
-              <Label>Region</Label>
-              <Select value={form.data.region} onValueChange={selectRegion} disabled={Object.keys(regions).length === 0}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(regions).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <InputError message={form.errors.region} />
-            </FormField>
-
-            <FormField>
-              <Label>Plan</Label>
-              <Select value={form.data.plan} onValueChange={(plan) => form.setData('plan', plan)} disabled={Object.keys(plans).length === 0}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(plans).map(([name, plan]) => {
-                    const check = fit(plan, requirements);
-
-                    return (
-                      <SelectItem key={name} value={name} disabled={!plan.available || check.blocked !== null}>
-                        {plan.label}
-                        {check.blocked ? ` — ${check.blocked}` : check.warnings.length > 0 ? ` — ${check.warnings.join(', ')}` : ''}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {selected && selected.warnings.length > 0 && (
-                <p className="text-warning text-sm">This plan has {selected.warnings.join(' and ')}. That's fine for checking data, not for replacing it.</p>
-              )}
-              <InputError message={form.errors.plan} />
-            </FormField>
+            <ProvisionServerFields
+              data={{ name: form.data.name, server_provider: form.data.server_provider, region: form.data.region, plan: form.data.plan }}
+              setData={(patch) => form.setData((data) => ({ ...data, ...patch }))}
+              errors={form.errors as Record<string, string | undefined>}
+              requirements={requirements}
+              onFitChange={setPlanFit}
+              warningSuffix="That's fine for checking data, not for replacing it."
+            />
 
             <FormField>
               <Label>Restore point</Label>
@@ -244,7 +136,7 @@ export default function RestoreToServer({
         </Form>
         <SheetFooter>
           <div className="flex items-center gap-2">
-            <Button form="restore-to-server-form" type="submit" disabled={form.processing || Boolean(selected?.blocked)}>
+            <Button form="restore-to-server-form" type="submit" disabled={form.processing || Boolean(planFit.blocked)}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Create server and restore
             </Button>

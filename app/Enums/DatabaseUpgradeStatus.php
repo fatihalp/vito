@@ -8,6 +8,7 @@ enum DatabaseUpgradeStatus: string implements VitoEnum
 {
     case WAITING_FOR_SERVER = 'waiting_for_server';
     case PREPARING = 'preparing';
+    case SEEDING = 'seeding';
     case COPYING = 'copying';
     case STREAMING = 'streaming';
     case FINISHING = 'finishing';
@@ -31,6 +32,7 @@ enum DatabaseUpgradeStatus: string implements VitoEnum
         return match ($this) {
             self::WAITING_FOR_SERVER => 'waiting for the server',
             self::PREPARING => 'preparing',
+            self::SEEDING => 'restoring the backup onto the new server',
             self::COPYING => 'copying data',
             self::STREAMING => 'in sync',
             self::FINISHING => 'finishing',
@@ -46,7 +48,7 @@ enum DatabaseUpgradeStatus: string implements VitoEnum
      */
     public function isActive(): bool
     {
-        return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::COPYING, self::STREAMING, self::FINISHING], true);
+        return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::SEEDING, self::COPYING, self::STREAMING, self::FINISHING], true);
     }
 
     /**
@@ -54,6 +56,6 @@ enum DatabaseUpgradeStatus: string implements VitoEnum
      */
     public function isBusy(): bool
     {
-        return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::FINISHING, self::CANCELLING], true);
+        return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::SEEDING, self::FINISHING, self::CANCELLING], true);
     }
 }

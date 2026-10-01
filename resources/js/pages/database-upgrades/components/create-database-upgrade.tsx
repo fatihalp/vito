@@ -12,94 +12,53 @@ import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Server } from '@/types/server';
-import { ServerProvider } from '@/types/server-provider';
 import { UpgradeRequirements } from '@/types/database-upgrade';
-
-type Plan = { label: string; available: boolean; cores?: number; memory?: number; disk?: number; architecture?: string | null };
+import ProvisionServerFields, { PlanFit } from '@/pages/servers/components/provision-server-fields';
 
 function gigabytes(bytes: number): string {
   return `${(bytes / 1073741824).toFixed(1)} GB`;
 }
 
-function fit(plan: Plan, requirements: UpgradeRequirements | null): { blocked: string | null; warnings: string[] } {
-  if (!requirements) return { blocked: null, warnings: [] };
-
-  const warnings: string[] = [];
-  let blocked: string | null = null;
-
-  if (plan.disk !== undefined && plan.disk < requirements.storage_gb) {
-    blocked = `${plan.disk} GB disk is too small`;
-  }
-  if (plan.cores !== undefined && requirements.cores !== null && plan.cores < requirements.cores) {
-    warnings.push(`fewer vCPU than ${requirements.source}`);
-  }
-  if (plan.memory !== undefined && requirements.memory_gb !== null && plan.memory < requirements.memory_gb) {
-    warnings.push(`less memory than ${requirements.source}`);
-  }
-
-  return { blocked, warnings };
-}
-
 export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { open: boolean; onOpenChange: (open: boolean) => void; server: Server }) {
+  const [versions, setVersions] = useState<{ version: number; versions: string[]; source: string } | null>(null);
   const [requirements, setRequirements] = useState<UpgradeRequirements | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [providers, setProviders] = useState<ServerProvider[]>([]);
-  const [regions, setRegions] = useState<Record<string, string>>({});
-  const [plans, setPlans] = useState<Record<string, Plan>>({});
+  const [planFit, setPlanFit] = useState<PlanFit>({ blocked: null, warnings: [] });
   const form = useForm({
     name: `${server.name}-pg`,
     server_provider: '',
     region: '',
     plan: '',
     version: '',
+    mode: 'logical',
     restart: false,
     replica_identity: 'full',
+    wal_keep_gb: '',
   });
-  const selected = plans[form.data.plan] ? fit(plans[form.data.plan], requirements) : null;
   const setData = form.setData;
 
   useEffect(() => {
     if (!open) return;
 
     axios
+      .get<{ version: number; versions: string[]; source: string }>(route('database-upgrades.versions', { server: server.id }))
+      .then((response) => {
+        setVersions(response.data);
+        setData('version', response.data.versions[0] ?? '');
+      })
+      .catch(() => setVersions(null));
+    axios
       .get<UpgradeRequirements>(route('database-upgrades.requirements', { server: server.id }))
       .then((response) => {
         setRequirements(response.data);
         setError(null);
-        setData('version', response.data.versions[0] ?? '');
+        setData('wal_keep_gb', String(response.data.wal_keep_gb));
       })
-      .catch(() => {
+      .catch((failure: { response?: { data?: { message?: string } } }) => {
         setRequirements(null);
-        setError('Vito could not read the PostgreSQL settings of this server.');
+        setError(failure.response?.data?.message ?? `Vito could not reach ${server.name} to read its PostgreSQL settings.`);
       });
-    axios
-      .get<ServerProvider[]>(route('server-providers.json'))
-      .then((response) => setProviders(response.data))
-      .catch(() => setProviders([]));
   }, [open, server.id, setData]);
-
-  const selectProvider = (id: string) => {
-    form.setData((data) => ({ ...data, server_provider: id, region: '', plan: '' }));
-    setRegions({});
-    setPlans({});
-    axios
-      .get<Record<string, string>>(route('server-providers.regions', { serverProvider: id }))
-      .then((response) => setRegions(response.data))
-      .catch(() => setRegions({}));
-  };
-
-  const selectRegion = (region: string) => {
-    form.setData((data) => ({ ...data, region, plan: '' }));
-    setPlans({});
-    axios
-      .get<Record<string, Plan | string>>(route('server-providers.plans', { serverProvider: form.data.server_provider, region }))
-      .then((response) =>
-        setPlans(
-          Object.fromEntries(Object.entries(response.data).map(([name, plan]) => [name, typeof plan === 'string' ? { label: plan, available: true } : plan])),
-        ),
-      )
-      .catch(() => setPlans({}));
-  };
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -125,6 +84,10 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               <Alert variant="destructive">
                 <AlertTitle>{error}</AlertTitle>
               </Alert>
+            )}
+
+            {requirements === null && error === null && (
+              <p className="text-muted-foreground text-sm">Checking what {server.name} holds. On a server Vito cannot reach, this takes about half a minute.</p>
             )}
 
             {requirements && (
@@ -158,17 +121,57 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               </>
             )}
 
+            {versions && versions.versions.length === 0 && (
+              <Alert>
+                <AlertTitle>PostgreSQL {versions.version} is the newest version Vito installs</AlertTitle>
+                <AlertDescription>There is no newer major version to move {versions.source} to yet.</AlertDescription>
+              </Alert>
+            )}
+
+            {requirements && (
+              <FormField>
+                <Label>How the new server gets the data</Label>
+                <Select value={form.data.mode} onValueChange={(mode) => form.setData('mode', mode)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="logical">Copy every row over the private network</SelectItem>
+                    <SelectItem value="seeded" disabled={!requirements.seed.available}>
+                      Start from the latest backup, then replicate only what came after
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-muted-foreground text-sm">
+                  {form.data.mode === 'seeded'
+                    ? `Vito restores the backup of ${requirements.source} onto the new server, upgrades that copy to the version you pick, and then replays only the changes made since. For a large database this turns days of copying into hours, and the old server is never read for it — the rows come from the backup repository.`
+                    : requirements.seed.available
+                      ? 'Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster.'
+                      : `Every row travels over the private network. ${requirements.seed.reason}`}
+                </p>
+                <InputError message={form.errors.mode} />
+              </FormField>
+            )}
+
             <FormField>
               <Label>PostgreSQL version</Label>
-              <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!requirements?.versions.length}>
+              <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!versions?.versions.length}>
                 <SelectTrigger>
-                  <SelectValue placeholder={requirements ? 'Select a version' : 'Reading the current version…'} />
+                  <SelectValue
+                    placeholder={
+                      versions === null
+                        ? 'Reading the current version…'
+                        : versions.versions.length === 0
+                          ? `PostgreSQL ${versions.version} is already the newest`
+                          : 'Select a version'
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
-                  {(requirements?.versions ?? []).map((version) => (
+                  {(versions?.versions ?? []).map((version) => (
                     <SelectItem key={version} value={version}>
                       PostgreSQL {version}
-                      {requirements ? ` (now ${requirements.version})` : ''}
+                      {versions ? ` (now ${versions.version})` : ''}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -176,70 +179,14 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               <InputError message={form.errors.version} />
             </FormField>
 
-            <FormField>
-              <Label htmlFor="upgrade-name">Server name</Label>
-              <Input id="upgrade-name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
-              <InputError message={form.errors.name} />
-            </FormField>
-
-            <FormField>
-              <Label>Provider</Label>
-              <Select value={form.data.server_provider} onValueChange={selectProvider}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a server provider" />
-                </SelectTrigger>
-                <SelectContent>
-                  {providers.map((provider) => (
-                    <SelectItem key={provider.id} value={String(provider.id)}>
-                      {provider.name} ({provider.provider})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <InputError message={form.errors.server_provider} />
-            </FormField>
-
-            <FormField>
-              <Label>Region</Label>
-              <Select value={form.data.region} onValueChange={selectRegion} disabled={Object.keys(regions).length === 0}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a region" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(regions).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <InputError message={form.errors.region} />
-            </FormField>
-
-            <FormField>
-              <Label>Plan</Label>
-              <Select value={form.data.plan} onValueChange={(plan) => form.setData('plan', plan)} disabled={Object.keys(plans).length === 0}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a plan" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Object.entries(plans).map(([name, plan]) => {
-                    const check = fit(plan, requirements);
-
-                    return (
-                      <SelectItem key={name} value={name} disabled={!plan.available || check.blocked !== null}>
-                        {plan.label}
-                        {check.blocked ? ` — ${check.blocked}` : check.warnings.length > 0 ? ` — ${check.warnings.join(', ')}` : ''}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-              {selected && selected.warnings.length > 0 && (
-                <p className="text-warning text-sm">This plan has {selected.warnings.join(' and ')}, so the new server may be slower than {requirements?.source}.</p>
-              )}
-              <InputError message={form.errors.plan} />
-            </FormField>
+            <ProvisionServerFields
+              data={{ name: form.data.name, server_provider: form.data.server_provider, region: form.data.region, plan: form.data.plan }}
+              setData={(patch) => form.setData((data) => ({ ...data, ...patch }))}
+              errors={form.errors as Record<string, string | undefined>}
+              requirements={requirements === null ? null : { ...requirements, architecture: null }}
+              onFitChange={setPlanFit}
+              warningSuffix={`The new server may be slower than ${requirements?.source ?? 'the old one'}.`}
+            />
 
             {requirements && requirements.tables_without_key_count > 0 && (
               <FormField>
@@ -261,6 +208,25 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               </FormField>
             )}
 
+            {requirements && (
+              <FormField>
+                <Label htmlFor="upgrade-wal">WAL {requirements.source} keeps for the copy (GB)</Label>
+                <Input
+                  id="upgrade-wal"
+                  type="number"
+                  min={1}
+                  value={form.data.wal_keep_gb}
+                  onChange={(e) => form.setData('wal_keep_gb', e.target.value)}
+                />
+                <p className="text-muted-foreground text-sm">
+                  Until the new server has applied everything, {requirements.source} keeps the WAL it still needs. This caps it: if the new server falls
+                  further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away
+                  from. The default is a quarter of its free disk.
+                </p>
+                <InputError message={form.errors.wal_keep_gb} />
+              </FormField>
+            )}
+
             {requirements?.restart_needed && (
               <FormField>
                 <div className="flex items-center gap-2">
@@ -278,7 +244,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
         </Form>
         <SheetFooter>
           <div className="flex items-center gap-2">
-            <Button form="create-database-upgrade-form" type="submit" disabled={form.processing || requirements === null || Boolean(selected?.blocked)}>
+            <Button form="create-database-upgrade-form" type="submit" disabled={form.processing || requirements === null || Boolean(planFit.blocked)}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Create server and start copying
             </Button>

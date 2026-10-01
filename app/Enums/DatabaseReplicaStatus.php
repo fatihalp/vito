@@ -8,6 +8,7 @@ enum DatabaseReplicaStatus: string implements VitoEnum
 {
     case PENDING = 'pending';
     case WAITING_FOR_BACKUP = 'waiting_for_backup';
+    case WAITING_FOR_SERVER = 'waiting_for_server';
     case CONFIGURING = 'configuring';
     case SEEDING = 'seeding';
     case READY = 'ready';
@@ -21,7 +22,7 @@ enum DatabaseReplicaStatus: string implements VitoEnum
         return match ($this) {
             self::READY => 'success',
             self::FAILED, self::NEEDS_REBUILD => 'danger',
-            self::WAITING_FOR_BACKUP => 'info',
+            self::WAITING_FOR_BACKUP, self::WAITING_FOR_SERVER => 'info',
             default => 'warning',
         };
     }
@@ -33,7 +34,7 @@ enum DatabaseReplicaStatus: string implements VitoEnum
 
     public function isBusy(): bool
     {
-        return in_array($this, [self::PENDING, self::CONFIGURING, self::PROMOTING, self::DELETING], true);
+        return in_array($this, [self::PENDING, self::WAITING_FOR_SERVER, self::CONFIGURING, self::PROMOTING, self::DELETING], true);
     }
 
     public function isReplicating(): bool
