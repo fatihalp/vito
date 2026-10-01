@@ -7,6 +7,7 @@ use App\Exceptions\SSHError;
 use App\Http\Resources\DatabaseUpgradeResource;
 use App\Models\DatabaseUpgrade;
 use App\Models\Server;
+use App\Models\ServerLog;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -31,6 +32,7 @@ class DatabaseUpgradeController extends Controller
 
         return Inertia::render('database-upgrades/index', [
             'upgrade' => $upgrade === null ? null : DatabaseUpgradeResource::make($upgrade),
+            'logs' => $upgrade === null ? [] : $this->logs($upgrade),
         ]);
     }
 
@@ -66,6 +68,15 @@ class DatabaseUpgradeController extends Controller
         return back()->with('info', 'The new server is being created. The copy starts as soon as it is ready.');
     }
 
+    #[Get('/{databaseUpgrade}/output', name: 'database-upgrades.output')]
+    public function output(Server $server, DatabaseUpgrade $databaseUpgrade): JsonResponse
+    {
+        $this->ensureBelongs($server, $databaseUpgrade);
+        $this->authorize('view', $databaseUpgrade);
+
+        return response()->json(['content' => app(ManageDatabaseUpgrade::class)->output($databaseUpgrade)]);
+    }
+
     #[Post('/{databaseUpgrade}/finish', name: 'database-upgrades.finish')]
     public function finish(Server $server, DatabaseUpgrade $databaseUpgrade): RedirectResponse
     {
@@ -97,6 +108,34 @@ class DatabaseUpgradeController extends Controller
         app(ManageDatabaseUpgrade::class)->delete($databaseUpgrade);
 
         return back()->with('info', 'The upgrade was removed from this server.');
+    }
+
+    /**
+     * The command logs both servers wrote for this upgrade, newest first, so the full SSH output is one click away.
+     *
+     * @return list<array{id: int, name: string, server_id: int, server_name: ?string, created_at: ?string}>
+     */
+    private function logs(DatabaseUpgrade $upgrade): array
+    {
+        return ServerLog::query()
+            ->whereIn('server_id', array_filter([$upgrade->source_server_id, $upgrade->target_server_id]))
+            ->where(fn ($query) => $query
+                ->where('name', 'like', 'database-upgrade%')
+                ->orWhere('name', 'vito-upgrade-'.$upgrade->id)
+                ->orWhere('name', 'postgres-private-interface'))
+            ->where('created_at', '>=', $upgrade->created_at)
+            ->with('server')
+            ->latest('id')
+            ->limit(40)
+            ->get()
+            ->map(fn (ServerLog $log): array => [
+                'id' => $log->id,
+                'name' => $log->name,
+                'server_id' => $log->server_id,
+                'server_name' => $log->server?->name,
+                'created_at' => $log->created_at?->toIso8601String(),
+            ])
+            ->all();
     }
 
     private function ensureBelongs(Server $server, DatabaseUpgrade $upgrade): void

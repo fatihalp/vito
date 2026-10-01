@@ -39,6 +39,7 @@ class DatabaseUpgradeResource extends JsonResource
                 'kind' => $this->network->kind(),
                 'type' => $this->network->type->value,
             ],
+            'events' => array_slice($this->events ?? [], -100),
             'caught_up_at' => $this->caught_up_at,
             'finished_at' => $this->finished_at,
             'created_at' => $this->created_at,

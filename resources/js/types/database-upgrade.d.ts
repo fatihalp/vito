@@ -32,6 +32,7 @@ export interface DatabaseUpgrade {
   restart_needed: boolean;
   warnings: string[];
   network: { name: string; kind: string; type: string } | null;
+  events: { at: string; level: 'info' | 'waiting' | 'error'; message: string }[];
   caught_up_at: string | null;
   finished_at: string | null;
   created_at: string;
@@ -54,4 +55,12 @@ export interface UpgradeRequirements {
   tables_without_key: string[];
   tables_without_key_count: number;
   warnings: string[];
+}
+
+export interface UpgradeLog {
+  id: number;
+  name: string;
+  server_id: number;
+  server_name: string | null;
+  created_at: string | null;
 }

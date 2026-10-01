@@ -25,6 +25,7 @@ class DatabaseUpgrade extends AbstractModel
         'message',
         'preflight',
         'configuration',
+        'events',
         'caught_up_at',
         'finished_at',
     ];
@@ -39,6 +40,7 @@ class DatabaseUpgrade extends AbstractModel
         'status' => DatabaseUpgradeStatus::class,
         'preflight' => 'array',
         'configuration' => 'array',
+        'events' => 'array',
         'caught_up_at' => 'datetime',
         'finished_at' => 'datetime',
     ];
@@ -70,6 +72,24 @@ class DatabaseUpgrade extends AbstractModel
     public function replication(): PostgresLogicalReplication
     {
         return new PostgresLogicalReplication($this);
+    }
+
+    /**
+     * Keeps a line of what Vito did, so a step that waits can say what it is waiting for. Bounded: an upgrade that waits
+     * for days must not grow without end.
+     */
+    public function record(string $message, string $level = 'info'): void
+    {
+        $events = $this->events ?? [];
+        $last = end($events);
+
+        if (is_array($last) && ($last['message'] ?? null) === $message) {
+            return;
+        }
+
+        $events[] = ['at' => now()->toIso8601String(), 'level' => $level, 'message' => $message];
+
+        $this->update(['events' => array_slice($events, -200)]);
     }
 
     /**
