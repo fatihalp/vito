@@ -94,6 +94,32 @@ VITO_SQL
         | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null
     touch "$STATE/$SUB.schema"
 
+    # Every index the copy would have to maintain row by row is put aside and built once at the end instead. Primary
+    # keys, unique and exclusion indexes stay: they carry meaning, and the apply worker uses them to find rows.
+    INDEX_FILE="/var/lib/postgresql/$SUB-indexes.sql"
+    sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d "$DB" > /tmp/$SUB-indexes.sql <<'VITO_SQL'
+SELECT pg_get_indexdef(c.oid) || ';'
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+JOIN pg_index i ON i.indexrelid = c.oid
+WHERE c.relkind = 'i' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+    AND NOT i.indisprimary AND NOT i.indisunique
+    AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = c.oid);
+VITO_SQL
+    sed -E 's/^CREATE INDEX /CREATE INDEX IF NOT EXISTS /' /tmp/$SUB-indexes.sql | sudo -u postgres tee "$INDEX_FILE" > /dev/null
+    rm -f /tmp/$SUB-indexes.sql
+
+    sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d "$DB" <<'VITO_SQL' | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" > /dev/null
+SELECT format('DROP INDEX %I.%I;', n.nspname, c.relname)
+FROM pg_class c
+JOIN pg_namespace n ON n.oid = c.relnamespace
+JOIN pg_index i ON i.indexrelid = c.oid
+WHERE c.relkind = 'i' AND n.nspname NOT IN ('pg_catalog', 'information_schema')
+    AND NOT i.indisprimary AND NOT i.indisunique
+    AND NOT EXISTS (SELECT 1 FROM pg_constraint k WHERE k.conindid = c.oid);
+VITO_SQL
+    echo "Set $(grep -c 'CREATE INDEX' "$INDEX_FILE" || true) indexes of $DB aside until the rows are there"
+
     echo "Subscribing to the changes of $DB"
     sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" -v sub="$SUB" -v conn="$CONN" -v pub="$PUB" > /dev/null <<'VITO_SQL'
 CREATE SUBSCRIPTION :"sub" CONNECTION :'conn' PUBLICATION :"pub" WITH ({!! $options !!});
@@ -103,8 +129,47 @@ VITO_SQL
     echo "The first copy of $DB started"
 }
 
+wait_for_copy() {
+    DB="$1"
+    SUB="$2"
+
+    echo "Waiting for the first copy of $DB"
+    while true; do
+        PENDING=$(sudo -u postgres psql -XtAq -d "$DB" -c "SELECT count(*) FROM pg_subscription_rel WHERE srsubstate <> 'r'")
+        [ "$PENDING" = "0" ] && break
+        echo "$DB: $PENDING tables still copying"
+        sleep 15
+    done
+    echo "The first copy of $DB is done"
+}
+
+build_indexes() {
+    DB="$1"
+    SUB="$2"
+    INDEX_FILE="/var/lib/postgresql/$SUB-indexes.sql"
+
+    if [ -s "$INDEX_FILE" ]; then
+        echo "Building $(grep -c 'CREATE INDEX' "$INDEX_FILE" || true) indexes of $DB"
+        sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d "$DB" -f "$INDEX_FILE" > /dev/null
+    fi
+
+    sudo -u postgres psql -X -q -d "$DB" -c 'ANALYZE' > /dev/null
+    sudo rm -f "$INDEX_FILE"
+    echo "$DB is ready"
+}
+
 @foreach ($databases as $database)
 prepare_database {!! escapeshellarg($database['name']) !!} {!! escapeshellarg($database['subscription']) !!} {!! escapeshellarg($database['conninfo']) !!}
 @endforeach
 
 echo "Every database is copying now"
+
+@foreach ($databases as $database)
+wait_for_copy {!! escapeshellarg($database['name']) !!} {!! escapeshellarg($database['subscription']) !!}
+@endforeach
+
+@foreach ($databases as $database)
+build_indexes {!! escapeshellarg($database['name']) !!} {!! escapeshellarg($database['subscription']) !!}
+@endforeach
+
+echo "Every database is copied and indexed"
