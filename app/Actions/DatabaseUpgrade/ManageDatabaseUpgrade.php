@@ -320,7 +320,9 @@ class ManageDatabaseUpgrade
 
         $replication = $upgrade->replication();
 
-        if ($upgrade->status === DatabaseUpgradeStatus::COPYING) {
+        // Only until it has finished: the unit is cleaned up the moment it succeeds, and a cleaned-up unit reads as
+        // missing, which looked exactly like a copy that had died.
+        if ($upgrade->status === DatabaseUpgradeStatus::COPYING && ! ($upgrade->configuration['copy_prepared'] ?? false)) {
             $unit = $replication->prepareUnit();
             $state = $unit->state();
 
@@ -343,6 +345,8 @@ class ManageDatabaseUpgrade
             }
 
             $unit->cleanup();
+            $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'copy_prepared' => true]]);
+            $upgrade->record(__('The roles, the databases and the schemas are on the new server; it is catching up now.'));
         }
 
         $databases = $replication->targetStatus();

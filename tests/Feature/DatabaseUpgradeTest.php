@@ -289,15 +289,17 @@ expectUpgrade(str_contains($copy, "PASSWORD '<redacted>'"), 'The copy script mus
 
 $ssh->responses['systemctl show'] = "LoadState=loaded\nActiveState=active\nSubState=exited\nResult=success\n";
 $ssh->responses['pg_subscription_rel'] = "VITO_SUB|app|42|10|2|0|3\nVITO_SUB|shop|10|10|1|0|2\n";
-$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|t|2048|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|t|0|reserved\nVITO_READ_ONLY=off\n";
+$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|2048|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|true|0|reserved\nVITO_READ_ONLY=off\n";
 Queue::fake();
 (new RunDatabaseUpgradeJob($upgrade))->handle();
 $upgrade->refresh();
 expectUpgrade($upgrade->status === DatabaseUpgradeStatus::COPYING && str_contains((string) $upgrade->step, '20 of 52 tables') && $upgrade->progress() === 38.5, 'A running copy must show how many tables it copied.');
 expectUpgradeValidation(fn () => $upgrades->finish($upgrade->fresh()), 'An upgrade that is still copying must not be finished.');
 
+// The unit is gone once Vito cleaned it up, and that must not read as a copy that died.
+$ssh->responses['systemctl show'] = "LoadState=not-found\nActiveState=inactive\nSubState=dead\nResult=success\n";
 $ssh->responses['pg_subscription_rel'] = "VITO_SUB|app|42|42|2|0|3\nVITO_SUB|shop|10|10|1|0|2\n";
-$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|t|0|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|t|0|reserved\nVITO_READ_ONLY=off\n";
+$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|0|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|true|0|reserved\nVITO_READ_ONLY=off\n";
 $notifier->sent = [];
 Queue::fake();
 (new RunDatabaseUpgradeJob($upgrade))->handle();
@@ -305,12 +307,12 @@ $upgrade->refresh();
 expectUpgrade($upgrade->status === DatabaseUpgradeStatus::STREAMING && $upgrade->caught_up_at !== null, 'An upgrade that copied everything must wait for the switch.');
 expectUpgrade($notifier->sent[0] instanceof DatabaseUpgradeUpdated, 'The admin must hear when the new server is in sync.');
 
-$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|t|0|reserved\nVITO_READ_ONLY=off\n";
+$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|0|reserved\nVITO_READ_ONLY=off\n";
 Queue::fake();
 (new RunDatabaseUpgradeJob($upgrade))->handle();
 expectUpgrade($upgrade->fresh()->status === DatabaseUpgradeStatus::FAILED && str_contains((string) $upgrade->fresh()->message, 'replication slot of this upgrade disappeared'), 'A slot that disappears must stop the upgrade instead of losing rows.');
 $upgrade->update(['status' => DatabaseUpgradeStatus::STREAMING, 'message' => null, 'finished_at' => null]);
-$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|t|0|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|t|0|reserved\nVITO_READ_ONLY=off\n";
+$ssh->responses['VITO_SLOT|'] = "VITO_SLOT|vito_upgrade_{$upgrade->id}_0|true|0|reserved\nVITO_SLOT|vito_upgrade_{$upgrade->id}_1|true|0|reserved\nVITO_READ_ONLY=off\n";
 
 Queue::fake();
 $upgrades->finish($upgrade->fresh());

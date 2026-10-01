@@ -207,7 +207,8 @@ class PostgresLogicalReplication
         return [
             'slots' => array_map(fn (array $row): array => [
                 'name' => $row[0],
-                'active' => ($row[1] ?? 'f') === 't',
+                // A boolean concatenated into text reads "true", while psql prints a boolean column as "t".
+                'active' => in_array($row[1] ?? '', ['t', 'true', 'on', '1'], true),
                 'lag_bytes' => (int) ($row[2] ?? 0),
                 'wal_status' => $row[3] ?? '',
             ], self::rows($output, 'VITO_SLOT')),
