@@ -268,8 +268,9 @@ $prepared = $ssh->ran('pg-old', 'CREATE PUBLICATION');
 expectUpgrade(str_contains($prepared, "'{$upgrade->username}' '".$address($target)."/32'") && ! str_contains($prepared, $upgrade->password), 'pg_hba.conf must allow the new server only, without logging the password.');
 expectUpgrade(str_contains($prepared, "wal_level = 'logical'") && str_contains($prepared, 'max_replication_slots = 11') && str_contains($prepared, 'REPLICA IDENTITY FULL'), 'The old server must get the settings and replica identities logical replication needs.');
 foreach (['app', 'shop'] as $database) {
-    expectUpgrade(str_contains($prepared, "-d '{$database}' -c \"CREATE PUBLICATION :\\\"pub\\\" FOR ALL TABLES\""), "The database {$database} must be published.");
+    expectUpgrade(str_contains($prepared, "-d '{$database}' -v pub='vito_upgrade_{$upgrade->id}'"), "The database {$database} must be published.");
 }
+expectUpgrade(str_contains($prepared, "CREATE PUBLICATION %I FOR ALL TABLES"), 'The publication must be created from a statement psql can parse.');
 
 $passfile = $ssh->writes['pg-new:/var/lib/postgresql/.vito-upgrade-'.$upgrade->id.'.pgpass'] ?? null;
 expectUpgrade($passfile !== null && $passfile['owner'] === 'postgres' && str_contains($passfile['content'], $address($source).':5432:*:'.$upgrade->username.':'.$upgrade->password), 'The new server must read the password from a passfile.');
@@ -278,7 +279,7 @@ expectUpgrade(str_contains($roles, 'CREATE ROLE app') && str_contains($roles, 'S
 
 $copy = $ssh->ran('pg-new', 'systemd-run');
 foreach ([
-    '"$PG_DUMP" -d "$CONN" --schema-only --no-publications --no-subscriptions', 'CREATE SUBSCRIPTION :\"sub\" CONNECTION :\'conn\' PUBLICATION :\"pub\" WITH (copy_data = true, streaming = on)',
+    '"$PG_DUMP" -d "$CONN" --schema-only --no-publications --no-subscriptions', 'CREATE SUBSCRIPTION :"sub" CONNECTION :\'conn\' PUBLICATION :"pub" WITH (copy_data = true, streaming = on);',
     'host='.$address($source).' port=5432 user='.$upgrade->username.' dbname=app', 'sslmode=require', "vito_upgrade_{$upgrade->id}_0", "vito_upgrade_{$upgrade->id}_1",
 ] as $needle) {
     expectUpgrade(str_contains($copy, $needle), "The copy script must contain {$needle}.");
@@ -362,11 +363,17 @@ Queue::fake();
 Artisan::call('database-replicas:check');
 expectUpgrade(Queue::pushed(RunDatabaseUpgradeJob::class)->count() === 1, 'An upgrade Vito stopped watching must be picked up again.');
 
-// psql only accepts a backslash meta-command from a file or on its own, never mixed into -c with SQL: putting
-// \gexec there answered "syntax error at or near \\" on the real terminal while every faked test passed.
+// psql reads a -c argument as plain SQL for the server: it interpolates no :'variable' and runs no backslash
+// command there, so both come back as "syntax error at or near" from a real terminal while every faked test passes.
+// Anything that needs either has to arrive on stdin.
 foreach (glob(dirname(__DIR__, 2).'/resources/views/ssh/database-upgrade/*.blade.php') as $script) {
     foreach (preg_split('/\R/', file_get_contents($script)) ?: [] as $line) {
-        expectUpgrade(preg_match('/ -c "[^"]*\\\\[a-z]/', $line) !== 1, 'A psql -c argument must not carry a backslash command: '.basename($script).' -> '.trim($line));
+        preg_match_all('/ -c "((?:[^"\\\\]|\\\\.)*)"/', $line, $arguments);
+
+        foreach ($arguments[1] as $argument) {
+            expectUpgrade(preg_match('/\\\\[a-z]|:\x27|:\\\\?"/', $argument) !== 1,
+                'A psql -c argument must carry plain SQL, not a variable or a backslash command: '.basename($script).' -> '.trim($line));
+        }
     }
 }
 
