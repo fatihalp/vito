@@ -6,7 +6,6 @@ use App\Actions\Projects\CreateProject;
 use App\Actions\Projects\UpdateProject;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
-use App\Models\PersonalAccessToken;
 use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -27,9 +26,10 @@ class ProjectController extends Controller
 
         $projects = user()->projects();
 
-        $token = user()->currentAccessToken();
-        if ($token instanceof PersonalAccessToken && $token->exists) {
-            $projects->whereIn('projects.id', $token->getProjectIds());
+        $scopedProjectIds = user()->tokenProjectIds();
+
+        if ($scopedProjectIds !== []) {
+            $projects->whereIn('projects.id', $scopedProjectIds);
         }
 
         return ProjectResource::collection($projects->get());

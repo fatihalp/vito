@@ -8,11 +8,15 @@ use Illuminate\Support\Facades\Validator;
 
 class EditSourceControl
 {
-    
-    public function edit(SourceControl $sourceControl, array $input): SourceControl
+    /**
+     * @param  array<string, mixed>  $input
+     *
+     * @throws ValidationException
+     */
+    public function edit(SourceControl $sourceControl, array $input, ?int $projectId): SourceControl
     {
         if ($sourceControl->isGithubApp()) {
-            return app(EditGithubAppSourceControl::class)->edit($sourceControl, $input);
+            return app(EditGithubAppSourceControl::class)->edit($sourceControl, $input, $projectId);
         }
 
         Validator::make($input, array_merge(
@@ -21,9 +25,7 @@ class EditSourceControl
         ))->validate();
 
         $sourceControl->profile = $input['name'];
-        $sourceControl->project_id = isset($input['global']) && $input['global']
-            ? null
-            : $sourceControl->user->currentProject?->id;
+        $sourceControl->project_id = $projectId;
         $sourceControl->provider_data = $sourceControl->provider()->editData($input);
 
         $sourceControl->save();

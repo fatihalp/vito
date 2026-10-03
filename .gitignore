@@ -42,3 +42,5 @@ opencode.json
 .opencode
 public/build/*
 /storage/framework/testing
+.agents/
+skills-lock.json

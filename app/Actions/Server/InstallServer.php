@@ -19,6 +19,8 @@ use Illuminate\Support\Sleep;
 
 class InstallServer
 {
+    private const MAX_WAIT_SECONDS = 180;
+
     protected Server $server;
 
     
@@ -26,19 +28,33 @@ class InstallServer
     {
         $this->server = $server;
 
-        $maxWait = 180;
+        $maxWait = self::MAX_WAIT_SECONDS;
+        $connected = false;
+        $lastError = null;
+
         while ($maxWait > 0) {
             if ($this->server->provider()->isRunning()) {
                 try {
                     $this->server->ssh()->connect();
+                    $connected = true;
+
                     break;
-                } catch (SSHConnectionError) {
-                    
+                } catch (SSHConnectionError $e) {
+                    $lastError = $e;
                 }
             }
+
             Sleep::sleep(10);
             $maxWait -= 10;
         }
+
+        if (! $connected) {
+            throw new SSHConnectionError(
+                'The server did not become reachable within '.self::MAX_WAIT_SECONDS.' seconds.',
+                previous: $lastError,
+            );
+        }
+
         $this->install();
         $this->server->update([
             'status' => ServerStatus::READY,

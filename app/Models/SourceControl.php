@@ -2,11 +2,10 @@
 
 namespace App\Models;
 
-use App\Traits\BelongsToProjectOrGlobal;
+use App\Traits\HasProjectScopedQueries;
 
 use App\SourceControlProviders\SourceControlProvider;
 use Database\Factories\SourceControlFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -15,7 +14,7 @@ use Illuminate\Validation\Rule;
 
 class SourceControl extends AbstractModel
 {
-    use BelongsToProjectOrGlobal;
+    use HasProjectScopedQueries;
     public const string PROVIDER_GITHUB_APP = 'github-app';
 
     
