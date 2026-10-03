@@ -3,6 +3,7 @@
 namespace App\Jobs\Site;
 
 use App\Actions\Site\Deploy;
+use App\Enums\DeploymentTrigger;
 use App\Facades\Notifier;
 use App\Models\ServerLog;
 use App\Models\Site;
@@ -34,7 +35,7 @@ class TriggerDeployFromWebhookJob implements ShouldQueue
             }
 
             try {
-                app(Deploy::class)->run($site);
+                app(Deploy::class)->run($site, trigger: DeploymentTrigger::WEBHOOK);
             } catch (Throwable $e) {
                 ServerLog::log($site->server, 'deploy-failed', $e->getMessage(), $site);
                 Log::error('webhook-deploy-failed', [

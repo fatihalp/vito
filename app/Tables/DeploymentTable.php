@@ -48,7 +48,7 @@ class DeploymentTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with('log', 'site');
+        $this->query->with('log', 'site', 'user', 'rolledBackBy');
 
         if ($this->overview) {
             $this->query->latest();
@@ -59,6 +59,8 @@ class DeploymentTable extends Table
     {
         return [
             Column::make('commit', 'Commit'),
+            Column::make('deployed_by', 'Deployed By')
+                ->value(fn (Deployment $deployment): ?string => $deployment->user?->name),
             DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
             EnumColumn::make('status', 'Status')->sortable(! $this->overview),
             Column::make('release', 'Release'),
@@ -72,6 +74,10 @@ class DeploymentTable extends Table
             Column::data('site_id'),
             Column::data('server_id', fn (Deployment $deployment) => $deployment->site->server_id),
             Column::data('active'),
+            Column::data('trigger', fn (Deployment $deployment): ?string => $deployment->trigger?->getText()),
+            Column::data('trigger_color', fn (Deployment $deployment): ?string => $deployment->trigger?->getColor()),
+            Column::data('rolled_back_by', fn (Deployment $deployment): ?string => $deployment->rolledBackBy?->name),
+            Column::data('rolled_back_at', fn (Deployment $deployment) => $deployment->rolled_back_at),
             Column::data('commit_data'),
             Column::data('log', fn (Deployment $deployment) => $deployment->log ? ServerLogResource::make($deployment->log) : null),
             ActionsColumn::make(),

@@ -116,6 +116,7 @@ class Site extends AbstractModel
                 dispatch(new DeleteSslJob($site->server, $ssl))->onQueue('ssh');
             });
             $site->deployments()->delete();
+            $site->envVersions()->delete();
             $site->deploymentScripts()->delete();
             $site->logs()->update(['site_id' => null]);
             $site->gitHook?->destroyHook();
@@ -196,6 +197,11 @@ class Site extends AbstractModel
     public function deployments(): HasMany
     {
         return $this->hasMany(Deployment::class);
+    }
+
+    public function envVersions(): HasMany
+    {
+        return $this->hasMany(EnvVersion::class);
     }
 
     

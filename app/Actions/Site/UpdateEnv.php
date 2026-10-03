@@ -3,10 +3,13 @@
 namespace App\Actions\Site;
 
 use App\Actions\SiteResource\SyncManagedEnvironment;
+use App\Enums\EnvVersionSource;
 use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
 use App\Jobs\Site\CheckAppDebugJob;
+use App\Models\EnvVersion;
 use App\Models\Site;
+use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -15,11 +18,17 @@ class UpdateEnv
     public function __construct(
         private SyncManagedEnvironment $managedEnvironment,
         private CheckAppDebug $appDebug,
+        private RecordEnvVersion $recordEnvVersion,
     ) {}
 
     
-    public function update(Site $site, array $input): void
-    {
+    public function update(
+        Site $site,
+        array $input,
+        ?User $user = null,
+        EnvVersionSource $source = EnvVersionSource::EDITOR,
+        ?EnvVersion $restoredFrom = null,
+    ): void {
         Validator::make($input, [
             'env' => ['nullable', 'string'],
             'variables' => ['nullable', 'array', 'min:1'],
@@ -49,8 +58,9 @@ class UpdateEnv
         }
 
         $path = $site->resolveEnvPath($input['path'] ?? null);
+        $existingRaw = $site->server->os()->readFile($path);
 
-        $variables = $this->resolveVariables($site, $input, $path, $hasVariables);
+        $variables = $this->resolveVariables($site, $input, $existingRaw, $hasVariables);
         $hasManagedVariables = $path === $site->resolveEnvPath()
             && $this->managedEnvironment->managed($site->loadMissing('resources')) !== [];
         if ($hasManagedVariables) {
@@ -58,7 +68,6 @@ class UpdateEnv
         }
 
         if ($hasVariables) {
-            $existingRaw = $site->getEnv($path);
             if ($existingRaw !== '') {
                 $liveParsed = EnvParser::parse($existingRaw);
                 $liveKeys = array_column($liveParsed, 'key');
@@ -85,10 +94,17 @@ class UpdateEnv
                 ? $this->managedEnvironment->enforceRaw($site, trim((string) ($input['env'] ?? null)))
                 : trim((string) ($input['env'] ?? null));
 
-            $variables = $this->resolveVariables($site, ['env' => $content], $path, false);
+            $variables = $this->resolveVariables($site, ['env' => $content], $existingRaw, false);
+        }
+
+        if (trim($content) === '') {
+            throw ValidationException::withMessages([
+                'env' => __('The .env file cannot be emptied.'),
+            ]);
         }
 
         $site->server->os()->write($path, $content, $site->user);
+        $this->recordEnvVersion->record($site, $path, $existingRaw, $content, $source, $user, $restoredFrom);
 
         $site->env_variables = $this->secretKeys($variables);
         $site->jsonUpdate('type_data', 'env_path', $path, save: false);
@@ -101,12 +117,12 @@ class UpdateEnv
     }
 
     
-    private function resolveVariables(Site $site, array $input, string $path, bool $hasVariables): array
+    private function resolveVariables(Site $site, array $input, string $existingRaw, bool $hasVariables): array
     {
         $secretKeys = array_flip(EnvParser::secretKeys($site->env_variables));
 
         if ($hasVariables) {
-            $live = EnvParser::parse($site->getEnv($path));
+            $live = EnvParser::parse($existingRaw);
 
             $this->guardAgainstWipingSecrets($input['variables'], $live, $secretKeys);
 

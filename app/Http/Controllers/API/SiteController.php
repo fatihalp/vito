@@ -13,6 +13,7 @@ use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
 use App\Actions\Site\UpdateVhostGeneration;
 use App\Actions\Site\UpdateWebDirectory;
+use App\Enums\DeploymentTrigger;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Exceptions\SSHError;
 use App\Http\Controllers\Controller;
@@ -113,7 +114,7 @@ class SiteController extends Controller
         $this->validateRoute($project, $server, $site);
 
         try {
-            $deployment = app(Deploy::class)->run($site);
+            $deployment = app(Deploy::class)->run($site, user: $request->user(), trigger: DeploymentTrigger::API);
 
             return new DeploymentResource($deployment);
         } catch (DeploymentScriptIsEmptyException) {
@@ -171,7 +172,7 @@ class SiteController extends Controller
 
         $this->validateRoute($project, $server, $site);
 
-        app(UpdateEnv::class)->update($site, $request->all());
+        app(UpdateEnv::class)->update($site, $request->all(), $request->user());
 
         return new SiteResource($site);
     }

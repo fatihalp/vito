@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeploymentStatus;
+use App\Enums\DeploymentTrigger;
 use Database\Factories\DeploymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,6 +22,10 @@ class Deployment extends AbstractModel
         'status',
         'release',
         'active',
+        'user_id',
+        'trigger',
+        'rolled_back_by_id',
+        'rolled_back_at',
     ];
 
     protected $casts = [
@@ -30,6 +35,10 @@ class Deployment extends AbstractModel
         'commit_data' => 'json',
         'active' => 'boolean',
         'status' => DeploymentStatus::class,
+        'user_id' => 'integer',
+        'trigger' => DeploymentTrigger::class,
+        'rolled_back_by_id' => 'integer',
+        'rolled_back_at' => 'datetime',
     ];
 
     protected static function booted(): void
@@ -69,6 +78,16 @@ class Deployment extends AbstractModel
     public function log(): BelongsTo
     {
         return $this->belongsTo(ServerLog::class, 'log_id');
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function rolledBackBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'rolled_back_by_id');
     }
 
     public function path(): string

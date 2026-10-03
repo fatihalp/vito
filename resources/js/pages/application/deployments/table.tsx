@@ -47,6 +47,24 @@ const deployedAtCell = ({ row, value }: CellRenderProps) => {
   );
 };
 
+const deployedByCell = ({ row }: CellRenderProps) => {
+  const deployment = row as unknown as Deployment;
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="inline-flex items-center gap-2">
+        <span>{deployment.deployed_by ?? (deployment.trigger ? 'System' : '—')}</span>
+        {deployment.trigger && deployment.trigger_color && <Badge variant={deployment.trigger_color}>{deployment.trigger}</Badge>}
+      </div>
+      {deployment.rolled_back_at && (
+        <span className="text-xs text-muted-foreground">
+          Rolled back by {deployment.rolled_back_by ?? 'System'} <DateTime date={deployment.rolled_back_at} relative />
+        </span>
+      )}
+    </div>
+  );
+};
+
 export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
   const dialog = useDialog();
 
@@ -58,7 +76,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
     <VitoTable
       tableData={deployments}
       showPagination={showPagination}
-      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell }}
+      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell, deployed_by: deployedByCell }}
       actions={(row: Row) => {
         const deployment = asRow<Deployment>(row, ['id', 'site_id', 'server_id']);
 

@@ -102,7 +102,6 @@ export default function HetznerPlanSelect({ value, onChange }: { value: string; 
                         <TableHead>RAM</TableHead>
                         <TableHead>Disk</TableHead>
                         <TableHead>Monthly</TableHead>
-                        <TableHead>Per CPU</TableHead>
                         <TableHead className="w-24"></TableHead>
                       </TableRow>
                     </TableHeader>
@@ -147,8 +146,12 @@ export default function HetznerPlanSelect({ value, onChange }: { value: string; 
                                 </span>
                               </TableCell>
                               <TableCell>{plan.disk} GB</TableCell>
-                              <TableCell>{money(plan.monthlyEur)}</TableCell>
-                              <TableCell>{money(plan.monthlyEur / plan.cpu)}</TableCell>
+                              <TableCell>
+                                <div className="grid gap-1">
+                                  <span>{money(plan.monthlyEur)}</span>
+                                  <span className="text-muted-foreground text-xs">{money(plan.monthlyEur / plan.cpu)} / CPU</span>
+                                </div>
+                              </TableCell>
 
                               <TableCell>
                                 {selected && (
