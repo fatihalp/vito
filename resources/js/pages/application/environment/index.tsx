@@ -397,6 +397,21 @@ function EnvironmentEditorContent() {
           </Alert>
         )}
 
+        {mode === 'variables' && !showHistory && hasDuplicates && (
+          <Alert variant="destructive">
+            <AlertCircleIcon className="size-4" />
+            <AlertDescription>
+              <div>
+                Duplicate keys: <span className="font-mono">{Array.from(duplicateKeys).join(', ')}</span>. Remove or rename them to save,
+                or edit the file in Classic mode.
+              </div>
+              <Button type="button" variant="link" className="h-auto p-0" onClick={() => setSearchFilter(Array.from(duplicateKeys)[0])}>
+                Show duplicates
+              </Button>
+            </AlertDescription>
+          </Alert>
+        )}
+
         <Card className="overflow-hidden border flex-1 flex flex-col min-h-[550px]">
           {showHistory ? (
             <EnvHistory
