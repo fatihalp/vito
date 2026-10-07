@@ -39,7 +39,7 @@ export default function EnvHistory({
     queryKey: ['siteEnvVersions', site.id, path],
     queryFn: async () => {
       const response = await axios.get(route('application.env-versions', { server: server.id, site: site.id }), { params: { path } });
-      return response.data.data as EnvVersion[];
+      return response.data as EnvVersion[];
     },
     retry: false,
     refetchOnWindowFocus: false,
