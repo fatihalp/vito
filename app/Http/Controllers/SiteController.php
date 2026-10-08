@@ -38,7 +38,7 @@ class SiteController extends Controller
 
         $sites = SiteTable::make($result['query'])
             ->withGrouping($result['groupBy'])
-            ->simplePaginate();
+            ->paginate();
 
         return Inertia::render('sites/index', [
             'sites' => $sites,
