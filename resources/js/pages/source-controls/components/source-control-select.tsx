@@ -25,11 +25,13 @@ export default function SourceControlSelect({
     },
   });
 
+  const selected = query.data?.find((sourceControl) => sourceControl.id.toString() === value);
+
   return (
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a provider'} />
+          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a provider'}>{selected?.name}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>
