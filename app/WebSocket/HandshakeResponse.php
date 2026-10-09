@@ -17,7 +17,7 @@ class HandshakeResponse extends Response
     /**
      * @param  string|int|float|bool|string[]  $value
      */
-    public function withHeader(string $name, $value): MessageInterface
+    public function withHeader($name, $value): MessageInterface
     {
         return parent::withHeader($name, $this->stringifyScalar($value));
     }
@@ -25,7 +25,7 @@ class HandshakeResponse extends Response
     /**
      * @param  string|int|float|bool|string[]  $value
      */
-    public function withAddedHeader(string $name, $value): MessageInterface
+    public function withAddedHeader($name, $value): MessageInterface
     {
         return parent::withAddedHeader($name, $this->stringifyScalar($value));
     }
