@@ -423,7 +423,9 @@ export default function CreateSitePage({
                       <AlertTitle>Site could not be created</AlertTitle>
                       <AlertDescription>
                         {generalErrors.map(([key, message]) => (
-                          <p key={key}>{message}</p>
+                          <p key={key} className="whitespace-pre-line">
+                            {message}
+                          </p>
                         ))}
                       </AlertDescription>
                     </Alert>
