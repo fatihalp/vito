@@ -4,6 +4,7 @@ namespace App\DNSProviders;
 
 use App\Models\DNSProvider as DNSProviderModel;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
@@ -65,30 +66,72 @@ class Cloudflare extends AbstractDNSProvider
         return [$credentials, $needsReconnect];
     }
 
+    /**
+     * Verifies the token can list zones, read records and create/delete a temporary TXT record.
+     *
+     * @throws ValidationException
+     */
     public function connect(array $credentials): bool
     {
-        try {
-            
-            
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer '.$credentials['token'],
-                'Content-Type' => 'application/json',
-            ])
-                ->baseUrl(self::API_BASE_URL)
-                ->get('zones', ['per_page' => 1]);
+        $client = Http::withToken($credentials['token'])->acceptJson()->baseUrl(self::API_BASE_URL);
 
-            if ($response->successful() && $response->json('success') !== false) {
-                return true;
+        try {
+            $zones = $client->get('zones', ['per_page' => 1]);
+            if (! $zones->successful()) {
+                $this->failConnect('The token was rejected by Cloudflare'.$this->describeError($zones).'. Make sure you pasted the token value (not the token ID) and that the token is active and not expired.');
             }
 
-            Log::error('Cloudflare connection failed', ['response' => $response->json()]);
+            $zone = $zones->json('result.0');
+            if (! $zone) {
+                $this->failConnect('The token cannot see any zones. Add the "Zone > Zone > Read" permission and include your domains under "Zone Resources".');
+            }
 
-            return false;
+            $records = $client->get("zones/{$zone['id']}/dns_records", ['per_page' => 1]);
+            if (! $records->successful()) {
+                $this->failConnect("The token cannot read DNS records of {$zone['name']}".$this->describeError($records).'. Add the "Zone > DNS > Edit" permission.');
+            }
+
+            $created = $client->post("zones/{$zone['id']}/dns_records", [
+                'type' => 'TXT',
+                'name' => '_vito-permission-check.'.$zone['name'],
+                'content' => 'vito-permission-check',
+                'ttl' => 60,
+            ]);
+            if (! $created->successful()) {
+                $this->failConnect("The token cannot create DNS records on {$zone['name']}".$this->describeError($created).'. Add the "Zone > DNS > Edit" permission. Note: "DNS Settings" is a different permission and is not enough.');
+            }
+
+            $deleted = $client->delete("zones/{$zone['id']}/dns_records/{$created->json('result.id')}");
+            if (! $deleted->successful()) {
+                $this->failConnect("The token created a test record but could not delete it".$this->describeError($deleted).". Remove the \"_vito-permission-check.{$zone['name']}\" TXT record manually and check the token's \"Zone > DNS > Edit\" permission.");
+            }
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Log::error('Cloudflare connection exception', ['error' => $e->getMessage()]);
-
-            return false;
+            $this->failConnect('Could not reach the Cloudflare API: '.$e->getMessage());
         }
+
+        return true;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function failConnect(string $problem): never
+    {
+        throw ValidationException::withMessages([
+            'token' => "Cloudflare token check failed: {$problem}\nFix the token in Cloudflare (My Profile > API Tokens > Edit), then try again.",
+        ]);
+    }
+
+    private function describeError(Response $response): string
+    {
+        Log::error('Cloudflare token check failed', ['status' => $response->status(), 'errors' => $response->json('errors')]);
+
+        $error = $response->json('errors')[0] ?? [];
+
+        return sprintf(' (Cloudflare: %s, code %s, HTTP %d)', $error['message'] ?? 'Unknown error', $error['code'] ?? 'n/a', $response->status());
     }
 
     public function getDomains(): array
