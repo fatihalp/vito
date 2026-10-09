@@ -180,10 +180,18 @@ class Cloudflare extends AbstractDNSProvider
 
             if (! $response->successful()) {
                 Log::error('Failed to create Cloudflare DNS record', ['domainId' => $domainId, 'input' => $recordData, 'response' => $response->json()]);
-                throw ValidationException::withMessages(['record' => 'Failed to create DNS record: '.($response->json('errors')[0]['message'] ?? 'Unknown error')]);
+                $error = $response->json('errors')[0] ?? [];
+                throw ValidationException::withMessages(['record' => sprintf(
+                    "Failed to create DNS record: %s (Cloudflare code %s, HTTP %d).\nWhat to do: open your Cloudflare API token and make sure it has Zone > DNS > Edit permission and includes this domain's zone (and no IP restriction blocking this server). Then update the token in Settings > DNS Providers and try again.",
+                    $error['message'] ?? 'Unknown error',
+                    $error['code'] ?? 'n/a',
+                    $response->status(),
+                )]);
             }
 
             return $response->json('result');
+        } catch (ValidationException $e) {
+            throw $e;
         } catch (Throwable $e) {
             Log::error('Cloudflare createRecord exception', ['error' => $e->getMessage()]);
             throw ValidationException::withMessages(['record' => 'Failed to create DNS record: '.$e->getMessage()]);
