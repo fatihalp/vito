@@ -4,7 +4,6 @@ namespace App\Actions\Site;
 
 use App\Models\Server;
 use App\Models\SourceControl;
-use App\Models\User;
 
 class GetSiteCreationDefaults
 {
@@ -15,30 +14,27 @@ class GetSiteCreationDefaults
      *     source_control_id: int|null
      * }
      */
-    public function get(Server $server, User $user): array
+    public function get(Server $server): array
     {
         $phpVersions = $server->installedPHPVersions();
 
         $lastSourceControlId = $server->sites()
             ->whereNotNull('source_control_id')
+            ->whereIn('source_control_id', SourceControl::usableForServer($server)->select('id'))
             ->latest('id')
             ->value('source_control_id');
 
         return [
             'php_version' => count($phpVersions) === 1 ? $phpVersions[0] : null,
-            'source_control_id' => $lastSourceControlId ?? $this->soleSourceControlId($server, $user),
+            'source_control_id' => $lastSourceControlId ?? $this->soleSourceControlId($server),
         ];
     }
 
     
-    private function soleSourceControlId(Server $server, User $user): ?int
+    private function soleSourceControlId(Server $server): ?int
     {
-        if ($server->project_id === null) {
-            return null;
-        }
+        $ids = SourceControl::usableForServer($server)->limit(2)->pluck('id');
 
-        $sourceControls = SourceControl::getByProjectId($server->project_id, $user)->get(['id']);
-
-        return $sourceControls->count() === 1 ? $sourceControls->first()->id : null;
+        return $ids->count() === 1 ? $ids->first() : null;
     }
 }
