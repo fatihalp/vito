@@ -6,6 +6,7 @@ use App\DTOs\DynamicField;
 use App\Models\Deployment;
 use App\Models\Site;
 use App\Models\SourceControl;
+use App\ValidationRules\BranchExistsRule;
 
 class Blank extends AbstractProxiedSiteType
 {
@@ -50,7 +51,7 @@ class Blank extends AbstractProxiedSiteType
         if (! empty($input['use_source_control'])) {
             $rules['source_control'] = SourceControl::siteValidationRules($this->site->server);
             $rules['repository'] = ['required'];
-            $rules['branch'] = ['required'];
+            $rules['branch'] = ['required', new BranchExistsRule($input['source_control'] ?? null, $input['repository'] ?? null)];
         }
 
         return $rules;

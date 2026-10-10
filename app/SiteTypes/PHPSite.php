@@ -14,6 +14,7 @@ use App\Tooling\YarnTooling;
 use App\Traits\NormalizesWebDirectory;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
+use App\ValidationRules\BranchExistsRule;
 
 class PHPSite extends AbstractSiteType
 {
@@ -77,6 +78,7 @@ class PHPSite extends AbstractSiteType
             ],
             'branch' => [
                 'required',
+                new BranchExistsRule($input['source_control'] ?? null, $input['repository'] ?? null),
             ],
             'composer' => [
                 'nullable',

@@ -34,6 +34,7 @@ use App\Traits\ParsesVitoLimits;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Throwable;
+use App\ValidationRules\BranchExistsRule;
 
 class VitoSite extends PHPSite
 {
@@ -88,6 +89,7 @@ class VitoSite extends PHPSite
             'branch' => [
                 'required',
                 'string',
+                new BranchExistsRule($input['source_control'] ?? null, $input['repository'] ?? null),
             ],
             'php_version' => [
                 'nullable',
