@@ -10,6 +10,7 @@ use App\Exceptions\SSHError;
 use App\Models\Deployment;
 use App\Models\SourceControl;
 use App\Models\Worker;
+use App\ValidationRules\BranchExistsRule;
 
 abstract class AbstractProxiedSiteType extends AbstractSiteType
 {
@@ -57,7 +58,7 @@ abstract class AbstractProxiedSiteType extends AbstractSiteType
         return [
             'source_control' => SourceControl::siteValidationRules($this->site->server),
             'repository' => ['required'],
-            'branch' => ['required'],
+            'branch' => ['required', new BranchExistsRule($input['source_control'] ?? null, $input['repository'] ?? null)],
             'port' => ['required', 'integer', 'between:1024,65535'],
             'start_command' => ['nullable', 'string', 'max:255', 'not_regex:/[\r\n]/'],
         ];
