@@ -211,8 +211,20 @@ export default function HostedDomains() {
               );
             }
 
+            const canInstallSsl =
+              hd.ssl_method === 'none' &&
+              hd.status === 'active' &&
+              !sslLocked &&
+              (!page.props.site.webserver_allowed_ssl_methods || page.props.site.webserver_allowed_ssl_methods.includes('letsencrypt'));
+
             return (
               <div className="flex items-center gap-2">
+                {canInstallSsl && (
+                  <Button variant="outline" size="sm" onClick={() => dialog.editHostedDomain.open({ hostedDomain: hd, installSsl: true })}>
+                    <LockIcon />
+                    Install SSL
+                  </Button>
+                )}
                 <ErrorIndicator error={hd.error} label={`Domain "${hd.domain}" error`} />
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>

@@ -30,10 +30,12 @@ export default function EditHostedDomain({
   open,
   onOpenChange,
   hostedDomain,
+  installSsl = false,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hostedDomain: HostedDomain;
+  installSsl?: boolean;
 }) {
   const { site } = usePage<{ site: Site }>().props;
   const isPrimary = hostedDomain.type === 'primary';
@@ -44,7 +46,7 @@ export default function EditHostedDomain({
   const form = useForm<EditForm>({
     domain: hostedDomain.domain,
     type: hostedDomain.type,
-    ssl_method: hostedDomain.ssl_method,
+    ssl_method: installSsl ? 'letsencrypt' : hostedDomain.ssl_method,
     ssl_id: hostedDomain.ssl_id ? String(hostedDomain.ssl_id) : '',
   });
 
@@ -79,8 +81,8 @@ export default function EditHostedDomain({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Edit Domain</DialogTitle>
-          <DialogDescription className="sr-only">Edit hosted domain</DialogDescription>
+          <DialogTitle>{installSsl ? `Install SSL for ${hostedDomain.domain}` : 'Edit Domain'}</DialogTitle>
+          <DialogDescription className="sr-only">{installSsl ? 'Install SSL certificate' : 'Edit hosted domain'}</DialogDescription>
         </DialogHeader>
         <Form className="p-4" id="edit-hosted-domain-form" onSubmit={submit}>
           <FormFields>
