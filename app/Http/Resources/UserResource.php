@@ -18,6 +18,8 @@ class UserResource extends JsonResource
             'is_admin' => $this->is_admin,
             'must_change_password' => (bool) $this->must_change_password,
             'two_factor_enabled' => (bool) $this->two_factor_secret,
+            'last_login_at' => $this->last_login_at,
+            'last_activity_at' => $this->last_activity_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'projects' => ProjectResource::collection($this->whenLoaded('projects')),

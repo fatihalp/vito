@@ -56,6 +56,28 @@ const columns: ColumnDef<User>[] = [
     },
   },
   {
+    accessorKey: 'last_login_at',
+    header: 'Last Login',
+    enableSorting: true,
+    cell: ({ row }) =>
+      row.original.last_login_at ? (
+        <DateTime date={row.original.last_login_at} format="YYYY-MM-DD HH:mm" />
+      ) : (
+        <span className="text-xs text-muted-foreground">Never</span>
+      ),
+  },
+  {
+    accessorKey: 'last_activity_at',
+    header: 'Last Activity',
+    enableSorting: true,
+    cell: ({ row }) =>
+      row.original.last_activity_at ? (
+        <DateTime date={row.original.last_activity_at} format="YYYY-MM-DD HH:mm" />
+      ) : (
+        <span className="text-xs text-muted-foreground">No activity yet</span>
+      ),
+  },
+  {
     accessorKey: 'created_at',
     header: 'Created At',
     enableSorting: true,

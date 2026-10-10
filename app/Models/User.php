@@ -46,6 +46,8 @@ class User extends Authenticatable
         'role' => UserRole::class,
         'is_admin' => 'boolean',
         'must_change_password' => 'boolean',
+        'last_login_at' => 'datetime',
+        'last_activity_at' => 'datetime',
     ];
 
     protected $appends = [];
