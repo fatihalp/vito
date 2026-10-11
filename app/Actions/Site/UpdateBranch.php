@@ -17,8 +17,9 @@ class UpdateBranch
         ])->validate();
 
         $site->branch = $input['branch'];
-        app(Git::class)->fetchOrigin($site);
-        app(Git::class)->checkout($site);
+        $path = $site->modernDeploymentEnabled() ? $site->basePath().'/source' : null;
+        app(Git::class)->fetchOrigin($site, path: $path);
+        app(Git::class)->checkout($site, path: $path);
         $site->save();
     }
 }
