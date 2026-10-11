@@ -25,7 +25,7 @@ class DatabaseReplicaTable extends Table
     {
         return [
             Column::make('cluster.primary.name', 'Primary')
-                ->link('servers.show', ['server' => ':primary_server_id']),
+                ->link('servers.show', ['server' => ':cluster.primary_server_id']),
             Column::make('replica.name', 'Replica')
                 ->link('servers.show', ['server' => ':replica_server_id']),
             BadgeColumn::make('status', 'Status')

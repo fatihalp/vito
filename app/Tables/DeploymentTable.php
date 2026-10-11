@@ -67,7 +67,7 @@ class DeploymentTable extends Table
             TextColumn::make('id', 'ID')
                 ->sortable(! $this->overview)
                 ->link('application.deployments.show', [
-                    'server' => ':server_id',
+                    'server' => ':site.server_id',
                     'site' => ':site_id',
                     'deployment' => ':id',
                 ]),
