@@ -84,7 +84,7 @@ function EnvironmentEditorContent() {
   const query = useQuery({
     queryKey: ['siteEnv', site.id, envPath],
     queryFn: async () => {
-      const response = await axios.get(route('application.env', { server: server.id, site: site.id }), {
+      const response = await axios.get(`/servers/${server.id}/sites/${site.id}/env`, {
         params: { env: envPath },
       });
       setCanEdit(response.data?.can_edit ?? false);
@@ -137,7 +137,7 @@ function EnvironmentEditorContent() {
         : { env: rawContent, path: envPath },
     );
 
-    form.put(route('application.update-env', { server: server.id, site: site.id }), {
+    form.put(`/servers/${server.id}/sites/${site.id}/env`, {
       preserveScroll: true,
       onSuccess: () => {
         setVariablesDirty(false);
@@ -195,10 +195,7 @@ function EnvironmentEditorContent() {
 
   const parseRawContent = async (content: string) => {
     const response = await axios.post(
-      route('application.parse-env', {
-        server: server.id,
-        site: site.id,
-      }),
+      `/servers/${server.id}/sites/${site.id}/env/parse`,
       { content },
     );
 
@@ -223,10 +220,7 @@ function EnvironmentEditorContent() {
       setIsSwitching(true);
       try {
         const response = await axios.post(
-          route('application.stringify-env', {
-            server: server.id,
-            site: site.id,
-          }),
+          `/servers/${server.id}/sites/${site.id}/env/stringify`,
           {
             variables: variables.map((v) => ({ key: v.key, value: v.value })),
           },
@@ -295,7 +289,7 @@ function EnvironmentEditorContent() {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 cursor-pointer">
-              <Link href={route('application', { server: server.id, site: site.id })}>
+              <Link href={`/servers/${server.id}/sites/${site.id}`}>
                 <ArrowLeftIcon className="size-4" />
                 <span>Back to site</span>
               </Link>

@@ -56,7 +56,7 @@ export default function DatabaseReplicas() {
               </Button>
             ) : (
               <Button variant="outline" asChild>
-                <Link href={route('database-replicas', { server: cluster.primary_server_id })}>Go to primary</Link>
+                <Link href={`/servers/${cluster.primary_server_id}/database-replicas`}>Go to primary</Link>
               </Button>
             )}
           </div>
@@ -82,7 +82,7 @@ export default function DatabaseReplicas() {
                         description: 'Vito continues from the last finished step. It does not stop the old primary or promote the replica again.',
                         confirmLabel: 'Continue',
                         method: 'post',
-                        url: route('database-replicas.failover.retry', { server: server.id }),
+                        url: `/servers/${server.id}/database-replicas/failover/retry`,
                       })
                     }
                   >
@@ -126,7 +126,7 @@ export default function DatabaseReplicas() {
                   </p>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={route('networks.servers', { network: cluster.network.id })}>Open network</Link>
+                  <Link href={`/networks/${cluster.network.id}/servers`}>Open network</Link>
                 </Button>
               </div>
               {cluster.network.nodes.map((node) => (

@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Head, Link, usePage, usePoll } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -109,7 +110,7 @@ export default function ShowDatabaseReplica() {
         <div className="flex items-center gap-1">
           {PERIODS.map((period) => (
             <Button key={period} size="sm" variant={period === page.props.period ? 'default' : 'outline'} asChild>
-              <Link href={route('database-replicas.show', { server: replica.primary_server_id, databaseReplica: replica.id, period })} preserveScroll>
+              <Link href={withQuery(`/servers/${replica.primary_server_id}/database-replicas/${replica.id}`, { period: period })} preserveScroll>
                 {period}
               </Link>
             </Button>

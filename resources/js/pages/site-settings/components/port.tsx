@@ -12,8 +12,7 @@ export default function Port({ site, children }: { site: Site; children: ReactNo
       description="The port your application listens on. The VHost will be regenerated when you save."
       initialValue={site.port?.toString() ?? ''}
       fieldName="port"
-      routeName="site-settings.update-port"
-      routeParams={{ server: site.server_id, site: site.id }}
+      url={`/servers/${site.server_id}/sites/${site.id}/settings/port`}
       trigger={children}
     >
       {(form) => (

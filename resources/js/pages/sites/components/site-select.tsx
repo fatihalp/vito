@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { type Site } from '@/types/site';
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -70,11 +71,7 @@ export default function SiteSelect({
     queryKey: ['sites', activeCurrentServerId, debouncedQuery],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await axios.get(
-        route('sites.json', {
-          current_server_id: activeCurrentServerId,
-          query: debouncedQuery || '',
-          page: pageParam,
-        }),
+        withQuery("/sites/json", { current_server_id: activeCurrentServerId, query: debouncedQuery || '', page: pageParam }),
       );
       return response.data;
     },

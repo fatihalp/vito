@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
 import { Badge } from '@/components/ui/badge';
@@ -109,29 +110,28 @@ function serverQuickLinks(server: OverviewServer, userId: number): QuickLink[] {
     .getRecentVisitedServerPages(userId, server.id, 3)
     .map((key): QuickLink | null => {
       const page = SERVER_NAV_PAGES.find((candidate) => candidate.key === key);
-      return page ? { key, label: page.label, href: route(page.routeName, { server: server.id }), icon: page.icon } : null;
+      return page ? { key, label: page.label, href: `/servers/${server.id}${page.path}`, icon: page.icon } : null;
     })
     .filter((link): link is QuickLink => link !== null);
 }
 
-const SITE_PAGE_META: Record<string, { label: string; routeName: string; icon: LucideIcon }> = {
-  Application: { label: 'Application', routeName: 'application', icon: LayoutGridIcon },
-  Topology: { label: 'Topology', routeName: 'site-topology', icon: LayersIcon },
-  Resources: { label: 'Resources', routeName: 'site-resources', icon: BoxIcon },
-  Domains: { label: 'Domains', routeName: 'hosted-domains', icon: GlobeIcon },
-  Commands: { label: 'Commands', routeName: 'commands', icon: TerminalIcon },
-  Workers: { label: 'Workers', routeName: 'workers.site', icon: ListEndIcon },
-  Settings: { label: 'Settings', routeName: 'site-settings', icon: Settings2Icon },
+const SITE_PAGE_META: Record<string, { label: string; path: string; icon: LucideIcon }> = {
+  Application: { label: 'Application', path: '', icon: LayoutGridIcon },
+  Topology: { label: 'Topology', path: '/topology', icon: LayersIcon },
+  Resources: { label: 'Resources', path: '/resources', icon: BoxIcon },
+  Domains: { label: 'Domains', path: '/domains', icon: GlobeIcon },
+  Commands: { label: 'Commands', path: '/commands', icon: TerminalIcon },
+  Workers: { label: 'Workers', path: '/workers', icon: ListEndIcon },
+  Settings: { label: 'Settings', path: '/settings', icon: Settings2Icon },
 };
 
 function siteQuickLinks(site: OverviewSite, userId: number): QuickLink[] {
-  const routeParams = { server: site.server_id, site: site.id };
 
   return siteHelper
     .getRecentVisitedSitePages(userId, site.id, 3)
     .map((key): QuickLink | null => {
       const meta = SITE_PAGE_META[key];
-      return meta ? { key, label: meta.label, href: route(meta.routeName, routeParams), icon: meta.icon } : null;
+      return meta ? { key, label: meta.label, href: `/servers/${site.server_id}/sites/${site.id}${meta.path}`, icon: meta.icon } : null;
     })
     .filter((link): link is QuickLink => link !== null);
 }
@@ -359,7 +359,7 @@ export default function Overview() {
             {enabledWidgets.has('servers') && (
               <QuickAccessCard
                 title="Recent servers"
-                viewAllHref={route('servers')}
+                viewAllHref={"/servers"}
                 emptyText="No servers found."
                 loading={isLoading}
                 count={recentServers.length}
@@ -368,7 +368,7 @@ export default function Overview() {
                 {recentServers.map((server) => (
                   <ResourceRow
                     key={server.id}
-                    href={route('servers.show', { server: server.id })}
+                    href={`/servers/${server.id}`}
                     icon={ServerIcon}
                     title={server.name}
                     subtitle={<span className="font-mono">{server.ip}</span>}
@@ -387,7 +387,7 @@ export default function Overview() {
             {enabledWidgets.has('sites') && (
               <QuickAccessCard
                 title="Recent sites"
-                viewAllHref={route('sites.all', { project: 'all' })}
+                viewAllHref={withQuery("/sites", { project: 'all' })}
                 emptyText="No sites found."
                 loading={isLoading}
                 count={recentSites.length}
@@ -396,7 +396,7 @@ export default function Overview() {
                 {recentSites.map((site) => (
                   <ResourceRow
                     key={site.id}
-                    href={route('application', { server: site.server_id, site: site.id })}
+                    href={`/servers/${site.server_id}/sites/${site.id}`}
                     icon={GlobeIcon}
                     title={site.domain}
                     subtitle={site.server_name}
@@ -415,7 +415,7 @@ export default function Overview() {
             {enabledWidgets.has('projects') && (
               <QuickAccessCard
                 title="Projects"
-                viewAllHref={route('projects')}
+                viewAllHref={"/settings/projects"}
                 emptyText="No projects found."
                 loading={isLoading}
                 count={projects.length}
@@ -424,7 +424,7 @@ export default function Overview() {
                 {projects.map((project) => (
                   <ResourceRow
                     key={project.id}
-                    href={route('projects')}
+                    href={"/settings/projects"}
                     icon={FolderGit2Icon}
                     title={project.name}
                     subtitle={`${project.users_count} ${project.users_count === 1 ? 'user' : 'users'}`}
@@ -443,59 +443,59 @@ export default function Overview() {
             {enabledWidgets.has('server_providers') && (
               <QuickAccessCard
                 title="Server Providers"
-                viewAllHref={route('server-providers')}
+                viewAllHref={"/settings/server-providers"}
                 emptyText="No server providers configured."
                 loading={isLoading}
                 count={serverProviders.length}
                 onHide={() => toggleWidget('server_providers')}
               >
-                <ProviderRows items={serverProviders} href={route('server-providers')} />
+                <ProviderRows items={serverProviders} href={"/settings/server-providers"} />
               </QuickAccessCard>
             )}
 
             {enabledWidgets.has('source_controls') && (
               <QuickAccessCard
                 title="Source Controls"
-                viewAllHref={route('source-controls')}
+                viewAllHref={"/settings/source-controls"}
                 emptyText="No source controls configured."
                 loading={isLoading}
                 count={sourceControls.length}
                 onHide={() => toggleWidget('source_controls')}
               >
-                <ProviderRows items={sourceControls} href={route('source-controls')} />
+                <ProviderRows items={sourceControls} href={"/settings/source-controls"} />
               </QuickAccessCard>
             )}
 
             {enabledWidgets.has('storage_providers') && (
               <QuickAccessCard
                 title="Storage Providers"
-                viewAllHref={route('storage-providers')}
+                viewAllHref={"/settings/storage-providers"}
                 emptyText="No storage providers configured."
                 loading={isLoading}
                 count={storageProviders.length}
                 onHide={() => toggleWidget('storage_providers')}
               >
-                <ProviderRows items={storageProviders} href={route('storage-providers')} />
+                <ProviderRows items={storageProviders} href={"/settings/storage-providers"} />
               </QuickAccessCard>
             )}
 
             {enabledWidgets.has('dns_providers') && (
               <QuickAccessCard
                 title="DNS Providers"
-                viewAllHref={route('dns-providers')}
+                viewAllHref={"/settings/dns-providers"}
                 emptyText="No DNS providers configured."
                 loading={isLoading}
                 count={dnsProviders.length}
                 onHide={() => toggleWidget('dns_providers')}
               >
-                <ProviderRows items={dnsProviders} href={route('dns-providers')} />
+                <ProviderRows items={dnsProviders} href={"/settings/dns-providers"} />
               </QuickAccessCard>
             )}
 
             {enabledWidgets.has('backups') && (
               <QuickAccessCard
                 title="Backups"
-                viewAllHref={route('backups.all')}
+                viewAllHref={"/backups"}
                 emptyText="No backups configured."
                 loading={isLoading}
                 count={backups.length}
@@ -504,7 +504,7 @@ export default function Overview() {
                 {backups.map((backup) => (
                   <ResourceRow
                     key={backup.id}
-                    href={route('backups.all')}
+                    href={"/backups"}
                     icon={CloudUploadIcon}
                     title={backup.name}
                     subtitle={backup.server_name || 'Server'}
@@ -523,14 +523,14 @@ export default function Overview() {
             {enabledWidgets.has('domains') && (
               <QuickAccessCard
                 title="Domains"
-                viewAllHref={route('domains')}
+                viewAllHref={"/domains"}
                 emptyText="No domains configured."
                 loading={isLoading}
                 count={domains.length}
                 onHide={() => toggleWidget('domains')}
               >
                 {domains.map((domain) => (
-                  <ResourceRow key={domain.id} href={route('domains')} icon={GlobeIcon} title={domain.domain} subtitle={domain.provider_name} />
+                  <ResourceRow key={domain.id} href={"/domains"} icon={GlobeIcon} title={domain.domain} subtitle={domain.provider_name} />
                 ))}
               </QuickAccessCard>
             )}

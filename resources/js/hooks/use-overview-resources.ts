@@ -78,7 +78,7 @@ export function useOverviewResources(
     {
       queryKey: ['overview.resources', projectId ?? 'all', serverIds, siteIds, fallbackServerId],
       queryFn: async ({ signal }) => {
-        const response = await axios.get<OverviewResources>(route('overview.resources'), {
+        const response = await axios.get<OverviewResources>("/overview/resources", {
           signal,
           params: { servers: serverIds, sites: siteIds, fallback_server_id: fallbackServerId },
         });

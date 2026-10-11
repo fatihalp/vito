@@ -38,11 +38,11 @@ export default function Show() {
   const breadcrumbs: BreadcrumbItem[] = [
     {
       title: 'Commands',
-      href: route('commands', { server: server.id, site: site.id }),
+      href: `/servers/${server.id}/sites/${site.id}/commands`,
     },
     {
       title: command.name,
-      href: route('commands.show', { server: server.id, site: site.id, command: command.id }),
+      href: `/servers/${server.id}/sites/${site.id}/commands/${command.id}`,
     },
   ];
 

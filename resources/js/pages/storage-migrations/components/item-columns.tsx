@@ -27,7 +27,7 @@ function PreviewButton({ item, side, label }: { item: StorageMigrationItem; side
     setLoading(true);
     try {
       const { data } = await axios.get<{ url: string }>(
-        route('storage-migrations.items.preview', { storageMigration: page.props.storageMigration.id, item: item.id }),
+        `/storage-migrations/${page.props.storageMigration.id}/items/${item.id}/preview`,
         { params: { side } },
       );
       window.open(data.url, '_blank', 'noopener,noreferrer');

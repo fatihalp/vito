@@ -123,8 +123,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
 
     setLoadingDomains(true);
     try {
-      const routeName = refresh ? 'domains.refresh' : 'domains.available';
-      const response = await axios.get(route(routeName, { dnsProvider: providerId, all: 1 }));
+      const response = await axios.get(`/domains/${providerId}/${refresh ? 'refresh' : 'available'}?all=1`);
       const domains = (response.data || []) as ProviderDomain[];
       setAvailableDomains(domains);
 
@@ -143,7 +142,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
   const fetchProviders = async () => {
     setLoadingProviders(true);
     try {
-      const response = await axios.get(route('dns-providers.json'));
+      const response = await axios.get("/settings/dns-providers/json");
       const providers = (response.data || []) as DNSProvider[];
       setDnsProviders(providers);
 
@@ -210,10 +209,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
   const submit = (e: FormEvent) => {
     e.preventDefault();
     form.post(
-      route('hosted-domains.store', {
-        server: site.server_id,
-        site: site.id,
-      }),
+      `/servers/${site.server_id}/sites/${site.id}/domains`,
       {
         onSuccess: () => onOpenChange(false),
       },

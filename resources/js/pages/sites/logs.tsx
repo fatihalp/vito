@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
@@ -33,10 +34,7 @@ export default function ShowSite() {
           {page.props.site.php_version && (
             <Button variant="outline" asChild>
               <Link
-                href={route('logs.services', {
-                  server: page.props.server.id,
-                  key: `site:${page.props.site.id}:laravel`,
-                })}
+                href={withQuery(`/servers/${page.props.server.id}/logs/services`, { key: `site:${page.props.site.id}:laravel` })}
               >
                 Laravel Log
               </Link>

@@ -98,8 +98,7 @@ export default function DomainPicker({
 
     setLoadingDomains(true);
     try {
-      const routeName = refresh ? 'domains.refresh' : 'domains.available';
-      const response = await axios.get(route(routeName, { dnsProvider: providerId, all: 1 }));
+      const response = await axios.get(`/domains/${providerId}/${refresh ? 'refresh' : 'available'}?all=1`);
       const domains = (response.data || []) as ProviderDomain[];
       setAvailableDomains(domains);
 
@@ -116,7 +115,7 @@ export default function DomainPicker({
   const fetchProviders = async () => {
     setLoadingProviders(true);
     try {
-      const response = await axios.get(route('dns-providers.json'));
+      const response = await axios.get("/settings/dns-providers/json");
       const providers = (response.data || []) as DNSProvider[];
       setDnsProviders(providers);
       const connected = providers.filter((p) => p.connected);

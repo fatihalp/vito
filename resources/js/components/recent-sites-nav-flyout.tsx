@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
 import { ArrowRightIcon, GlobeIcon } from 'lucide-react';
@@ -17,7 +18,7 @@ export default function RecentSitesNavFlyout() {
           Recent Sites
         </span>
         <Link
-          href={route('sites.all', { project: 'all' })}
+          href={withQuery("/sites", { project: 'all' })}
           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
         >
           <span>All</span>
@@ -34,7 +35,7 @@ export default function RecentSitesNavFlyout() {
           {(sites ?? []).slice(0, 10).map((site) => (
             <Link
               key={site.id}
-              href={route('application', { server: site.server_id, site: site.id })}
+              href={`/servers/${site.server_id}/sites/${site.id}`}
               className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs hover:bg-accent hover:text-accent-foreground transition-colors group"
               prefetch
             >
@@ -57,7 +58,7 @@ export default function RecentSitesNavFlyout() {
         <div className="py-3 px-2 text-center text-xs text-muted-foreground">
           <p>No sites found.</p>
           <Link
-            href={route('sites.all', { project: 'all' })}
+            href={withQuery("/sites", { project: 'all' })}
             className="text-primary hover:underline mt-1 inline-block text-xs font-medium"
           >
             Browse sites

@@ -38,7 +38,7 @@ export default function EnvHistory({
   const versions = useQuery({
     queryKey: ['siteEnvVersions', site.id, path],
     queryFn: async () => {
-      const response = await axios.get(route('application.env-versions', { server: server.id, site: site.id }), { params: { path } });
+      const response = await axios.get(`/servers/${server.id}/sites/${site.id}/env/versions`, { params: { path } });
       return response.data as EnvVersion[];
     },
     retry: false,
@@ -55,7 +55,7 @@ export default function EnvHistory({
     queryKey: ['siteEnvVersion', site.id, selectedId],
     queryFn: async () => {
       const response = await axios.get(
-        route('application.env-versions.show', { server: server.id, site: site.id, envVersion: selectedId as number }),
+        `/servers/${server.id}/sites/${site.id}/env/versions/${selectedId as number}`,
       );
       return response.data.content as string;
     },
@@ -75,7 +75,7 @@ export default function EnvHistory({
         : 'The .env file on the server will be replaced with this version. The current content stays in the history.',
       confirmLabel: 'Restore',
       method: 'post',
-      url: route('application.env-versions.restore', { server: server.id, site: site.id, envVersion: version.id }),
+      url: `/servers/${server.id}/sites/${site.id}/env/versions/${version.id}/restore`,
       onSuccess: () => {
         void versions.refetch();
         onRestored();

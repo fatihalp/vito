@@ -309,6 +309,7 @@ class SiteSettingController extends Controller
             : app(GenerateNginxConfig::class);
     }
 
+    #[Post('/toggle-force-ssl', name: 'site-settings.toggle-force-ssl')]
     public function toggleForceSsl(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
@@ -329,6 +330,7 @@ class SiteSettingController extends Controller
         return back()->with('success', $enabled ? 'Force SSL enabled successfully.' : 'Force SSL disabled successfully.');
     }
 
+    #[Post('/toggle-stats', name: 'site-settings.toggle-stats')]
     public function toggleStats(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);

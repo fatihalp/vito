@@ -35,14 +35,14 @@ type Page = {
 const siteCell = ({ row, value }: CellRenderProps) => (
   <div className="flex min-w-48 flex-wrap items-baseline gap-x-2 gap-y-1 py-1">
     <Link
-      href={route('application', { server: row.server_id as number, site: row.id as number })}
+      href={`/servers/${row.server_id as number}/sites/${row.id as number}`}
       className="text-foreground font-medium hover:underline"
       prefetch
     >
       {String(value)}
     </Link>
     <Link
-      href={route('servers.show', { server: row.server_id as number })}
+      href={`/servers/${row.server_id as number}`}
       className="text-muted-foreground text-sm hover:underline"
     >
       ({row.server_name as string})
@@ -186,8 +186,8 @@ export default function Sites() {
                   <Link
                     href={
                       page.props.server
-                        ? route('sites.create', { server: page.props.server.id })
-                        : route('sites.all.create')
+                        ? `/servers/${page.props.server.id}/sites/create`
+                        : "/sites/create"
                     }
                   >
                     <PlusIcon />
@@ -203,7 +203,7 @@ export default function Sites() {
           }}
           onRowClick={(row: Row) => {
             const site = asRow<{ id: number; server_id: number }>(row, ['id', 'server_id']);
-            router.visit(route('application', { server: site.server_id, site: site.id }));
+            router.visit(`/servers/${site.server_id}/sites/${site.id}`);
           }}
         />
       </Container>

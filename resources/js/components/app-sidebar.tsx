@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { NavUser } from '@/components/nav-user';
 import { cn, currentPath } from '@/lib/utils';
 import {
@@ -100,41 +101,41 @@ export function AppSidebar({
   const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
-      href: route('overview'),
-      onlyActivePath: route('overview'),
+      href: "/overview",
+      onlyActivePath: "/overview",
       icon: LayoutDashboardIcon,
     },
     {
       title: 'Servers',
-      href: route('servers'),
+      href: "/servers",
       icon: ServerIcon,
       badge: serversCount,
       flyoutContent: <RecentServersFlyout />,
     },
     {
       title: 'Sites',
-      href: route('sites.all', { project: 'all' }),
-      onlyActivePath: route('sites.all'),
+      href: withQuery("/sites", { project: 'all' }),
+      onlyActivePath: "/sites",
       icon: MousePointerClickIcon,
       badge: sitesCount,
       flyoutContent: <RecentSitesNavFlyout />,
     },
     {
       title: 'Users',
-      href: route('users'),
-      onlyActivePath: route('users'),
+      href: "/admin/users",
+      onlyActivePath: "/admin/users",
       icon: UsersIcon,
       hidden: !page.props.auth.user?.is_admin,
     },
     {
       title: 'Projects',
-      href: route('projects'),
-      onlyActivePath: route('projects'),
+      href: "/settings/projects",
+      onlyActivePath: "/settings/projects",
       icon: ListIcon,
     },
     {
       title: 'Settings',
-      href: route('settings'),
+      href: "/settings",
       icon: CogIcon,
     },
   ];
@@ -155,7 +156,7 @@ export function AppSidebar({
         <SidebarHeader className="min-h-10 justify-center border-b px-2.5 group-data-[state=collapsed]:px-1.5">
           <div className="flex items-center justify-between gap-2 group-data-[state=collapsed]:justify-center">
             <Link
-              href={route('overview')}
+              href={"/overview"}
               prefetch
               className="flex min-w-0 items-center gap-2 group-data-[state=collapsed]:hidden"
               aria-label={`Vito ${page.props.version}`}
@@ -192,7 +193,7 @@ export function AppSidebar({
                   >
                     <SidebarMenuButton
                       asChild
-                      isActive={item.onlyActivePath ? currentPath() === item.onlyActivePath : window.location.href.startsWith(item.href)}
+                      isActive={item.onlyActivePath ? currentPath() === item.onlyActivePath : (window.location.pathname + window.location.search).startsWith(item.href)}
                       tooltip={item.title}
                       hidden={item.hidden}
                       className="group-data-[state=collapsed]:size-8! group-data-[state=collapsed]:p-2! group-data-[state=collapsed]:justify-center"
@@ -264,7 +265,7 @@ export function AppSidebar({
                 <SidebarGroupContent>
                   <SidebarMenu>
                     {navGroup.items.map((item) => {
-                    const isActive = item.onlyActivePath ? currentPath() === item.onlyActivePath : window.location.href.startsWith(item.href);
+                    const isActive = item.onlyActivePath ? currentPath() === item.onlyActivePath : (window.location.pathname + window.location.search).startsWith(item.href);
 
                     if (item.children && item.children.length > 0) {
                       const groupActive =
@@ -274,7 +275,7 @@ export function AppSidebar({
                             ? false
                             : childItem.onlyActivePath
                               ? currentPath() === childItem.onlyActivePath
-                              : window.location.href.startsWith(childItem.href),
+                              : (window.location.pathname + window.location.search).startsWith(childItem.href),
                         );
 
                       return (
@@ -296,7 +297,7 @@ export function AppSidebar({
                                       isActive={
                                         childItem.onlyActivePath
                                           ? currentPath() === childItem.onlyActivePath
-                                          : window.location.href.startsWith(childItem.href)
+                                          : (window.location.pathname + window.location.search).startsWith(childItem.href)
                                       }
                                     >
                                       {childItem.external ? (

@@ -139,10 +139,7 @@ export default function CreateSitePage({
 
     axios
       .get<VitoDetectionResult>(
-        route('source-controls.vito-config', {
-          source_control: form.data.source_control,
-          repo: form.data.repository,
-        }),
+        `/settings/source-controls/${encodeURIComponent(String(form.data.source_control))}/vito-config/${encodeURIComponent(String(form.data.repository))}`,
         {
           params: { branch: form.data.branch || 'main' },
         },
@@ -254,7 +251,7 @@ export default function CreateSitePage({
     if (!targetServerId) return;
 
     axios
-      .get<SiteCreationDefaults>(route('sites.creation-defaults', { server: targetServerId }))
+      .get<SiteCreationDefaults>(`/servers/${encodeURIComponent(String(targetServerId))}/site-creation-defaults`)
       .then(({ data }) => {
         if (data.php_version && !form.data.php_version) {
           form.setData('php_version', data.php_version);
@@ -268,7 +265,7 @@ export default function CreateSitePage({
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    form.post(route('sites.store', { server: form.data.server || server?.id }));
+    form.post(`/servers/${form.data.server || server?.id}/sites`);
   };
 
   useEffect(() => {
@@ -307,8 +304,8 @@ export default function CreateSitePage({
   };
 
   const backRoute = isServerContext
-    ? route('sites', { server: server!.id })
-    : route('sites.all');
+    ? `/servers/${server!.id}/sites`
+    : "/sites";
 
   return (
     <PageLayout>

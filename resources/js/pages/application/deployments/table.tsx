@@ -89,11 +89,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
               <DropdownMenuContent align="start">
                 <DropdownMenuItem asChild>
                   <Link
-                    href={route('application.deployments.show', {
-                      server: deployment.server_id,
-                      site: deployment.site_id,
-                      deployment: deployment.id,
-                    })}
+                    href={`/servers/${encodeURIComponent(String(deployment.server_id))}/sites/${deployment.site_id}/deployments/${deployment.id}`}
                   >
                     View details
                   </Link>
@@ -115,11 +111,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
                         description: `Are you sure you want to rollback your site to version [${deployment.release}]?`,
                         confirmLabel: 'Rollback',
                         method: 'post',
-                        url: route('application.rollback', {
-                          server: deployment.server_id,
-                          site: deployment.site_id,
-                          deployment: deployment.id,
-                        }),
+                        url: `/servers/${encodeURIComponent(String(deployment.server_id))}/sites/${deployment.site_id}/rollback/${deployment.id}`,
                       })
                     }
                   >
@@ -135,11 +127,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
                       variant: 'destructive',
                       confirmLabel: 'Delete',
                       method: 'delete',
-                      url: route('application.deployments.destroy', {
-                        server: deployment.server_id,
-                        site: deployment.site_id,
-                        deployment: deployment.id,
-                      }),
+                      url: `/servers/${encodeURIComponent(String(deployment.server_id))}/sites/${deployment.site_id}/deployments/${deployment.id}`,
                     })
                   }
                 >

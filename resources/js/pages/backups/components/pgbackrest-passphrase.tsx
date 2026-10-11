@@ -16,7 +16,7 @@ export default function PgBackRestPassphrase({ open, onOpenChange, backup }: { o
     }
 
     axios
-      .get<{ passphrase: string }>(route('backups.passphrase', { server: backup.server_id, backup: backup.id }))
+      .get<{ passphrase: string }>(`/servers/${backup.server_id}/backups/${backup.id}/passphrase`)
       .then(({ data }) => setPassphrase(data.passphrase))
       .catch(() => toast.error('Could not load the encryption passphrase.'));
   }, [open, backup.server_id, backup.id]);

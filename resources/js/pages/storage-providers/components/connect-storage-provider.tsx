@@ -131,7 +131,7 @@ export default function ConnectStorageProvider({
       return;
     }
 
-    form.post(route('storage-providers.store'), {
+    form.post("/settings/storage-providers", {
       onSuccess: () => {
         setOpen(false);
         if (onProviderAdded) {
@@ -169,7 +169,7 @@ export default function ConnectStorageProvider({
 
     const nativeForm = document.createElement('form');
     nativeForm.method = 'POST';
-    nativeForm.action = route('storage-providers.dropbox.redirect');
+    nativeForm.action = "/settings/storage-providers/dropbox/redirect";
     nativeForm.style.display = 'none';
 
     Object.entries(values).forEach(([name, value]) => {
@@ -287,7 +287,7 @@ export default function ConnectStorageProvider({
                 <AlertDescription>
                   <p>Create a Dropbox app with offline access enabled, then add this redirect URI to its OAuth settings:</p>
                   <code className="bg-muted block w-full rounded px-1.5 py-1 text-xs break-all mt-1">
-                    {route('storage-providers.dropbox.callback')}
+                    {"/settings/storage-providers/dropbox/callback"}
                   </code>
                   <p className="mt-1">Enter the app key and secret below, then continue to Dropbox to authorize access.</p>
                 </AlertDescription>

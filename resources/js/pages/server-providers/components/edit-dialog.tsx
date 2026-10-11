@@ -27,7 +27,7 @@ export default function ServerProviderEditDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.patch(route('server-providers.update', serverProvider.id), {
+    form.patch(`/settings/server-providers/${serverProvider.id}`, {
       onSuccess: () => onOpenChange(false),
     });
   };

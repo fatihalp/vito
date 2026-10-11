@@ -12,8 +12,7 @@ export default function ChangePHPVersion({ site, children }: { site: Site; child
       description="sr-only"
       initialValue={site.php_version || ''}
       fieldName="version"
-      routeName="site-settings.update-php-version"
-      routeParams={{ server: site.server_id, site: site.id }}
+      url={`/servers/${site.server_id}/sites/${site.id}/settings/php-version`}
       trigger={children}
     >
       {(form) => (

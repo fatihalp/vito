@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { type Server } from '@/types/server';
 import { useState, useEffect, useRef, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -74,11 +75,7 @@ export default function ServerSelect({
     queryKey: ['servers', page.props.auth.currentProject?.id, debouncedQuery, excludeSelf],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await axios.get(
-        route('servers.json', {
-          query: debouncedQuery || '',
-          page: pageParam,
-          exclude_self: excludeSelf ? 1 : undefined,
-        }),
+        withQuery("/servers/json", { query: debouncedQuery || '', page: pageParam, exclude_self: excludeSelf ? 1 : undefined }),
       );
       return response.data;
     },
@@ -197,7 +194,7 @@ export default function ServerSelect({
                       </span>
                       <div className="flex items-center gap-1 shrink-0">
                         <Link
-                          href={route('server-settings', { server: server.id })}
+                          href={`/servers/${server.id}/settings`}
                           onClick={(e) => {
                             e.stopPropagation();
                             setOpen(false);

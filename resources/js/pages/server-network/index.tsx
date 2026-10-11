@@ -34,7 +34,7 @@ export default function ServerNetwork() {
 
   const refresh = useCallback(() => {
     router.post(
-      route('servers.network.refresh', { server: serverId }),
+      `/servers/${serverId}/network/refresh`,
       {},
       {
         preserveScroll: true,
@@ -78,7 +78,7 @@ export default function ServerNetwork() {
                 <span className="flex flex-wrap items-center gap-2">
                   {member.network && (
                     <>
-                      <Link href={route('networks.show', { network: member.network.id })} className="font-medium underline">
+                      <Link href={`/networks/${member.network.id}`} className="font-medium underline">
                         {member.network.name}
                       </Link>
                       <Badge variant={member.network.type === 'wireguard' ? 'success' : 'info'}>{member.network.kind}</Badge>

@@ -52,7 +52,7 @@ export default function CronJobIndex() {
                   description:
                     'This action will connect to your server and perform a two-way synchronization of cron jobs. Vito will fetch any cron jobs created manually on the server, and verify the existence of cron jobs managed by Vito. If a cron job tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
                   confirmLabel: 'Sync cron jobs',
-                  url: route('cronjobs.sync', { server: page.props.server.id }),
+                  url: `/servers/${page.props.server.id}/cronjobs/sync`,
                   method: 'post',
                 })
               }

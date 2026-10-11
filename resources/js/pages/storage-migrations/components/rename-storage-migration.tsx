@@ -22,7 +22,7 @@ export default function RenameStorageMigration({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.patch(route('storage-migrations.update', { storageMigration: storageMigration.id }), {
+    form.patch(`/storage-migrations/${storageMigration.id}`, {
       onSuccess: () => onOpenChange(false),
     });
   };

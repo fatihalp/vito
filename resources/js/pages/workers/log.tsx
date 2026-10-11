@@ -64,7 +64,7 @@ function WorkerLogContent() {
   const query = useQuery({
     queryKey: ['workerLog', worker.id, lines],
     queryFn: async () => {
-      const response = await axios.get(route('workers.logs', { server: server.id, worker: worker.id }), {
+      const response = await axios.get(`/servers/${server.id}/workers/${worker.id}/logs`, {
         params: { lines },
       });
       return response.data.logs as string;
@@ -73,13 +73,13 @@ function WorkerLogContent() {
   });
 
   const backUrl = worker.site_id
-    ? route('workers.site', { server: server.id, site: worker.site_id })
-    : route('workers', { server: server.id });
+    ? `/servers/${server.id}/sites/${worker.site_id}/workers`
+    : `/servers/${server.id}/workers`;
 
   const executeAction = (type: 'start' | 'stop' | 'restart') => {
     setIsActionProcessing(type);
     router.post(
-      route(`workers.${type}`, { server: server.id, worker: worker.id }),
+      `/servers/${server.id}/workers/${worker.id}/${type}`,
       {},
       {
         preserveScroll: true,
@@ -96,7 +96,7 @@ function WorkerLogContent() {
         variant: 'destructive',
         confirmLabel: 'Stop',
         method: 'post',
-        url: route('workers.stop', { server: server.id, worker: worker.id }),
+        url: `/servers/${server.id}/workers/${worker.id}/stop`,
       });
       return;
     }
@@ -111,7 +111,7 @@ function WorkerLogContent() {
       variant: 'destructive',
       confirmLabel: 'Clear logs',
       method: 'post',
-      url: route('workers.clear-logs', { server: server.id, worker: worker.id }),
+      url: `/servers/${server.id}/workers/${worker.id}/clear-logs`,
     });
   };
 

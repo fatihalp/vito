@@ -31,7 +31,7 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
   });
 
   const load = async () => {
-    const { data } = await axios.get<{ setting: Setting }>(route('storage-migrations.settings'));
+    const { data } = await axios.get<{ setting: Setting }>("/storage-migrations/queue-settings");
     setSetting(data.setting);
     form.setData({
       max_processes: String(data.setting.max_processes),
@@ -48,7 +48,7 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    form.post(route('storage-migrations.settings.update'), {
+    form.post("/storage-migrations/queue-settings", {
       preserveScroll: true,
       onSuccess: () => void load(),
     });
@@ -57,7 +57,7 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
   const apply = async () => {
     setApplying(true);
     try {
-      await axios.post(route('storage-migrations.settings.apply'));
+      await axios.post("/storage-migrations/queue-settings/apply");
       toast.warning('Applied. The Horizon master process was restarted — your process supervisor must bring it back up.');
       await load();
     } catch {

@@ -404,7 +404,7 @@ export default function CreateServerPage({
 
   const fetchServerProviders = async () => {
     try {
-      const response = await axios.get<ServerProvider[]>(route('server-providers.json'));
+      const response = await axios.get<ServerProvider[]>("/settings/server-providers/json");
       const list = Array.isArray(response.data) ? response.data : (response.data as any)?.data || [];
       setProviders(list);
       if (list.length > 0 && form.data.server_provider === 0) {
@@ -418,10 +418,7 @@ export default function CreateServerPage({
   const fetchPlans = async (serverProvider: number, region: string) => {
     try {
       const res = await axios.get(
-        route('server-providers.plans', {
-          serverProvider: serverProvider,
-          region: region,
-        }),
+        `/settings/server-providers/${serverProvider}/regions/${encodeURIComponent(String(region))}/plans`,
       );
       setPlans(res.data || {});
     } catch (err: any) {
@@ -452,7 +449,7 @@ export default function CreateServerPage({
     setRegionsError(null);
     try {
       const regionsRes = await axios.get(
-        route('server-providers.regions', { serverProvider: serverProvider }),
+        `/settings/server-providers/${serverProvider}/regions`,
       );
       const data = regionsRes.data || {};
       if (Object.keys(data).length === 0) {
@@ -572,7 +569,7 @@ export default function CreateServerPage({
     if (!roleConfirmed) {
       return;
     }
-    form.post(route('servers.store'));
+    form.post("/servers");
   };
 
   useEffect(() => {
@@ -599,7 +596,7 @@ export default function CreateServerPage({
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Button variant="ghost" size="sm" asChild className="h-7 px-2 -ml-2 text-muted-foreground hover:text-foreground">
-              <Link href={route('servers')}>
+              <Link href={"/servers"}>
                 <ArrowLeftIcon className="mr-1 size-3.5" />
                 Back to servers
               </Link>
@@ -768,7 +765,7 @@ export default function CreateServerPage({
                                   asChild
                                   className="h-6 px-2 text-xs hover:bg-destructive/20 hover:text-destructive"
                                 >
-                                  <Link href={route('server-providers')}>Settings</Link>
+                                  <Link href={"/settings/server-providers"}>Settings</Link>
                                 </Button>
                               </div>
                             </div>
@@ -1157,7 +1154,7 @@ export default function CreateServerPage({
                   </Button>
                 ) : (
                   <Button variant="outline" asChild disabled={form.processing}>
-                    <Link href={route('servers')}>Cancel</Link>
+                    <Link href={"/servers"}>Cancel</Link>
                   </Button>
                 )}
               </div>

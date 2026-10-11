@@ -14,7 +14,7 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
   if (BUSY.includes(replica.status)) {
     return (
       <div className="flex items-center justify-end gap-1">
-        <Link href={`${route('database-replicas.show', { server, databaseReplica: replica.id })}#logs`} className="text-muted-foreground text-xs underline">
+        <Link href={`${`/servers/${server}/database-replicas/${replica.id}`}#logs`} className="text-muted-foreground text-xs underline">
           Logs
         </Link>
         <span className="flex h-8 w-8 items-center justify-center" aria-label={`Replica is ${replica.status}`}>
@@ -32,10 +32,10 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem asChild>
-            <Link href={route('database-replicas.show', { server, databaseReplica: replica.id })}>View</Link>
+            <Link href={`/servers/${server}/database-replicas/${replica.id}`}>View</Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild>
-            <Link href={`${route('database-replicas.show', { server, databaseReplica: replica.id })}#logs`}>View logs</Link>
+            <Link href={`${`/servers/${server}/database-replicas/${replica.id}`}#logs`}>View logs</Link>
           </DropdownMenuItem>
           {['ready', 'failed', 'needs_rebuild'].includes(replica.status) && (
             <DropdownMenuItem
@@ -46,7 +46,7 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
                     'Vito restores this server again from the latest pgBackRest backup and replaces its PostgreSQL data. Use it when the replica lost WAL it needed, setup failed, or it is a former primary.',
                   confirmLabel: 'Rebuild',
                   method: 'post',
-                  url: route('database-replicas.resync', { server, databaseReplica: replica.id }),
+                  url: `/servers/${server}/database-replicas/${replica.id}/resync`,
                 })
               }
             >
@@ -67,7 +67,7 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
                 variant: 'destructive',
                 confirmLabel: 'Delete',
                 method: 'delete',
-                url: route('database-replicas.destroy', { server, databaseReplica: replica.id }),
+                url: `/servers/${server}/database-replicas/${replica.id}`,
               })
             }
           >

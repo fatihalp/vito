@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Server } from '@/types/server';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ function CheckForUpdates({ server }: { server: Server }) {
   const form = useForm();
 
   const submit = () => {
-    form.post(route('servers.check-for-updates', server.id));
+    form.post(`/servers/${server.id}/check-for-updates`);
   };
 
   return (
@@ -30,7 +31,7 @@ function CheckConnection({ server }: { server: Server }) {
   const form = useForm();
 
   const submit = () => {
-    form.patch(route('servers.status', server.id));
+    form.patch(`/servers/${server.id}/status`);
   };
 
   return (
@@ -85,7 +86,7 @@ export default function ServerActions({
                 variant: 'default',
                 confirmLabel: 'Start Server',
                 method: 'post',
-                url: route('servers.start', server.id),
+                url: `/servers/${server.id}/start`,
               })
             }
           >
@@ -95,7 +96,7 @@ export default function ServerActions({
         )}
 
         <DropdownMenuItem asChild>
-          <Link href={route('servers.restart', { server: server.id, start: 1 })} className="flex items-center w-full cursor-pointer">
+          <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })} className="flex items-center w-full cursor-pointer">
             <RefreshCwIcon className="size-4 mr-2" />
             Restart
           </Link>
@@ -111,7 +112,7 @@ export default function ServerActions({
                 variant: 'destructive',
                 confirmLabel: 'Stop Server',
                 method: 'post',
-                url: route('servers.stop', server.id),
+                url: `/servers/${server.id}/stop`,
               })
             }
           >
@@ -127,7 +128,7 @@ export default function ServerActions({
           disabled={server.updates == 0 || server.status === 'updating'}
           asChild
         >
-          <Link href={route('servers.update', { server: server.id, start: 1 })} className="flex items-center w-full cursor-pointer">
+          <Link href={withQuery(`/servers/${server.id}/update`, { start: 1 })} className="flex items-center w-full cursor-pointer">
             Update packages
           </Link>
         </DropdownMenuItem>
@@ -135,7 +136,7 @@ export default function ServerActions({
           disabled={server.kernel_updates == 0 || server.status === 'updating'}
           asChild
         >
-          <Link href={route('servers.update', { server: server.id, type: 'kernel', start: 1 })} className="flex items-center w-full cursor-pointer">
+          <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel', start: 1 })} className="flex items-center w-full cursor-pointer">
             Update kernel
           </Link>
         </DropdownMenuItem>

@@ -128,7 +128,7 @@ export default function InstallService({ name, children }: { name?: string; chil
     e.preventDefault();
     if (!form.data.name) return;
 
-    form.post(route('services.store', { server: page.props.server.id }), {
+    form.post(`/servers/${page.props.server.id}/services`, {
       onSuccess: () => {
         setOpen(false);
         form.reset();

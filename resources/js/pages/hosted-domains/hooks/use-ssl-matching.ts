@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { useEffect, useRef, useState } from 'react';
 import { AvailableSsl } from '@/types/hosted-domain';
 import axios from 'axios';
@@ -38,7 +39,7 @@ export function useSslMatching({ serverId, siteId, domain, sslId, applySslSettin
     const timeoutId = setTimeout(() => {
       setLoadingSsls(true);
       axios
-        .get(route('hosted-domains.matching-ssls', { server: serverId, site: siteId, domain }), { signal: controller.signal })
+        .get(withQuery(`/servers/${serverId}/sites/${siteId}/domains/matching-ssls`, { domain: domain }), { signal: controller.signal })
         .then((response) => {
           const { certificates, best_match_id } = response.data;
           setMatchingSsls(certificates);

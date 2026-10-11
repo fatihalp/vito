@@ -8,7 +8,7 @@ function SimpleAction({ storageMigration, action, label, phase = 'all' }: { stor
   const form = useForm({ phase });
 
   const submit = () => {
-    form.post(route(`storage-migrations.${action}`, { storageMigration: storageMigration.id }), {
+    form.post(`/storage-migrations/${storageMigration.id}/${action}`, {
       preserveScroll: true,
     });
   };
@@ -33,7 +33,7 @@ function Cancel({ storageMigration }: { storageMigration: StorageMigration }) {
           variant: 'destructive',
           confirmLabel: 'Cancel migration',
           method: 'post',
-          url: route('storage-migrations.cancel', { storageMigration: storageMigration.id }),
+          url: `/storage-migrations/${storageMigration.id}/cancel`,
         })
       }
     >
@@ -55,7 +55,7 @@ function Delete({ storageMigration }: { storageMigration: StorageMigration }) {
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
-          url: route('storage-migrations.destroy', { storageMigration: storageMigration.id }),
+          url: `/storage-migrations/${storageMigration.id}`,
         })
       }
     >
@@ -77,7 +77,7 @@ export default function StorageMigrationActions({ storageMigration }: { storageM
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem asChild>
-            <Link href={route('storage-migrations.show', { storageMigration: storageMigration.id })}>View</Link>
+            <Link href={`/storage-migrations/${storageMigration.id}`}>View</Link>
           </DropdownMenuItem>
           <DropdownMenuItem onSelect={() => dialog.storageMigrationRename.open({ storageMigration })}>Rename</DropdownMenuItem>
 

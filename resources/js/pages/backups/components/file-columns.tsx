@@ -25,7 +25,7 @@ function Download({ file }: { file: BackupFile }) {
   const download = async () => {
     try {
       const { data } = await axios.get<{ url: string }>(
-        route('backup-files.download', { server: file.server_id, backup: file.backup_id, backupFile: file.id }),
+        `/servers/${file.server_id}/backups/${file.backup_id}/files/${file.id}/download`,
       );
       window.location.assign(data.url);
     } catch {
@@ -55,7 +55,7 @@ function Delete({ file }: { file: BackupFile }) {
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
-          url: route('backup-files.destroy', { server: file.server_id, backup: file.backup_id, backupFile: file.id }),
+          url: `/servers/${file.server_id}/backups/${file.backup_id}/files/${file.id}`,
         })
       }
     >

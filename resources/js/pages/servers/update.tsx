@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -68,7 +69,7 @@ export default function ServerUpdate() {
 
       try {
         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-        const response = await fetch(route('servers.update.trigger', { server: server.id }), {
+        const response = await fetch(`/servers/${server.id}/update/trigger`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -121,7 +122,7 @@ export default function ServerUpdate() {
       <Container className="max-w-5xl space-y-3.5 py-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
-            <Link href={route('servers.show', { server: server.id })}>
+            <Link href={`/servers/${server.id}`}>
               <ArrowLeftIcon className="size-3.5" />
               <span>Overview</span>
             </Link>
@@ -153,7 +154,7 @@ export default function ServerUpdate() {
               <span className="truncate">A restart is required to apply kernel or core system updates.</span>
             </div>
             <Button size="sm" asChild className="h-7 text-xs shrink-0 cursor-pointer" variant="outline">
-              <Link href={route('servers.restart', { server: server.id, start: 1 })}>
+              <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
                 Restart server
               </Link>
             </Button>
@@ -212,7 +213,7 @@ export default function ServerUpdate() {
               className="h-7.5 text-xs gap-1.5 cursor-pointer"
             >
               <Link
-                href={route('servers.check-for-updates', server.id)}
+                href={`/servers/${server.id}/check-for-updates`}
                 method="post"
                 as="button"
               >
@@ -233,7 +234,7 @@ export default function ServerUpdate() {
                 aria-label="Download log"
               >
                 <a
-                  href={route('logs.download', { server: server.id, log: activeLogId })}
+                  href={`/servers/${server.id}/logs/${activeLogId}/download`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { type Project } from '@/types/project';
 import { useState, useEffect, useRef } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
@@ -44,7 +45,7 @@ export function ProjectSelect({
   const { data, isFetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Project[]>({
     queryKey: ['projects', query],
     queryFn: async ({ pageParam = 1 }) => {
-      const response = await axios.get(route('projects.json', { query: query || '', page: pageParam }));
+      const response = await axios.get(withQuery("/settings/projects/json", { query: query || '', page: pageParam }));
       return response.data;
     },
     enabled: open || prefetch,

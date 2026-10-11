@@ -12,8 +12,7 @@ export default function WebDirectory({ site, children }: { site: Site; children:
       description={`The relative path of your website from ${site.path}/`}
       initialValue={site.web_directory || ''}
       fieldName="web_directory"
-      routeName="site-settings.update-web-directory"
-      routeParams={{ server: site.server_id, site: site.id }}
+      url={`/servers/${site.server_id}/sites/${site.id}/settings/web-directory`}
       trigger={children}
     >
       {(form) => (

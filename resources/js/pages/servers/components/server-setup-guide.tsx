@@ -90,7 +90,7 @@ export default function ServerSetupGuide({ server, securityScore }: ServerSetupG
             {!hasSites && (
               <div className="shrink-0">
                 <Button size="sm" variant="outline" className="h-7 px-3 text-xs cursor-pointer" asChild>
-                  <Link href={route('sites.create', { server: server.id })}>
+                  <Link href={`/servers/${server.id}/sites/create`}>
                     Create
                   </Link>
                 </Button>
@@ -117,7 +117,7 @@ export default function ServerSetupGuide({ server, securityScore }: ServerSetupG
             {!hasSshKeys && (
               <div className="shrink-0">
                 <Button size="sm" variant="outline" className="h-7 px-3 text-xs cursor-pointer" asChild>
-                  <Link href={route('server-ssh-keys', { server: server.id })}>
+                  <Link href={`/servers/${server.id}/ssh-keys`}>
                     Add key
                   </Link>
                 </Button>
@@ -144,7 +144,7 @@ export default function ServerSetupGuide({ server, securityScore }: ServerSetupG
             {!isSecure && (
               <div className="shrink-0">
                 <Button size="sm" variant="outline" className="h-7 px-3 text-xs cursor-pointer" asChild>
-                  <Link href={route('security', { server: server.id })}>
+                  <Link href={`/servers/${server.id}/security`}>
                     Configure
                   </Link>
                 </Button>

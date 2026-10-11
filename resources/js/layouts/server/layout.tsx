@@ -57,7 +57,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!isOffline) return;
 
-    const serverPath = new URL(route('servers.show', { server: server.id })).pathname;
+    const serverPath = `/servers/${server.id}`;
 
     return router.on('before', (event) => {
       const { method, url } = event.detail.visit;
@@ -105,14 +105,14 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
   const sidebarNavItems: NavItem[] = [
     {
       title: 'Overview',
-      href: route('servers.show', { server: serverId }),
-      onlyActivePath: route('servers.show', { server: serverId }),
+      href: `/servers/${serverId}`,
+      onlyActivePath: `/servers/${serverId}`,
       icon: HomeIcon,
     },
     {
       title: server.counts?.sites !== undefined ? `Sites (${server.counts.sites})` : 'Sites',
-      href: route('sites', { server: serverId }),
-      onlyActivePath: route('sites', { server: serverId }),
+      href: `/servers/${serverId}/sites`,
+      onlyActivePath: `/servers/${serverId}/sites`,
       icon: MousePointerClickIcon,
       isDisabled: isMenuDisabled,
       hidden: !services['webserver'] || Boolean(server.is_self),
@@ -120,31 +120,31 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     },
     {
       title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
-      href: route('databases', { server: serverId }),
+      href: `/servers/${serverId}/database`,
       icon: DatabaseIcon,
       isDisabled: isMenuDisabled,
       hidden: !services['database'],
       children: [
         {
           title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
-          href: route('databases', { server: serverId }),
-          onlyActivePath: route('databases', { server: serverId }),
+          href: `/servers/${serverId}/database`,
+          onlyActivePath: `/servers/${serverId}/database`,
           icon: DatabaseIcon,
         },
         {
           title: server.counts?.database_users !== undefined ? `Database users (${server.counts.database_users})` : 'Database users',
-          href: route('database-users', { server: serverId }),
+          href: `/servers/${serverId}/database/users`,
           icon: UsersIcon,
         },
         {
           title: 'Replication',
-          href: route('database-replicas', { server: serverId }),
+          href: `/servers/${serverId}/database-replicas`,
           icon: CopyIcon,
           hidden: services['database'] !== 'postgresql',
         },
         {
           title: 'Version upgrade',
-          href: route('database-upgrades', { server: serverId }),
+          href: `/servers/${serverId}/database-upgrades`,
           icon: ArrowUpCircleIcon,
           hidden: services['database'] !== 'postgresql',
         },
@@ -152,161 +152,161 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
     },
     {
       title: server.counts?.cronjobs !== undefined ? `CronJobs (${server.counts.cronjobs})` : 'CronJobs',
-      href: route('cronjobs', { server: serverId }),
-      onlyActivePath: route('cronjobs', { server: serverId }),
+      href: `/servers/${serverId}/cronjobs`,
+      onlyActivePath: `/servers/${serverId}/cronjobs`,
       icon: ClockIcon,
       isDisabled: isMenuDisabled,
     },
     {
       title: server.counts?.workers !== undefined ? `Workers (${server.counts.workers})` : 'Workers',
-      href: route('workers', { server: serverId }),
-      onlyActivePath: route('workers', { server: serverId }),
+      href: `/servers/${serverId}/workers`,
+      onlyActivePath: `/servers/${serverId}/workers`,
       icon: ListEndIcon,
       isDisabled: isMenuDisabled,
       hidden: !services['process_manager'],
     },
     {
       title: server.counts?.services !== undefined ? `Services (${server.counts.services})` : 'Services',
-      href: route('services', { server: serverId }),
-      onlyActivePath: route('services', { server: serverId }),
+      href: `/servers/${serverId}/services`,
+      onlyActivePath: `/servers/${serverId}/services`,
       icon: CogIcon,
       isDisabled: isMenuDisabled,
     },
     {
       title: server.counts?.backups !== undefined ? `Backups (${server.counts.backups})` : 'Backups',
-      href: route('backups', { server: serverId }),
-      onlyActivePath: route('backups', { server: serverId }),
+      href: `/servers/${serverId}/backups`,
+      onlyActivePath: `/servers/${serverId}/backups`,
       icon: CloudUploadIcon,
       isDisabled: isMenuDisabled,
     },
     {
       title: 'Security',
-      href: route('security', { server: serverId }),
+      href: `/servers/${serverId}/security`,
       icon: ShieldIcon,
       isDisabled: isMenuDisabled,
       children: [
         {
           title: 'Hardening',
-          href: route('security', { server: serverId }),
-          onlyActivePath: route('security', { server: serverId }),
+          href: `/servers/${serverId}/security`,
+          onlyActivePath: `/servers/${serverId}/security`,
           icon: ShieldIcon,
         },
         {
           title: 'Firewall',
-          href: route('firewall', { server: serverId }),
-          onlyActivePath: route('firewall', { server: serverId }),
+          href: `/servers/${serverId}/firewall`,
+          onlyActivePath: `/servers/${serverId}/firewall`,
           icon: FlameIcon,
           hidden: !services['firewall'],
         },
         {
           title: 'SSH Keys',
-          href: route('server-ssh-keys', { server: serverId }),
+          href: `/servers/${serverId}/ssh-keys`,
           icon: KeyIcon,
         },
         {
           title: 'SSL',
-          href: route('server-ssls', { server: serverId }),
+          href: `/servers/${serverId}/ssl`,
           icon: LockIcon,
         },
       ],
     },
     {
       title: 'System',
-      href: route('servers.network', { server: serverId }),
+      href: `/servers/${serverId}/network`,
       icon: NetworkIcon,
       isDisabled: isMenuDisabled,
       children: [
         {
           title: 'Network',
-          href: route('servers.network', { server: serverId }),
-          onlyActivePath: route('servers.network', { server: serverId }),
+          href: `/servers/${serverId}/network`,
+          onlyActivePath: `/servers/${serverId}/network`,
           icon: NetworkIcon,
         },
         {
           title: 'Features',
-          href: route('server-features', { server: serverId }),
-          onlyActivePath: route('server-features', { server: serverId }),
+          href: `/servers/${serverId}/features`,
+          onlyActivePath: `/servers/${serverId}/features`,
           icon: BoxIcon,
         },
         {
           title: 'Limits',
-          href: route('servers.limits', { server: serverId }),
-          onlyActivePath: route('servers.limits', { server: serverId }),
+          href: `/servers/${serverId}/limits`,
+          onlyActivePath: `/servers/${serverId}/limits`,
           icon: SlidersIcon,
         },
       ],
     },
     {
       title: 'Monitor & Logs',
-      href: route('monitoring', { server: serverId }),
+      href: `/servers/${serverId}/monitoring`,
       icon: ChartLineIcon,
       children: [
         {
           title: 'Metrics',
-          href: route('monitoring', { server: serverId }),
-          onlyActivePath: route('monitoring', { server: serverId }),
+          href: `/servers/${serverId}/monitoring`,
+          onlyActivePath: `/servers/${serverId}/monitoring`,
           icon: ChartLineIcon,
         },
         {
           title: 'Vito Events',
-          href: route('logs', { server: serverId }),
-          onlyActivePath: route('logs', { server: serverId }),
+          href: `/servers/${serverId}/logs`,
+          onlyActivePath: `/servers/${serverId}/logs`,
           icon: LogsIcon,
         },
         {
           title: 'Service logs',
-          href: route('logs.services', { server: serverId }),
-          onlyActivePath: route('logs.services', { server: serverId }),
+          href: `/servers/${serverId}/logs/services`,
+          onlyActivePath: `/servers/${serverId}/logs/services`,
           icon: ScrollTextIcon,
         },
         {
           title: 'Commands',
-          href: route('servers.commands', { server: serverId }),
-          onlyActivePath: route('servers.commands', { server: serverId }),
+          href: `/servers/${serverId}/commands`,
+          onlyActivePath: `/servers/${serverId}/commands`,
           icon: TerminalIcon,
         },
         {
           title: 'Custom logs',
-          href: route('logs.remote', { server: serverId }),
-          onlyActivePath: route('logs.remote', { server: serverId }),
+          href: `/servers/${serverId}/logs/remote`,
+          onlyActivePath: `/servers/${serverId}/logs/remote`,
           icon: CloudIcon,
         },
         {
           title: 'Processes',
-          href: route('monitoring.processes', { server: serverId }),
-          onlyActivePath: route('monitoring.processes', { server: serverId }),
+          href: `/servers/${serverId}/monitoring/processes`,
+          onlyActivePath: `/servers/${serverId}/monitoring/processes`,
           icon: CpuIcon,
         },
         {
           title: 'Server Information',
-          href: route('monitoring.information', { server: serverId }),
-          onlyActivePath: route('monitoring.information', { server: serverId }),
+          href: `/servers/${serverId}/monitoring/information`,
+          onlyActivePath: `/servers/${serverId}/monitoring/information`,
           icon: InfoIcon,
         },
         {
           title: 'Log Rotation',
-          href: route('monitoring.log-rotation', { server: serverId }),
-          onlyActivePath: route('monitoring.log-rotation', { server: serverId }),
+          href: `/servers/${serverId}/monitoring/log-rotation`,
+          onlyActivePath: `/servers/${serverId}/monitoring/log-rotation`,
           icon: RotateCcwIcon,
         },
         {
           title: 'Disk Usage',
-          href: route('monitoring.disk-usage', { server: serverId }),
-          onlyActivePath: route('monitoring.disk-usage', { server: serverId }),
+          href: `/servers/${serverId}/monitoring/disk-usage`,
+          onlyActivePath: `/servers/${serverId}/monitoring/disk-usage`,
           icon: HardDriveIcon,
         },
       ],
     },
     {
       title: 'Settings',
-      href: route('server-settings', { server: serverId }),
+      href: `/servers/${serverId}/settings`,
       icon: Settings2Icon,
     },
   ];
 
   const viewingSite = !!page.props.site;
   const isRestartPage = page.url.split('?')[0].endsWith('/restart');
-  const isOverviewPage = page.component === 'servers/show' || page.url.split('?')[0] === route('servers.show', { server: serverId });
+  const isOverviewPage = page.component === 'servers/show' || page.url.split('?')[0] === `/servers/${serverId}`;
 
   return (
     <Layout

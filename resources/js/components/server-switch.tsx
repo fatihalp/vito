@@ -31,7 +31,7 @@ export function ServerSwitch() {
     setSelected(value);
     setOpen(false);
     serverHelper.storeServer(server, page.props.auth.user.id);
-    form.post(route('servers.switch', { server: server.id }));
+    form.post(`/servers/${server.id}/switch`);
   };
 
   const footer = (
@@ -40,7 +40,7 @@ export function ServerSwitch() {
         value="create-server"
         onSelect={() => {
           setOpen(false);
-          router.visit(route('servers.create'));
+          router.visit("/servers/create");
         }}
         className="gap-0 cursor-pointer"
       >
@@ -59,7 +59,7 @@ export function ServerSwitch() {
         onSelect={() => {
           setSelected('');
           setOpen(false);
-          router.visit(route('servers'));
+          router.visit("/servers");
         }}
       >
         <ServerIcon />

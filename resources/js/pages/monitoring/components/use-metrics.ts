@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { useQuery } from '@tanstack/react-query';
 import { MetricsFilter, MetricsResponse } from '@/types/metric';
 import { Server } from '@/types/server';
@@ -19,7 +20,7 @@ export function useMetrics(server: Server, filter?: MetricsFilter) {
   return useQuery<MetricsResponse>({
     queryKey: ['metrics', server.id, resolved.period, resolved.from, resolved.to],
     queryFn: async () => {
-      const response = await fetch(route('monitoring.json', { server: server.id, ...resolved }));
+      const response = await fetch(withQuery(`/servers/${server.id}/monitoring/json`, resolved));
       if (!response.ok) {
         throw new Error('Failed to fetch metrics');
       }

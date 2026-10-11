@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Project } from '@/types/project';
 import { router, useForm, usePage } from '@inertiajs/react';
@@ -27,16 +28,16 @@ export function ProjectSwitch() {
   const handleProjectChange = (value: string, project: Project) => {
     setSelected(value);
     setOpen(false);
-    form.patch(route('projects.switch', { project: project.id }));
+    form.patch(`/settings/projects/switch/${project.id}`);
   };
 
   const handleAllProjects = () => {
     setSelected('all');
     setOpen(false);
     if (typeof window !== 'undefined' && window.location.pathname.startsWith('/servers')) {
-      router.get(route('servers', { project: 'all' }));
+      router.get(withQuery("/servers", { project: 'all' }));
     } else {
-      router.get(route('sites.all', { project: 'all' }));
+      router.get(withQuery("/sites", { project: 'all' }));
     }
   };
 

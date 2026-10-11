@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Site } from '@/types/site';
 import { router, useForm, usePage } from '@inertiajs/react';
@@ -49,7 +50,7 @@ export function SiteSwitch() {
     setOpen(false);
     setPrimaryNavOpen(false);
     siteHelper.storeSite(site, page.props.auth.user.id, page.props.auth.currentProject?.id);
-    form.post(route('sites.switch', { server: site.server_id, site: site.id }));
+    form.post(`/servers/${site.server_id}/sites/${site.id}/switch`);
   };
 
   const footer = (
@@ -59,7 +60,7 @@ export function SiteSwitch() {
         onSelect={() => {
           setOpen(false);
           setPrimaryNavOpen(false);
-          router.visit(route('sites.all', { project: 'all' }));
+          router.visit(withQuery("/sites", { project: 'all' }));
         }}
         className="gap-0"
       >
@@ -75,9 +76,9 @@ export function SiteSwitch() {
           setPrimaryNavOpen(false);
           const s = page.props.server?.is_self ? undefined : page.props.server;
           if (s) {
-            router.visit(route('sites.create', { server: s.id }));
+            router.visit(`/servers/${s.id}/sites/create`);
           } else {
-            router.visit(route('sites.all.create'));
+            router.visit("/sites/create");
           }
         }}
         className="gap-0 cursor-pointer"

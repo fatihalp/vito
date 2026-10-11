@@ -21,7 +21,7 @@ function Actions({ invitation }: { invitation: ProjectUser }) {
             variant: 'destructive',
             confirmLabel: 'Reject',
             method: 'delete',
-            url: route('projects.leave', { project: invitation.project_id }),
+            url: `/settings/projects/${invitation.project_id}/leave`,
           })
         }
       >
@@ -29,7 +29,7 @@ function Actions({ invitation }: { invitation: ProjectUser }) {
         Reject
       </Button>
       <Button size="sm" asChild>
-        <Link href={route('projects.invitations.accept', { project: invitation.project_id })}>
+        <Link href={`/settings/projects/${invitation.project_id}/invitations/accept`}>
           <CheckIcon />
           Accept & join
         </Link>

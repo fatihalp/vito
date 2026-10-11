@@ -41,7 +41,7 @@ export default function RestoreToServer({
     if (!open) return;
 
     axios
-      .get<RestoreRequirements>(route('backups.restore-to-server.requirements', { server: backup.server_id, backup: backup.id }))
+      .get<RestoreRequirements>(`/servers/${backup.server_id}/backups/${backup.id}/restore-to-server`)
       .then((response) => setRequirements(response.data))
       .catch(() => setRequirements(null));
   }, [open, backup.server_id, backup.id]);
@@ -49,7 +49,7 @@ export default function RestoreToServer({
   const submit = (e: FormEvent) => {
     e.preventDefault();
     form.transform((data) => ({ ...data, target_time: data.target === 'time' && data.target_time ? new Date(data.target_time).toISOString() : '' }));
-    form.post(route('backups.restore-to-server', { server: backup.server_id, backup: backup.id }), {
+    form.post(`/servers/${backup.server_id}/backups/${backup.id}/restore-to-server`, {
       onSuccess: () => onOpenChange(false),
     });
   };

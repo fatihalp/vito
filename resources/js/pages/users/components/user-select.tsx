@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { User } from '@/types/user';
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -24,7 +25,7 @@ export default function UserSelect({ value, onValueChange }: { value: string; on
   } = useQuery<User[]>({
     queryKey: ['users', query],
     queryFn: async () => {
-      const response = await axios.get(route('users.json', { query: query }));
+      const response = await axios.get(withQuery("/admin/users/json", { query: query }));
       return response.data;
     },
     enabled: false,

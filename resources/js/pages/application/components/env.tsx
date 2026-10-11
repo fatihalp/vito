@@ -79,7 +79,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
   const query = useQuery({
     queryKey: ['siteEnv', site.id, committedPath],
     queryFn: async () => {
-      const response = await axios.get(route('application.env', { server: site.server_id, site: site.id }), {
+      const response = await axios.get(`/servers/${site.server_id}/sites/${site.id}/env`, {
         params: { env: committedPath },
       });
       setCanEdit(response.data?.can_edit ?? false);
@@ -126,7 +126,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
         ? { variables: variables.map((v) => ({ key: v.key, value: v.value, is_secret: v.isSecret })), path: committedPath }
         : { env: rawContent, path: committedPath },
     );
-    form.put(route('application.update-env', { server: site.server_id, site: site.id }), {
+    form.put(`/servers/${site.server_id}/sites/${site.id}/env`, {
       preserveScroll: true,
       onSuccess: () => setOpen(false),
     });
@@ -166,10 +166,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
 
   const parseRawContent = async (content: string) => {
     const response = await axios.post(
-      route('application.parse-env', {
-        server: site.server_id,
-        site: site.id,
-      }),
+      `/servers/${site.server_id}/sites/${site.id}/env/parse`,
       { content },
     );
 
@@ -196,10 +193,7 @@ export default function Env({ site, children }: { site: Site; children: ReactNod
       setIsSwitching(true);
       try {
         const response = await axios.post(
-          route('application.stringify-env', {
-            server: site.server_id,
-            site: site.id,
-          }),
+          `/servers/${site.server_id}/sites/${site.id}/env/stringify`,
           {
             variables: variables.map((v) => ({ key: v.key, value: v.value })),
           },

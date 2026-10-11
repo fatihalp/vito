@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
@@ -87,7 +88,7 @@ export default function ServerSettings() {
     if (['installing', 'installation_failed'].includes(server.status)) {
       return;
     }
-    statusForm.patch(route('servers.status', { server: server.id }));
+    statusForm.patch(`/servers/${server.id}/status`);
   };
 
   const form = useForm<{
@@ -108,7 +109,7 @@ export default function ServerSettings() {
 
   const submit = (e?: FormEvent) => {
     e?.preventDefault();
-    form.patch(route('server-settings.update', { server: server.id }), {
+    form.patch(`/servers/${server.id}/settings/update`, {
       preserveScroll: true,
       onSuccess: () => {
         form.setDefaults();
@@ -470,7 +471,7 @@ export default function ServerSettings() {
                     <span className="text-muted-foreground">Available Updates</span>
                     {server.updates > 0 ? (
                       <Button variant="link" size="sm" className="h-auto p-0" asChild>
-                        <Link href={route('servers.update', { server: server.id, start: 1 })}>
+                        <Link href={withQuery(`/servers/${server.id}/update`, { start: 1 })}>
                           <Badge variant="warning" className="cursor-pointer hover:opacity-90">
                             {server.updates} packages
                           </Badge>
@@ -516,7 +517,7 @@ export default function ServerSettings() {
                   <div className="flex items-center justify-between">
                     <Label className="text-xs text-muted-foreground font-medium">Server Public Key</Label>
                     <Button variant="link" size="sm" className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground" asChild>
-                      <Link href={route('server-ssh-keys', { server: server.id })}>
+                      <Link href={`/servers/${server.id}/ssh-keys`}>
                         Manage Keys →
                       </Link>
                     </Button>

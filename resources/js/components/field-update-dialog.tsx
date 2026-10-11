@@ -19,8 +19,7 @@ interface FieldUpdateDialogProps {
   description: string | ReactNode;
   initialValue: string;
   fieldName: string;
-  routeName: string;
-  routeParams: Record<string, any>;
+  url: string;
   trigger: ReactNode;
   children: (form: any) => ReactNode;
 }
@@ -30,8 +29,7 @@ export default function FieldUpdateDialog({
   description,
   initialValue,
   fieldName,
-  routeName,
-  routeParams,
+  url,
   trigger,
   children,
 }: FieldUpdateDialogProps) {
@@ -42,7 +40,7 @@ export default function FieldUpdateDialog({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.patch(route(routeName, routeParams), {
+    form.patch(url, {
       onSuccess: () => {
         setOpen(false);
       },

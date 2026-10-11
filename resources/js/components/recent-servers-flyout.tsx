@@ -17,7 +17,7 @@ export default function RecentServersFlyout() {
           Recent Servers
         </span>
         <Link
-          href={route('servers')}
+          href={"/servers"}
           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
         >
           <span>All</span>
@@ -34,7 +34,7 @@ export default function RecentServersFlyout() {
           {(servers ?? []).slice(0, 10).map((server) => (
             <Link
               key={server.id}
-              href={route('servers.show', { server: server.id })}
+              href={`/servers/${server.id}`}
               className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs hover:bg-accent hover:text-accent-foreground transition-colors group"
               prefetch
             >
@@ -55,7 +55,7 @@ export default function RecentServersFlyout() {
         <div className="py-3 px-2 text-center text-xs text-muted-foreground">
           <p>No servers found.</p>
           <Link
-            href={route('servers.create')}
+            href={"/servers/create"}
             className="text-primary hover:underline mt-1 inline-block text-xs font-medium"
           >
             Create server

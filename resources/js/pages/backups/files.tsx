@@ -53,7 +53,7 @@ export default function Files() {
 
   const runBackupForm = useForm();
   const runBackup = () => {
-    runBackupForm.post(route('backups.run', { server: page.props.server.id, backup: page.props.backup.id }));
+    runBackupForm.post(`/servers/${page.props.server.id}/backups/${page.props.backup.id}/run`);
   };
 
   return (
@@ -117,7 +117,7 @@ export default function Files() {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span>
                     {restore.server_id && restore.server_name ? (
-                      <Link href={route('servers.show', { server: restore.server_id })} className="font-medium underline">
+                      <Link href={`/servers/${restore.server_id}`} className="font-medium underline">
                         {restore.server_name}
                       </Link>
                     ) : (

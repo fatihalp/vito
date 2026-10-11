@@ -12,8 +12,7 @@ export default function ChangeBranch({ site, children }: { site: Site; children:
       description="sr-only"
       initialValue={site.branch || ''}
       fieldName="branch"
-      routeName="site-settings.update-branch"
-      routeParams={{ server: site.server_id, site: site.id }}
+      url={`/servers/${site.server_id}/sites/${site.id}/settings/branch`}
       trigger={children}
     >
       {(form) => (

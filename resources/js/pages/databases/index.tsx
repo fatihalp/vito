@@ -48,7 +48,7 @@ export default function Databases() {
                   description:
                     'This action will connect to your server and perform a two-way synchronization of databases. Vito will fetch any databases created manually on the server, and verify the existence of databases managed by Vito. If a database tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
                   confirmLabel: 'Sync databases',
-                  url: route('databases.sync', { server: page.props.server.id }),
+                  url: `/servers/${page.props.server.id}/database/sync`,
                   method: 'post',
                 })
               }
@@ -76,7 +76,7 @@ export default function Databases() {
                 the replica is built; use Sync to refresh it.
               </p>
               {page.props.replicaOf.server_id && (
-                <Link href={route('databases', { server: page.props.replicaOf.server_id })} className="text-foreground underline">
+                <Link href={`/servers/${page.props.replicaOf.server_id}/database`} className="text-foreground underline">
                   Open the primary
                 </Link>
               )}

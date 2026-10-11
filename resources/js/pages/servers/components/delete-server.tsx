@@ -43,7 +43,7 @@ export default function DeleteServer({ server, children }: { server: Server; chi
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.delete(route('servers.destroy', server.id), {
+    form.delete(`/servers/${server.id}`, {
       onSuccess: () => {
         serverHelper.removeRecentServer(page.props.auth.user.id, server.project_id, server.id);
         siteHelper.removeRecentServerSites(page.props.auth.user.id, server.project_id, server.id);

@@ -21,7 +21,7 @@ export default function SourceControlSelect({
   const query = useQuery<SourceControl[]>({
     queryKey: ['sourceControl', serverId],
     queryFn: async () => {
-      return (await axios.get(route('source-controls.json'), { params: serverId ? { server: serverId } : {} })).data;
+      return (await axios.get("/settings/source-controls/json", { params: serverId ? { server: serverId } : {} })).data;
     },
   });
 

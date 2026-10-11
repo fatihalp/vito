@@ -87,7 +87,7 @@ export default function ShowStorageMigration() {
         {isOpen && (
           <form className="flex flex-col gap-3" onSubmit={(event) => {
             event.preventDefault();
-            workers.post(route('storage-migrations.workers', { storageMigration: storageMigration.id }), { preserveScroll: true });
+            workers.post(`/storage-migrations/${storageMigration.id}/workers`, { preserveScroll: true });
           }}>
             <Label htmlFor="migration-workers">Transfer workers for this migration</Label>
             <div className="flex items-center gap-2">

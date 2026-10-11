@@ -111,7 +111,7 @@ export default function SourceControls() {
           <Heading title="Source Controls" description="Here you can manage all of the source control connections" />
           <div className="flex items-center gap-2">
             {githubAppInstalled && (
-              <a href={route('github-app.install')} title="Install GitHub App on an organization">
+              <a href={"/admin/github-app/install"} title="Install GitHub App on an organization">
                 <Button variant="outline" size="icon">
                   <GithubIcon />
                   <span className="sr-only">Install GitHub App on an organization</span>

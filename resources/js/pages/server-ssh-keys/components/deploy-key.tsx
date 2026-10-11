@@ -29,7 +29,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
 
   const query = useQuery<SshKey[]>({
     queryKey: ['sshKey'],
-    queryFn: async () => (await axios.get(route('ssh-keys.json'))).data,
+    queryFn: async () => (await axios.get("/settings/ssh-keys/json")).data,
     enabled: open,
   });
 
@@ -40,7 +40,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
 
   const submit: FormEventHandler = (e) => {
     e.preventDefault();
-    form.post(route('server-ssh-keys.store', { server: server.id }), {
+    form.post(`/servers/${server.id}/ssh-keys`, {
       preserveScroll: true,
       onSuccess: () => {
         setOpen(false);

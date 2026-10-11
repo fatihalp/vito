@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import DateTime from '@/components/date-time';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -18,7 +19,7 @@ function InstantLogContent({ serverId, logId }: { serverId: number; logId: numbe
   logIdRef.current = logId;
 
   useEffect(() => {
-    fetch(route('logs.show', { server: serverId, log: logId }))
+    fetch(`/servers/${serverId}/logs/${logId}`)
       .then((response) => {
         if (!response.ok) {
           toast.error('Failed to fetch log');
@@ -54,7 +55,7 @@ export function InstantLogs({ server, children }: { server: Server; children: Re
   const query = useQuery<PaginatedData<ServerLog>>({
     queryKey: ['instant-logs', server.id, page],
     queryFn: async () => {
-      const response = await fetch(route('logs.json', { server: server.id, count: 15, page: page }));
+      const response = await fetch(withQuery(`/servers/${server.id}/logs/json`, { count: 15, page: page }));
       if (!response.ok) {
         toast.error('Failed to fetch logs');
         throw new Error('Network response was not ok');

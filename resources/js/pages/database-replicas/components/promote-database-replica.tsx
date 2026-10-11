@@ -25,7 +25,7 @@ export default function PromoteDatabaseReplica({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('database-replicas.promote', { server: replica.primary_server_id, databaseReplica: replica.id }), {
+    form.post(`/servers/${replica.primary_server_id}/database-replicas/${replica.id}/promote`, {
       preserveScroll: true,
       onSuccess: () => onOpenChange(false),
     });

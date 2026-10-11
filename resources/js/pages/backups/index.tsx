@@ -57,7 +57,7 @@ export default function Backups() {
               </p>
               {page.props.replicaOf.backup_id && (
                 <Link
-                  href={route('backup-files', { server: page.props.replicaOf.server_id, backup: page.props.replicaOf.backup_id })}
+                  href={`/servers/${page.props.replicaOf.server_id}/backups/${page.props.replicaOf.backup_id}/files`}
                   className="text-foreground underline"
                 >
                   View the cluster's backups
@@ -68,7 +68,7 @@ export default function Backups() {
         )}
 
         <BackupHealthAlerts
-          items={page.props.attention.map((backup) => ({ ...backup, href: route('backup-files', { server: backup.server_id, backup: backup.id }) }))}
+          items={page.props.attention.map((backup) => ({ ...backup, href: `/servers/${backup.server_id}/backups/${backup.id}/files` }))}
           hasNotificationChannels={page.props.hasNotificationChannels}
         />
 

@@ -18,10 +18,7 @@ export default function Networking({ service }: { service: Service }) {
             variant: isRemoteOpen ? 'destructive' : 'default',
             confirmLabel: isRemoteOpen ? 'Make Local Only' : 'Open to Remote',
             method: 'post',
-            url: route(
-              isRemoteOpen ? 'services.networking.disable' : 'services.networking.enable',
-              { server: service.server_id, service: service.id }
-            ),
+            url: `/servers/${service.server_id}/services/${service.id}/networking/${isRemoteOpen ? 'disable' : 'enable'}`,
           })
         }
       >

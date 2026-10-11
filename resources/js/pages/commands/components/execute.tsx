@@ -31,7 +31,7 @@ export default function Execute({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('commands.execute', { server: command.server_id, site: command.site_id, command: command.id }), {
+    form.post(`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}/execute`, {
       onSuccess: () => onOpenChange(false),
     });
   };

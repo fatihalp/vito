@@ -39,7 +39,7 @@ function CommandRow({ command }: { command: Command }) {
       </div>
       <div className="flex shrink-0 items-center gap-1">
         <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
-          <Link href={route('commands.show', { server: command.server_id, site: command.site_id, command: command.id })}>
+          <Link href={`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`}>
             <Clock3Icon />
             Logs
           </Link>
@@ -54,7 +54,7 @@ function CommandRow({ command }: { command: Command }) {
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild className="sm:hidden">
-              <Link href={route('commands.show', { server: command.server_id, site: command.site_id, command: command.id })}>View logs</Link>
+              <Link href={`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`}>View logs</Link>
             </DropdownMenuItem>
             <DropdownMenuItem onSelect={() => dialog.commandEdit.open({ command })}>Edit</DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -67,7 +67,7 @@ function CommandRow({ command }: { command: Command }) {
                   variant: 'destructive',
                   confirmLabel: 'Delete',
                   method: 'delete',
-                  url: route('commands.destroy', { server: command.server_id, site: command.site_id, command: command.id }),
+                  url: `/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`,
                 })
               }
             >
@@ -92,7 +92,7 @@ export default function Commands() {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    form.post(route('commands.quick-run', { server: server.id, site: site.id }));
+    form.post(`/servers/${server.id}/sites/${site.id}/commands/quick-run`);
   };
 
   const visitPage = (url: string | null) => {

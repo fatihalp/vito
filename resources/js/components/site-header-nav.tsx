@@ -23,17 +23,17 @@ type SiteNavItem = {
 
 function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
   const routeParams = { server: server.id, site: site.id };
-  const applicationHref = route('application', routeParams);
+  const applicationHref = `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}`;
   const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
 
   return [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Topology', href: route('site-topology', routeParams) },
-    { title: 'Resources', href: route('site-resources', routeParams), count: site.counts?.resources ?? 0 },
-    { title: 'Domains', href: route('hosted-domains', routeParams), count: site.counts?.domains ?? 0 },
-    { title: 'Commands', href: route('commands', routeParams), count: site.counts?.commands ?? 0 },
-    { title: 'Workers', href: route('workers.site', routeParams), count: site.counts?.workers ?? 0 },
-    { title: 'Settings', href: route('site-settings', routeParams) },
+    { title: 'Topology', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/topology` },
+    { title: 'Resources', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/resources`, count: site.counts?.resources ?? 0 },
+    { title: 'Domains', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/domains`, count: site.counts?.domains ?? 0 },
+    { title: 'Commands', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/commands`, count: site.counts?.commands ?? 0 },
+    { title: 'Workers', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/workers`, count: site.counts?.workers ?? 0 },
+    { title: 'Settings', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/settings` },
   ];
 }
 
@@ -82,11 +82,11 @@ export function SiteHeaderNav() {
   const routeParams = { server: server.id, site: site.id };
   const primaryItems: SiteNavItem[] = buildPrimaryItems(server, site);
   const otherItems: SiteNavItem[] = [
-    { title: 'Features', href: route('site-features', routeParams) },
-    { title: 'Tooling', href: route('site-tooling', routeParams) },
-    { title: 'CronJobs', href: route('cronjobs.site', routeParams) },
-    { title: 'Redirects', href: route('redirects', routeParams) },
-    { title: 'Logs', href: route('sites.logs', routeParams) },
+    { title: 'Features', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/features` },
+    { title: 'Tooling', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/tooling` },
+    { title: 'CronJobs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/cronjobs` },
+    { title: 'Redirects', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/redirects` },
+    { title: 'Logs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/logs` },
   ];
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
 
@@ -95,7 +95,7 @@ export function SiteHeaderNav() {
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
-            href={route('servers.show', { server: server.id })}
+            href={`/servers/${server.id}`}
             className="hover:bg-muted text-muted-foreground hover:text-foreground flex h-8 shrink-0 items-center gap-1.5 rounded-md border px-2 text-xs transition-colors"
           >
             <ChevronLeftIcon className="size-3.5" />

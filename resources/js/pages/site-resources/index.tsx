@@ -119,7 +119,7 @@ export default function SiteResources() {
     }
 
     router.post(
-      route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }),
+      `/servers/${page.props.server.id}/sites/${page.props.site.id}/resources`,
       data,
       {
         preserveScroll: true,
@@ -142,7 +142,7 @@ export default function SiteResources() {
               variant: 'destructive',
               confirmLabel: 'Overwrite settings',
               method: 'post',
-              url: route('site-resources.store', { server: page.props.server.id, site: page.props.site.id }),
+              url: `/servers/${page.props.server.id}/sites/${page.props.site.id}/resources`,
               data: { ...data, confirm_overwrite: true },
             });
           } else {
@@ -160,7 +160,7 @@ export default function SiteResources() {
 
     setIsInstalling(true);
     router.post(
-      route('services.store', { server: targetServerId }),
+      `/servers/${encodeURIComponent(String(targetServerId))}/services`,
       { name: serviceName, version },
       {
         preserveScroll: true,
@@ -252,11 +252,7 @@ export default function SiteResources() {
       confirmLabel: 'Disconnect',
       variant: 'default',
       method: 'delete',
-      url: route('site-resources.destroy', {
-        server: page.props.server.id,
-        site: page.props.site.id,
-        resource: resource.id,
-      }),
+      url: `/servers/${page.props.server.id}/sites/${page.props.site.id}/resources/${resource.id}`,
     });
   };
 
@@ -683,7 +679,7 @@ export default function SiteResources() {
                     </>
                   ) : (
                     <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" asChild>
-                      <Link href={route('storage-providers')}>
+                      <Link href={"/settings/storage-providers"}>
                         <ExternalLinkIcon className="size-3.5" />
                         Configure Provider
                       </Link>
