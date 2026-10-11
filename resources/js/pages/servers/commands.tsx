@@ -107,7 +107,7 @@ export default function ServerCommands() {
       setLoading(true);
       try {
         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-        const response = await fetch(route('servers.commands.query', { server: server.id }), {
+        const response = await fetch(`/servers/${server.id}/commands/query`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

@@ -79,7 +79,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     setDeleting(true);
     setDeleteError(null);
 
-    router.delete(route('site-settings.destroy', { server: server.id, site: site.id }), {
+    router.delete(`/servers/${server.id}/sites/${site.id}/settings`, {
       data: {
         domain: confirmDomain,
         force: forceDelete,
@@ -171,7 +171,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
   const logsQuery = useQuery({
     queryKey: ['siteInstallLogs', server.id, site.id],
     queryFn: async () => {
-      const res = await axios.get(route('logs.json', { server: server.id, site: site.id }));
+      const res = await axios.get(`/servers/${server.id}/logs/json/${site.id}`);
       return res.data;
     },
     refetchInterval: site.status === 'installing' ? 3000 : 8000,
@@ -205,7 +205,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     setRetryError(null);
 
     router.post(
-      route('sites.retry', { server: server.id, site: site.id }),
+      `/servers/${server.id}/sites/${site.id}/retry`,
       canEditComposer ? { composer_install_command: composerCommand } : {},
       {
         preserveScroll: true,
@@ -553,7 +553,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
               {activeLog && (
                 <Button variant="ghost" size="icon" className="size-7" asChild>
                   <a
-                    href={route('logs.download', { server: server.id, log: activeLog.id })}
+                    href={`/servers/${server.id}/logs/${activeLog.id}/download`}
                     target="_blank"
                     rel="noreferrer"
                     title="Download log"

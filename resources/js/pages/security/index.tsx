@@ -49,7 +49,7 @@ function AutoUpdateCard({ server, autoUpdate }: { server: number; autoUpdate: Au
     schedule: autoUpdate.schedule ?? buildSchedule(parseSchedule(null)),
   });
 
-  const save = () => form.post(route('security.auto-update', { server }), { preserveScroll: true });
+  const save = () => form.post(`/servers/${server}/security/auto-update`, { preserveScroll: true });
 
   return (
     <Card>
@@ -127,7 +127,7 @@ function Fail2banCard({ server, fail2ban }: { server: number; fail2ban: Service 
                       variant: 'destructive',
                       confirmLabel: 'Uninstall',
                       method: 'delete',
-                      url: route('security.fail2ban.destroy', { server }),
+                      url: `/servers/${server}/security/fail2ban`,
                     })
                   }
                 >
@@ -218,10 +218,10 @@ function FirewallCard({ server, firewall }: { server: number; firewall: Service 
           </div>
           {firewall ? (
             <Button variant="outline" asChild>
-              <Link href={route('firewall', { server })}>Manage rules</Link>
+              <Link href={`/servers/${server}/firewall`}>Manage rules</Link>
             </Button>
           ) : (
-            <Button disabled={installing} onClick={() => router.post(route('security.firewall.install', { server }), {}, { preserveScroll: true })}>
+            <Button disabled={installing} onClick={() => router.post(`/servers/${server}/security/firewall`, {}, { preserveScroll: true })}>
               Install
             </Button>
           )}
@@ -263,7 +263,7 @@ export default function Security() {
 
   const check = () => {
     setChecking(true);
-    router.post(route('security.check', { server: serverId }), {}, { preserveScroll: true, onFinish: () => setChecking(false) });
+    router.post(`/servers/${serverId}/security/check`, {}, { preserveScroll: true, onFinish: () => setChecking(false) });
   };
 
   return (
@@ -315,7 +315,7 @@ export default function Security() {
                 variant: nextSecure ? 'destructive' : 'default',
                 confirmLabel: nextSecure ? 'Disable' : 'Allow',
                 method: 'post',
-                url: route('security.password-auth', { server: serverId }),
+                url: `/servers/${serverId}/security/password-auth`,
                 data: { enabled: !nextSecure },
               });
             }}
@@ -334,7 +334,7 @@ export default function Security() {
                 variant: nextSecure ? 'destructive' : 'default',
                 confirmLabel: nextSecure ? 'Disable' : 'Allow',
                 method: 'post',
-                url: route('security.root-login', { server: serverId }),
+                url: `/servers/${serverId}/security/root-login`,
                 data: { enabled: !nextSecure },
               });
             }}

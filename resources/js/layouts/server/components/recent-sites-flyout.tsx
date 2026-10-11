@@ -41,7 +41,7 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
           Recent Sites
         </span>
         <Link
-          href={route('sites', { server: server.id })}
+          href={`/servers/${server.id}/sites`}
           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
         >
           <span>All</span>
@@ -58,7 +58,7 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
           {(displaySites ?? []).map((site) => (
             <Link
               key={site.id}
-              href={route('application', { server: server.id, site: site.id })}
+              href={`/servers/${server.id}/sites/${site.id}`}
               className="flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-xs hover:bg-accent hover:text-accent-foreground transition-colors group"
               prefetch
             >
@@ -76,7 +76,7 @@ export default function RecentSitesFlyout({ server }: { server: Server }) {
         <div className="py-3 px-2 text-center text-xs text-muted-foreground">
           <p>No sites on this server yet.</p>
           <Link
-            href={route('sites', { server: server.id })}
+            href={`/servers/${server.id}/sites`}
             className="text-primary hover:underline mt-1 inline-block text-xs font-medium"
           >
             Create site

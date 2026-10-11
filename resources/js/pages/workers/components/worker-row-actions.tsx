@@ -16,7 +16,7 @@ export function WorkerAction({ type, worker }: { type: 'start' | 'stop' | 'resta
           variant: type === 'stop' ? 'destructive' : 'default',
           confirmLabel: type,
           method: 'post',
-          url: route(`workers.${type}`, { server: worker.server_id, worker: worker }),
+          url: `/servers/${worker.server_id}/workers/${worker.id}/${type}`,
         })
       }
     >
@@ -28,7 +28,7 @@ export function WorkerAction({ type, worker }: { type: 'start' | 'stop' | 'resta
 export function WorkerLogs({ worker }: { worker: Worker }) {
   return (
     <DropdownMenuItem asChild>
-      <Link href={route('workers.log', { server: worker.server_id, worker: worker.id })}>
+      <Link href={`/servers/${worker.server_id}/workers/${worker.id}/log`}>
         Logs
       </Link>
     </DropdownMenuItem>

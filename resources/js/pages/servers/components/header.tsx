@@ -28,7 +28,7 @@ export default function ServerHeader({ server: initialServer }: { server: Server
       return;
     }
 
-    statusForm.patch(route('servers.status', { server: server.id }));
+    statusForm.patch(`/servers/${server.id}/status`);
   };
 
   const { copied: ipCopied, copy: copyIp } = useClipboard();
@@ -118,7 +118,7 @@ export default function ServerHeader({ server: initialServer }: { server: Server
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="ghost" size="sm" asChild className="h-6 gap-1 px-1.5 text-xs text-amber-500 hover:text-amber-600 dark:text-amber-400 cursor-pointer">
-                  <Link href={route('servers.update', { server: server.id })}>
+                  <Link href={`/servers/${server.id}/update`}>
                     <LoaderCircleIcon className="size-3 animate-spin" />
                     <span>Updating...</span>
                   </Link>

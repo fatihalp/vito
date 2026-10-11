@@ -28,7 +28,7 @@ export default function ServerConfigDialog({
     setData(null);
     setError('');
     axios
-      .get(route('networks.servers.config', { network: networkId, networkServer: memberId }), { signal: controller.signal })
+      .get(`/networks/${networkId}/servers/${memberId}/config`, { signal: controller.signal })
       .then((response) => setData(response.data))
       .catch((e) => {
         if (!axios.isCancel(e)) setError('Could not load the WireGuard configuration.');

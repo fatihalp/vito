@@ -64,7 +64,7 @@ export default function DeploymentShow() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 cursor-pointer">
-                <Link href={route('application.deployments.index', { server: server.id, site: site.id })}>
+                <Link href={`/servers/${server.id}/sites/${site.id}/deployments`}>
                   <ArrowLeftIcon className="size-4" />
                   <span>Deployments</span>
                 </Link>
@@ -83,7 +83,7 @@ export default function DeploymentShow() {
             {deployment.log && (
               <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer" asChild>
                 <a
-                  href={route('logs.download', { server: server.id, log: deployment.log.id })}
+                  href={`/servers/${server.id}/logs/${deployment.log.id}/download`}
                   target="_blank"
                   rel="noopener noreferrer"
                 >

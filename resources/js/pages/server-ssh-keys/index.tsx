@@ -51,7 +51,7 @@ export default function SshKeys() {
       variant: 'destructive',
       confirmLabel: 'Remove key',
       method: 'delete',
-      url: route('server-ssh-keys.destroy', { server: server.id, sshKey: key.id }),
+      url: `/servers/${server.id}/ssh-keys/${key.id}`,
     });
   };
 

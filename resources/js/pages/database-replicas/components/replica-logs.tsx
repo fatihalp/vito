@@ -15,7 +15,7 @@ export default function ReplicaLogs({ replica }: { replica: DatabaseReplica }) {
   const restore = useQuery({
     queryKey: ['databaseReplicaRestoreOutput', replica.id],
     queryFn: async () =>
-      (await axios.get<{ content: string }>(route('database-replicas.seed-output', { server: replica.primary_server_id, databaseReplica: replica.id }))).data
+      (await axios.get<{ content: string }>(`/servers/${replica.primary_server_id}/database-replicas/${replica.id}/seed-output`)).data
         .content,
     enabled: tab === 'restore',
     refetchInterval: replica.status === 'seeding' ? 10000 : false,

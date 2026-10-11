@@ -46,7 +46,7 @@ export default function EnvSearch() {
   const poll = (searchId: string) => {
     pollTimer.current = setTimeout(async () => {
       try {
-        const response = await axios.get<SearchStatus>(route('env-search.status', { searchId }));
+        const response = await axios.get<SearchStatus>(`/settings/env-search/${encodeURIComponent(String(searchId))}`);
         const data = response.data;
 
         if (data.status === 'done') {
@@ -79,7 +79,7 @@ export default function EnvSearch() {
     setResults(null);
 
     try {
-      const response = await axios.post<{ search_id: string }>(route('env-search.search'), { key: key.trim() });
+      const response = await axios.post<{ search_id: string }>("/settings/env-search", { key: key.trim() });
       poll(response.data.search_id);
     } catch (e) {
       setError(errorMessage(e, 'Arama başlatılamadı.'));
@@ -151,7 +151,7 @@ export default function EnvSearch() {
                     <TableRow key={result.site_id}>
                       <TableCell>
                         <Link
-                          href={route('application', { server: result.server_id, site: result.site_id })}
+                          href={`/servers/${result.server_id}/sites/${result.site_id}`}
                           className="font-medium hover:underline"
                         >
                           {result.domain}

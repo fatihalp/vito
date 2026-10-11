@@ -29,7 +29,7 @@ export default function RevealSiteResourceDialog({
     queryKey: ['site-resources.reveal', serverId, siteId, resource?.id],
     queryFn: async () => {
       const response = await axios.get<ResourceRevealData>(
-        route('site-resources.reveal', { server: serverId, site: siteId, resource: resource.id }),
+        `/servers/${serverId}/sites/${siteId}/resources/${resource.id}/reveal`,
       );
       return response.data;
     },

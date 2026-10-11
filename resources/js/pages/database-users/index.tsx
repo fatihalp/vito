@@ -51,7 +51,7 @@ export default function DatabaseUsers() {
                   description:
                     'This action will connect to your server and perform a two-way synchronization of database users. Vito will fetch any database users created manually on the server, and verify the existence of users managed by Vito. If a user tracked by Vito no longer exists on the server, it will be removed from Vito. Are you sure you want to proceed?',
                   confirmLabel: 'Sync users',
-                  url: route('database-users.sync', { server: page.props.server.id }),
+                  url: `/servers/${page.props.server.id}/database/users/sync`,
                   method: 'post',
                 })
               }
@@ -79,7 +79,7 @@ export default function DatabaseUsers() {
                 the replica is built; use Sync to refresh it.
               </p>
               {page.props.replicaOf.server_id && (
-                <Link href={route('database-users', { server: page.props.replicaOf.server_id })} className="text-foreground underline">
+                <Link href={`/servers/${page.props.replicaOf.server_id}/database/users`} className="text-foreground underline">
                   Open the primary
                 </Link>
               )}
@@ -110,7 +110,7 @@ export default function DatabaseUsers() {
                           variant: 'destructive',
                           confirmLabel: 'Delete',
                           method: 'delete',
-                          url: route('database-users.destroy', { server: databaseUser.server_id, databaseUser: databaseUser.id }),
+                          url: `/servers/${databaseUser.server_id}/database/users/${databaseUser.id}`,
                         })
                       }
                     >

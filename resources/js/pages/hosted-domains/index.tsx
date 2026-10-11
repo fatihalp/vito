@@ -125,7 +125,7 @@ export default function HostedDomains() {
                 {page.props.site.ssl_enabled ? (
                   <DropdownMenuItem
                     disabled={sslLocked}
-                    onClick={() => !sslLocked && router.post(route('sites.disable-ssl', { server: page.props.server.id, site: page.props.site.id }))}
+                    onClick={() => !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/disable-ssl`)}
                   >
                     <LockOpenIcon />
                     Disable SSL
@@ -133,7 +133,7 @@ export default function HostedDomains() {
                 ) : (
                   <DropdownMenuItem
                     disabled={sslLocked}
-                    onClick={() => !sslLocked && router.post(route('sites.enable-ssl', { server: page.props.server.id, site: page.props.site.id }))}
+                    onClick={() => !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/enable-ssl`)}
                   >
                     <LockIcon />
                     Enable SSL
@@ -143,7 +143,7 @@ export default function HostedDomains() {
                   <DropdownMenuItem
                     disabled={sslLocked}
                     onClick={() =>
-                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !page.props.site.force_ssl })
+                      !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/settings/toggle-force-ssl`, { enabled: !page.props.site.force_ssl })
                     }
                   >
                     <ShieldOffIcon />
@@ -153,7 +153,7 @@ export default function HostedDomains() {
                   <DropdownMenuItem
                     disabled={sslLocked}
                     onClick={() =>
-                      !sslLocked && router.post(route('site-settings.toggle-force-ssl', { server: page.props.server.id, site: page.props.site.id }), { enabled: !page.props.site.force_ssl })
+                      !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/settings/toggle-force-ssl`, { enabled: !page.props.site.force_ssl })
                     }
                   >
                     <ShieldCheckIcon />
@@ -165,7 +165,7 @@ export default function HostedDomains() {
                     disabled={!page.props.hasSiteSsl}
                     onClick={() =>
                       page.props.hasSiteSsl &&
-                      router.post(route('hosted-domains.renew-ssl', { server: page.props.server.id, site: page.props.site.id }))
+                      router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/domains/renew-ssl`)
                     }
                   >
                     <RefreshCwIcon />
@@ -174,7 +174,7 @@ export default function HostedDomains() {
                 )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={() => router.post(route('hosted-domains.check-expiry-all', { server: page.props.server.id, site: page.props.site.id }))}
+                  onClick={() => router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/domains/check-expiry`)}
                 >
                   <CalendarClockIcon />
                   Check SSL Expiry (all)
@@ -238,11 +238,7 @@ export default function HostedDomains() {
                         <DropdownMenuItem
                           onSelect={() =>
                             router.post(
-                              route('hosted-domains.check-expiry', {
-                                server: hd.server_id,
-                                site: hd.site_id,
-                                hostedDomain: hd.id,
-                              }),
+                              `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}/check-expiry`,
                             )
                           }
                         >
@@ -257,11 +253,7 @@ export default function HostedDomains() {
                         <DropdownMenuItem
                           onSelect={() =>
                             router.post(
-                              route('hosted-domains.check-dns', {
-                                server: hd.server_id,
-                                site: hd.site_id,
-                                hostedDomain: hd.id,
-                              }),
+                              `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}/check-dns`,
                             )
                           }
                         >
@@ -275,7 +267,7 @@ export default function HostedDomains() {
                               variant: 'destructive',
                               confirmLabel: 'Force Validate',
                               method: 'post',
-                              url: route('hosted-domains.force-activate', { server: hd.server_id, site: hd.site_id, hostedDomain: hd.id }),
+                              url: `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}/force-activate`,
                             })
                           }
                         >
@@ -289,11 +281,7 @@ export default function HostedDomains() {
                         <DropdownMenuItem
                           onSelect={() =>
                             router.post(
-                              route('hosted-domains.deactivate', {
-                                server: hd.server_id,
-                                site: hd.site_id,
-                                hostedDomain: hd.id,
-                              }),
+                              `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}/deactivate`,
                             )
                           }
                         >
@@ -307,11 +295,7 @@ export default function HostedDomains() {
                         <DropdownMenuItem
                           onSelect={() =>
                             router.post(
-                              route('hosted-domains.reactivate', {
-                                server: hd.server_id,
-                                site: hd.site_id,
-                                hostedDomain: hd.id,
-                              }),
+                              `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}/reactivate`,
                             )
                           }
                         >
@@ -331,7 +315,7 @@ export default function HostedDomains() {
                               variant: 'destructive',
                               confirmLabel: 'Delete',
                               method: 'delete',
-                              url: route('hosted-domains.destroy', { server: hd.server_id, site: hd.site_id, hostedDomain: hd.id }),
+                              url: `/servers/${hd.server_id}/sites/${hd.site_id}/domains/${hd.id}`,
                             })
                           }
                         >

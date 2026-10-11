@@ -36,7 +36,7 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
     setContent('');
 
     axios
-      .get(route('logs.show', { server: serverId, log: logId }), { signal: controller.signal })
+      .get(`/servers/${serverId}/logs/${logId}`, { signal: controller.signal })
       .then((response) => {
         if (controller.signal.aborted) return;
         const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);

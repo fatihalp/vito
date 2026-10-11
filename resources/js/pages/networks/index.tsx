@@ -34,7 +34,7 @@ export default function Networks() {
                     "Query every cloud provider connection used by this project's servers and create, update or remove provider-managed networks to match. Servers Vito does not manage are ignored.",
                   confirmLabel: 'Sync',
                   method: 'post',
-                  url: route('networks.sync-providers'),
+                  url: "/networks/sync",
                 })
               }
             >
@@ -53,7 +53,7 @@ export default function Networks() {
           actions={(row: Row) => (
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" asChild>
-                <Link href={route('networks.show', { network: row.id })} aria-label="View network" prefetch>
+                <Link href={`/networks/${row.id}`} aria-label="View network" prefetch>
                   <EyeIcon className="size-3.5" />
                   <span>Manage</span>
                 </Link>

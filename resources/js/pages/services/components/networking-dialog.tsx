@@ -116,7 +116,7 @@ export default function ServiceNetworkingDialog({
   const query = useQuery<NetworkingResponse>({
     queryKey: networkingQueryKey(service),
     queryFn: async () => {
-      const response = await axios.get(route('services.networking', { server: service.server_id, service: service.id }));
+      const response = await axios.get(`/servers/${service.server_id}/services/${service.id}/networking`);
       return response.data;
     },
     retry: false,
@@ -175,7 +175,7 @@ export default function ServiceNetworkingDialog({
     }
   };
 
-  const toggle = (action: 'enable' | 'disable') => submit(() => axios.post(route(`services.networking.${action}`, params)));
+  const toggle = (action: 'enable' | 'disable') => submit(() => axios.post(`/servers/${params.server}/services/${params.service}/networking/${action}`));
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -310,8 +310,8 @@ export default function ServiceNetworkingDialog({
                 <SecretField
                   secret={details.secret}
                   busy={submitting || pending}
-                  onRegenerate={() => void submit(() => axios.post(route('services.networking.secret.regenerate', params)))}
-                  onRemove={networked ? null : () => void submit(() => axios.delete(route('services.networking.secret.destroy', params)))}
+                  onRegenerate={() => void submit(() => axios.post(`/servers/${encodeURIComponent(String(params.server))}/services/${encodeURIComponent(String(params.service))}/networking/secret`))}
+                  onRemove={networked ? null : () => void submit(() => axios.delete(`/servers/${encodeURIComponent(String(params.server))}/services/${encodeURIComponent(String(params.service))}/networking/secret`))}
                 />
               )}
 

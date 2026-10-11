@@ -14,7 +14,7 @@ export default function BackupHealthAlerts({ items, hasNotificationChannels }: {
           <AlertDescription>
             <p>
               There is no notification channel, so nobody is told when a backup fails, stops running or loses WAL.{' '}
-              <Link href={route('notification-channels')} className="text-foreground underline">
+              <Link href={"/settings/notification-channels"} className="text-foreground underline">
                 Add a notification channel
               </Link>
             </p>

@@ -38,7 +38,7 @@ export default function CreateCommand({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('commands.store', { server: serverId, site: siteId }), {
+    form.post(`/servers/${serverId}/sites/${siteId}/commands`, {
       onSuccess: () => onOpenChange(false),
     });
   };

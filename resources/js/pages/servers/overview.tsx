@@ -67,7 +67,7 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
           <CardHeader className="flex-row items-center justify-between gap-4 border-b px-4 py-3">
             <CardTitle className="text-sm font-semibold">Recent sites</CardTitle>
             <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
-              <Link href={route('sites', { server: server.id })}>All</Link>
+              <Link href={`/servers/${server.id}/sites`}>All</Link>
             </Button>
           </CardHeader>
           <CardContent className="p-0">
@@ -88,7 +88,7 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
                     className="hover:bg-muted/50 flex items-center justify-between gap-4 px-4 py-2.5 transition-colors"
                   >
                     <Link
-                      href={route('application', { server: server.id, site: site.id })}
+                      href={`/servers/${server.id}/sites/${site.id}`}
                       className="flex min-w-0 flex-1 items-center gap-3"
                       prefetch
                     >
@@ -109,7 +109,7 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
                         <ExternalLinkIcon className="size-3.5" />
                       </a>
                       <Link
-                        href={route('application', { server: server.id, site: site.id })}
+                        href={`/servers/${server.id}/sites/${site.id}`}
                         className="text-muted-foreground hover:text-foreground"
                         prefetch
                       >
@@ -128,7 +128,7 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
                 </div>
                 <div className="pt-2">
                   <Button size="sm" className="gap-1.5 cursor-pointer" asChild>
-                    <Link href={route('sites.create', { server: server.id })}>
+                    <Link href={`/servers/${server.id}/sites/create`}>
                       <PlusIcon className="size-3.5" />
                       Create site
                     </Link>

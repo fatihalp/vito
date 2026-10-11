@@ -41,7 +41,7 @@ export default function ServiceActions({ service }: { service: Service }) {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={route('servers.limits', { server: service.server_id })}>
+                <Link href={`/servers/${service.server_id}/limits`}>
                   Configure limits
                 </Link>
               </DropdownMenuItem>
@@ -59,7 +59,7 @@ export default function ServiceActions({ service }: { service: Service }) {
             <>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={route('servers.limits', { server: service.server_id })}>
+                <Link href={`/servers/${service.server_id}/limits`}>
                   Configure limits
                 </Link>
               </DropdownMenuItem>
@@ -80,7 +80,7 @@ export default function ServiceActions({ service }: { service: Service }) {
                       description: `Are you sure you want to make PHP ${service.version} the default CLI?`,
                       confirmLabel: 'Save',
                       method: 'post',
-                      url: route('php.default-cli', { server: service.server_id, service: service.id }),
+                      url: `/servers/${service.server_id}/php/${service.id}/default-cli`,
                       data: { version: service.version },
                     })
                   }

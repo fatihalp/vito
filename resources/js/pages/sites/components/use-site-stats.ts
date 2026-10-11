@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { useQuery } from '@tanstack/react-query';
 import { SiteStatsResponse } from '@/types/site-stats';
 import { Server } from '@/types/server';
@@ -7,7 +8,7 @@ export function useSiteStats(server: Server, site: Site, month?: string) {
   return useQuery<SiteStatsResponse>({
     queryKey: ['site-stats', site.id, month ?? 'current'],
     queryFn: async () => {
-      const response = await fetch(route('site-stats.json', { server: server.id, site: site.id, month }));
+      const response = await fetch(withQuery(`/servers/${server.id}/sites/${site.id}/stats/json`, { month: month }));
       if (!response.ok) {
         throw new Error('Failed to fetch site statistics');
       }

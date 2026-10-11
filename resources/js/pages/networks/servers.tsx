@@ -45,7 +45,7 @@ export default function NetworkServers() {
                     : 'Re-apply configuration to every server in this network.',
                   confirmLabel: 'Sync',
                   method: 'post',
-                  url: route('networks.sync', { network: network.id }),
+                  url: `/networks/${network.id}/sync`,
                 })
               }
             >
@@ -111,7 +111,7 @@ export default function NetworkServers() {
                             description: 'Re-apply the network configuration to this server.',
                             confirmLabel: 'Regenerate',
                             method: 'post',
-                            url: route('networks.servers.sync', { network: network.id, networkServer: member.id }),
+                            url: `/networks/${network.id}/servers/${member.id}/sync`,
                           })
                         }
                       >
@@ -128,7 +128,7 @@ export default function NetworkServers() {
                           variant: 'destructive',
                           confirmLabel: 'Remove',
                           method: 'delete',
-                          url: route('networks.servers.destroy', { network: network.id, networkServer: member.id }),
+                          url: `/networks/${network.id}/servers/${member.id}`,
                         })
                       }
                     >

@@ -23,7 +23,7 @@ function TestConnectionButton({ storageId, label, mode }: { storageId: string; l
     setTesting(true);
     try {
       const { data } = await axios.post<{ connected: boolean }>(
-        route('storage-providers.test', { storageProvider: storageId }),
+        `/settings/storage-providers/${encodeURIComponent(String(storageId))}/test`,
         {},
         { params: mode === 'read' ? { mode: 'read' } : undefined },
       );
@@ -67,7 +67,7 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('storage-migrations.store'), {
+    form.post("/storage-migrations", {
       onSuccess: () => onOpenChange(false),
     });
   };

@@ -75,7 +75,7 @@ export default function QuickCreateUserDialog({
 
     try {
       const response = await axios.post<{ id: number; name: string; email: string }>(
-        route('projects.users.quick-create', { project: projectId }),
+        `/settings/projects/${projectId}/users/quick-create`,
         {
           name,
           email,

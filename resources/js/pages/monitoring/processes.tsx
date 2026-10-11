@@ -84,7 +84,7 @@ export default function Processes() {
   const fetchProcesses = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch(route('monitoring.processes.json', { server: server.id }), {
+      const res = await fetch(`/servers/${server.id}/monitoring/processes/json`, {
         headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
       });
       if (res.ok) {
@@ -111,7 +111,7 @@ export default function Processes() {
       description: `Process #${pid} will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill',
       method: 'post',
-      url: route('monitoring.processes.kill', { server: server.id }),
+      url: `/servers/${server.id}/monitoring/processes/kill`,
       data: { pid },
     });
   };
@@ -123,7 +123,7 @@ export default function Processes() {
       description: `All processes for user "${selectedUser}" will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill All',
       method: 'post',
-      url: route('monitoring.processes.kill-user', { server: server.id }),
+      url: `/servers/${server.id}/monitoring/processes/kill-user`,
       data: { user: selectedUser },
     });
   };

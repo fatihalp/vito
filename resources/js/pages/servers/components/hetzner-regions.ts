@@ -63,7 +63,7 @@ export const fetchHetznerLatencies = async (force = false): Promise<Latencies> =
 
   latencyPromise = (async () => {
     try {
-      const response = await axios.get<{ latencies: Latencies }>(route('hetzner.latency'));
+      const response = await axios.get<{ latencies: Latencies }>("/hetzner/latency");
       const data = response.data.latencies;
       setCachedLatencies(data);
       return data;

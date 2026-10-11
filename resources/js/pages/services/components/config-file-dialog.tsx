@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { ConfigPath, Service } from '@/types/service';
 import { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
@@ -33,7 +34,7 @@ export default function ServiceConfigFileDialog({
 
     const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.patch(route('services.config.update', { server: service.server_id, service: service.id }), {
+    form.patch(`/servers/${service.server_id}/services/${service.id}/config`, {
       onSuccess: () => onOpenChange(false),
     });
   };
@@ -42,11 +43,7 @@ export default function ServiceConfigFileDialog({
     queryKey: ['services.config', service.server_id, service.id, configPath.name],
     queryFn: async () => {
       const response = await axios.get(
-        route('services.config', {
-          server: service.server_id,
-          service: service.id,
-          config_name: configPath.name,
-        }),
+        withQuery(`/servers/${service.server_id}/services/${service.id}/config`, { config_name: configPath.name }),
       );
       if (typeof response.data?.content === 'string') {
         form.setData('content', response.data.content);

@@ -168,7 +168,7 @@ export default function DiskUsage() {
       setPathInput(scanPath);
 
       try {
-        const jsonUrl = new URL(route('monitoring.disk-usage.json', { server: server.id }), window.location.origin);
+        const jsonUrl = new URL(`/servers/${server.id}/monitoring/disk-usage/json`, window.location.origin);
         jsonUrl.searchParams.set('path', scanPath);
         jsonUrl.searchParams.set('limit', scanLimit);
 
@@ -186,7 +186,7 @@ export default function DiskUsage() {
           setCurrentPath(json.path);
           setPathInput(json.path);
 
-          const pageUrl = new URL(route('monitoring.disk-usage', { server: server.id }), window.location.origin);
+          const pageUrl = new URL(`/servers/${server.id}/monitoring/disk-usage`, window.location.origin);
           pageUrl.searchParams.set('path', json.path);
           if (scanLimit !== '10') {
             pageUrl.searchParams.set('limit', scanLimit);

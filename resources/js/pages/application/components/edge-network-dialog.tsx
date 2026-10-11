@@ -67,7 +67,7 @@ export default function EdgeNetworkDialog({
   const handleToggleProxy = (domainName: string, currentStatus: boolean) => {
     setTogglingDomain(domainName);
     router.post(
-      route('sites.toggle-domain-proxy', { server: server.id, site: site.id }),
+      `/servers/${server.id}/sites/${site.id}/toggle-domain-proxy`,
       { domain: domainName, proxied: !currentStatus },
       { preserveScroll: true, onFinish: () => setTogglingDomain(null) },
     );
@@ -109,13 +109,13 @@ export default function EdgeNetworkDialog({
                   Management
                 </DropdownMenuLabel>
                 <DropdownMenuItem asChild>
-                  <Link href={route('hosted-domains', { server: server.id, site: site.id })} className="flex items-center gap-2 cursor-pointer text-xs">
+                  <Link href={`/servers/${server.id}/sites/${site.id}/domains`} className="flex items-center gap-2 cursor-pointer text-xs">
                     <GlobeIcon className="size-3.5 text-muted-foreground" />
                     <span>Manage Domains</span>
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={route('dns-providers')} className="flex items-center gap-2 cursor-pointer text-xs">
+                  <Link href={"/settings/dns-providers"} className="flex items-center gap-2 cursor-pointer text-xs">
                     <SettingsIcon className="size-3.5 text-muted-foreground" />
                     <span>DNS Providers</span>
                   </Link>
@@ -167,7 +167,7 @@ export default function EdgeNetworkDialog({
                 </Button>
               ) : (
                 <Button variant="outline" size="sm" asChild className="h-8 text-xs">
-                  <Link href={route('dns-providers')}>Connect Cloudflare</Link>
+                  <Link href={"/settings/dns-providers"}>Connect Cloudflare</Link>
                 </Button>
               )}
             </div>

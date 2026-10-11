@@ -12,7 +12,7 @@ export function rowId(): string {
 
 
 export function currentPath(): string {
-  return window.location.href.split(/[?#]/)[0];
+  return window.location.pathname;
 }
 
 

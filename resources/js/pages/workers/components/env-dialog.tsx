@@ -61,8 +61,8 @@ export default function WorkerEnvDialog({
     queryFn: async () => {
       const response = await axios.get(
         workerMode
-          ? route('workers.env', { server: serverId, worker: workerId })
-          : route('site-settings.worker-env', { server: serverId, site: siteId }),
+          ? `/servers/${serverId}/workers/${workerId}/env`
+          : `/servers/${serverId}/sites/${encodeURIComponent(String(siteId))}/settings/worker-env`,
       );
       const parsed = (response.data?.variables ?? []).map((v: { key: string; value: string; is_secret: boolean }) => ({
         id: rowId(),
@@ -119,8 +119,8 @@ export default function WorkerEnvDialog({
     }));
     form.patch(
       workerMode
-        ? route('workers.update-env', { server: serverId, worker: workerId })
-        : route('site-settings.update-worker-env', { server: serverId, site: siteId }),
+        ? `/servers/${serverId}/workers/${workerId}/env`
+        : `/servers/${serverId}/sites/${encodeURIComponent(String(siteId))}/settings/worker-env`,
       {
         onSuccess: () => onOpenChange(false),
       },

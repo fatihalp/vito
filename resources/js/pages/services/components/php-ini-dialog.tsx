@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Service } from '@/types/service';
 import { FormEvent, useEffect } from 'react';
 import { useForm } from '@inertiajs/react';
@@ -36,7 +37,7 @@ export default function PhpIniDialog({
 
     const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.patch(route('php.ini.update', { server: service.server_id, service: service.id }), {
+    form.patch(`/servers/${service.server_id}/php/${service.id}/ini`, {
       onSuccess: () => onOpenChange(false),
     });
   };
@@ -45,12 +46,7 @@ export default function PhpIniDialog({
     queryKey: ['php.ini', service.server_id, service.id, type],
     queryFn: async () => {
       const response = await axios.get(
-        route('php.ini', {
-          server: service.server_id,
-          service: service.id,
-          version: service.version,
-          type: type,
-        }),
+        withQuery(`/servers/${service.server_id}/php/${service.id}/ini`, { version: service.version, type: type }),
       );
       if (typeof response.data?.ini === 'string') {
         form.setData('ini', response.data.ini);

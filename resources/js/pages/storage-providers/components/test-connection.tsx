@@ -11,7 +11,7 @@ export default function TestConnection({ storageProvider }: { storageProvider: S
   const test = async () => {
     setTesting(true);
     try {
-      const { data } = await axios.post<{ connected: boolean }>(route('storage-providers.test', { storageProvider: storageProvider.id }));
+      const { data } = await axios.post<{ connected: boolean }>(`/settings/storage-providers/${storageProvider.id}/test`);
       if (data.connected) {
         toast.success(`Connected: read/write access to "${storageProvider.name}" verified.`);
       } else {

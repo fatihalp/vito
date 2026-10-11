@@ -54,7 +54,7 @@ export default function ServerRestart() {
   const probeConnection = useCallback(async (): Promise<boolean> => {
     try {
       const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-      const response = await fetch(route('servers.restart.probe', { server: server.id }), {
+      const response = await fetch(`/servers/${server.id}/restart/probe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ export default function ServerRestart() {
 
     try {
       const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
-      await fetch(route('servers.restart.trigger', { server: server.id }), {
+      await fetch(`/servers/${server.id}/restart/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export default function ServerRestart() {
       <Container className="max-w-md space-y-4 py-8">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
-            <Link href={route('servers.show', { server: server.id })}>
+            <Link href={`/servers/${server.id}`}>
               <ArrowLeftIcon className="size-3.5" />
               <span>Overview</span>
             </Link>
@@ -204,7 +204,7 @@ export default function ServerRestart() {
             {phase === 'online' ? (
               <div className="flex items-center gap-2 pt-1">
                 <Button asChild size="sm" className="h-7.5 text-xs cursor-pointer">
-                  <Link href={route('servers.show', { server: server.id })}>
+                  <Link href={`/servers/${server.id}`}>
                     Return to overview
                   </Link>
                 </Button>

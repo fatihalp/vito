@@ -32,14 +32,10 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
 
     setGettingBranches(true);
 
-    const routeName: string = useCache ? 'source-controls.branches' : 'source-controls.branches.nocache';
 
     try {
       const response = await fetch(
-        route(routeName, {
-          source_control: sourceControlId,
-          repo: repository,
-        }),
+        `/settings/source-controls/${sourceControlId}/branches${useCache ? '' : '/nocache'}/${encodeURIComponent(repository)}`,
       );
       const data = await response.json();
 

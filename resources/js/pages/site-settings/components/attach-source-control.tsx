@@ -14,8 +14,7 @@ export default function AttachSourceControl({ site, children }: { site: Site; ch
       description="Connect this site to a Git repository."
       initialValue=""
       fieldName="source_control"
-      routeName="site-settings.attach-source-control"
-      routeParams={{ server: site.server_id, site: site.id }}
+      url={`/servers/${site.server_id}/sites/${site.id}/settings/attach-source-control`}
       trigger={children}
     >
       {(form) => (

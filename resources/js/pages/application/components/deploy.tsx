@@ -12,7 +12,7 @@ export default function Deploy({ site }: { site: Site }) {
       disabled={form.processing || unavailable}
       aria-label={unavailable ? 'Configure a port and start command before deploying' : 'Deploy site'}
       title={unavailable ? 'Configure a port and start command before deploying' : undefined}
-      onClick={() => form.post(route('application.deploy', { server: site.server_id, site: site.id }))}
+      onClick={() => form.post(`/servers/${site.server_id}/sites/${site.id}/deploy`)}
     >
       {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <RocketIcon />}
       {form.processing ? 'Deploying' : 'Deploy'}

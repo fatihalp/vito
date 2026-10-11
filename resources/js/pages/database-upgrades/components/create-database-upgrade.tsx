@@ -41,14 +41,14 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
     if (!open) return;
 
     axios
-      .get<{ version: number; versions: string[]; source: string }>(route('database-upgrades.versions', { server: server.id }))
+      .get<{ version: number; versions: string[]; source: string }>(`/servers/${server.id}/database-upgrades/versions`)
       .then((response) => {
         setVersions(response.data);
         setData('version', response.data.versions[0] ?? '');
       })
       .catch(() => setVersions(null));
     axios
-      .get<UpgradeRequirements>(route('database-upgrades.requirements', { server: server.id }))
+      .get<UpgradeRequirements>(`/servers/${server.id}/database-upgrades/requirements`)
       .then((response) => {
         setRequirements(response.data);
         setError(null);
@@ -62,7 +62,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('database-upgrades.store', { server: server.id }), { onSuccess: () => onOpenChange(false) });
+    form.post(`/servers/${server.id}/database-upgrades`, { onSuccess: () => onOpenChange(false) });
   };
 
   return (

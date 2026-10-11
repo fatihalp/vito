@@ -335,7 +335,7 @@ export default function CreateServer({
 
   const [serverProviders, setServerProviders] = useState<ServerProvider[]>([]);
   const fetchServerProviders = async () => {
-    const response = await axios.get<ServerProvider[]>(route('server-providers.json'));
+    const response = await axios.get<ServerProvider[]>("/settings/server-providers/json");
     const providers = response.data;
     setServerProviders(providers);
 
@@ -425,7 +425,7 @@ export default function CreateServer({
       setStep((s) => s + 1);
       return;
     }
-    form.post(route('servers'));
+    form.post("/servers");
   };
 
   const providerValue =
@@ -476,7 +476,7 @@ export default function CreateServer({
   const fetchRegions = async (serverProvider: number, providerName?: string) => {
     setRegionLoading(true);
     try {
-      const regionsRes = await axios.get(route('server-providers.regions', { serverProvider: serverProvider }));
+      const regionsRes = await axios.get(`/settings/server-providers/${serverProvider}/regions`);
       setRegions(regionsRes.data);
 
       if (providerName === 'hetzner' || form.data.provider === 'hetzner') {
@@ -508,7 +508,7 @@ export default function CreateServer({
 
   const [plans, setPlans] = useState<{ [key: string]: string | PlanOption }>({});
   const fetchPlans = async (serverProvider: number, region: string) => {
-    const plans = await axios.get(route('server-providers.plans', { serverProvider: serverProvider, region: region }));
+    const plans = await axios.get(`/settings/server-providers/${serverProvider}/regions/${encodeURIComponent(String(region))}/plans`);
     setPlans(plans.data);
   };
   const selectPlan = (plan: string) => {

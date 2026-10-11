@@ -62,7 +62,7 @@ export default function CreateDatabaseReplica({
     if (!open) return;
 
     axios
-      .get<{ requirements: ServerRequirements; candidates: Candidate[] }>(route('database-replicas.requirements', { server: server.id }))
+      .get<{ requirements: ServerRequirements; candidates: Candidate[] }>(`/servers/${server.id}/database-replicas/requirements`)
       .then((response) => {
         setRequirements(response.data.requirements);
         setCandidates(response.data.candidates);
@@ -83,7 +83,7 @@ export default function CreateDatabaseReplica({
         : { replica_server_id: data.replica_server_id, confirmation: data.confirmation }),
       ...(needsBackup ? { backup: data.backup } : {}),
     }));
-    form.post(route('database-replicas.store', { server: server.id }), {
+    form.post(`/servers/${server.id}/database-replicas`, {
       onSuccess: () => onOpenChange(false),
     });
   };

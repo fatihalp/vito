@@ -73,7 +73,7 @@ export default function ProvisionServerFields({
 
   useEffect(() => {
     axios
-      .get<ServerProvider[]>(route('server-providers.json'))
+      .get<ServerProvider[]>("/settings/server-providers/json")
       .then((response) => setProviders(response.data))
       .catch(() => setProviders([]));
   }, []);
@@ -87,7 +87,7 @@ export default function ProvisionServerFields({
     setRegions({});
     setPlans({});
     axios
-      .get<Record<string, string>>(route('server-providers.regions', { serverProvider: id }))
+      .get<Record<string, string>>(`/settings/server-providers/${encodeURIComponent(String(id))}/regions`)
       .then((response) => setRegions(response.data))
       .catch(() => setRegions({}));
   };
@@ -96,7 +96,7 @@ export default function ProvisionServerFields({
     setData({ region, plan: '' });
     setPlans({});
     axios
-      .get<Record<string, Plan | string>>(route('server-providers.plans', { serverProvider: data.server_provider, region }))
+      .get<Record<string, Plan | string>>(`/settings/server-providers/${encodeURIComponent(String(data.server_provider))}/regions/${encodeURIComponent(String(region))}/plans`)
       .then((response) =>
         setPlans(
           Object.fromEntries(Object.entries(response.data).map(([name, plan]) => [name, typeof plan === 'string' ? { label: plan, available: true } : plan])),

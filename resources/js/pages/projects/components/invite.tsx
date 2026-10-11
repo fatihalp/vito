@@ -32,7 +32,7 @@ export default function Invite({
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
-    form.post(route('projects.users.store', { project: project.id }), {
+    form.post(`/settings/projects/${project.id}/users`, {
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: ['project-invitees', project.id] });
         onOpenChange(false);

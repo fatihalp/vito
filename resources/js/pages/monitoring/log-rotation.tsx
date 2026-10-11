@@ -68,7 +68,7 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
           description: `The log file "${entry.label}" will be cleared. This action cannot be undone.`,
           confirmLabel: 'Clear',
           method: 'post',
-          url: route('monitoring.log-rotation.clear', { server: serverId }),
+          url: `/servers/${serverId}/monitoring/log-rotation/clear`,
           data: { key: entry.key },
         })
       }
@@ -99,7 +99,7 @@ export default function LogRotation() {
       description: `${clearable.length} log files will be cleared (total ${formatBytes(totalSize)}). This action cannot be undone.`,
       confirmLabel: 'Clear All',
       method: 'post',
-      url: route('monitoring.log-rotation.clear-all', { server: server.id }),
+      url: `/servers/${server.id}/monitoring/log-rotation/clear-all`,
       data: {},
     });
   };

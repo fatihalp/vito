@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -35,7 +36,7 @@ export default function InviteeSelect({
   const { data: users = [], isFetching } = useQuery<ProjectInvitee[]>({
     queryKey: ['project-invitees', projectId, debouncedQuery],
     queryFn: async () => {
-      const response = await axios.get(route('projects.users.json', { project: projectId, query: debouncedQuery }));
+      const response = await axios.get(withQuery(`/settings/projects/${projectId}/users/json`, { query: debouncedQuery }));
       return response.data;
     },
     enabled: open,

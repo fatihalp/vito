@@ -36,7 +36,7 @@ export default function ExecutionLog({ execution, initiallyOpen = false }: { exe
         </CollapsibleTrigger>
         {execution.log && (
           <Button variant="outline" size="icon" className="size-8 shrink-0" asChild>
-            <a href={route('logs.download', { server: execution.server_id, log: execution.log.id })} target="_blank" rel="noopener noreferrer" aria-label="Download log">
+            <a href={`/servers/${execution.server_id}/logs/${execution.log.id}/download`} target="_blank" rel="noopener noreferrer" aria-label="Download log">
               <DownloadIcon />
             </a>
           </Button>

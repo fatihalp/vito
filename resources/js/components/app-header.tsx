@@ -35,7 +35,7 @@ export function AppHeader({
         <div className="flex items-center gap-2">
           {page.props.auth.pendingInvitationsCount > 0 && (
             <Button variant="outline" size="sm" asChild className="border-primary/40 text-primary">
-              <Link href={`${route('projects')}#invitations`}>
+              <Link href={`${"/settings/projects"}#invitations`}>
                 <MailIcon className="size-4" />
                 <span className="hidden sm:inline">
                   {page.props.auth.pendingInvitationsCount} {page.props.auth.pendingInvitationsCount === 1 ? 'invitation' : 'invitations'}

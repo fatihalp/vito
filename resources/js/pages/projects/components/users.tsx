@@ -33,7 +33,7 @@ function RemoveUserAction({ user }: { user: ProjectUser }) {
           variant: 'destructive',
           confirmLabel: 'Remove',
           method: 'delete',
-          url: route('projects.users.destroy', { project: user.project_id, id: user.id }),
+          url: `/settings/projects/${user.project_id}/users/${user.id}`,
         })
       }
     >

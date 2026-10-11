@@ -72,7 +72,7 @@ export default function SiteResourceDiagram({
     e.stopPropagation();
     setTogglingDomain(domainName);
     router.post(
-      route('sites.toggle-domain-proxy', { server: server.id, site: site.id }),
+      `/servers/${server.id}/sites/${site.id}/toggle-domain-proxy`,
       {
         domain: domainName,
         proxied: !currentStatus,
@@ -103,7 +103,7 @@ export default function SiteResourceDiagram({
 
   const attachedResourcesCount = [dbResource, cacheResource, storageResource].filter(Boolean).length;
 
-  const resourcesUrl = route('site-resources', { server: server.id, site: site.id });
+  const resourcesUrl = `/servers/${server.id}/sites/${site.id}/resources`;
 
   const connectedCloudflare = dnsProviders.find((p) => p.connected && p.provider === 'cloudflare');
   const hasCloudflare = Boolean(connectedCloudflare);
@@ -595,7 +595,7 @@ export default function SiteResourceDiagram({
                     <div className="mt-2.5 space-y-1 border-t border-border/40 pt-2.5 text-xs">
                       <div className="group flex items-center rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors">
                         <Link
-                          href={route('workers.site', { server: server.id, site: site.id })}
+                          href={`/servers/${server.id}/sites/${site.id}/workers`}
                           className="flex min-w-0 flex-1 items-center justify-between gap-2"
                         >
                           <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
@@ -622,7 +622,7 @@ export default function SiteResourceDiagram({
 
                       <div className="group flex items-center rounded-sm -mx-1 px-1 py-0.5 hover:bg-accent/60 transition-colors">
                         <Link
-                          href={route('cronjobs.site', { server: server.id, site: site.id })}
+                          href={`/servers/${server.id}/sites/${site.id}/cronjobs`}
                           className="flex min-w-0 flex-1 items-center justify-between gap-2"
                         >
                           <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
@@ -650,7 +650,7 @@ export default function SiteResourceDiagram({
                   ) : (
                     <div className="mt-2 flex items-center justify-between border-t border-border/40 pt-1.5 text-[11px] text-muted-foreground">
                       <span className="flex items-center gap-1">
-                        <Link href={route('workers.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                        <Link href={`/servers/${server.id}/sites/${site.id}/workers`} className="hover:text-foreground hover:underline">
                           {workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}
                         </Link>
                         <button
@@ -663,7 +663,7 @@ export default function SiteResourceDiagram({
                         </button>
                       </span>
                       <span className="flex items-center gap-1">
-                        <Link href={route('cronjobs.site', { server: server.id, site: site.id })} className="hover:text-foreground hover:underline">
+                        <Link href={`/servers/${server.id}/sites/${site.id}/cronjobs`} className="hover:text-foreground hover:underline">
                           {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}
                         </Link>
                         <button

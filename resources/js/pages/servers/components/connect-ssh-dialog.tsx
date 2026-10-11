@@ -81,7 +81,7 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
 
         <DialogFooter className="flex items-center justify-between border-t pt-3">
           <Button variant="link" size="sm" className="text-muted-foreground h-auto p-0 text-xs" asChild>
-            <Link href={route('server-ssh-keys', { server: server.id })}>Manage SSH keys</Link>
+            <Link href={`/servers/${server.id}/ssh-keys`}>Manage SSH keys</Link>
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
             Close

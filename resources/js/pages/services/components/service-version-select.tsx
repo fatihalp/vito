@@ -23,7 +23,7 @@ export default function ServiceVersionSelect({
   const query = useQuery<string[]>({
     queryKey: ['service', serverId, service],
     queryFn: async () => {
-      return (await axios.get(route('services.versions', { server: serverId, service: service }))).data;
+      return (await axios.get(`/servers/${serverId}/services/${encodeURIComponent(String(service))}/versions`)).data;
     },
   });
 
@@ -45,7 +45,7 @@ export default function ServiceVersionSelect({
         {isEmpty ? (
           <div className="text-muted-foreground px-3 py-4 text-center text-sm">
             <p>No {service} is installed on this server.</p>
-            <Link href={route('services', { server: serverId })} className="text-primary mt-1 inline-block hover:underline">
+            <Link href={`/servers/${serverId}/services`} className="text-primary mt-1 inline-block hover:underline">
               Go to Services to install {service}
             </Link>
           </div>

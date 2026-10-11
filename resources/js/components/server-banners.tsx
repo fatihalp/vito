@@ -1,3 +1,4 @@
+import { withQuery } from '@/lib/url';
 import { Button } from '@/components/ui/button';
 import { Server, ServerWarning } from '@/types/server';
 import { BannerItem, WarningsBlock } from '@/components/banners';
@@ -21,7 +22,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: 'The kernel or a critical package has been updated. Restart the server to complete the upgrade.',
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={route('servers.restart', { server: server.id, start: 1 })}>
+          <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
             Restart
           </Link>
         </Button>
@@ -36,7 +37,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: <>Vito is applying package updates to this server. You can monitor the progress and view live console logs.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={route('servers.update', { server: server.id })}>
+          <Link href={`/servers/${server.id}/update`}>
             View progress
           </Link>
         </Button>
@@ -52,7 +53,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: <>Install pending OS package updates to keep this server patched.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={route('servers.update', { server: server.id, start: 1 })}>
+          <Link href={withQuery(`/servers/${server.id}/update`, { start: 1 })}>
             Update
           </Link>
         </Button>
@@ -68,7 +69,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: <>Install the pending kernel {kernelCount === 1 ? 'package' : 'packages'} and restart to apply the new kernel.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={route('servers.update', { server: server.id, type: 'kernel', start: 1 })}>
+          <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel', start: 1 })}>
             Update &amp; restart
           </Link>
         </Button>
@@ -83,7 +84,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: 'A backup failed, stopped running on schedule, or pgBackRest reported a WAL or repository problem.',
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={route('backups', { server: server.id })}>View backups</Link>
+          <Link href={`/servers/${server.id}/backups`}>View backups</Link>
         </Button>
       ),
     });
@@ -106,7 +107,7 @@ export default function ServerBanners({ server }: { server: Server }) {
               description: `Power on this server via ${server.provider}? The server will boot up and reconnect.`,
               confirmLabel: 'Start server',
               method: 'post',
-              url: route('servers.start', server.id),
+              url: `/servers/${server.id}/start`,
             })
           }
         >
@@ -114,7 +115,7 @@ export default function ServerBanners({ server }: { server: Server }) {
         </Button>
       ) : (
         <Button variant="outline" size="sm" asChild>
-          <Link href={route('servers.restart', { server: server.id, start: 1 })}>
+          <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
             Restart
           </Link>
         </Button>

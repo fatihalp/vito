@@ -47,7 +47,7 @@ export default function ServerLimits() {
 
   const submitNginx = (e: FormEvent) => {
     e.preventDefault();
-    nginxForm.patch(route('servers.limits.nginx', { server: server.id }), {
+    nginxForm.patch(`/servers/${server.id}/limits/nginx`, {
       preserveScroll: true,
     });
   };
@@ -84,7 +84,7 @@ export default function ServerLimits() {
 
   const submitPhp = (e: FormEvent) => {
     e.preventDefault();
-    phpForm.patch(route('servers.limits.php', { server: server.id }), {
+    phpForm.patch(`/servers/${server.id}/limits/php`, {
       preserveScroll: true,
     });
   };

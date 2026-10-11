@@ -35,7 +35,7 @@ const nameCell = ({ row, value }: CellRenderProps) => {
   return (
     <div className="flex items-center gap-2">
       <Link
-        href={route('servers.show', { server: id })}
+        href={`/servers/${id}`}
         className={cn('font-medium hover:underline', isSelf && 'text-primary font-semibold')}
       >
         {name}
@@ -230,7 +230,7 @@ export default function Servers() {
           <Heading title="Servers" />
           <div className="flex items-center gap-2">
             <Button asChild>
-              <Link href={route('servers.create')}>
+              <Link href={"/servers/create"}>
                 <PlusIcon />
                 Create server
               </Link>
@@ -285,7 +285,7 @@ export default function Servers() {
           }}
           onRowClick={(row: Row) => {
             const server = asRow<{ id: number }>(row, ['id']);
-            router.visit(route('servers.show', { server: server.id }));
+            router.visit(`/servers/${server.id}`);
           }}
         />
       </Container>

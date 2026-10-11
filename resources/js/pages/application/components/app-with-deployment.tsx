@@ -137,7 +137,7 @@ export default function AppWithDeployment() {
                         {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
                         <Deploy site={site} />
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
-                          <Link href={route('application.environment', { server: page.props.server.id, site: site.id })}>
+                          <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>
                             <FileCode2Icon className="size-4" />
                             <span>Env</span>
                           </Link>
@@ -179,12 +179,12 @@ export default function AppWithDeployment() {
                               </DeploymentScript>
                             )}
                             <DropdownMenuItem asChild>
-                              <Link href={route('application.environment', { server: page.props.server.id, site: site.id })}>
+                              <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>
                                 Environment (.env)
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={route('sites.logs', { server: page.props.server.id, site: site.id })}>
+                              <Link href={`/servers/${page.props.server.id}/sites/${site.id}/logs`}>
                                 Logs
                               </Link>
                             </DropdownMenuItem>
@@ -198,7 +198,7 @@ export default function AppWithDeployment() {
                   </CardContent>
                   <CardFooter className="justify-end p-3">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={route('application.deployments.index', { server: site.server_id, site: site.id })}>View all deployments</Link>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/deployments`}>View all deployments</Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -219,7 +219,7 @@ export default function AppWithDeployment() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={route('workers.site', { server: site.server_id, site: site.id })}>Manage</Link>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`}>Manage</Link>
                     </Button>
                   </CardHeader>
                   <CardContent className="divide-y p-0">
@@ -254,7 +254,7 @@ export default function AppWithDeployment() {
                       </div>
                     </div>
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={route('cronjobs.site', { server: site.server_id, site: site.id })}>Manage</Link>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`}>Manage</Link>
                     </Button>
                   </CardHeader>
                   <CardContent className="divide-y p-0">
