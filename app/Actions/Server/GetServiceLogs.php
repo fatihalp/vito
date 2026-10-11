@@ -34,6 +34,20 @@ class GetServiceLogs
             }
         }
 
+        foreach ($server->sites as $site) {
+            if (! $site->php_version) {
+                continue;
+            }
+
+            $logs[] = new ServiceLog(
+                key: 'site:'.$site->id.':laravel',
+                serviceLabel: 'Laravel',
+                label: $site->domain,
+                source: ServiceLog::SOURCE_FILE,
+                target: rtrim($site->path, '/').'/storage/logs/laravel.log',
+            );
+        }
+
         $logs[] = new ServiceLog(
             key: 'system:sshd',
             serviceLabel: 'System',

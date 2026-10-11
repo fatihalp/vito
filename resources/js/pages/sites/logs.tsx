@@ -1,4 +1,4 @@
-import { Head, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
 import SiteBanners from '@/components/site-banners';
@@ -11,6 +11,7 @@ import { ServerLog } from '@/types/server-log';
 import { DataTable } from '@/components/data-table';
 import { columns } from '@/pages/server-logs/components/columns';
 import { useRealtime } from '@/hooks/use-socket-events';
+import { Button } from '@/components/ui/button';
 
 type Page = {
   server: Server;
@@ -29,6 +30,18 @@ export default function ShowSite() {
       <Container className="max-w-5xl">
         <HeaderContainer>
           <Heading title="Logs" description="Here you can see your site's logs" />
+          {page.props.site.php_version && (
+            <Button variant="outline" asChild>
+              <Link
+                href={route('logs.services', {
+                  server: page.props.server.id,
+                  key: `site:${page.props.site.id}:laravel`,
+                })}
+              >
+                Laravel Log
+              </Link>
+            </Button>
+          )}
         </HeaderContainer>
 
         <SiteBanners site={page.props.site} />

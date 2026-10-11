@@ -32,7 +32,10 @@ export default function ServerLogs() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title={page.props.title} description="Here you can see all logs" />
+          <Heading
+            title={page.props.title}
+            description={page.props.remote ? 'View custom log files from this server.' : 'View operation events and command output recorded by Vito.'}
+          />
           <div className="flex items-center gap-2">
             {page.props.remote && (
               <LogForm>

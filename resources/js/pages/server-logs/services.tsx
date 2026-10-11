@@ -1,7 +1,7 @@
 import { Head, Link, useForm, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
-import { CogIcon, DownloadIcon, EraserIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
+import { DownloadIcon, EraserIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
   Dialog,
@@ -47,10 +48,12 @@ export default function ServiceLogs() {
 
   const itemsByKey = useMemo(() => Object.fromEntries(catalogue.map((c) => [c.key, c])), [catalogue]);
 
-  const initialKey = useMemo(() => {
+  const initialSelection = useMemo(() => {
     const params = new URLSearchParams(page.url.split('?')[1] ?? '');
     const keyParam = params.get('key');
-    if (keyParam && itemsByKey[keyParam]) return keyParam;
+    if (keyParam && itemsByKey[keyParam]) {
+      return { service: itemsByKey[keyParam].service_label, key: keyParam };
+    }
 
     const serviceParam = params.get('service')?.toLowerCase();
     if (serviceParam) {
@@ -60,13 +63,14 @@ export default function ServiceLogs() {
           c.key.toLowerCase().split(':')[0] === serviceName ||
           c.service_label.toLowerCase() === serviceName,
       );
-      return match?.key ?? '';
+      return { service: match?.service_label ?? '', key: '' };
     }
 
-    return catalogue[0]?.key ?? '';
+    return { service: '', key: '' };
   }, [catalogue, itemsByKey, page.url, server.services]);
 
-  const [selectedKey, setSelectedKey] = useState<string>(initialKey);
+  const [selectedService, setSelectedService] = useState(initialSelection.service);
+  const [selectedKey, setSelectedKey] = useState(initialSelection.key);
   const [lines, setLines] = useState<LineOption>('100');
   const [search, setSearch] = useState<string>('');
   const [debouncedSearch, setDebouncedSearch] = useState<string>('');
@@ -80,8 +84,9 @@ export default function ServiceLogs() {
   const selected = selectedKey ? itemsByKey[selectedKey] : undefined;
 
   useEffect(() => {
-    setSelectedKey(initialKey);
-  }, [initialKey, page.url]);
+    setSelectedService(initialSelection.service);
+    setSelectedKey(initialSelection.key);
+  }, [initialSelection, page.url]);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 300);
@@ -89,16 +94,18 @@ export default function ServiceLogs() {
   }, [search]);
 
   const fetchLog = useCallback(() => {
+    abortRef.current?.abort();
+    setContent('');
+    setDisplayTarget('');
+    setError(null);
+    setIsLoading(false);
+
     if (!selectedKey) return;
 
-    abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
     setIsLoading(true);
-    setError(null);
-    setContent('');
-    setDisplayTarget('');
 
     axios
       .post(
@@ -112,7 +119,7 @@ export default function ServiceLogs() {
         setDisplayTarget(response.data.display_target ?? '');
       })
       .catch((err: unknown) => {
-        if (axios.isCancel(err)) return;
+        if (controller.signal.aborted || axios.isCancel(err)) return;
         if (axios.isAxiosError(err)) {
           const msg = err.response?.data?.message || err.response?.data?.error || err.message;
           setError(msg || 'Failed to read log');
@@ -176,14 +183,19 @@ export default function ServiceLogs() {
     }
   }, [selectedKey, isDownloading, server.id]);
 
+  const serviceItems = useMemo(
+    () => [...new Set(catalogue.map((log) => log.service_label))].map((service) => ({ value: service, label: service })),
+    [catalogue],
+  );
+
   const comboItems = useMemo(
     () =>
-      catalogue.map((c) => ({
+      catalogue.filter((c) => c.service_label === selectedService).map((c) => ({
         value: c.key,
-        label: `[${c.service_label}] ${c.label} (${c.display_target})`,
+        label: c.label,
         keywords: [c.service_label, c.label, c.display_target],
       })),
-    [catalogue],
+    [catalogue, selectedService],
   );
 
   return (
@@ -192,7 +204,7 @@ export default function ServiceLogs() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Service logs" description="View, search, refresh and download log files from installed services." />
+          <Heading title="Service logs" description="Choose a service, then select one of its logs to view, search or download." />
         </HeaderContainer>
 
         {catalogue.length === 0 ? (
@@ -208,17 +220,41 @@ export default function ServiceLogs() {
         ) : (
           <Card className="overflow-hidden">
             <CardHeader className="gap-3">
-              <div className="flex min-w-0 w-full items-center gap-2">
-                <CogIcon className="text-muted-foreground size-4 shrink-0" aria-hidden="true" />
-                <div className="flex min-w-0 flex-1 [&_[role=combobox]]:min-w-0 [&_[role=combobox]>span]:truncate">
+              <div className="grid min-w-0 gap-4 md:grid-cols-2">
+                <div className="flex min-w-0 flex-col gap-2 [&_[role=combobox]]:min-w-0 [&_[role=combobox]>span]:truncate">
+                  <Label htmlFor="log-service">Service</Label>
                   <Combobox
-                    items={comboItems}
-                    value={selectedKey}
-                    placeholder="Select a service log to view its contents..."
-                    searchText="Search logs..."
-                    noneFoundText="No matching log"
-                    onValueChange={setSelectedKey}
+                    id="log-service"
+                    items={serviceItems}
+                    value={selectedService}
+                    placeholder="Select a service..."
+                    searchText="Search services..."
+                    noneFoundText="No matching service"
+                    onValueChange={(service) => {
+                      setSelectedService(service);
+                      setSelectedKey('');
+                      setSearch('');
+                      setDebouncedSearch('');
+                    }}
                   />
+                </div>
+                <div className="flex min-w-0 flex-col gap-2 [&_[role=combobox]]:min-w-0 [&_[role=combobox]>span]:truncate">
+                  <Label htmlFor="service-log">Log</Label>
+                  {selectedService ? (
+                    <Combobox
+                      id="service-log"
+                      items={comboItems}
+                      value={selectedKey}
+                      placeholder="Select a log..."
+                      searchText="Search logs..."
+                      noneFoundText="No matching log"
+                      onValueChange={setSelectedKey}
+                    />
+                  ) : (
+                    <Button id="service-log" variant="outline" className="justify-start" disabled>
+                      Select a service first
+                    </Button>
+                  )}
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
@@ -230,7 +266,7 @@ export default function ServiceLogs() {
                   disabled={!selectedKey}
                   aria-label="Search log contents"
                 />
-                <Select value={lines} onValueChange={(v) => setLines(v as LineOption)}>
+                <Select value={lines} onValueChange={(v) => setLines(v as LineOption)} disabled={!selectedKey}>
                   <SelectTrigger className="w-32" aria-label="Line count">
                     <SelectValue placeholder="Lines" />
                   </SelectTrigger>
@@ -267,7 +303,7 @@ export default function ServiceLogs() {
 
             <CardContent className="p-0">
               <div className="bg-muted/40 text-muted-foreground border-b px-4 py-2 font-mono text-xs">
-                {displayTarget || (selectedKey ? ' ' : 'No log selected')}
+                {displayTarget || selected?.display_target || 'No log selected'}
               </div>
               <LogViewer isLoading={isLoading} error={error} hasSelection={!!selectedKey} content={content} searchActive={!!debouncedSearch} />
             </CardContent>

@@ -166,10 +166,12 @@ class ServerLog extends AbstractModel
 
             $content = Storage::disk($this->disk)->get($this->name);
 
-            return $content ?? 'Empty log file!';
+            return $content ?: 'Empty log file!';
         }
 
-        return self::PENDING_LOG_MESSAGE;
+        return $this->type === 'write-file'
+            ? 'No output was recorded for this file write operation.'
+            : self::PENDING_LOG_MESSAGE;
     }
 
     public static function log(Server $server, string $type, string $content, ?Site $site = null): ServerLog
