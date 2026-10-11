@@ -1,5 +1,5 @@
 import { withQuery } from '@/lib/url';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
 import { DownloadIcon, EraserIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
@@ -11,21 +11,12 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Combobox } from '@/components/ui/combobox';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import FormSuccessful from '@/components/form-successful';
+import { Checkbox } from '@/components/ui/checkbox';
+import DateTime from '@/components/date-time';
+import { useDialog } from '@/hooks/use-dialog';
+import ServiceLogViewer from './components/service-log-viewer';
 
 type CatalogueItem = {
   key: string;
@@ -46,6 +37,7 @@ export default function ServiceLogs() {
   }>();
 
   const { catalogue, server } = page.props;
+  const dialog = useDialog();
 
   const itemsByKey = useMemo(() => Object.fromEntries(catalogue.map((c) => [c.key, c])), [catalogue]);
 
@@ -72,9 +64,9 @@ export default function ServiceLogs() {
 
   const [selectedService, setSelectedService] = useState(initialSelection.service);
   const [selectedKey, setSelectedKey] = useState(initialSelection.key);
-  const [lines, setLines] = useState<LineOption>('100');
-  const [search, setSearch] = useState<string>('');
-  const [debouncedSearch, setDebouncedSearch] = useState<string>('');
+  const [lines, setLines] = useState<LineOption>('500');
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [content, setContent] = useState<string>('');
   const [displayTarget, setDisplayTarget] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -87,17 +79,10 @@ export default function ServiceLogs() {
   useEffect(() => {
     setSelectedService(initialSelection.service);
     setSelectedKey(initialSelection.key);
-  }, [initialSelection, page.url]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(search), 300);
-    return () => clearTimeout(t);
-  }, [search]);
+  }, [initialSelection.key, initialSelection.service]);
 
   const fetchLog = useCallback(() => {
     abortRef.current?.abort();
-    setContent('');
-    setDisplayTarget('');
     setError(null);
     setIsLoading(false);
 
@@ -111,13 +96,14 @@ export default function ServiceLogs() {
     axios
       .post(
         `/servers/${server.id}/logs/services/read`,
-        { key: selectedKey, lines: Number(lines), search: debouncedSearch || null },
+        { key: selectedKey, lines: Number(lines) },
         { signal: controller.signal },
       )
       .then((response) => {
         if (controller.signal.aborted) return;
         setContent(response.data.content ?? '');
         setDisplayTarget(response.data.display_target ?? '');
+        setUpdatedAt(new Date().toISOString());
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted || axios.isCancel(err)) return;
@@ -132,13 +118,25 @@ export default function ServiceLogs() {
         if (!controller.signal.aborted) {
           setIsLoading(false);
         }
+        if (abortRef.current === controller) abortRef.current = null;
       });
-  }, [selectedKey, lines, debouncedSearch, server.id]);
+  }, [selectedKey, lines, server.id]);
 
   useEffect(() => {
+    setContent('');
+    setDisplayTarget('');
+    setUpdatedAt(null);
     fetchLog();
     return () => abortRef.current?.abort();
   }, [fetchLog]);
+
+  useEffect(() => {
+    if (!autoRefresh || !selectedKey) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible' && !abortRef.current) fetchLog();
+    }, 10000);
+    return () => clearInterval(timer);
+  }, [autoRefresh, selectedKey, fetchLog]);
 
   const downloadLog = useCallback(async () => {
     if (!selectedKey || isDownloading) return;
@@ -203,9 +201,9 @@ export default function ServiceLogs() {
     <ServerLayout>
       <Head title={`Service logs - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container className="max-w-7xl">
         <HeaderContainer>
-          <Heading title="Service logs" description="Choose a service, then select one of its logs to view, search or download." />
+          <Heading title="Service logs" description="Inspect recent log records, filter by severity and expand errors for full details." />
         </HeaderContainer>
 
         {catalogue.length === 0 ? (
@@ -234,8 +232,6 @@ export default function ServiceLogs() {
                     onValueChange={(service) => {
                       setSelectedService(service);
                       setSelectedKey('');
-                      setSearch('');
-                      setDebouncedSearch('');
                     }}
                   />
                 </div>
@@ -259,14 +255,10 @@ export default function ServiceLogs() {
                 </div>
               </div>
               <div className="flex flex-wrap items-center justify-end gap-2">
-                <Input
-                  placeholder="Search log contents..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="min-w-0 flex-1 md:max-w-xs"
-                  disabled={!selectedKey}
-                  aria-label="Search log contents"
-                />
+                <div className="flex flex-1 items-center gap-2">
+                  <Checkbox id="auto-refresh-logs" checked={autoRefresh} onCheckedChange={(checked) => setAutoRefresh(checked === true)} disabled={!selectedKey} />
+                  <Label htmlFor="auto-refresh-logs" className="text-sm">Auto-refresh every 10s</Label>
+                </div>
                 <Select value={lines} onValueChange={(v) => setLines(v as LineOption)} disabled={!selectedKey}>
                   <SelectTrigger className="w-32" aria-label="Line count">
                     <SelectValue placeholder="Lines" />
@@ -293,7 +285,24 @@ export default function ServiceLogs() {
                   {isDownloading ? <LoaderCircleIcon className="animate-spin" /> : <DownloadIcon />}
                 </Button>
                 {selected && selected.source === 'file' ? (
-                  <ClearButton key={selected.key} serverId={server.id} logKey={selected.key} target={selected.display_target} onCleared={fetchLog} />
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    title="Clear log"
+                    aria-label="Clear log"
+                    onClick={() => dialog.confirm.open({
+                      title: 'Clear log',
+                      description: `Clear all contents of ${selected.display_target}? This cannot be undone. The file and its permissions are preserved.`,
+                      confirmLabel: 'Clear log',
+                      variant: 'destructive',
+                      method: 'post',
+                      url: `/servers/${server.id}/logs/services/clear`,
+                      data: { key: selected.key },
+                      onSuccess: fetchLog,
+                    })}
+                  >
+                    <EraserIcon />
+                  </Button>
                 ) : (
                   <Button variant="outline" size="icon" disabled title="Journal logs cannot be cleared" aria-label="Clear log">
                     <EraserIcon />
@@ -303,105 +312,15 @@ export default function ServiceLogs() {
             </CardHeader>
 
             <CardContent className="p-0">
-              <div className="bg-muted/40 text-muted-foreground border-b px-4 py-2 font-mono text-xs">
-                {displayTarget || selected?.display_target || 'No log selected'}
+              <div className="bg-muted/40 text-muted-foreground flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 text-xs">
+                <span className="min-w-0 font-mono break-all">{displayTarget || selected?.display_target || 'No log selected'}</span>
+                {updatedAt && <span className="shrink-0">Updated <DateTime date={updatedAt} /></span>}
               </div>
-              <LogViewer isLoading={isLoading} error={error} hasSelection={!!selectedKey} content={content} searchActive={!!debouncedSearch} />
+              <ServiceLogViewer key={selectedKey} isLoading={isLoading} error={error} hasSelection={!!selectedKey} content={content} />
             </CardContent>
           </Card>
         )}
       </Container>
     </ServerLayout>
-  );
-}
-
-function LogViewer({
-  isLoading,
-  error,
-  hasSelection,
-  content,
-  searchActive,
-}: {
-  isLoading: boolean;
-  error: string | null;
-  hasSelection: boolean;
-  content: string;
-  searchActive: boolean;
-}) {
-  const showCentered = !hasSelection || (hasSelection && isLoading) || (hasSelection && !error && content === '');
-
-  if (showCentered || (hasSelection && error)) {
-    return (
-      <div className="bg-background flex h-[60vh] min-h-[400px] w-full items-center justify-center">
-        {!hasSelection && <span className="text-muted-foreground text-sm">Pick a log from the dropdown above to view its contents.</span>}
-        {hasSelection && isLoading && (
-          <div className="text-muted-foreground flex items-center gap-2 text-sm">
-            <LoaderCircleIcon className="size-4 animate-spin" />
-            <span>Loading log…</span>
-          </div>
-        )}
-        {hasSelection && !isLoading && error && <span className="text-destructive text-sm">Error: {error}</span>}
-        {hasSelection && !isLoading && !error && content === '' && (
-          <span className="text-muted-foreground text-sm">{searchActive ? 'No matches found.' : 'Log is empty.'}</span>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <ScrollArea className="bg-background h-[calc(100vh-320px)] min-h-[500px] w-full">
-      <div className="p-4 font-mono text-sm whitespace-pre-wrap">{content}</div>
-      <ScrollBar orientation="vertical" />
-      <ScrollBar orientation="horizontal" />
-    </ScrollArea>
-  );
-}
-
-function ClearButton({ serverId, logKey, target, onCleared }: { serverId: number; logKey: string; target: string; onCleared: () => void }) {
-  const [open, setOpen] = useState(false);
-  const form = useForm({ key: logKey });
-
-  const submit = () => {
-    form.post(`/servers/${serverId}/logs/services/clear`, {
-      preserveScroll: true,
-      onSuccess: () => {
-        setOpen(false);
-        onCleared();
-      },
-    });
-  };
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="icon" title="Clear log" aria-label="Clear log">
-          <EraserIcon />
-        </Button>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Clear log</DialogTitle>
-          <DialogDescription className="sr-only">Clear log file contents</DialogDescription>
-        </DialogHeader>
-        <div className="space-y-2 p-4">
-          <p>
-            Are you sure you want to clear <strong className="font-mono">{target}</strong>?
-          </p>
-          <p className="text-muted-foreground text-sm">
-            This truncates the file contents but preserves the file itself, its ownership and permissions.
-          </p>
-        </div>
-        <DialogFooter>
-          <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
-          </DialogClose>
-          <Button disabled={form.processing} onClick={submit}>
-            {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            <FormSuccessful successful={form.recentlySuccessful} />
-            Clear
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }
