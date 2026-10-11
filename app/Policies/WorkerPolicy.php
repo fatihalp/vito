@@ -17,6 +17,7 @@ class WorkerPolicy
     public function viewAny(User $user, Server $server, ?Site $site = null): bool
     {
         return $this->hasServerReadAccess($user, $server) &&
+            (! $site || $site->server_id === $server->id) &&
             $server->processManager();
     }
 
@@ -24,6 +25,7 @@ class WorkerPolicy
     {
         return $this->hasServerReadAccess($user, $server) &&
             $worker->server_id === $server->id &&
+            (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&
             $server->processManager();
     }
 
@@ -31,6 +33,7 @@ class WorkerPolicy
     {
         return $this->hasWriteAccess($user, $server->project) &&
             $server->isReady() &&
+            (! $site || $site->server_id === $server->id) &&
             $server->processManager();
     }
 
@@ -38,6 +41,7 @@ class WorkerPolicy
     {
         return $this->hasWriteAccess($user, $server->project) &&
             $server->isReady() &&
+            (! $site || $site->server_id === $server->id) &&
             $server->processManager();
     }
 
@@ -46,6 +50,7 @@ class WorkerPolicy
         return $this->hasWriteAccess($user, $server->project) &&
             $server->isReady() &&
             $worker->server_id === $server->id &&
+            (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&
             $server->processManager();
     }
 
@@ -54,6 +59,7 @@ class WorkerPolicy
         return $this->hasWriteAccess($user, $server->project) &&
             $server->isReady() &&
             $worker->server_id === $server->id &&
+            (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&
             $server->processManager() &&
             ! $worker->isSiteBootstrap();
     }

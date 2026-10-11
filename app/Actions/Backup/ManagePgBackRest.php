@@ -47,7 +47,7 @@ class ManagePgBackRest
 
     public function create(Server $server, array $input): Backup
     {
-        $this->validate($input, true);
+        $this->validate($server, $input, true);
 
         if ($server->database()?->name !== 'postgresql') {
             throw ValidationException::withMessages([
@@ -106,7 +106,7 @@ class ManagePgBackRest
 
     public function update(Backup $backup, array $input): void
     {
-        $this->validate($input, false);
+        $this->validate($backup->server, $input, false);
 
         $settings = $this->settings($input);
 
@@ -505,7 +505,7 @@ class ManagePgBackRest
         app(BroadcastBackupUpdate::class)->broadcast($file->backup);
     }
 
-    private function validate(array $input, bool $creating): void
+    private function validate(Server $server, array $input, bool $creating): void
     {
         $rules = [
             'strategy' => ['required', Rule::enum(PgBackRestStrategy::class)->only(array_map(PgBackRestStrategy::from(...), config('core.pgbackrest_strategies')))],
@@ -514,7 +514,11 @@ class ManagePgBackRest
         ];
 
         if ($creating) {
-            $rules['storage'] = ['required', Rule::exists('storage_providers', 'id')->where('provider', S3::id())];
+            $rules['storage'] = [
+                'required',
+                Rule::exists('storage_providers', 'id')->where('provider', S3::id())
+                    ->where(fn ($query) => $query->where('project_id', $server->project_id)->orWhereNull('project_id')),
+            ];
         }
 
         if (($input['strategy'] ?? null) === PgBackRestStrategy::CUSTOM->value) {

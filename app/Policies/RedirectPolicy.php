@@ -15,6 +15,7 @@ class RedirectPolicy
     public function viewAny(User $user, Site $site, Server $server): bool
     {
         return $this->hasServerReadAccess($user, $server) &&
+            $site->server_id === $server->id &&
             $site->isReady();
     }
 
