@@ -106,7 +106,8 @@ class ManageBackup
             ],
             'storage' => [
                 'required',
-                Rule::exists('storage_providers', 'id'),
+                Rule::exists('storage_providers', 'id')
+                    ->where(fn ($query) => $query->where('project_id', $server->project_id)->orWhereNull('project_id')),
             ],
             'keep' => [
                 'required',
