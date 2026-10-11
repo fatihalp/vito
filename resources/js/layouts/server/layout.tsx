@@ -248,7 +248,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           icon: ChartLineIcon,
         },
         {
-          title: 'Server logs',
+          title: 'Vito Events',
           href: route('logs', { server: serverId }),
           onlyActivePath: route('logs', { server: serverId }),
           icon: LogsIcon,

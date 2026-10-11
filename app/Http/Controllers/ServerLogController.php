@@ -47,7 +47,7 @@ class ServerLogController extends Controller
             ->simplePaginate(config('web.pagination_size'));
 
         return Inertia::render('server-logs/index', [
-            'title' => 'Server logs',
+            'title' => 'Vito Events',
             'logs' => ServerLogResource::collection($logs),
         ]);
     }
