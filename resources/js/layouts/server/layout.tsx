@@ -260,7 +260,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
           icon: ScrollTextIcon,
         },
         {
-          title: 'Commands',
+          title: 'Command History',
           href: `/servers/${serverId}/commands`,
           onlyActivePath: `/servers/${serverId}/commands`,
           icon: TerminalIcon,
