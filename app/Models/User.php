@@ -48,9 +48,24 @@ class User extends Authenticatable
         'must_change_password' => 'boolean',
         'last_login_at' => 'datetime',
         'last_activity_at' => 'datetime',
+        'password_changed_at' => 'datetime',
     ];
 
     protected $appends = [];
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->isDirty('password')) {
+                $user->password_changed_at = now();
+            }
+        });
+    }
+
+    public function projectMemberships(): HasMany
+    {
+        return $this->hasMany(UserProject::class);
+    }
 
     
     public function servers(): HasMany
