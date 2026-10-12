@@ -46,6 +46,9 @@ export function ProjectSelect({
     queryKey: ['projects', query],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await axios.get(withQuery("/settings/projects/json", { query: query || '', page: pageParam }));
+      if (!Array.isArray(response.data)) {
+        throw new Error('Invalid project list response');
+      }
       return response.data;
     },
     enabled: open || prefetch,
