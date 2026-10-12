@@ -9,9 +9,7 @@ import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { User, UserProjectAccess } from '@/types/user';
+import { User } from '@/types/user';
 import DateTime from '@/components/date-time';
 
 export default function UserForm({ user, open, onOpenChange }: { user?: User; open: boolean; onOpenChange: (open: boolean) => void }) {
@@ -30,6 +28,7 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
 
   const submit: FormEventHandler = (event) => {
     event.preventDefault();
+    form.transform(({ project_access, ...data }) => data.role === 'admin' ? data : { ...data, project_access });
     const options = { onSuccess: () => onOpenChange(false) };
     if (user) {
       form.patch(`/admin/users/${user.id}`, options);
@@ -38,10 +37,9 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
     }
   };
 
-  const toggleProject = (projectId: number, enabled: boolean) => {
-    form.setData('project_access', enabled
-      ? [...form.data.project_access, { project_id: projectId, role: 'user' }]
-      : form.data.project_access.filter((membership) => membership.project_id !== projectId));
+  const setProjectAccess = (projectId: number, role: string) => {
+    const access = form.data.project_access.filter((membership) => membership.project_id !== projectId);
+    form.setData('project_access', role === 'none' ? access : [...access, { project_id: projectId, role }]);
   };
 
   return (
@@ -74,15 +72,6 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
                     value={form.data.password} onChange={(event) => form.setData('password', event.target.value)} />
                   <InputError message={form.errors.password} />
                   <p id="user-password-hint" className="text-muted-foreground text-xs">At least 8 characters, one uppercase letter and one special character.{user && ' Leave blank to keep the current password.'}</p>
-                </FormField>
-                <FormField>
-                  <Label htmlFor="role">Account role</Label>
-                  <Select value={form.data.role} onValueChange={(value) => form.setData('role', value)}>
-                    <SelectTrigger id="role"><SelectValue /></SelectTrigger>
-                    <SelectContent><SelectItem value="user">User</SelectItem><SelectItem value="admin">Admin</SelectItem></SelectContent>
-                  </Select>
-                  <p className="text-muted-foreground text-xs">{form.data.role === 'admin' ? 'Admins can access all projects, regardless of the memberships below.' : 'Users can access the projects they belong to.'}</p>
-                  <InputError message={form.errors.role} />
                 </FormField>
                 <FormField>
                   <div className="flex items-center justify-between gap-4 rounded-md bg-muted/40 p-3">
@@ -121,50 +110,66 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
                     <p className="text-muted-foreground pt-3 font-mono break-all">{user.last_login_user_agent}</p>
                   </details>
                 )}
-                <div className="flex flex-col gap-3 border-t pt-4">
-                  <h4 className="text-sm font-medium">Current project access</h4>
-                  {user.is_admin && <Badge>All projects · Admin</Badge>}
-                  <div className="flex flex-wrap gap-2">
-                    {(user.project_access ?? []).map((membership: UserProjectAccess) => <Badge key={membership.project_id} variant="outline">{membership.name || `Project #${membership.project_id}`} · {membership.role}</Badge>)}
-                    {!user.is_admin && !user.project_access?.length && <span className="text-muted-foreground text-sm">No project memberships</span>}
-                  </div>
-                </div>
               </section>
             )}
           </div>
-          {user && (
-            <section className="flex flex-col gap-4 rounded-lg border p-5">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-col gap-1">
-                  <h3 className="font-semibold">Project memberships <span className="text-muted-foreground font-normal">({form.data.project_access.length} selected)</span></h3>
-                  <p className="text-muted-foreground text-xs">Select projects and choose a role for each. Changes apply when you save.</p>
-                </div>
-                <div className="relative">
-                  <SearchIcon className="text-muted-foreground absolute top-2.5 left-3 size-4" />
-                  <Input aria-label="Search projects" placeholder="Search projects…" className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} />
-                </div>
+          <section className="flex flex-col gap-5 rounded-lg border p-5">
+            <div className="flex flex-col gap-1">
+              <h3 className="font-semibold">Access & permissions</h3>
+              <p className="text-muted-foreground text-sm">Choose full system access or access to selected projects.</p>
+            </div>
+            <FormField>
+              <Label htmlFor="role">Access level</Label>
+              <Select value={form.data.role} onValueChange={(value) => form.setData('role', value)}>
+                <SelectTrigger id="role" className="w-full sm:max-w-sm"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="user">Selected projects</SelectItem>
+                  <SelectItem value="admin">System administrator</SelectItem>
+                </SelectContent>
+              </Select>
+              <InputError message={form.errors.role} />
+            </FormField>
+            {form.data.role === 'admin' ? (
+              <div className="flex flex-col gap-1 rounded-md bg-muted/40 p-4">
+                <p className="text-sm font-medium">Full access to all projects and system settings</p>
+                <p className="text-muted-foreground text-xs">Includes user management and all current and future projects. No project selection is needed. Existing project memberships are kept.</p>
               </div>
-              <div className="max-h-72 overflow-y-auto rounded-md border divide-y">
-                {visibleProjects.map((project) => {
-                  const membership = form.data.project_access.find((item) => item.project_id === project.id);
-                  return (
-                    <div key={project.id} className="flex flex-wrap items-center gap-3 p-3">
-                      <Checkbox id={`project-${project.id}`} checked={!!membership} onCheckedChange={(checked) => toggleProject(project.id, checked === true)} />
-                      <Label htmlFor={`project-${project.id}`} className="min-w-0 flex-1 break-words">{project.name} <span className="text-muted-foreground text-xs">#{project.id}</span></Label>
-                      {membership ? (
-                        <Select value={membership.role} onValueChange={(role) => form.setData('project_access', form.data.project_access.map((item) => item.project_id === project.id ? { ...item, role } : item))}>
-                          <SelectTrigger className="w-32" aria-label={`Role in ${project.name}`}><SelectValue /></SelectTrigger>
-                          <SelectContent><SelectItem value="user">User</SelectItem><SelectItem value="admin">Admin</SelectItem><SelectItem value="owner">Owner</SelectItem></SelectContent>
+            ) : user ? (
+              <>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-col gap-1">
+                    <h4 className="text-sm font-medium">Accessible projects ({form.data.project_access.length})</h4>
+                    <p className="text-muted-foreground text-xs">Project access allows managing resources. Project owners also have ownership permissions, such as removing members and transferring servers.</p>
+                  </div>
+                  <div className="relative">
+                    <SearchIcon className="text-muted-foreground absolute top-2.5 left-3 size-4" />
+                    <Input aria-label="Search projects" placeholder="Search projects…" className="pl-9" value={search} onChange={(event) => setSearch(event.target.value)} />
+                  </div>
+                </div>
+                <div className="max-h-72 divide-y overflow-y-auto rounded-md border">
+                  {visibleProjects.map((project) => {
+                    const membership = form.data.project_access.find((item) => item.project_id === project.id);
+                    return (
+                      <div key={project.id} className="flex flex-wrap items-center gap-3 p-3">
+                        <Label htmlFor={`project-${project.id}`} className="min-w-0 flex-1 break-words">{project.name} <span className="text-muted-foreground text-xs">#{project.id}</span></Label>
+                        <Select value={membership ? membership.role === 'owner' ? 'owner' : 'user' : 'none'} onValueChange={(role) => setProjectAccess(project.id, role)}>
+                          <SelectTrigger id={`project-${project.id}`} className="w-44" aria-label={`Access to ${project.name}`}><SelectValue /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="none">No access</SelectItem>
+                            <SelectItem value="user">Project access</SelectItem>
+                            <SelectItem value="owner">Project owner</SelectItem>
+                          </SelectContent>
                         </Select>
-                      ) : <span className="text-muted-foreground text-xs">No membership</span>}
-                    </div>
-                  );
-                })}
-                {!visibleProjects.length && <p className="text-muted-foreground p-4 text-sm">No matching projects.</p>}
-              </div>
-              {accessErrors.map(([key, message]) => <InputError key={key} message={message} />)}
-            </section>
-          )}
+                      </div>
+                    );
+                  })}
+                  {!visibleProjects.length && <p className="text-muted-foreground p-4 text-sm">No matching projects.</p>}
+                </div>
+                <p className="text-muted-foreground text-xs">Changes apply when you save. A project must keep at least one owner.</p>
+              </>
+            ) : <p className="text-muted-foreground text-sm">Create the account first, then edit it to select its projects.</p>}
+            {accessErrors.map(([key, message]) => <InputError key={key} message={message} />)}
+          </section>
         </Form>
         <DialogFooter className="p-6">
           <DialogClose asChild><Button type="button" variant="outline">Cancel</Button></DialogClose>

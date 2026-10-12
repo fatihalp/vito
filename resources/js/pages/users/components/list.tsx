@@ -20,12 +20,12 @@ const columns: ColumnDef<User>[] = [
   },
   {
     id: 'role',
-    header: 'Role',
+    header: 'Access level',
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => (
       <Badge variant={row.original.is_admin ? 'default' : 'outline'}>
-        {row.original.is_admin ? 'Admin' : 'User'}
+        {row.original.is_admin ? 'System administrator' : 'Selected projects'}
       </Badge>
     ),
   },
@@ -35,16 +35,18 @@ const columns: ColumnDef<User>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
+      if (row.original.is_admin) {
+        return <Badge>All projects</Badge>;
+      }
       const access = row.original.project_access ?? [];
       return (
         <div className="flex max-w-sm flex-wrap gap-1">
-          {row.original.is_admin && <Badge>All projects</Badge>}
           {access.map((membership) => (
             <Badge key={membership.project_id} variant="outline" className="text-xs font-normal">
-              {membership.name || `Project #${membership.project_id}`} · {membership.role}
+              {membership.name || `Project #${membership.project_id}`}{membership.role === 'owner' && ' · Owner'}
             </Badge>
           ))}
-          {!row.original.is_admin && access.length === 0 && <span className="text-muted-foreground text-xs">No memberships</span>}
+          {access.length === 0 && <span className="text-muted-foreground text-xs">No assigned projects</span>}
         </div>
       );
     },
