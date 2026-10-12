@@ -76,10 +76,16 @@ export default function UserForm({ user, children }: { user?: User; children: Re
                 id="password"
                 name="password"
                 autoComplete="new-password"
+                required={!user}
+                minLength={8}
+                pattern={String.raw`(?=.*\p{Lu})(?=.*[\p{P}\p{S}]).{8,}`}
+                aria-describedby="user-password-hint"
+                title="Use at least 8 characters, an uppercase letter and a special character."
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
               />
               <InputError message={form.errors.password} />
+              <p id="user-password-hint" className="text-muted-foreground text-xs">Use at least 8 characters, including an uppercase letter and a special character (such as !, @ or #).{user && ' Leave blank to keep the current password.'}</p>
             </FormField>
             <FormField>
               <div className="flex items-center justify-between gap-4">

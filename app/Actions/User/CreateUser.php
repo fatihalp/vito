@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class CreateUser
 {
@@ -15,7 +16,7 @@ class CreateUser
         Validator::make($input, [
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
+            'password' => ['required', 'string', Password::defaults()],
             'role' => [
                 'required',
                 Rule::in([UserRole::ADMIN, UserRole::USER]),

@@ -50,7 +50,7 @@ export default function UpdatePassword() {
     <Card>
       <CardHeader>
         <CardTitle>Update password</CardTitle>
-        <CardDescription>Ensure your account is using a long, random password to stay secure.</CardDescription>
+        <CardDescription>Use at least 8 characters, including an uppercase letter and a special character (such as !, @ or #).</CardDescription>
       </CardHeader>
       <CardContent className="p-4">
         {page.props.auth.user.two_factor_enabled && (
@@ -81,6 +81,10 @@ export default function UpdatePassword() {
               <Label htmlFor="password">New password</Label>
               <Input
                 id="password"
+                required
+                minLength={8}
+                pattern={String.raw`(?=.*\p{Lu})(?=.*[\p{P}\p{S}]).{8,}`}
+                title="Use at least 8 characters, an uppercase letter and a special character."
                 ref={passwordInput}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
