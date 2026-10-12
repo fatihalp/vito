@@ -35,22 +35,16 @@ const columns: ColumnDef<User>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
-      const projects = row.original.projects || [];
-      if (projects.length === 0) {
-        return (
-          <span className="text-xs text-muted-foreground">
-            {row.original.is_admin ? 'All (Admin)' : 'No projects'}
-          </span>
-        );
-      }
-
+      const access = row.original.project_access ?? [];
       return (
-        <div className="flex flex-wrap gap-1 max-w-xs">
-          {projects.map((project) => (
-            <Badge key={project.id} variant="gray" className="text-xs font-normal">
-              {project.name}
+        <div className="flex max-w-sm flex-wrap gap-1">
+          {row.original.is_admin && <Badge>All projects</Badge>}
+          {access.map((membership) => (
+            <Badge key={membership.project_id} variant="outline" className="text-xs font-normal">
+              {membership.name || `Project #${membership.project_id}`} · {membership.role}
             </Badge>
           ))}
+          {!row.original.is_admin && access.length === 0 && <span className="text-muted-foreground text-xs">No memberships</span>}
         </div>
       );
     },
@@ -76,6 +70,17 @@ const columns: ColumnDef<User>[] = [
       ) : (
         <span className="text-xs text-muted-foreground">No activity yet</span>
       ),
+  },
+  {
+    id: 'browser_language',
+    header: 'Browser / Language',
+    enableSorting: false,
+    cell: ({ row }) => (
+      <div className="flex flex-col gap-1">
+        <span className="text-sm">{row.original.last_login_browser || 'Not recorded'}</span>
+        <span className="text-muted-foreground text-xs">{row.original.last_login_language || 'Not recorded'}</span>
+      </div>
+    ),
   },
   {
     accessorKey: 'created_at',

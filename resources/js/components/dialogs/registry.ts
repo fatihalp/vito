@@ -58,7 +58,10 @@ const ProjectUsers = lazy(() => import('@/pages/projects/components/users'));
 export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) => void };
 
 
+const UserForm = lazy(() => import('@/pages/users/components/user-form'));
+
 export const dialogs = {
+  userForm: UserForm,
   logViewer: LogViewerDialog,
   confirm: ConfirmationDialog,
   storageProviderEdit: StorageProviderEditDialog,
