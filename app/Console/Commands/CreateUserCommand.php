@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\User\CreateUser;
 use App\Models\User;
 use Illuminate\Console\Command;
 
@@ -21,11 +22,12 @@ class CreateUserCommand extends Command
             return;
         }
 
-        $user = User::query()->create([
+        $user = app(CreateUser::class)->create([
             'name' => $this->argument('name'),
             'email' => $this->argument('email'),
-            'password' => bcrypt($this->argument('password')),
-            'is_admin' => $this->option('role') === 'admin',
+            'password' => $this->argument('password'),
+            'role' => $this->option('role'),
+            'must_change_password' => false,
         ]);
 
         $user->ensureHasDefaultProject();

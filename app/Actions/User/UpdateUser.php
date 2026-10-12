@@ -6,6 +6,7 @@ use App\Enums\UserRole;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Password;
 
 class UpdateUser
 {
@@ -46,6 +47,7 @@ class UpdateUser
                 Rule::in([UserRole::ADMIN, UserRole::USER]),
             ],
             'must_change_password' => ['sometimes', 'boolean'],
+            'password' => ['nullable', 'string', Password::defaults()],
         ])->validate();
     }
 }
