@@ -20,11 +20,6 @@ class PrepareDatabaseUpgradeNetwork
 {
     public function __construct(private FindSharedNetwork $networks) {}
 
-    /**
-     * Puts both servers on one private network, so the rows never travel over the internet. A provider network such as
-     * a Hetzner Cloud Network is preferred, and the network of an existing cluster is reused. Returns false while the
-     * memberships are still being applied.
-     */
     public function prepare(DatabaseUpgrade $upgrade): bool
     {
         $source = $upgrade->source;
@@ -81,9 +76,6 @@ class PrepareDatabaseUpgradeNetwork
         return true;
     }
 
-    /**
-     * Removes a WireGuard network Vito created only for this upgrade.
-     */
     public function release(DatabaseUpgrade $upgrade): void
     {
         $network = $upgrade->network;

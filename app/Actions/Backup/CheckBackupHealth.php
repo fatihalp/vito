@@ -13,16 +13,8 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
-/**
- * Keeps backups.health in sync with what is wrong with a backup and alerts when a problem starts,
- * every few hours while it lasts, and once it clears.
- */
 class CheckBackupHealth
 {
-    /**
-     * Runs inside backup jobs, so errors are reported instead of thrown: a failed alert must never fail a backup.
-     * Alerts are sent before the state is saved, so an alert that could not be sent is sent by the next check.
-     */
     public function check(Backup $backup): void
     {
         rescue(function () use ($backup): void {
@@ -62,9 +54,7 @@ class CheckBackupHealth
         });
     }
 
-    /**
-     * @return array<string, string>
-     */
+    /** @return array<string, string> */
     public function problems(Backup $backup): array
     {
         if ($backup->status === BackupStatus::FAILED) {
@@ -127,9 +117,7 @@ class CheckBackupHealth
         return $problems;
     }
 
-    /**
-     * @return list<array{id: int, server_id: int, title: string, problems: list<string>}>
-     */
+    /** @return list<array{id: int, server_id: int, title: string, problems: list<string>}> */
     public function attention(Relation $backups): array
     {
         return $backups->whereNotNull('backups.health')->with('server', 'database')->get()
@@ -142,11 +130,7 @@ class CheckBackupHealth
             ->all();
     }
 
-    /**
-     * A check or verify requested within the grace period, or a verify started within the last day, is still expected to finish.
-     *
-     * @param  array<string, mixed>  $configuration
-     */
+    /** @param  array<string, mixed>  $configuration */
     private function pending(array $configuration, string $task): bool
     {
         $grace = now()->subMinutes((int) config('core.backup_overdue_grace_minutes'));
@@ -155,11 +139,7 @@ class CheckBackupHealth
             || (isset($configuration[$task]['started_at']) && Carbon::parse($configuration[$task]['started_at'])->gt(now()->subDay()));
     }
 
-    /**
-     * The latest scheduled time, at least the grace period ago, that nothing ran after; null when nothing was missed.
-     *
-     * @param  array<int|string, string|null>  $schedules
-     */
+    /** @param  array<int|string, string|null>  $schedules */
     private function missed(Backup $backup, array $schedules, ?Carbon $last): ?Carbon
     {
         $reference = now()->subMinutes((int) config('core.backup_overdue_grace_minutes'));

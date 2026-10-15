@@ -75,19 +75,11 @@ class DatabaseUpgrade extends AbstractModel
         return new PostgresLogicalReplication($this);
     }
 
-    /**
-     * A seeded upgrade starts the new server from a physical backup and replicates only what happened since, instead
-     * of copying every row over the wire.
-     */
     public function seeded(): bool
     {
         return $this->mode === 'seeded';
     }
 
-    /**
-     * Keeps a line of what Vito did, so a step that waits can say what it is waiting for. Bounded: an upgrade that waits
-     * for days must not grow without end.
-     */
     public function record(string $message, string $level = 'info'): void
     {
         $events = $this->events ?? [];
@@ -102,19 +94,12 @@ class DatabaseUpgrade extends AbstractModel
         $this->update(['events' => array_slice($events, -200)]);
     }
 
-    /**
-     * The databases being copied, in the order they were found on the source.
-     *
-     * @return list<array{name: string, size: int, tables: int}>
-     */
+    /** @return list<array{name: string, size: int, tables: int}> */
     public function databases(): array
     {
         return array_values($this->preflight['databases'] ?? []);
     }
 
-    /**
-     * The subscription and replication slot Vito uses for one database. PostgreSQL allows 63 characters.
-     */
     public function subscriptionName(string $database): string
     {
         $index = array_search($database, array_column($this->databases(), 'name'), true);
@@ -122,9 +107,6 @@ class DatabaseUpgrade extends AbstractModel
         return 'vito_upgrade_'.$this->id.'_'.($index === false ? 0 : $index);
     }
 
-    /**
-     * Share of the tables whose first copy finished, once the copy started.
-     */
     public function progress(): ?float
     {
         $tables = (int) ($this->configuration['tables'] ?? 0);
@@ -133,9 +115,6 @@ class DatabaseUpgrade extends AbstractModel
         return $tables > 0 && $copied !== null ? round(min((int) $copied, $tables) / $tables * 100, 1) : null;
     }
 
-    /**
-     * The private address a server has on the network the copy runs over.
-     */
     public function address(Server $server): ?string
     {
         return $this->network?->servers()
@@ -145,9 +124,6 @@ class DatabaseUpgrade extends AbstractModel
             ?->address();
     }
 
-    /**
-     * The upgrade a server takes part in, whether it is the old or the new server.
-     */
     public static function forServer(Server $server, bool $activeOnly = true): ?self
     {
         return self::query()

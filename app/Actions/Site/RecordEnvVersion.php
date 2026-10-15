@@ -11,10 +11,6 @@ class RecordEnvVersion
 {
     private const int KEEP = 100;
 
-    /**
-     * Records the new content of an env file. If the file was changed outside Vito since the last
-     * recorded version, the live content is captured first so it can still be restored.
-     */
     public function record(
         Site $site,
         string $path,

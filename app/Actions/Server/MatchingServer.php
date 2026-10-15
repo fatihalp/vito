@@ -8,19 +8,9 @@ use App\Models\ServerProvider;
 use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
-/**
- * Creates a server shaped like one that already exists: the same operating system, PostgreSQL version and processor
- * architecture, with room for its databases. Restores to a new server, replicas and version upgrades all start here.
- */
 class MatchingServer
 {
-    /**
-     * What the new server needs. Storage covers the databases plus 20% growth, WAL replay and the operating system;
-     * before a database size is known, the disk the source server uses stands in for it. vCPU, memory and architecture
-     * come from the source server's plan, else from its latest metrics.
-     *
-     * @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string}
-     */
+    /** @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string} */
     public function requirements(Server $source, ?int $databaseSize = null, ?string $version = null): array
     {
         $metric = $source->latestMetric()->first();
@@ -40,20 +30,13 @@ class MatchingServer
         ];
     }
 
-    /**
-     * The plan as the provider describes it, or null when it cannot be read.
-     *
-     * @return array<string, mixed>|null
-     */
+    /** @return array<string, mixed>|null */
     public function plan(?ServerProvider $provider, ?string $region, string $plan): ?array
     {
         return rescue(fn (): ?array => $provider?->provider()->plans($region)[$plan] ?? null, null, false);
     }
 
     /**
-     * Refuses a plan that cannot hold the databases, or that runs on another processor architecture: PostgreSQL data
-     * files are only safe on the architecture they were written on.
-     *
      * @param  array<string, mixed>  $requirements
      * @param  array<string, mixed>|null  $plan
      */
@@ -76,8 +59,6 @@ class MatchingServer
     }
 
     /**
-     * Creates the server at the provider with PostgreSQL and the monitoring agent, and nothing else.
-     *
      * @param  array{name: string, server_provider: int|string, region: string, plan: string}  $validated
      * @param  array<string, mixed>  $requirements
      */

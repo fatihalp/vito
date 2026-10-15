@@ -8,20 +8,11 @@ use App\Models\DatabaseUpgrade;
 use App\Models\Server;
 use Illuminate\Support\Str;
 
-/**
- * Runs the PostgreSQL side of an upgrade: publications and a replication role on the old server, and databases,
- * schemas and subscriptions on the new one. Logical replication copies rows, so both servers keep their own data
- * files and may run different PostgreSQL major versions.
- */
 class PostgresLogicalReplication
 {
     public function __construct(protected DatabaseUpgrade $upgrade) {}
 
-    /**
-     * Reads what an upgrade of this server would involve, without changing anything.
-     *
-     * @return array{version_num: int, in_recovery: bool, wal_level: string, max_replication_slots: int, used_slots: int, max_wal_senders: int, used_senders: int, read_only: bool, port: int, ssl: bool, databases: list<array{name: string, size: int, tables: int, without_key: int, unlogged: int, materialized_views: int, large_objects: int, extensions: list<string>}>, tables_without_key: list<string>}
-     */
+    /** @return array{version_num: int, in_recovery: bool, wal_level: string, max_replication_slots: int, used_slots: int, max_wal_senders: int, used_senders: int, read_only: bool, port: int, ssl: bool, databases: list<array{name: string, size: int, tables: int, without_key: int, unlogged: int, materialized_views: int, large_objects: int, extensions: list<string>}>, tables_without_key: list<string>} */
     public static function inspect(Server $server): array
     {
         $output = $server->ssh()->exec(view('ssh.database-upgrade.preflight'), 'database-upgrade-preflight');
@@ -62,12 +53,7 @@ class PostgresLogicalReplication
         ];
     }
 
-    /**
-     * Creates the replication role, the pg_hba rule and a publication per database on the old server, and asks for the
-     * settings logical replication needs. Returns the settings PostgreSQL applies right now, before any restart.
-     *
-     * @return array{wal_level: string, max_replication_slots: int, max_wal_senders: int, port: int, ssl: bool}
-     */
+    /** @return array{wal_level: string, max_replication_slots: int, max_wal_senders: int, port: int, ssl: bool} */
     public function prepareSource(): array
     {
         $source = $this->upgrade->source;
@@ -106,11 +92,7 @@ class PostgresLogicalReplication
         ];
     }
 
-    /**
-     * Asks the new server for enough background workers and origins to apply every database at once.
-     *
-     * @return array{max_worker_processes: int, max_logical_replication_workers: int, max_replication_slots: int}
-     */
+    /** @return array{max_worker_processes: int, max_logical_replication_workers: int, max_replication_slots: int} */
     public function prepareTargetSettings(): array
     {
         $target = $this->upgrade->target;
@@ -132,10 +114,6 @@ class PostgresLogicalReplication
         ];
     }
 
-    /**
-     * Copies the roles of the old server, with their passwords, to the new one. The dump never reaches a log or the
-     * database: Vito reads it without logging and writes it straight to a file only postgres can read.
-     */
     public function copyRoles(): string
     {
         $dump = $this->upgrade->source->ssh()->clearLog()->exec('sudo -u postgres pg_dumpall --roles-only');
@@ -150,9 +128,6 @@ class PostgresLogicalReplication
         return $path;
     }
 
-    /**
-     * Starts the first copy: roles, databases, schemas and one subscription per database, in a unit that survives Vito.
-     */
     public function startPrepare(): void
     {
         $this->writePassfile();
@@ -174,12 +149,7 @@ class PostgresLogicalReplication
         return new TransientUnit($this->upgrade->target, 'vito-upgrade-'.$this->upgrade->id);
     }
 
-    /**
-     * Reserves the changes from this moment on, one slot per database, and returns the position each one starts at.
-     * Created before the backup is restored: everything the old server writes from here is kept for the new one.
-     *
-     * @return array<string, string>
-     */
+    /** @return array<string, string> */
     public function createSlots(): array
     {
         $output = $this->upgrade->source->ssh()->exec(view('ssh.database-upgrade.source-slot', [
@@ -197,10 +167,6 @@ class PostgresLogicalReplication
         return $positions;
     }
 
-    /**
-     * Restores the newest backup onto the new server, up to the position the slots start at, and upgrades that copy to
-     * the new major version. Only what happened after that position still has to be replicated.
-     */
     public function startSeed(string $lsn): void
     {
         $target = $this->upgrade->target;
@@ -226,9 +192,6 @@ class PostgresLogicalReplication
         return new TransientUnit($this->upgrade->target, 'vito-upgrade-seed-'.$this->upgrade->id);
     }
 
-    /**
-     * Points the restored copy at the old server, starting from the position it was restored to.
-     */
     public function subscribeSeeded(): void
     {
         $this->writePassfile();
@@ -239,11 +202,7 @@ class PostgresLogicalReplication
         ]), 'database-upgrade-subscribe', timeout: 600);
     }
 
-    /**
-     * How far the first copy got, per database, on the new server.
-     *
-     * @return list<array{name: string, tables: int, copied: int, workers: int, errors: int, seconds_since_change: int}>
-     */
+    /** @return list<array{name: string, tables: int, copied: int, workers: int, errors: int, seconds_since_change: int}> */
     public function targetStatus(): array
     {
         $output = $this->upgrade->target->ssh()->clearLog()->exec(view('ssh.database-upgrade.target-status', [
@@ -260,11 +219,7 @@ class PostgresLogicalReplication
         ], self::rows($output, 'VITO_SUB'));
     }
 
-    /**
-     * The replication slots the new server holds on the old one, with how much WAL each one still has to apply.
-     *
-     * @return array{slots: list<array{name: string, active: bool, lag_bytes: int, wal_status: string}>, read_only: bool}
-     */
+    /** @return array{slots: list<array{name: string, active: bool, lag_bytes: int, wal_status: string}>, read_only: bool} */
     public function sourceStatus(): array
     {
         $output = $this->upgrade->source->ssh()->clearLog()->exec(view('ssh.database-upgrade.source-status', [
@@ -274,7 +229,6 @@ class PostgresLogicalReplication
         return [
             'slots' => array_map(fn (array $row): array => [
                 'name' => $row[0],
-                // A boolean concatenated into text reads "true", while psql prints a boolean column as "t".
                 'active' => in_array($row[1] ?? '', ['t', 'true', 'on', '1'], true),
                 'lag_bytes' => (int) ($row[2] ?? 0),
                 'wal_status' => $row[3] ?? '',
@@ -283,11 +237,7 @@ class PostgresLogicalReplication
         ];
     }
 
-    /**
-     * Blocks new writes on the old server, disconnects its clients and waits until the new server applied everything.
-     *
-     * @return array{lsn: string, remaining: int, slots: int}
-     */
+    /** @return array{lsn: string, remaining: int, slots: int} */
     public function cutover(int $minutes = 10): array
     {
         $output = $this->upgrade->source->ssh()->exec(view('ssh.database-upgrade.cutover', [
@@ -305,9 +255,6 @@ class PostgresLogicalReplication
         ];
     }
 
-    /**
-     * Copies the sequence values logical replication leaves behind and stops the subscriptions on the new server.
-     */
     public function finish(bool $sequences): void
     {
         $this->upgrade->target->ssh()->exec(view('ssh.database-upgrade.finish', [
@@ -319,9 +266,6 @@ class PostgresLogicalReplication
         ]), 'database-upgrade-finish', timeout: 600);
     }
 
-    /**
-     * Removes the publications, slots, role and pg_hba rule Vito added to the old server.
-     */
     public function cleanupSource(bool $resetReadOnly): void
     {
         $this->upgrade->source->ssh()->exec(view('ssh.database-upgrade.source-cleanup', [
@@ -335,9 +279,7 @@ class PostgresLogicalReplication
         ]), 'database-upgrade-source-cleanup');
     }
 
-    /**
-     * @return list<array{name: string, subscription: string, slot: string, lsn: string, conninfo: string}>
-     */
+    /** @return list<array{name: string, subscription: string, slot: string, lsn: string, conninfo: string}> */
     public function databases(): array
     {
         return array_map(fn (array $database): array => [
@@ -394,9 +336,7 @@ class PostgresLogicalReplication
         return '/var/lib/vito/upgrade-'.$this->upgrade->id;
     }
 
-    /**
-     * @return list<array{username: string, cidr: string}>
-     */
+    /** @return list<array{username: string, cidr: string}> */
     private function rules(): array
     {
         $address = $this->upgrade->configuration['target_address'] ?? null;
@@ -411,9 +351,7 @@ class PostgresLogicalReplication
         ]];
     }
 
-    /**
-     * @return array<string, string>
-     */
+    /** @return array<string, string> */
     private static function values(string $output): array
     {
         preg_match_all('/^VITO_([A-Z_]+)=(.*)$/m', $output, $matches);
@@ -421,9 +359,7 @@ class PostgresLogicalReplication
         return array_combine($matches[1], array_map(trim(...), $matches[2]));
     }
 
-    /**
-     * @return list<list<string>>
-     */
+    /** @return list<list<string>> */
     private static function rows(string $output, string $prefix): array
     {
         preg_match_all('/^'.$prefix.'\|(.*)$/m', $output, $matches);

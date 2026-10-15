@@ -13,17 +13,13 @@ class PostgresReplication
 {
     public function __construct(protected DatabaseReplica $replica) {}
 
-    /**
-     * @return array{data_directory: string, port: int, version_num: int}
-     */
+    /** @return array{data_directory: string, port: int, version_num: int} */
     public function inspectReplica(): array
     {
         return self::inspect($this->replica->replica);
     }
 
-    /**
-     * @return array{data_directory: string, port: int, version_num: int}
-     */
+    /** @return array{data_directory: string, port: int, version_num: int} */
     public static function inspect(Server $server): array
     {
         $values = self::values($server->ssh()->exec(
@@ -42,9 +38,7 @@ class PostgresReplication
         ];
     }
 
-    /**
-     * @return array{port: int, ssl: bool, settings: array<string, string>}
-     */
+    /** @return array{port: int, ssl: bool, settings: array<string, string>} */
     public function configurePrimary(): array
     {
         $primary = $this->replica->primary;
@@ -187,9 +181,7 @@ class PostgresReplication
         );
     }
 
-    /**
-     * @return array<string, string>|null
-     */
+    /** @return array<string, string>|null */
     public function primaryStatus(): ?array
     {
         $output = $this->replica->primary->ssh()->clearLog()->exec(
@@ -202,9 +194,7 @@ class PostgresReplication
         ]);
     }
 
-    /**
-     * @return array<string, string>|null
-     */
+    /** @return array<string, string>|null */
     public function replicaStatus(): ?array
     {
         $output = $this->replica->replica->ssh()->clearLog()->exec(view('ssh.database-replication.status-replica'));
@@ -212,9 +202,7 @@ class PostgresReplication
         return $this->row($output, 'VITO_REPLICA', ['in_recovery', 'receiver_status', 'replay_gap_bytes', 'replay_delay_seconds']);
     }
 
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public static function primaryAccess(PostgresCluster $cluster, ?DatabaseReplica $except = null): array
     {
         $replicas = $cluster->replicas()
@@ -289,9 +277,7 @@ class PostgresReplication
         return 'vito-replica-seed-'.$this->replica->id;
     }
 
-    /**
-     * @return array<string, string>
-     */
+    /** @return array<string, string> */
     private static function values(string $output): array
     {
         preg_match_all('/^VITO_([A-Z_]+)=(.*)$/m', $output, $matches);

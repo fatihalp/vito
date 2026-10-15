@@ -13,13 +13,7 @@ use RuntimeException;
 
 class SyncPostgresListenAddresses
 {
-    /**
-     * The private addresses PostgreSQL on this server must answer on: the one of its cluster, and the one of a version
-     * upgrade it takes part in. A server can have both, on different networks, and must listen on each — leaving the
-     * upgrade out made the new server unable to reach it, with nothing to see but a step that never finished.
-     *
-     * @return list<string>
-     */
+    /** @return list<string> */
     public static function privateAddresses(Server $server): array
     {
         return collect([
@@ -33,10 +27,6 @@ class SyncPostgresListenAddresses
         return self::privateAddresses($server)[0] ?? null;
     }
 
-    /**
-     * Makes PostgreSQL on the server listen on the given private address, or on its private cluster address.
-     * This restarts PostgreSQL once. Returns false until PostgreSQL listens there.
-     */
     public function ensure(Server $server, ?string $address = null): bool
     {
         $address ??= self::privateAddress($server);

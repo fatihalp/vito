@@ -7,23 +7,13 @@ use Illuminate\Database\Eloquent\Builder;
 
 trait HasProjectScopedQueries
 {
-    /**
-     * The user's records in the given project, plus the global ones that belong
-     * to every project.
-     *
-     * @return Builder<static>
-     */
+    /** @return Builder<static> */
     public static function getByProjectId(int $projectId, User $user): Builder
     {
         return self::scopedToProjects($user, [$projectId]);
     }
 
-    /**
-     * The user's records that the request's API token is allowed to reach. A
-     * token without project restrictions reaches all of them.
-     *
-     * @return Builder<static>
-     */
+    /** @return Builder<static> */
     public static function getByTokenProjects(User $user): Builder
     {
         return self::scopedToProjects($user, $user->tokenProjectIds());

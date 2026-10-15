@@ -47,10 +47,6 @@ export function fit(plan: Plan, requirements: ServerRequirements | null): PlanFi
   return { blocked, warnings };
 }
 
-/**
- * Name, provider, region and plan for a server Vito creates to match an existing one. Plans that cannot hold the
- * databases, or that run on another processor architecture, cannot be picked.
- */
 export default function ProvisionServerFields({
   data,
   setData,

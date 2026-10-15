@@ -24,17 +24,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-/**
- * Creates a server at a cloud provider and restores a pgBackRest backup onto it as an independent PostgreSQL server.
- * The copy never archives WAL, so it cannot write into the source's backup repository.
- */
 class RestoreToNewServer
 {
-    /**
-     * What the new server needs, sized by the largest database the backups hold.
-     *
-     * @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string}
-     */
+    /** @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string} */
     public function requirements(Backup $backup): array
     {
         return app(MatchingServer::class)->requirements(
@@ -88,9 +80,6 @@ class RestoreToNewServer
         return $restore;
     }
 
-    /**
-     * Starts the restore once the new server is installed; does nothing while it is still being installed.
-     */
     public function start(BackupRestore $restore): void
     {
         $server = $restore->server ?? throw new RuntimeException(__('The new server was deleted.'));
@@ -142,9 +131,6 @@ class RestoreToNewServer
         $restore->update(['step' => __('Restoring :label', ['label' => $label])]);
     }
 
-    /**
-     * Returns true once the restore finished or failed.
-     */
     public function monitor(BackupRestore $restore): bool
     {
         $unit = $this->unit($restore);

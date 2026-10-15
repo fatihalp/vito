@@ -71,9 +71,7 @@ class PostgresCluster extends AbstractModel
         return $this->hasMany(DatabaseReplica::class);
     }
 
-    /**
-     * @return Collection<int, DatabaseReplica>
-     */
+    /** @return Collection<int, DatabaseReplica> */
     public function streamingReplicas(): Collection
     {
         return $this->replicas()
@@ -82,9 +80,7 @@ class PostgresCluster extends AbstractModel
             ->get();
     }
 
-    /**
-     * @return Collection<int, Server>
-     */
+    /** @return Collection<int, Server> */
     public function nodes(): Collection
     {
         return collect([$this->primary])

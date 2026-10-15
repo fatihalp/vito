@@ -66,9 +66,7 @@ class ServerProvider extends AbstractModel
         return $this->belongsTo(Project::class);
     }
 
-    /**
-     * @return array<string>
-     */
+    /** @return array<string> */
     public static function regions(?int $id): array
     {
         if ($id === null || $id === 0) {

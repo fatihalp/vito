@@ -9,9 +9,7 @@ use Throwable;
 
 class GetServerCommandHistory
 {
-    /**
-     * @return array{source: string, items: array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}>}
-     */
+    /** @return array{source: string, items: array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}>} */
     public function handle(Server $server, array $input = []): array
     {
         if (! $server->isReady()) {
@@ -43,9 +41,7 @@ class GetServerCommandHistory
         ];
     }
 
-    /**
-     * @return array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}>
-     */
+    /** @return array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}> */
     private function getSudoCommands(Server $server, int $lines, ?string $search): array
     {
         $searchArg = '';
@@ -75,9 +71,7 @@ class GetServerCommandHistory
         return $items;
     }
 
-    /**
-     * @return ?array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}
-     */
+    /** @return ?array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string} */
     private function parseSudoLine(string $line): ?array
     {
         if (! str_contains($line, 'COMMAND=')) {
@@ -124,9 +118,7 @@ class GetServerCommandHistory
         ];
     }
 
-    /**
-     * @return array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}>
-     */
+    /** @return array<int, array{timestamp: string, user: string, pwd: ?string, target_user: ?string, command: string}> */
     private function getBashHistory(Server $server, int $lines, ?string $search): array
     {
         $searchFilter = '';

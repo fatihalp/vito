@@ -43,17 +43,11 @@ enum DatabaseUpgradeStatus: string implements VitoEnum
         };
     }
 
-    /**
-     * The upgrade is running and its jobs keep working on it.
-     */
     public function isActive(): bool
     {
         return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::SEEDING, self::COPYING, self::STREAMING, self::FINISHING], true);
     }
 
-    /**
-     * Vito is working on the servers, so the upgrade must not be changed.
-     */
     public function isBusy(): bool
     {
         return in_array($this, [self::WAITING_FOR_SERVER, self::PREPARING, self::SEEDING, self::FINISHING, self::CANCELLING], true);

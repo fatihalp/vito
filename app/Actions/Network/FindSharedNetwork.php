@@ -11,17 +11,10 @@ use Illuminate\Database\Eloquent\Builder;
 
 class FindSharedNetwork
 {
-    /**
-     * @var array<string, int>
-     */
+    /** @var array<string, int> */
     private const PREFERENCE = ['provider' => 0, 'custom' => 1, 'wireguard' => 2];
 
-    /**
-     * Finds an active private network both servers are active members of, preferring provider networks when several types are allowed.
-     */
-    /**
-     * @param  list<string>|null  $types
-     */
+    /** @param  list<string>|null  $types */
     public function between(Server $first, Server $second, ?array $types = null): ?Network
     {
         return Network::query()

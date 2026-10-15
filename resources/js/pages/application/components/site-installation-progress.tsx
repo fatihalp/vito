@@ -108,7 +108,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     });
   };
 
-  // Automatically refresh the page once installation finishes and site is ready
   useEffect(() => {
     if (site.status === 'ready') {
       router.reload();
@@ -118,7 +117,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
   const failed = site.status === 'installation_failed';
   const progressPercent = Math.min(100, Math.max(0, site.progress ?? 0));
 
-  // Determine installation steps
   const steps = useMemo(() => {
     if (site.installation_steps && site.installation_steps.length > 0) {
       return site.installation_steps;
@@ -146,7 +144,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
 
   const totalSteps = steps.length;
 
-  // Auto-install command breakdown for Vito sites
   const vitoInstallCommands = useMemo(() => {
     const vitoConfig = site.type_data?.vito_config as { install_commands?: string[] } | undefined;
     if (vitoConfig && Array.isArray(vitoConfig.install_commands)) {
@@ -160,14 +157,12 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     return Array.isArray(raw) ? (raw as string[]) : [];
   }, [site.type_data?.completed_install_commands]);
 
-  // Composer command editing if relevant
   const canEditComposer =
     site.progress_step === 'installing-composer-dependencies' && !!site.default_composer_install_command;
   const [composerCommand, setComposerCommand] = useState(
     () => site.type_data?.composer_install_command || site.default_composer_install_command || '',
   );
 
-  // Fetch recent site logs
   const logsQuery = useQuery({
     queryKey: ['siteInstallLogs', server.id, site.id],
     queryFn: async () => {
@@ -181,7 +176,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     return logsQuery.data?.data || [];
   }, [logsQuery.data?.data]);
 
-  // Resolve active log to show in the live terminal
   const activeLogId = useMemo(() => {
     if (selectedLogId !== null && logsList.some((l) => l.id === selectedLogId)) {
       return selectedLogId;
@@ -193,7 +187,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
     return logsList.find((l) => l.id === activeLogId) ?? null;
   }, [logsList, activeLogId]);
 
-  // Live log content hook
   const { content: liveLogContent, isLoading: isLogLoading, error: logError } = useLogContent({
     serverId: server.id,
     logId: activeLogId ?? 0,

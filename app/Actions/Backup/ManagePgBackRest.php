@@ -33,16 +33,10 @@ use RuntimeException;
 
 class ManagePgBackRest
 {
-    /**
-     * @var array<string, int>
-     */
+    /** @var array<string, int> */
     private const TYPE_RANK = ['incr' => 1, 'diff' => 2, 'full' => 3];
 
-    /**
-     * Backup types that satisfy each schedule, from the most complete.
-     *
-     * @var array<string, list<string>>
-     */
+    /** @var array<string, list<string>> */
     private const COVERED_BY = ['full' => ['full'], 'diff' => ['full', 'diff'], 'incr' => ['full', 'diff', 'incr']];
 
     public function create(Server $server, array $input): Backup
@@ -447,19 +441,12 @@ class ManagePgBackRest
         });
     }
 
-    /**
-     * Serializes the decision to start a run with the run's creation, so the scheduler and a finishing backup never both start one.
-     *
-     * @param  callable(): bool  $callback
-     */
+    /** @param  callable(): bool  $callback */
     private function locked(Backup $backup, callable $callback): bool
     {
         return Cache::lock('pgbackrest-schedule-'.$backup->id, 120)->block(30, $callback);
     }
 
-    /**
-     * Whether the schedule came due after the last attempt, so a run missed while Vito was down starts once it is back.
-     */
     private function missed(?string $expression, Carbon|string $last, Carbon $now): bool
     {
         return Backup::lastDue($expression, $now)?->gt(Carbon::parse($last)) ?? false;
@@ -534,9 +521,7 @@ class ManagePgBackRest
         ])->validate();
     }
 
-    /**
-     * @return array{strategy: string, schedules: array{full: string, diff: ?string, incr: ?string}, retention: array{full: int, diff: ?int}, verify_schedule: string, check_schedule: string, process_max: int, wal_queue_max_gb: int}
-     */
+    /** @return array{strategy: string, schedules: array{full: string, diff: ?string, incr: ?string}, retention: array{full: int, diff: ?int}, verify_schedule: string, check_schedule: string, process_max: int, wal_queue_max_gb: int} */
     private function settings(array $input): array
     {
         $strategy = PgBackRestStrategy::from($input['strategy']);

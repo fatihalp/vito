@@ -23,7 +23,6 @@ VITO_SQL
 
 @foreach ($databases as $database)
 @if ($sequences)
-{{-- Straight from one server into the other: /var/lib/vito belongs to root, and postgres cannot write a file there. --}}
 sudo -u postgres psql -XtAq -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database['conninfo']) !!} <<'VITO_SQL' | sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database['name']) !!} > /dev/null
 SELECT format('SELECT pg_catalog.setval(%L, %s, true);', quote_ident(schemaname) || '.' || quote_ident(sequencename), last_value)
 FROM pg_sequences WHERE last_value IS NOT NULL;

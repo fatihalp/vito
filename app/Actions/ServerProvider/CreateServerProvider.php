@@ -16,11 +16,7 @@ use Illuminate\Validation\ValidationException;
 
 class CreateServerProvider
 {
-    /**
-     * @param  array<string, mixed>  $input
-     *
-     * @throws ValidationException
-     */
+    /** @param  array<string, mixed>  $input */
     public function create(User $user, array $input, ?int $projectId): ServerProvider
     {
         $this->validate($input);

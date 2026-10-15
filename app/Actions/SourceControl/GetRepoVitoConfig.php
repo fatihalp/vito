@@ -11,11 +11,11 @@ class GetRepoVitoConfig
 
     /**
      * @return array{
-     *     exists: bool,
-     *     path: ?string,
-     *     config: ?array,
-     *     raw: ?string,
-     *     error: ?string
+     * exists: bool,
+     * path: ?string,
+     * config: ?array,
+     * raw: ?string,
+     * error: ?string
      * }
      */
     public function get(SourceControl $sourceControl, string $repo, ?string $branch = null): array

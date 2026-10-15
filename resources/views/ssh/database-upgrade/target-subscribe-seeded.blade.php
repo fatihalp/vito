@@ -5,8 +5,6 @@ VITO_SQL
 )
 
 if [ "$HAS_SUB" != "1" ]; then
-    {{-- copy_data = false: the rows are already here from the backup. The origin tells the apply worker where that
-         copy ended, so the old server's changes from that point on arrive exactly once. --}}
     sudo -u postgres psql -X -q -v ON_ERROR_STOP=1 -d {!! escapeshellarg($database['name']) !!} \
         -v sub={!! escapeshellarg($database['subscription']) !!} \
         -v conn={!! escapeshellarg($database['conninfo']) !!} \

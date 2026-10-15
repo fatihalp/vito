@@ -108,10 +108,6 @@ class ManageStorageMigrationDatabase
         Cache::forget('storage-migration-access-'.$storageMigration->id);
     }
 
-    /**
-     * Keeps the firewall rule of a remote scan database pointed at the address Vito connects from, which changes when Vito runs
-     * behind a dynamic IP. Returns false while the firewall is being updated.
-     */
     public function refreshAccess(StorageMigration $storageMigration): bool
     {
         $server = $storageMigration->database?->server;

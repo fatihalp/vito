@@ -66,11 +66,6 @@ class Cloudflare extends AbstractDNSProvider
         return [$credentials, $needsReconnect];
     }
 
-    /**
-     * Verifies the token can list zones, read records and create/delete a temporary TXT record.
-     *
-     * @throws ValidationException
-     */
     public function connect(array $credentials): bool
     {
         $client = Http::withToken($credentials['token'])->acceptJson()->baseUrl(self::API_BASE_URL);
@@ -115,9 +110,6 @@ class Cloudflare extends AbstractDNSProvider
         return true;
     }
 
-    /**
-     * @throws ValidationException
-     */
     private function failConnect(string $problem): never
     {
         throw ValidationException::withMessages([

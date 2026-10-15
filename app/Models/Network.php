@@ -51,9 +51,6 @@ class Network extends AbstractModel
         return $this->belongsTo(ServerProvider::class);
     }
 
-    /**
-     * How members reach each other, such as "Hetzner private network" or "WireGuard".
-     */
     public function kind(): string
     {
         return match ($this->type) {

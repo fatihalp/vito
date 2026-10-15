@@ -173,9 +173,6 @@ class StorageMigration extends AbstractModel
         return 'storage_migration_targets_'.$this->id;
     }
 
-    /**
-     * Objects that already existed on the target when the migration listed it, keyed by the sha1 of their key.
-     */
     public function targets(): QueryBuilder
     {
         return DB::connection($this->itemsConnection())->table($this->targetsTable());

@@ -39,9 +39,6 @@ class PgBackRest
         $server->ssh()->write('/etc/pgbackrest/pgbackrest.conf', $this->config($server, $pgPath, $pgPort), 'postgres', 'pgbackrest-config');
     }
 
-    /**
-     * Creates the file owned by postgres with the given mode unless it exists, so secrets written into it are never readable by other users.
-     */
     public static function ensureFile(Server $server, string $path, string $mode): void
     {
         $file = escapeshellarg($path);

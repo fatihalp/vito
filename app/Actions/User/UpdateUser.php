@@ -42,9 +42,7 @@ class UpdateUser
         });
     }
 
-    /**
-     * @param array<int, array{project_id: int, role: string}> $access
-     */
+    /** @param array<int, array{project_id: int, role: string}> $access */
     private function updateProjectAccess(User $user, array $access): void
     {
         $selected = collect($access)->keyBy('project_id');

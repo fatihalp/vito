@@ -7,9 +7,7 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class BackupNeedsAttention extends AbstractNotification
 {
-    /**
-     * @param  array<string, string>  $problems
-     */
+    /** @param  array<string, string>  $problems */
     public function __construct(protected Backup $backup, protected array $problems) {}
 
     public function rawText(): string

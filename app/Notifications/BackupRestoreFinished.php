@@ -28,9 +28,7 @@ class BackupRestoreFinished extends AbstractNotification
             ->action(__('View restores'), $this->replacements()['link']);
     }
 
-    /**
-     * @return array{source: string, server: string, error: string, link: string}
-     */
+    /** @return array{source: string, server: string, error: string, link: string} */
     private function replacements(): array
     {
         $backup = $this->restore->backup;

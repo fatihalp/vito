@@ -12,9 +12,6 @@ cluster_exists() {
     pg_lsclusters -h | awk -v v="$1" '$1 == v && $2 == "main"' | grep -q .
 }
 
-{{-- The new version's cluster is empty — Vito has just installed it — and pg_upgradecluster creates it again from the
-     restored one. Dropping it first also frees port 5432, so the old cluster is the only one answering there and every
-     tool below talks to the copy rather than to an empty cluster. --}}
 echo "Making room for the copy"
 systemctl stop postgresql
 
@@ -22,7 +19,6 @@ if cluster_exists "$NEW"; then
     pg_dropcluster --stop "$NEW" main
 fi
 
-{{-- A cluster left behind by an attempt that stopped halfway holds the wrong port and an empty data directory. --}}
 if cluster_exists "$OLD" && [ "$(pg_lsclusters -h | awk -v v="$OLD" '$1 == v {print $3}')" != "5432" ]; then
     pg_dropcluster --stop "$OLD" main
 fi
@@ -58,7 +54,6 @@ for ATTEMPT in $(seq 1 30); do
 done
 sudo -u postgres pg_isready -q
 
-{{-- The old files are hard links into the new cluster now; starting that cluster again would corrupt both. --}}
 pg_dropcluster --stop "$OLD" main
 apt-get -y remove "postgresql-$OLD" > /dev/null || true
 

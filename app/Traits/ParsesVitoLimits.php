@@ -4,11 +4,7 @@ namespace App\Traits;
 
 trait ParsesVitoLimits
 {
-    /**
-     * Extract and normalize limit values from a vito config array.
-     *
-     * @return array<string, int>
-     */
+    /** @return array<string, int> */
     protected function extractVitoLimits(array $config): array
     {
         $rawLimits = [];
@@ -60,9 +56,6 @@ trait ParsesVitoLimits
         return $limits;
     }
 
-    /**
-     * Parse human size values like '210M', '512MB', '1G', 210 to an integer representing megabytes.
-     */
     protected function parseLimitToMb(mixed $value): ?int
     {
         if ($value === null) {
@@ -97,9 +90,6 @@ trait ParsesVitoLimits
         return null;
     }
 
-    /**
-     * Parse execution time values like 300, '300s', '5m' to seconds.
-     */
     protected function parseLimitToSeconds(mixed $value): ?int
     {
         if ($value === null) {
