@@ -127,7 +127,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   );
 }
 
-export function getSiteWarningItems(site: Site): BannerItem[] {
+export function getSiteWarningItems(site: Site, includeAppDebug = false): BannerItem[] {
   if (site.status !== 'ready') {
     return [];
   }
@@ -298,7 +298,7 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
     });
   }
 
-  if (appDebugEnabledWarning) {
+  if (includeAppDebug && appDebugEnabledWarning) {
     items.push({
       key: 'app-debug-enabled',
       title: 'APP_DEBUG is not disabled on this production server',
@@ -309,7 +309,7 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
         </>
       ),
       action: (
-        <Link href={`/servers/${site.server_id}/sites/${site.id}`}>
+        <Link href={`/servers/${site.server_id}/sites/${site.id}/environment`}>
           <Button variant="outline" size="sm">
             Review .env
           </Button>
@@ -351,9 +351,9 @@ export function getSiteWarningItems(site: Site): BannerItem[] {
   return items;
 }
 
-export default function SiteBanners({ site, compact = false }: { site: Site; compact?: boolean }) {
+export default function SiteBanners({ site, compact = false, includeAppDebug = false }: { site: Site; compact?: boolean; includeAppDebug?: boolean }) {
   const installationFailed = site.status === 'installation_failed';
-  const items = getSiteWarningItems(site);
+  const items = getSiteWarningItems(site, includeAppDebug);
 
   if (!installationFailed && items.length === 0) {
     return null;

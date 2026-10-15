@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Site\CreateCommand;
 use App\Actions\Site\EditCommand;
 use App\Actions\Site\ExecuteCommand;
+use App\Actions\Site\GetSuggestedCommands;
 use App\Actions\Site\RunQuickCommand;
 use App\Http\Resources\CommandExecutionResource;
 use App\Http\Resources\CommandResource;
@@ -36,6 +37,7 @@ class CommandController extends Controller
             'commands' => CommandResource::collection(
                 $site->commands()->with('site')->latest('updated_at')->simplePaginate(config('web.pagination_size'))
             ),
+            'suggestedCommands' => app(GetSuggestedCommands::class)->get(user()),
         ]);
     }
 
