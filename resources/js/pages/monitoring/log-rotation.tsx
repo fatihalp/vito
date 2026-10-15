@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { BrushCleaningIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, Trash2Icon } from 'lucide-react';
+import { BrushCleaningIcon, CopyIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, TerminalIcon, Trash2Icon } from 'lucide-react';
+import { toast } from 'sonner';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
@@ -36,6 +37,7 @@ type CleanupCategory = {
   risk: 'safe' | 'caution';
   size_bytes: number;
   count: number;
+  command: string;
   samples: { path: string; size_bytes: number }[];
 };
 
@@ -97,8 +99,8 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
 }
 
 function CleanupSuggestions({ serverId }: { serverId: number }) {
-  const dialog = useDialog();
   const [selected, setSelected] = useState<string[]>([]);
+  const [showCommands, setShowCommands] = useState(false);
 
   const query = useQuery({
     queryKey: ['serverCleanup', serverId],
@@ -122,17 +124,16 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
 
   const selectedBytes = (categories ?? []).filter((category) => selected.includes(category.key)).reduce((sum, category) => sum + category.size_bytes, 0);
 
-  const cleanUp = () =>
-    dialog.confirm.open({
-      title: 'Clean up selected files',
-      description: `About ${formatBytes(selectedBytes)} will be freed. Only logs and caches are removed, no application data. This action cannot be undone.`,
-      confirmLabel: 'Clean up',
-      variant: 'destructive',
-      method: 'post',
-      url: `/servers/${serverId}/monitoring/log-rotation/cleanup`,
-      data: { categories: selected.join(',') },
-      onSuccess: () => query.refetch(),
-    });
+  const commands = (categories ?? [])
+    .filter((category) => selected.includes(category.key))
+    .map((category) => `# ${category.label}\n${category.command}`)
+    .join('\n\n');
+
+  const copyCommands = () =>
+    navigator.clipboard
+      .writeText(commands)
+      .then(() => toast.success('Commands copied'))
+      .catch(() => toast.error('Failed to copy to clipboard'));
 
   return (
     <div className="overflow-hidden rounded-md border shadow-xs">
@@ -140,16 +141,16 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
         <div className="flex items-center gap-2">
           <BrushCleaningIcon className="text-muted-foreground size-4" />
           <span className="text-sm font-semibold">Cleanup suggestions</span>
-          <span className="text-muted-foreground text-xs">Found by scanning the server for logs and caches</span>
+          <span className="text-muted-foreground text-xs">Found by scanning the server. Vito never deletes anything itself.</span>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isFetching}>
             <RefreshCwIcon className={cn('size-4', query.isFetching && 'animate-spin')} />
             <span className="hidden sm:block">Rescan</span>
           </Button>
-          <Button variant="destructive" size="sm" onClick={cleanUp} disabled={selected.length === 0 || query.isFetching}>
-            <Trash2Icon className="size-4" />
-            <span>Clean up{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</span>
+          <Button size="sm" onClick={() => setShowCommands((prev) => !prev)} disabled={selected.length === 0 || query.isFetching}>
+            <TerminalIcon className="size-4" />
+            <span>{showCommands ? 'Hide commands' : 'Show commands'}{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</span>
           </Button>
         </div>
       </div>
@@ -201,6 +202,19 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
         </ul>
       ) : (
         <p className="text-muted-foreground p-6 text-center text-sm">Nothing to clean up. No large or rotated logs and no caches were found.</p>
+      )}
+
+      {showCommands && commands !== '' && (
+        <div className="flex flex-col gap-2 border-t p-4">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-muted-foreground text-xs">Run these on the server over SSH. Review them first, they cannot be undone.</p>
+            <Button variant="outline" size="sm" onClick={copyCommands}>
+              <CopyIcon className="size-4" />
+              <span>Copy</span>
+            </Button>
+          </div>
+          <pre className="bg-muted max-h-72 overflow-auto rounded-md p-3 font-mono text-xs whitespace-pre-wrap break-all">{commands}</pre>
+        </div>
       )}
     </div>
   );

@@ -28,9 +28,6 @@ class DatabaseUpgradePolicy
         return $this->hasWriteAccess($user, $server->project) && $server->isReady();
     }
 
-    /**
-     * Switching over makes the old server read-only, so only an owner may do it.
-     */
     public function finish(User $user, DatabaseUpgrade $upgrade): bool
     {
         return $this->hasOwnerAccess($user, $upgrade->source->project);

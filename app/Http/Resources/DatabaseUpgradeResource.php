@@ -9,9 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /** @mixin DatabaseUpgrade */
 class DatabaseUpgradeResource extends JsonResource
 {
-    /**
-     * @return array<string, mixed>
-     */
+    /** @return array<string, mixed> */
     public function toArray(Request $request): array
     {
         return [

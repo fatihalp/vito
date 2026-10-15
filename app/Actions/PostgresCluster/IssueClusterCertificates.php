@@ -19,11 +19,7 @@ class IssueClusterCertificates
 
     private const NODE_RENEW_DAYS = 30;
 
-    /**
-     * Makes sure the cluster CA and a certificate for every node exist and are not close to expiry.
-     *
-     * @return list<int> ids of servers whose certificate files changed
-     */
+    /** @return list<int> ids of servers whose certificate files changed */
     public function ensure(PostgresCluster $cluster): array
     {
         $tls = $cluster->tls ?? [];
@@ -52,9 +48,7 @@ class IssueClusterCertificates
         return $renewCa ? $cluster->nodes()->pluck('id')->all() : $changed;
     }
 
-    /**
-     * @return array{ca: string, cert: string, key: string}
-     */
+    /** @return array{ca: string, cert: string, key: string} */
     public function files(PostgresCluster $cluster, Server $server): array
     {
         $tls = $cluster->tls;
@@ -71,9 +65,7 @@ class IssueClusterCertificates
         return PostgresCluster::hostAlias($server);
     }
 
-    /**
-     * @return array{ca_cert: string, ca_key: string, ca_expires_at: string}
-     */
+    /** @return array{ca_cert: string, ca_key: string, ca_expires_at: string} */
     private function ca(PostgresCluster $cluster): array
     {
         $key = EC::createKey('nistp256');

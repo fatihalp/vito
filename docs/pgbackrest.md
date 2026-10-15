@@ -276,18 +276,7 @@ immediately, so WAL cannot pile up). The repository in S3 and
 `/etc/pgbackrest/pgbackrest.conf` are left in place, so existing backups stay
 restorable with the saved passphrase.
 
-## Regression check
-
-`php tests/Feature/PgBackRestBackupTest.php` runs against an in-memory
-database with a fake SSH connection. It covers validation, setup commands and
-config contents, full and incremental runs, monitoring (running with progress,
-finished, failed, lost), retention sync, backup alerts (failure, archiving,
-WAL gap, verify, check, overdue, reminders, recovery and deduplication), the
-periodic checks, restoring to a new server (requirements, refused plans,
-the restore script for each restore point, progress, completion and failure),
-re-applying setup after a storage change,
-editing, setup retry, the restore and download guards, the scheduler and
-reconciliation, and deletion. It does not contact servers or S3.
+## Deploying
 
 Deploying needs `php artisan migrate` (a `configuration` column on `backups`
 and a `progress` column on `backup_files`) and a Horizon restart.

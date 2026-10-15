@@ -45,10 +45,6 @@ class NetworkServer extends AbstractModel
         return $this->server_ip_address_id !== null ? $this->serverIpAddress?->ip : $this->ip;
     }
 
-    /**
-     * Whether WireGuard exchanged a handshake with this server recently. Keepalives renew it every two minutes and handshakes are
-     * polled every three, so a working link is never older than five minutes. Null when nothing was observed yet.
-     */
     public function connected(): ?bool
     {
         return $this->last_handshake_at?->gt(now()->subMinutes(5));

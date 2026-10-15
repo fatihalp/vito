@@ -12,15 +12,9 @@ use RuntimeException;
 
 class SyncPostgresClusterFirewall
 {
-    /**
-     * @var array<int, string>
-     */
+    /** @var array<int, string> */
     private const PORTS = [5432 => 'postgres-replica', PgBackRest::TLS_PORT => 'pgbackrest-tls'];
 
-    /**
-     * Allows PostgreSQL and the pgBackRest TLS server on the primary only from each replica's private address,
-     * and removes rules this cluster created that no longer apply. Returns false until all rules are applied.
-     */
     public function sync(PostgresCluster $cluster): bool
     {
         $primary = $cluster->primary;

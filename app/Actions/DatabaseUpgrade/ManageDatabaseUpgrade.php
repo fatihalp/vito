@@ -36,18 +36,9 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
 
-/**
- * Moves every database of a PostgreSQL server to a new server running a newer major version, with logical replication.
- * The old server keeps serving while the copy runs; the admin decides when to switch over.
- */
 class ManageDatabaseUpgrade
 {
-    /**
-     * What an upgrade of this server would involve: the databases it moves, what the new server needs, the one restart
-     * it may cost, and what logical replication does not copy. Only reads from the server.
-     *
-     * @return array{version: int, versions: list<string>, databases: list<array<string, mixed>>, database_size: int, storage_gb: int, cores: ?int, memory_gb: ?float, os: string, source: string, restart_needed: bool, read_only: bool, wal_level: string, required_slots: int, required_senders: int, tables_without_key: list<string>, tables_without_key_count: int, warnings: list<string>}
-     */
+    /** @return array{version: int, versions: list<string>, databases: list<array<string, mixed>>, database_size: int, storage_gb: int, cores: ?int, memory_gb: ?float, os: string, source: string, restart_needed: bool, read_only: bool, wal_level: string, required_slots: int, required_senders: int, tables_without_key: list<string>, tables_without_key_count: int, warnings: list<string>} */
     public function requirements(Server $source): array
     {
         $inspect = PostgresLogicalReplication::inspect($source);
@@ -75,9 +66,6 @@ class ManageDatabaseUpgrade
                 || $senders > $inspect['max_wal_senders'],
             'read_only' => $inspect['read_only'],
             'wal_level' => $inspect['wal_level'],
-            // While the copy runs, the old server keeps every byte of WAL the new one has not applied. Unbounded, a
-            // long copy fills its disk and stops the database it is supposed to be migrating away from; capped, the
-            // copy fails instead and can be started again. A quarter of the free disk leaves room for everything else.
             'wal_keep_gb' => $metric === null ? 50 : max(10, min(200, (int) floor($metric->disk_free / 1024 * 0.25))),
             'required_slots' => $slots,
             'required_senders' => $senders,
@@ -88,12 +76,7 @@ class ManageDatabaseUpgrade
         ];
     }
 
-    /**
-     * The versions this server could move to, from what Vito already knows about it. Needs no connection, so the dialog
-     * can offer them while the deeper check still runs.
-     *
-     * @return array{version: int, versions: list<string>, source: string}
-     */
+    /** @return array{version: int, versions: list<string>, source: string} */
     public function versions(Server $source): array
     {
         $version = (int) ($source->database()?->name === 'postgresql' ? $source->database()->version : 0);
@@ -108,12 +91,7 @@ class ManageDatabaseUpgrade
         ];
     }
 
-    /**
-     * Whether the new server can start from a physical backup instead of copying every row over the wire, and the
-     * storage that needs: a physical copy is the size of the old server's data directory, indexes and all.
-     *
-     * @return array{available: bool, reason: ?string, stanza: ?string, taken_at: ?string}
-     */
+    /** @return array{available: bool, reason: ?string, stanza: ?string, taken_at: ?string} */
     public function seedable(Server $source): array
     {
         $backup = $source->backups()->where('type', BackupType::PGBACKREST)->first();
@@ -213,9 +191,6 @@ class ManageDatabaseUpgrade
         return $upgrade;
     }
 
-    /**
-     * Starts the upgrade once the new server is installed; does nothing while it is still being installed.
-     */
     public function start(DatabaseUpgrade $upgrade): void
     {
         $server = $upgrade->target ?? throw new RuntimeException(__('The new server was deleted.'));
@@ -245,9 +220,6 @@ class ManageDatabaseUpgrade
         ]);
     }
 
-    /**
-     * Prepares both servers and starts the first copy. Returns false while a step is still being applied.
-     */
     public function prepare(DatabaseUpgrade $upgrade): bool
     {
         $source = $upgrade->source ?? throw new RuntimeException(__('The old server was deleted.'));
@@ -257,9 +229,6 @@ class ManageDatabaseUpgrade
             throw new RuntimeException(__('The new server was deleted.'));
         }
 
-        // Every step here waits for something — a network, a restart, a firewall rule — by answering "not yet" and
-        // being asked again a minute later. A step that can never finish would otherwise wait for ever, showing the
-        // admin a status that never moves and no reason at all.
         $since = $upgrade->configuration['preparing_since'] ?? null;
 
         if ($since === null) {
@@ -332,9 +301,6 @@ class ManageDatabaseUpgrade
         if ($upgrade->seeded()) {
             $this->step($upgrade, __('Reserving every change :server makes from now on', ['server' => $source->name]));
 
-            // The position a slot starts handing out changes from is only knowable when it is created: afterwards the
-            // catalogue shows where its WAL is kept, which is earlier, and restoring to that would skip the commits in
-            // between. So the position recorded at creation wins over anything read back later.
             $positions = [...$replication->createSlots(), ...($upgrade->configuration['slot_lsn'] ?? [])];
             $positions = array_filter($positions, fn (string $lsn): bool => $lsn !== '');
 
@@ -381,9 +347,6 @@ class ManageDatabaseUpgrade
         return true;
     }
 
-    /**
-     * Follows the copy and reports when the new server holds everything. Returns true when the upgrade stopped.
-     */
     public function monitor(DatabaseUpgrade $upgrade): bool
     {
         if ($upgrade->source === null || $upgrade->target === null) {
@@ -437,8 +400,6 @@ class ManageDatabaseUpgrade
             return false;
         }
 
-        // Only until it has finished: the unit is cleaned up the moment it succeeds, and a cleaned-up unit reads as
-        // missing, which looked exactly like a copy that had died.
         if ($upgrade->status === DatabaseUpgradeStatus::COPYING && ! ($upgrade->configuration['copy_prepared'] ?? false)) {
             $unit = $replication->prepareUnit();
             $state = $unit->state();
@@ -539,9 +500,6 @@ class ManageDatabaseUpgrade
         return false;
     }
 
-    /**
-     * What the copy itself wrote on the new server: roles, databases, schemas and the subscriptions, line by line.
-     */
     public function output(DatabaseUpgrade $upgrade): string
     {
         if ($upgrade->target === null) {
@@ -559,9 +517,6 @@ class ManageDatabaseUpgrade
             : __('The copy on :server has not written any output yet.', ['server' => $upgrade->target->name]);
     }
 
-    /**
-     * Switches over: this is the moment the old server stops taking writes.
-     */
     public function finish(DatabaseUpgrade $upgrade): void
     {
         if ($upgrade->status !== DatabaseUpgradeStatus::STREAMING) {
@@ -629,9 +584,6 @@ class ManageDatabaseUpgrade
         Notifier::send($upgrade->target, new DatabaseUpgradeUpdated($upgrade));
     }
 
-    /**
-     * Stops the copy and puts the old server back the way it was. The new server is kept; delete it when it is not needed.
-     */
     public function cancel(DatabaseUpgrade $upgrade): void
     {
         if ($upgrade->status === DatabaseUpgradeStatus::FINISHING || $upgrade->status === DatabaseUpgradeStatus::CANCELLING) {
@@ -699,9 +651,6 @@ class ManageDatabaseUpgrade
         Notifier::send($upgrade->source, new DatabaseUpgradeUpdated($upgrade));
     }
 
-    /**
-     * Removes the firewall rule and the private network Vito created only for this upgrade.
-     */
     private function release(DatabaseUpgrade $upgrade): void
     {
         FirewallRule::query()
@@ -713,9 +662,6 @@ class ManageDatabaseUpgrade
         app(PrepareDatabaseUpgradeNetwork::class)->release($upgrade);
     }
 
-    /**
-     * Lets the new server reach PostgreSQL on the old one. Returns false until the rule is applied.
-     */
     private function firewall(DatabaseUpgrade $upgrade): bool
     {
         $source = $upgrade->source;
@@ -753,10 +699,6 @@ class ManageDatabaseUpgrade
         return $rule->status === FirewallRuleStatus::READY;
     }
 
-    /**
-     * Restarts PostgreSQL once so the settings logical replication needs apply. Always returns false: the next run
-     * checks the settings again.
-     */
     private function restart(DatabaseUpgrade $upgrade, Server $server, string $key): bool
     {
         $service = $server->database() ?? throw new RuntimeException(__('PostgreSQL is not installed on :server.', ['server' => $server->name]));
@@ -785,9 +727,6 @@ class ManageDatabaseUpgrade
         return false;
     }
 
-    /**
-     * Records how far the switch got, so a failure before the old server stops taking writes can be retried.
-     */
     private function stage(DatabaseUpgrade $upgrade, string $stage): void
     {
         $upgrade->update(['configuration' => [...($upgrade->configuration ?? []), 'finish_stage' => $stage]]);

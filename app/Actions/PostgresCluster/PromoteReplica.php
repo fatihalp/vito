@@ -28,10 +28,6 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Throwable;
 
-/**
- * Fails a cluster over to one of its replicas. Every step records a checkpoint in postgres_clusters.failover,
- * so a failed run resumes from the last finished step instead of repeating or undoing work.
- */
 class PromoteReplica
 {
     public function promote(DatabaseReplica $candidate, array $input): void
@@ -187,9 +183,7 @@ class PromoteReplica
         $this->broadcast($cluster);
     }
 
-    /**
-     * @param  array<string, mixed>  $state
-     */
+    /** @param  array<string, mixed>  $state */
     private function swap(PostgresCluster $cluster, array $state, Server $newPrimary, Server $oldPrimary): void
     {
         if ($cluster->primary_server_id === $newPrimary->id) {

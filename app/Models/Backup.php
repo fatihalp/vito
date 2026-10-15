@@ -76,9 +76,6 @@ class Backup extends AbstractModel
         return new PgBackRest($this);
     }
 
-    /**
-     * The latest time the cron expression was due at or before $at, or null for an invalid or impossible expression such as 30 February.
-     */
     public static function lastDue(?string $expression, Carbon $at): ?Carbon
     {
         if ($expression === null || ! CronExpression::isValidExpression($expression)) {

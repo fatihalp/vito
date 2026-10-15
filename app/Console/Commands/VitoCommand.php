@@ -48,9 +48,7 @@ class VitoCommand extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * @param list<string> $command
-     */
+    /** @param list<string> $command */
     private function runProcess(array $command, int $timeout): bool
     {
         $this->components->info('Running '.implode(' ', $command).'...');

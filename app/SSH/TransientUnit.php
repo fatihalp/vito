@@ -8,9 +8,6 @@ class TransientUnit
 {
     public function __construct(protected Server $server, protected string $unit) {}
 
-    /**
-     * Writes the script to /var/lib/vito and runs it as root in this unit, replacing a finished run of the same unit.
-     */
     public function start(string $script, string $description): void
     {
         $this->server->ssh()->exec(view('ssh.transient-unit-start', [
@@ -38,10 +35,6 @@ class TransientUnit
         };
     }
 
-    /**
-     * The error lines of the unit's output: pgBackRest and PostgreSQL errors, hints, and the message of a storage error
-     * response (for example a Backblaze cap), so alerts show the cause instead of HTTP headers. Else its last 15 lines.
-     */
     public function failureReason(): string
     {
         $lines = preg_split('/\R/', $this->output(80, 'cat')) ?: [];

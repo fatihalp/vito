@@ -7,10 +7,6 @@ use App\Models\Server;
 
 class SyncPostgresClusterHosts
 {
-    /**
-     * Writes a vito-pg-<server id> alias for every cluster node into /etc/hosts on each node, so pgBackRest TLS
-     * certificates can be checked by name, and lets services bind the private address before the tunnel is up.
-     */
     public function sync(PostgresCluster $cluster): void
     {
         $nodes = $cluster->nodes();

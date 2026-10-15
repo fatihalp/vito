@@ -385,9 +385,7 @@ class Site extends AbstractModel
         }
     }
 
-    /**
-     * @return array<int, array{key: string, label: string, percentage: number}>
-     */
+    /** @return array<int, array{key: string, label: string, percentage: number}> */
     public function installationSteps(): array
     {
         return $this->typeOrNull()?->installationSteps() ?? [];

@@ -69,9 +69,6 @@ class ManageStorageMigration
         $storageMigration->delete();
     }
 
-    /**
-     * Runs work that needs the scan database and turns an unreachable database into a message the admin can act on.
-     */
     private function withScanDatabase(StorageMigration $storageMigration, Closure $callback): mixed
     {
         $server = $storageMigration->database?->server;

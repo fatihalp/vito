@@ -308,9 +308,7 @@ class ManageDatabaseReplica
         Notifier::send($replica->primary, new DatabaseReplicaFailed($replica));
     }
 
-    /**
-     * @return array{slot_name: string, username: string, password: string}
-     */
+    /** @return array{slot_name: string, username: string, password: string} */
     public function credentials(): array
     {
         $suffix = Str::lower(Str::random(10));
@@ -335,12 +333,7 @@ class ManageDatabaseReplica
         }
     }
 
-    /**
-     * What a server that replicates this one needs: room for its databases, and the vCPU, memory, operating system and
-     * processor architecture of the primary.
-     *
-     * @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string}
-     */
+    /** @return array{database_size: ?int, storage_gb: ?int, measured: bool, cores: ?int, memory_gb: ?float, architecture: ?string, os: string, postgresql: ?string, source: string} */
     public function requirements(Server $primary): array
     {
         $backup = PostgresCluster::forServer($primary)?->backup;
@@ -352,12 +345,7 @@ class ManageDatabaseReplica
         );
     }
 
-    /**
-     * The servers of the project that could hold a replica, each with the reason it cannot when it cannot, so the admin
-     * never picks a server whose data would be replaced by accident.
-     *
-     * @return list<array{id: int, name: string, ip: ?string, postgresql: ?string, databases: int, sites: int, issue: ?string}>
-     */
+    /** @return list<array{id: int, name: string, ip: ?string, postgresql: ?string, databases: int, sites: int, issue: ?string}> */
     public function candidates(Server $primary): array
     {
         return $primary->project->servers()
@@ -378,9 +366,6 @@ class ManageDatabaseReplica
             ->all();
     }
 
-    /**
-     * Why this server cannot become a replica of the primary, or null when it can.
-     */
     public function candidateIssue(Server $primary, Server $candidate): ?string
     {
         return match (true) {
@@ -399,9 +384,6 @@ class ManageDatabaseReplica
         };
     }
 
-    /**
-     * Returns false while the server Vito created for this replica is still being installed.
-     */
     private function serverReady(DatabaseReplica $replica): bool
     {
         $server = $replica->replica;
@@ -426,10 +408,6 @@ class ManageDatabaseReplica
         return false;
     }
 
-    /**
-     * Validates the input and returns the server to build the replica on: one Vito creates at a provider, or an
-     * existing server whose PostgreSQL data the admin confirmed may be replaced.
-     */
     private function resolve(User $user, Server $primary, array $input): Server
     {
         $new = ($input['mode'] ?? 'existing') === 'new';

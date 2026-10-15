@@ -77,9 +77,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
         return ['id' => (string) $network['id'], 'managed' => $created || ($network['labels']['managed-by'] ?? null) === 'vito'];
     }
 
-    /**
-     * @param  list<string>  $used
-     */
+    /** @param  list<string>  $used */
     private function freeRange(array $used): string
     {
         foreach (range(20, 250) as $octet) {
@@ -93,9 +91,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
         throw new ServerProviderError(__('There is no free 10.x.0.0/16 range left for a new Hetzner network.'));
     }
 
-    /**
-     * @param  array{id: int, status: string, error?: array{message?: string}|null}  $action
-     */
+    /** @param  array{id: int, status: string, error?: array{message?: string}|null}  $action */
     private function waitForAction(array $action): void
     {
         for ($attempt = 0; $action['status'] === 'running' && $attempt < 30; $attempt++) {

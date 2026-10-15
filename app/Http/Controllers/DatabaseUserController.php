@@ -112,11 +112,7 @@ class DatabaseUserController extends Controller
         return back()
             ->with('success', 'Database user deleted successfully.');
     }
-    /**
-     * The primary this server replicates, so the page can explain that its databases mirror it.
-     *
-     * @return array{server_id: int, name: ?string}|null
-     */
+    /** @return array{server_id: int, name: ?string}|null */
     private function replicaOf(Server $server): ?array
     {
         $cluster = PostgresCluster::forServer($server);

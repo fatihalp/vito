@@ -752,22 +752,6 @@ Vito-specific landmines new to this feature (not present in s3migrate):
    (skip path), pause/resume, cancel mid-copy, permanent failure + retry,
    restoring a `BackupFile` mid-migration (before its item is `copied`).
 
-## Overlap regression check
-
-Run `php tests/Feature/StorageMigrationOverlapTest.php`. This standalone check
-uses an in-memory SQLite database, a fake queue, and AWS mock responses. It
-verifies copying before discovery completes, waiting on empty discovery,
-separate queue connections, and preserving pause/cancel states. It also checks
-that scanning waits for scan database access, that a failed firewall rule fails
-the migration, the scan database connection settings, restore path resolution
-(including backup files the scan has not listed yet), skipping pgBackRest
-repositories, stopping superseded transfer workers, blocked deletes, retrying a
-failed scan
-through a migration item, and that deleting a migration drops its items table.
-Migrations without a scan database keep their items table on the default
-connection, which is what the check uses. It does not contact real S3 buckets,
-database servers or Horizon.
-
 ## Independent phase controls
 
 The actions menu provides **Pause scanning / Resume scanning** and **Pause
@@ -785,8 +769,6 @@ and resume routes accept `phase=scan`, `phase=transfer`, or `phase=all` (default
 for older clients). Finished phases return a validation error.
 
 Apply the phase-controls migration and restart queue workers when deploying.
-The standalone regression check covers independent controls and a pause/resume
-between two listing pages using mock responses.
 
 ## Per-migration transfer workers
 

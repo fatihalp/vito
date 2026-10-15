@@ -207,10 +207,6 @@ class CopyStorageMigrationItems implements ShouldQueue
         dispatch(new self($this->storageMigration, verifyPass: $pass, generation: $this->generation, verifyListing: true))->onQueue(config('storage-migration.queue'));
     }
 
-    /**
-     * Verification lists the target once (1,000 objects per request) and compares it with the copied items, instead of
-     * requesting every object. Providers such as Backblaze B2 cap and bill those per-object requests.
-     */
     private function runVerifyCycle(): void
     {
         if ($this->verifyListing) {
@@ -387,9 +383,7 @@ class CopyStorageMigrationItems implements ShouldQueue
         });
     }
 
-    /**
-     * @param  Collection<string, int>|null  $known  target sizes by key hash from the target inventory, or null to ask the target
-     */
+    /** @param  Collection<string, int>|null  $known  target sizes by key hash from the target inventory, or null to ask the target */
     private function processItem(StorageMigrationItem $item, ?Collection $known = null): void
     {
         $this->recordActivity();
@@ -487,9 +481,7 @@ class CopyStorageMigrationItems implements ShouldQueue
         });
     }
 
-    /**
-     * @return array{items_total: int, items_copied: int, items_skipped: int, items_failed: int, bytes_total: int, bytes_copied: int}
-     */
+    /** @return array{items_total: int, items_copied: int, items_skipped: int, items_failed: int, bytes_total: int, bytes_copied: int} */
     private function syncCounters(): array
     {
         return Cache::lock("storage-migration-counters-{$this->storageMigration->id}", 30)->block(5, function (): array {

@@ -311,33 +311,7 @@ private key is replaced by a note and never leaves the server.
 - Not supported: automatic failover, synchronous replication, cascading
   replicas, logical replication, and replicas in another project.
 
-## Regression check
-
-`php tests/Feature/DatabaseReplicationTest.php` runs against an in-memory
-database with a fake SSH connection. It covers:
-
-- validation, waiting for the first backup, and the WireGuard network without
-  "Allow all";
-- Hetzner networks: attaching both servers on a free range, bringing up the
-  private card, falling back to WireGuard across network zones, and moving a
-  cluster off its WireGuard network;
-- WireGuard handshake status per server, and the configuration shown without
-  the private key;
-- the private listen address and its restart, hosts aliases, and firewall rules
-  limited to the replica;
-- `pg_hba.conf` without a logged password, the restore script, and pgBackRest
-  config for each role;
-- certificates signed by the cluster CA and encrypted storage;
-- seeding, and health with notifications;
-- backups from the replica, and falling back to the primary;
-- metric downsampling and pruning;
-- failover: refused without confirmation, fencing, promotion, the role swap,
-  re-pointing a second replica, moving backups and firewall, and the full backup
-  after failover;
-- fence on sight, rebuilding the old primary with delta, deleting a replica, and
-  the backup delete guard.
-
-It does not contact servers.
+## Deploying
 
 Deploying needs `php artisan migrate` (`postgres_clusters`, `database_replicas`,
 `database_replica_metrics`, and `backup_files.server_id`/`type`) and a Horizon

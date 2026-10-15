@@ -110,11 +110,7 @@ class DatabaseUpgradeController extends Controller
         return back()->with('info', 'The upgrade was removed from this server.');
     }
 
-    /**
-     * The command logs both servers wrote for this upgrade, newest first, so the full SSH output is one click away.
-     *
-     * @return list<array{id: int, name: string, server_id: int, server_name: ?string, created_at: ?string}>
-     */
+    /** @return list<array{id: int, name: string, server_id: int, server_name: ?string, created_at: ?string}> */
     private function logs(DatabaseUpgrade $upgrade): array
     {
         return ServerLog::query()

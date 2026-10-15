@@ -10,9 +10,6 @@ use App\Models\Server;
 
 class SelectPgBackRestHost
 {
-    /**
-     * Picks the healthiest, most caught-up replica that can take backups from standby, or the primary.
-     */
     public function select(PostgresCluster $cluster): Server
     {
         if (! isset($cluster->tls['server_installed_at'])) {

@@ -19,11 +19,6 @@ class PreparePostgresClusterNetwork
 {
     public function __construct(private FindSharedNetwork $networks) {}
 
-    /**
-     * Puts the node on the cluster's private network. A provider network such as a Hetzner Cloud Network is preferred:
-     * Vito uses one both servers share, or asks their provider to attach both to one, and creates a WireGuard network
-     * only when the provider cannot. Returns false while memberships are still being applied.
-     */
     public function prepare(PostgresCluster $cluster, Server $node): bool
     {
         $primary = $cluster->primary;
@@ -73,9 +68,6 @@ class PreparePostgresClusterNetwork
         return true;
     }
 
-    /**
-     * A WireGuard network Vito created for the cluster is swapped for a provider network while no other replica streams over it.
-     */
     private function canLeave(PostgresCluster $cluster, Server $node): bool
     {
         return $cluster->owns_network

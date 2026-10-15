@@ -12,9 +12,6 @@ class DNSProviderPolicy
 {
     use ChecksTokenProjectScope;
 
-    /**
-     * Determine whether the user can view any models.
-     */
     public function viewAny(User $user): bool
     {
         return true;

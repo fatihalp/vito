@@ -13,9 +13,9 @@ class GetAccessibleServers
     /**
      * @param array<string, mixed> $input
      * @return array{
-     *     query: Builder<Server>,
-     *     scope: string,
-     *     groupBy: string
+     * query: Builder<Server>,
+     * scope: string,
+     * groupBy: string
      * }
      */
     public function get(User $user, array $input): array

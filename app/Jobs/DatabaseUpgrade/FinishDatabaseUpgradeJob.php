@@ -28,9 +28,6 @@ class FinishDatabaseUpgradeJob implements ShouldQueue
         });
     }
 
-    /**
-     * Until the old server stops taking writes nothing has changed, so the upgrade goes back to waiting for the switch.
-     */
     public function failed(Exception $e): void
     {
         $upgrade = DatabaseUpgrade::query()->find($this->upgrade->id);

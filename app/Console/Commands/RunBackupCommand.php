@@ -45,9 +45,6 @@ class RunBackupCommand extends Command
         $this->info("{$total} backups started, {$failed} failed");
     }
 
-    /**
-     * Starts a backup whose schedule came due after its last run, so a run missed while Vito was down starts once it is back.
-     */
     private function start(Backup $backup): bool
     {
         if ($backup->type === BackupType::PGBACKREST) {

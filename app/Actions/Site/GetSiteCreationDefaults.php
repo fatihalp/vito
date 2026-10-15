@@ -10,8 +10,8 @@ class GetSiteCreationDefaults
     
     /**
      * @return array{
-     *     php_version: string|null,
-     *     source_control_id: int|null
+     * php_version: string|null,
+     * source_control_id: int|null
      * }
      */
     public function get(Server $server): array

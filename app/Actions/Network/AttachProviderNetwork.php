@@ -9,10 +9,6 @@ use RuntimeException;
 
 class AttachProviderNetwork
 {
-    /**
-     * Asks the provider both servers run at to attach them to one private network, an existing one when it is given,
-     * and returns that network as Vito knows it. Null when the servers are not at the same provider, or it cannot.
-     */
     public function attach(Server $first, Server $second, string $name, ?Network $into = null): ?Network
     {
         $provider = $first->provider_id !== null && $first->provider_id === $second->provider_id ? $first->serverProvider?->provider() : null;
