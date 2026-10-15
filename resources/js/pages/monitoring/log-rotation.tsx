@@ -1,5 +1,8 @@
+import { useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
-import { FileTextIcon, RefreshCwIcon, Trash2Icon } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
+import { BrushCleaningIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, Trash2Icon } from 'lucide-react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
@@ -7,9 +10,13 @@ import Heading from '@/components/heading';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useDialog } from '@/hooks/use-dialog';
 import { cn } from '@/lib/utils';
+import { errorMessage } from '@/lib/errors';
 
 type LogEntry = {
   key: string;
@@ -20,6 +27,16 @@ type LogEntry = {
   size_bytes: number;
   size_human: string;
   clearable: boolean;
+};
+
+type CleanupCategory = {
+  key: string;
+  label: string;
+  description: string;
+  risk: 'safe' | 'caution';
+  size_bytes: number;
+  count: number;
+  samples: { path: string; size_bytes: number }[];
 };
 
 type Page = {
@@ -79,6 +96,116 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
   );
 }
 
+function CleanupSuggestions({ serverId }: { serverId: number }) {
+  const dialog = useDialog();
+  const [selected, setSelected] = useState<string[]>([]);
+
+  const query = useQuery({
+    queryKey: ['serverCleanup', serverId],
+    queryFn: async () => {
+      const response = await axios.get<{ categories: CleanupCategory[] }>(`/servers/${serverId}/monitoring/log-rotation/cleanup`);
+      return response.data.categories;
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const categories = query.data;
+
+  useEffect(() => {
+    if (categories) {
+      setSelected(categories.filter((category) => category.risk === 'safe').map((category) => category.key));
+    }
+  }, [categories]);
+
+  const toggle = (key: string, checked: boolean) => setSelected((prev) => (checked ? [...prev, key] : prev.filter((item) => item !== key)));
+
+  const selectedBytes = (categories ?? []).filter((category) => selected.includes(category.key)).reduce((sum, category) => sum + category.size_bytes, 0);
+
+  const cleanUp = () =>
+    dialog.confirm.open({
+      title: 'Clean up selected files',
+      description: `About ${formatBytes(selectedBytes)} will be freed. Only logs and caches are removed, no application data. This action cannot be undone.`,
+      confirmLabel: 'Clean up',
+      variant: 'destructive',
+      method: 'post',
+      url: `/servers/${serverId}/monitoring/log-rotation/cleanup`,
+      data: { categories: selected.join(',') },
+      onSuccess: () => query.refetch(),
+    });
+
+  return (
+    <div className="overflow-hidden rounded-md border shadow-xs">
+      <div className="bg-muted/40 flex items-center justify-between gap-2 border-b px-4 py-2.5">
+        <div className="flex items-center gap-2">
+          <BrushCleaningIcon className="text-muted-foreground size-4" />
+          <span className="text-sm font-semibold">Cleanup suggestions</span>
+          <span className="text-muted-foreground text-xs">Found by scanning the server for logs and caches</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => query.refetch()} disabled={query.isFetching}>
+            <RefreshCwIcon className={cn('size-4', query.isFetching && 'animate-spin')} />
+            <span className="hidden sm:block">Rescan</span>
+          </Button>
+          <Button variant="destructive" size="sm" onClick={cleanUp} disabled={selected.length === 0 || query.isFetching}>
+            <Trash2Icon className="size-4" />
+            <span>Clean up{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</span>
+          </Button>
+        </div>
+      </div>
+
+      {query.isError ? (
+        <Alert variant="destructive" className="m-4 w-auto">
+          <AlertDescription>{errorMessage(query.error, 'Failed to scan the server')}</AlertDescription>
+        </Alert>
+      ) : query.isLoading ? (
+        <div className="flex flex-col gap-3 p-4">
+          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full" />
+          <p className="text-muted-foreground flex items-center gap-2 text-xs">
+            <LoaderCircleIcon className="size-3 animate-spin" />
+            Scanning the server, this can take a few seconds...
+          </p>
+        </div>
+      ) : categories && categories.length > 0 ? (
+        <ul className="divide-y">
+          {categories.map((category) => (
+            <li key={category.key} className="flex items-start gap-3 px-4 py-3">
+              <Checkbox
+                id={`cleanup-${category.key}`}
+                className="mt-1"
+                checked={selected.includes(category.key)}
+                onCheckedChange={(checked) => toggle(category.key, checked === true)}
+              />
+              <div className="flex min-w-0 flex-1 flex-col gap-1">
+                <label htmlFor={`cleanup-${category.key}`} className="flex flex-wrap items-center gap-2 text-sm font-medium">
+                  {category.label}
+                  {category.risk === 'caution' && <Badge variant="warning">Review first</Badge>}
+                </label>
+                <p className="text-muted-foreground text-xs">{category.description}</p>
+                <ul className="text-muted-foreground mt-1 flex flex-col gap-0.5">
+                  {category.samples.map((sample) => (
+                    <li key={sample.path} className="flex justify-between gap-3 font-mono text-xs">
+                      <span className="truncate">{sample.path}</span>
+                      <span className="shrink-0">{formatBytes(sample.size_bytes)}</span>
+                    </li>
+                  ))}
+                  {category.count > category.samples.length && <li className="text-xs">and {category.count - category.samples.length} more</li>}
+                </ul>
+              </div>
+              <Badge variant={category.size_bytes > 100 * 1024 * 1024 ? 'danger' : 'default'} className="shrink-0">
+                {formatBytes(category.size_bytes)}
+              </Badge>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="text-muted-foreground p-6 text-center text-sm">Nothing to clean up. No large or rotated logs and no caches were found.</p>
+      )}
+    </div>
+  );
+}
+
 export default function LogRotation() {
   const { server, logs } = usePage<Page>().props;
   const dialog = useDialog();
@@ -132,6 +259,8 @@ export default function LogRotation() {
             </Button>
           </div>
         </HeaderContainer>
+
+        <CleanupSuggestions serverId={server.id} />
 
         {logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border p-16 text-center">

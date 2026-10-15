@@ -9,6 +9,8 @@ use App\Actions\Monitoring\GetDiskUsage;
 use App\Actions\Monitoring\GetLogRotationData;
 use App\Actions\Monitoring\KillProcess;
 use App\Actions\Monitoring\KillUserProcesses;
+use App\Actions\Monitoring\RunServerCleanup;
+use App\Actions\Monitoring\ScanServerCleanup;
 use App\Actions\Monitoring\UpdateMetricSettings;
 use App\Actions\Server\ClearServiceLog;
 use App\Enums\ServiceStatus;
@@ -222,6 +224,26 @@ class MonitoringController extends Controller
         }
 
         return back()->with('success', 'All clearable log files cleared successfully.');
+    }
+
+    #[Get('/log-rotation/cleanup', name: 'monitoring.log-rotation.cleanup')]
+    public function cleanupScan(Server $server): JsonResponse
+    {
+        $this->authorize('viewAny', [Metric::class, $server]);
+
+        return response()->json(['categories' => app(ScanServerCleanup::class)->handle($server)]);
+    }
+
+    #[Post('/log-rotation/cleanup', name: 'monitoring.log-rotation.cleanup.run')]
+    public function cleanupRun(Request $request, Server $server): RedirectResponse
+    {
+        $this->authorize('update', $server);
+
+        app(RunServerCleanup::class)->run($server, [
+            'categories' => array_filter(explode(',', (string) $request->input('categories'))),
+        ]);
+
+        return back()->with('success', 'Selected files were cleaned up successfully.');
     }
 
     #[Get('/disk-usage', name: 'monitoring.disk-usage')]
