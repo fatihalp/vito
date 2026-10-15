@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { BrushCleaningIcon, CopyIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, TerminalIcon, Trash2Icon } from 'lucide-react';
+import { EraserIcon, CopyIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, TerminalIcon, Trash2Icon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
@@ -139,7 +139,7 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
     <div className="overflow-hidden rounded-md border shadow-xs">
       <div className="bg-muted/40 flex items-center justify-between gap-2 border-b px-4 py-2.5">
         <div className="flex items-center gap-2">
-          <BrushCleaningIcon className="text-muted-foreground size-4" />
+          <EraserIcon className="text-muted-foreground size-4" />
           <span className="text-sm font-semibold">Cleanup suggestions</span>
           <span className="text-muted-foreground text-xs">Found by scanning the server. Vito never deletes anything itself.</span>
         </div>
