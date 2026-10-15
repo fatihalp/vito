@@ -1,5 +1,5 @@
 import React, { FormEvent, useEffect, useMemo, useState } from 'react';
-import { Head, Link, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Editor, useMonaco } from '@monaco-editor/react';
@@ -17,6 +17,7 @@ import {
   FileCode2Icon,
   HistoryIcon,
   InfoIcon,
+  KeyRoundIcon,
   LoaderCircleIcon,
   PlusIcon,
   SaveIcon,
@@ -76,6 +77,7 @@ function EnvironmentEditorContent() {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [searchFilter, setSearchFilter] = useState('');
   const [showHistory, setShowHistory] = useState(false);
+  const [generatingKey, setGeneratingKey] = useState(false);
 
   const form = useForm<{ path: string; env?: string; variables?: Array<{ key: string; value: string; is_secret: boolean }> }>({
     path: envPath,
@@ -162,6 +164,19 @@ function EnvironmentEditorContent() {
   }, [form.processing, busy, canEdit, mode, rawContent, variables, envPath, showHistory]);
 
   const queryError = useMemo(() => (query.isError ? errorMessage(query.error, 'Failed to read the .env file') : null), [query.isError, query.error]);
+
+  const generateAppKey = () => {
+    router.post(
+      `/servers/${server.id}/sites/${site.id}/env/generate-key`,
+      {},
+      {
+        preserveScroll: true,
+        onStart: () => setGeneratingKey(true),
+        onSuccess: () => query.refetch(),
+        onFinish: () => setGeneratingKey(false),
+      },
+    );
+  };
 
   const handleVariableChange = (index: number, updatedVariable: EnvVariable) => {
     setVariablesDirty(true);
@@ -515,6 +530,25 @@ function EnvironmentEditorContent() {
                         onChange={(updated) => handleVariableChange(originalIndex, updated)}
                         onDelete={() => handleVariableDelete(originalIndex)}
                         error={duplicateKeys.has(variable.key.trim()) ? 'Duplicate key' : undefined}
+                        action={
+                          site.type === 'laravel' &&
+                          canEdit === true &&
+                          !variable.isNew &&
+                          variable.key === 'APP_KEY' &&
+                          variable.value.trim() === '' && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={generateAppKey}
+                              disabled={generatingKey || isDirty}
+                              title={isDirty ? 'Save or discard your changes first' : 'Run php artisan key:generate'}
+                              className="shrink-0"
+                            >
+                              {generatingKey ? <LoaderCircleIcon className="size-4 animate-spin" /> : <KeyRoundIcon className="size-4" />}
+                              <span>Generate key</span>
+                            </Button>
+                          )
+                        }
                       />
                     );
                   })}

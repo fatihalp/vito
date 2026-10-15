@@ -14,9 +14,10 @@ interface EnvVariableRowProps {
   onDelete: () => void;
   revealable?: boolean;
   error?: string;
+  action?: React.ReactNode;
 }
 
-export default function EnvVariableRow({ variable, onChange, onDelete, revealable = false, error }: EnvVariableRowProps) {
+export default function EnvVariableRow({ variable, onChange, onDelete, revealable = false, error, action }: EnvVariableRowProps) {
   const [showValue, setShowValue] = useState(false);
   const hintId = useId();
   const isMultiLine = variable.value.includes('\n');
@@ -224,6 +225,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
     <div className={cn('flex items-start gap-2', isMultiLine && 'flex-col sm:flex-row')}>
       {renderKeyInput()}
       {renderValueInput()}
+      {action}
       {renderSecretToggle()}
       <Button
         type="button"

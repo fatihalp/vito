@@ -85,9 +85,10 @@ export default function Commands() {
     server: Server;
     site: Site;
     commands: PaginatedData<Command>;
+    suggestedCommands: string[];
   }>();
   const dialog = useDialog();
-  const { commands, server, site } = page.props;
+  const { commands, suggestedCommands, server, site } = page.props;
   const form = useForm({ command: '' });
 
   const submit = (event: FormEvent) => {
@@ -141,6 +142,24 @@ export default function Commands() {
               </Button>
             </form>
             <InputError message={form.errors.command} className="px-2 pt-2" />
+            {suggestedCommands.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2 px-2 pt-3 pb-1">
+                <span className="text-muted-foreground text-xs">Your recent:</span>
+                {suggestedCommands.map((suggestion) => (
+                  <Button
+                    key={suggestion}
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="max-w-full font-mono text-xs"
+                    title={suggestion}
+                    onClick={() => form.setData('command', suggestion)}
+                  >
+                    <span className="truncate">{suggestion}</span>
+                  </Button>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
 

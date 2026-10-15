@@ -97,7 +97,7 @@ export default function AppWithDeployment() {
       <Head title={`${site.domain} - ${page.props.server.name}`} />
 
       <Container className="max-w-7xl gap-6">
-        {site.status === 'installation_failed' && <SiteBanners site={site} />}
+        {site.status === 'installation_failed' && <SiteBanners site={site} includeAppDebug />}
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">
           <div className="flex min-w-0 flex-col gap-6">
@@ -134,7 +134,7 @@ export default function AppWithDeployment() {
                         </div>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
-                        {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
+                        {site.status !== 'installation_failed' && <SiteBanners site={site} compact includeAppDebug />}
                         <Deploy site={site} />
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
                           <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>

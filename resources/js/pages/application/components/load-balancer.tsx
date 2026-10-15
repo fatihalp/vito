@@ -83,7 +83,7 @@ export default function LoadBalancer() {
           </div>
         </HeaderContainer>
 
-        <SiteBanners site={page.props.site} />
+        <SiteBanners site={page.props.site} includeAppDebug />
 
         <Card>
           <CardHeader>

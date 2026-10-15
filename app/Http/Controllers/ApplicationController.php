@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Site\Deploy;
+use App\Actions\Site\GenerateAppKey;
 use App\Actions\Site\GetEnv;
 use App\Actions\Site\GetSiteOverview;
 use App\Actions\Site\ParseEnv;
@@ -236,6 +237,16 @@ class ApplicationController extends Controller
         app(UpdateEnv::class)->update($site, $request->input(), $request->user());
 
         return back()->with('success', '.env file updated successfully.');
+    }
+
+    #[Post('/env/generate-key', name: 'application.env.generate-key')]
+    public function generateAppKey(Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        app(GenerateAppKey::class)->generate($site, user());
+
+        return back()->with('success', 'Application key generated successfully.');
     }
 
     #[Get('/env/versions', name: 'application.env-versions')]
