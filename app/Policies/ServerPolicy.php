@@ -26,6 +26,11 @@ class ServerPolicy
         return $this->hasReadAccess($user, $server->project);
     }
 
+    public function checkPhpVersions(User $user): bool
+    {
+        return $this->viewAny($user);
+    }
+
     public function create(User $user, Project $project): bool
     {
         return $this->hasWriteAccess($user, $project);

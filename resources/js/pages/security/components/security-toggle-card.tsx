@@ -1,4 +1,4 @@
-import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -7,16 +7,13 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ControlBadge({ status, color, secure }: { status: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; secure: boolean }) {
-  if (status === 'disabled') {
-    return null;
-  }
-  if (status === 'active' && !secure) {
-    return null;
+  if (status === 'disabled' || (status === 'active' && !secure)) {
+    return <Badge variant="gray">not applied</Badge>;
   }
   return (
     <Badge variant={color} aria-busy={status === 'updating'}>
       {status === 'updating' && <LoaderCircleIcon className="animate-spin" />}
-      {status}
+      {status === 'active' ? 'applied' : status}
     </Badge>
   );
 }
@@ -62,19 +59,19 @@ export default function SecurityToggleCard({
   };
 
   return (
-    <Card>
+    <div>
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               {title}
               <ControlBadge status={state.status} color={state.status_color} secure={secure} />
               {drift && <Badge variant="warning">drift detected</Badge>}
             </CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
-            {state.log_id && (
+          <div className="flex shrink-0 items-center gap-2">
+            {state.log_id != null && (
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Button
@@ -96,6 +93,6 @@ export default function SecurityToggleCard({
           </div>
         </div>
       </CardHeader>
-    </Card>
+    </div>
   );
 }

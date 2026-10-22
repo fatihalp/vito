@@ -1,5 +1,5 @@
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
-import { useCallback, useState } from 'react';
+import { ReactNode, useCallback, useState } from 'react';
 import { Server } from '@/types/server';
 import { Service } from '@/types/service';
 import { AutoUpdateState, PasswordAuthState, RootLoginState, SecurityScore } from '@/types/security';
@@ -8,7 +8,7 @@ import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import InputError from '@/components/ui/input-error';
@@ -18,31 +18,15 @@ import { InfoIcon, LoaderCircleIcon, RefreshCwIcon, TriangleAlertIcon } from 'lu
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { Separator } from '@/components/ui/separator';
-import { Table, TableBody, TableCell, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import ScheduleBuilder, { buildSchedule, parseSchedule } from '@/pages/security/components/schedule-builder';
 import SecurityToggleCard from '@/pages/security/components/security-toggle-card';
+
 function serviceStatusLabel(status: string): string {
-  return status === 'ready' ? 'active' : status;
+  return status === 'ready' ? 'applied' : status;
 }
 
-function ControlBadge({ status, color, secure }: { status: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; secure: boolean }) {
-  if (status === 'disabled') {
-    return null;
-  }
-  if (status === 'active' && !secure) {
-    return null;
-  }
-  return (
-    <Badge variant={color} aria-busy={status === 'updating'}>
-      {status === 'updating' && <LoaderCircleIcon className="animate-spin" />}
-      {status}
-    </Badge>
-  );
-}
-
-function AutoUpdateCard({ server, autoUpdate }: { server: number; autoUpdate: AutoUpdateState }) {
+function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: AutoUpdateState }) {
   const [parsed, setParsed] = useState(parseSchedule(autoUpdate.schedule));
   const form = useForm<{ enabled: boolean; schedule: string }>({
     enabled: autoUpdate.enabled,
@@ -52,21 +36,27 @@ function AutoUpdateCard({ server, autoUpdate }: { server: number; autoUpdate: Au
   const save = () => form.post(`/servers/${server}/security/auto-update`, { preserveScroll: true });
 
   return (
-    <Card>
+    <div>
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               Automatic updates
-              {autoUpdate.enabled && <Badge variant="success">active</Badge>}
+              <Badge variant={autoUpdate.enabled ? 'success' : 'gray'}>{autoUpdate.enabled ? 'applied' : 'not applied'}</Badge>
             </CardTitle>
             <CardDescription>Vito applies package updates to this server on a schedule (times are UTC).</CardDescription>
           </div>
-          <Switch checked={form.data.enabled} onCheckedChange={(value) => form.setData('enabled', value)} aria-label="Enable automatic updates" />
+          <div className="flex shrink-0 items-center gap-3">
+            <Switch checked={form.data.enabled} onCheckedChange={(value) => form.setData('enabled', value)} aria-label="Enable automatic updates" />
+            <Button onClick={save} disabled={form.processing}>
+              {form.processing && <LoaderCircleIcon className="animate-spin" />}
+              Save
+            </Button>
+          </div>
         </div>
       </CardHeader>
       {form.data.enabled && (
-        <CardContent className="flex flex-col gap-4 p-4">
+        <CardContent className="flex flex-col gap-3 px-4 pb-4">
           <ScheduleBuilder
             value={parsed}
             onChange={(next) => {
@@ -80,38 +70,33 @@ function AutoUpdateCard({ server, autoUpdate }: { server: number; autoUpdate: Au
           </p>
         </CardContent>
       )}
-      <CardFooter className="justify-end">
-        <Button onClick={save} disabled={form.processing}>
-          {form.processing && <LoaderCircleIcon className="animate-spin" />}
-          Save
-        </Button>
-      </CardFooter>
-    </Card>
+    </div>
   );
 }
 
-
-function Fail2banCard({ server, fail2ban }: { server: number; fail2ban: Service | null }) {
+function Fail2banRow({ server, fail2ban }: { server: number; fail2ban: Service | null }) {
   const dialog = useDialog();
   const installing = fail2ban?.status === 'installing' || fail2ban?.status === 'uninstalling';
 
   return (
-    <Card>
+    <div>
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               Fail2ban
-              {fail2ban && (
+              {fail2ban ? (
                 <Badge variant={fail2ban.status_color} aria-busy={installing}>
                   {installing && <LoaderCircleIcon className="animate-spin" />}
                   {serviceStatusLabel(fail2ban.status)}
                 </Badge>
+              ) : (
+                <Badge variant="gray">not applied</Badge>
               )}
             </CardTitle>
             <CardDescription>Bans IP addresses with too many failed SSH login attempts.</CardDescription>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
             {fail2ban ? (
               <>
                 <Button variant="outline" disabled={installing} onClick={() => dialog.fail2banForm.open({ serverId: server, fail2ban })}>
@@ -141,15 +126,15 @@ function Fail2banCard({ server, fail2ban }: { server: number; fail2ban: Service 
         </div>
       </CardHeader>
       {fail2ban && (
-        <CardContent className="p-4">
+        <CardContent className="px-4 pb-4">
           <p className="text-muted-foreground text-xs">View banned IPs and activity in Service logs.</p>
         </CardContent>
       )}
-    </Card>
+    </div>
   );
 }
 
-function ScoreCard({ score }: { score: SecurityScore }) {
+function ScoreCard({ score, children }: { score: SecurityScore; children: ReactNode }) {
   const textColor = score.score >= 80 ? 'text-success' : score.score >= 40 ? 'text-warning' : 'text-destructive';
   const barColor =
     score.score >= 80
@@ -181,37 +166,28 @@ function ScoreCard({ score }: { score: SecurityScore }) {
           </div>
         </div>
         <Progress value={score.score} className={cn('bg-primary/10 dark:bg-primary/20', barColor)} />
-        <Table>
-          <TableBody>
-            {score.checks.map((check) => (
-              <TableRow key={check.key}>
-                <TableCell className="py-2">{check.label}</TableCell>
-                <TableCell className="w-0 py-2 text-right">
-                  <Badge variant={check.passed ? 'success' : 'gray'}>{check.passed ? 'applied' : 'not applied'}</Badge>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
       </CardContent>
+      <div className="divide-y border-t [&_[data-slot=card-header]]:border-b-0">{children}</div>
     </Card>
   );
 }
 
-function FirewallCard({ server, firewall }: { server: number; firewall: Service | null }) {
+function FirewallRow({ server, firewall }: { server: number; firewall: Service | null }) {
   const installing = firewall?.status === 'installing' || firewall?.status === 'uninstalling';
   return (
-    <Card>
+    <div>
       <CardHeader>
-        <div className="flex items-center justify-between gap-2">
-          <div className="space-y-1.5">
-            <CardTitle className="flex items-center gap-2">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex min-w-0 flex-col gap-1.5">
+            <CardTitle className="flex flex-wrap items-center gap-2">
               Firewall
-              {firewall && (
+              {firewall ? (
                 <Badge variant={firewall.status_color} aria-busy={installing}>
                   {installing && <LoaderCircleIcon className="animate-spin" />}
                   {serviceStatusLabel(firewall.status)}
                 </Badge>
+              ) : (
+                <Badge variant="gray">not applied</Badge>
               )}
             </CardTitle>
             <CardDescription>A UFW firewall controls which ports accept inbound connections.</CardDescription>
@@ -227,7 +203,7 @@ function FirewallCard({ server, firewall }: { server: number; firewall: Service 
           )}
         </div>
       </CardHeader>
-    </Card>
+    </div>
   );
 }
 
@@ -272,73 +248,68 @@ export default function Security() {
 
       <Container className="max-w-5xl">
         <HeaderContainer>
-          <Heading title="Security" description="Harden this server: automatic updates, Fail2ban, SSH access, and the SSH port." />
-          <Button variant="outline" onClick={check} disabled={checking}>
+          <Heading title="Security" description="Harden this server: automatic updates, firewall, Fail2ban, and SSH access." />
+          <Button variant="outline" onClick={check} disabled={checking} aria-label="Check security status">
             {checking ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCwIcon />}
             <span className="hidden lg:block">Check status</span>
           </Button>
         </HeaderContainer>
 
-        <div className="flex flex-col gap-4 [&_[data-slot=card-header]]:border-b-0">
-          <ScoreCard score={page.props.score} />
-
-          <Separator className="my-2" />
-
-          <Heading title="Actions" description="Apply, reconfigure, or undo each hardening measure." />
-
+        <div className="flex flex-col gap-4">
           <Alert>
             <TriangleAlertIcon className="text-warning" />
             <AlertDescription>
-              These settings change how your server is accessed and secured. Make sure you can reach your provider's recovery console before applying
-              them, so you can roll back if anything goes wrong.
+              Before applying changes, make sure you can access your provider's recovery console in case you need to restore SSH access.
             </AlertDescription>
           </Alert>
 
-          <AutoUpdateCard
-            key={`${page.props.autoUpdate.enabled}-${page.props.autoUpdate.schedule ?? ''}`}
-            server={serverId}
-            autoUpdate={page.props.autoUpdate}
-          />
-          <FirewallCard server={serverId} firewall={page.props.firewall} />
-          <Fail2banCard server={serverId} fail2ban={page.props.fail2ban} />
-          <SecurityToggleCard
-            serverId={serverId}
-            title="Disable password authentication"
-            description="When on, SSH access requires a key and password logins are refused (global default only)."
-            state={page.props.passwordAuth}
-            onToggle={(nextSecure) => {
-              dialog.confirm.open({
-                title: nextSecure ? 'Disable password authentication' : 'Allow password authentication',
-                description: nextSecure
-                  ? 'Only SSH key authentication will be allowed. Make sure your key works — any password-only users will be locked out.'
-                  : 'Password logins will be allowed again over SSH.',
-                variant: nextSecure ? 'destructive' : 'default',
-                confirmLabel: nextSecure ? 'Disable' : 'Allow',
-                method: 'post',
-                url: `/servers/${serverId}/security/password-auth`,
-                data: { enabled: !nextSecure },
-              });
-            }}
-          />
-          <SecurityToggleCard
-            serverId={serverId}
-            title="Disable root SSH login"
-            description={page.props.rootLogin.manageable ? 'When on, the root user cannot log in over SSH.' : 'Vito currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
-            state={page.props.rootLogin}
-            onToggle={(nextSecure) => {
-              dialog.confirm.open({
-                title: nextSecure ? 'Disable root SSH login' : 'Allow root SSH login',
-                description: nextSecure
-                  ? 'Root SSH login will be refused. Vito connects as the deploy user and uses sudo, so this is safe.'
-                  : 'Root will be allowed to log in over SSH again.',
-                variant: nextSecure ? 'destructive' : 'default',
-                confirmLabel: nextSecure ? 'Disable' : 'Allow',
-                method: 'post',
-                url: `/servers/${serverId}/security/root-login`,
-                data: { enabled: !nextSecure },
-              });
-            }}
-          />
+          <ScoreCard score={page.props.score}>
+            <AutoUpdateRow
+              key={`${page.props.autoUpdate.enabled}-${page.props.autoUpdate.schedule ?? ''}`}
+              server={serverId}
+              autoUpdate={page.props.autoUpdate}
+            />
+            <FirewallRow server={serverId} firewall={page.props.firewall} />
+            <Fail2banRow server={serverId} fail2ban={page.props.fail2ban} />
+            <SecurityToggleCard
+              serverId={serverId}
+              title="Disable password authentication"
+              description="When on, SSH access requires a key and password logins are refused (global default only)."
+              state={page.props.passwordAuth}
+              onToggle={(nextSecure) => {
+                dialog.confirm.open({
+                  title: nextSecure ? 'Disable password authentication' : 'Allow password authentication',
+                  description: nextSecure
+                    ? 'Only SSH key authentication will be allowed. Make sure your key works — any password-only users will be locked out.'
+                    : 'Password logins will be allowed again over SSH.',
+                  variant: nextSecure ? 'destructive' : 'default',
+                  confirmLabel: nextSecure ? 'Disable' : 'Allow',
+                  method: 'post',
+                  url: `/servers/${serverId}/security/password-auth`,
+                  data: { enabled: !nextSecure },
+                });
+              }}
+            />
+            <SecurityToggleCard
+              serverId={serverId}
+              title="Disable root SSH login"
+              description={page.props.rootLogin.manageable ? 'When on, the root user cannot log in over SSH.' : 'Vito currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
+              state={page.props.rootLogin}
+              onToggle={(nextSecure) => {
+                dialog.confirm.open({
+                  title: nextSecure ? 'Disable root SSH login' : 'Allow root SSH login',
+                  description: nextSecure
+                    ? 'Root SSH login will be refused. Vito connects as the deploy user and uses sudo, so this is safe.'
+                    : 'Root will be allowed to log in over SSH again.',
+                  variant: nextSecure ? 'destructive' : 'default',
+                  confirmLabel: nextSecure ? 'Disable' : 'Allow',
+                  method: 'post',
+                  url: `/servers/${serverId}/security/root-login`,
+                  data: { enabled: !nextSecure },
+                });
+              }}
+            />
+          </ScoreCard>
         </div>
       </Container>
     </ServerLayout>

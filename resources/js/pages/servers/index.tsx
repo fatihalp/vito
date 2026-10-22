@@ -1,4 +1,4 @@
-import { Head, Link, router, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 
 import { type Configs, type SharedData } from '@/types';
 
@@ -9,14 +9,17 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Layout from '@/layouts/app/layout';
-import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon, WifiOffIcon, LoaderCircleIcon } from 'lucide-react';
+import { PlusIcon, TriangleAlertIcon, GlobeIcon, DatabaseIcon, ZapIcon, ListOrderedIcon, ServerIcon, WifiOffIcon, LoaderCircleIcon, RefreshCwIcon } from 'lucide-react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useEffect } from 'react';
+import type { PhpVersions } from '@/types/php-versions';
+import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 
 type Page = {
   servers: InertiaTableData;
+  phpVersionsChecking: boolean;
   public_key: string;
   configs: Configs;
   serverScope?: string;
@@ -208,13 +211,62 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
   );
 };
 
+const phpVersionsCell = ({ value, row }: CellRenderProps) => {
+  const result = value as PhpVersions | null;
+
+  if (!result) {
+    return <span className="text-muted-foreground text-xs">Kontrol edilmedi</span>;
+  }
+
+  const labels = {
+    unknown: 'Kontrol edilmedi',
+    current: 'Güncel',
+    outdated: 'Güncel değil',
+    error: 'Kontrol başarısız',
+    no_php: 'PHP yok',
+  };
+  const stale = result.checked_at !== null && Date.now() - Date.parse(result.checked_at) > 3_600_000;
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link href={`/servers/${row.id}/services`} className="inline-flex flex-col items-start gap-1">
+          <Badge variant={result.status === 'outdated' ? 'warning' : result.status === 'current' ? 'success' : 'gray'}>
+            {result.checking && <LoaderCircleIcon className="size-3 animate-spin" />}
+            {result.checking ? 'Kontrol ediliyor' : labels[result.status]}
+          </Badge>
+          {result.versions.map((version) => (
+            <span key={version.installed} className="text-muted-foreground whitespace-nowrap text-xs">
+              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ' · Destek sona erdi' : ''}
+            </span>
+          ))}
+          {stale && <span className="text-muted-foreground text-xs">Önbellekteki sonuç</span>}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">
+        <p>Her PHP dalının en son yama sürümüyle karşılaştırılır.</p>
+        <p>{result.checked_at ? `Son başarılı kontrol: ${new Date(result.checked_at).toLocaleString()}` : 'Henüz başarılı bir kontrol yapılmadı.'}</p>
+        {result.status === 'error' && <p>Sunucuya veya PHP sürüm kaynağına erişilemedi. Önceki sonuç korunuyor.</p>}
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
 export default function Servers() {
   const page = usePage<Page & SharedData>();
+  const versionForm = useForm({ project: page.props.serverScope ?? 'all' });
+  const checkingVersions = page.props.phpVersionsChecking || versionForm.processing;
+
+  useEffect(() => {
+    if (!page.props.phpVersionsChecking) return;
+    const interval = window.setInterval(() => router.reload({ only: ['servers', 'phpVersionsChecking'] }), 5000);
+    return () => window.clearInterval(interval);
+  }, [page.props.phpVersionsChecking]);
 
   useEffect(() => {
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
-        router.reload({ only: ['servers'] });
+        router.reload({ only: ['servers', 'phpVersionsChecking'] });
       }
     }, 60_000);
 
@@ -226,9 +278,20 @@ export default function Servers() {
       <Head title="Servers" />
 
       <Container className="max-w-7xl">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <Heading title="Servers" />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              disabled={checkingVersions}
+              onClick={() => {
+                versionForm.transform(() => ({ project: page.props.serverScope ?? 'all' }));
+                versionForm.post('/servers/check-php-versions', { preserveScroll: true });
+              }}
+            >
+              <RefreshCwIcon className={cn(checkingVersions && 'animate-spin')} />
+              Sürümleri kontrol et
+            </Button>
             <Button asChild>
               <Link href={"/servers/create"}>
                 <PlusIcon />
@@ -276,6 +339,7 @@ export default function Servers() {
           }
           cellRenderers={{
             name: nameCell,
+            php_versions: phpVersionsCell,
             cpu_usage_percent: cpuCell,
             memory_used_percent: ramCell,
             disk_used_percent: diskCell,

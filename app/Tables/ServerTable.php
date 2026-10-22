@@ -2,6 +2,7 @@
 
 namespace App\Tables;
 
+use App\Actions\Server\CheckPhpVersions;
 use App\Enums\ServerStatus;
 use App\Models\Metric;
 use App\Models\Server;
@@ -51,7 +52,7 @@ class ServerTable extends Table
             ->selectSub($cpuSubquery, 'cpu_usage_percent')
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
-            ->with(['latestMetric', 'project']);
+            ->with(['latestMetric', 'project', 'services' => fn (Builder $query) => $query->where('type', 'php')->select('id', 'server_id')]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
             $this->query
@@ -79,6 +80,10 @@ class ServerTable extends Table
             EnumColumn::make('role', 'Type')->sortable(),
             TextColumn::make('stage', 'Stage')->sortable(),
             TextColumn::make('ip', 'IP')->sortable(),
+            Column::make('php_versions', 'PHP')
+                ->value(fn (Server $server): array => $server->services->isEmpty()
+                    ? ['status' => 'no_php', 'versions' => [], 'checking' => false, 'checked_at' => null]
+                    : app(CheckPhpVersions::class)->cached($server->id)),
             TextColumn::make('cpu_usage_percent', 'CPU')->sortable(),
             TextColumn::make('memory_used_percent', 'RAM')->sortable(),
             TextColumn::make('disk_used_percent', 'Disk')->sortable(),
