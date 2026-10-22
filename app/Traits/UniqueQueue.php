@@ -20,7 +20,7 @@ trait UniqueQueue
 
     protected function lockSeconds(): int
     {
-        return 600;
+        return max(600, (int) config('horizon.defaults.ssh.timeout', 1200) + 60, ($this->timeout ?? 0) + 60);
     }
 
     public function run(string $key, Closure $callback): void

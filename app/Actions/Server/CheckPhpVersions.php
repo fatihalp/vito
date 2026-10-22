@@ -52,7 +52,7 @@ class CheckPhpVersions
             }
 
             try {
-                dispatch(new CheckPhpVersionsJob($server, $run))->onQueue('ssh');
+                dispatch(new CheckPhpVersionsJob($server, $run))->onQueue('ssh-checks');
             } catch (Throwable $e) {
                 $this->failed($server);
 

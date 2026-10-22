@@ -228,7 +228,7 @@ class PromoteReplica
                 $replica->update(['configuration' => [...$replica->configuration, 'primary' => $replica->replication()->configurePrimary()]]);
                 $replica->replication()->repoint();
                 $replica->update(['message' => __('Re-pointed to the new primary :server.', ['server' => $newPrimary->name])]);
-                dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh')->delay(now()->addMinutes(2));
+                dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh-checks')->delay(now()->addMinutes(2));
             });
 
         $newPrimary->ssh()->exec(

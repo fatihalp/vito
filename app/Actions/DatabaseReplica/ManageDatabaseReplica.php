@@ -221,7 +221,7 @@ class ManageDatabaseReplica
             app(SyncDatabaseUsers::class)->sync($replica->replica);
         });
 
-        dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh');
+        dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh-checks');
 
         return true;
     }
