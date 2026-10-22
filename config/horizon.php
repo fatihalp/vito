@@ -35,6 +35,8 @@ return [
 
     'waits' => [
         'redis:default' => 60,
+        'ssh:ssh' => 60,
+        'ssh:ssh-checks' => 120,
     ],
 
     
@@ -91,15 +93,27 @@ return [
         'ssh' => [
             'connection' => 'ssh',
             'queue' => ['ssh'],
-            'balance' => 'auto',
+            'balance' => 'simple',
             'autoScalingStrategy' => 'time',
-            'maxProcesses' => env('HORIZON_SSH_MAX_PROCESSES', 1),
+            'maxProcesses' => env('HORIZON_SSH_MAX_PROCESSES', 2),
             'maxTime' => env('HORIZON_SSH_MAX_TIME', 0),
             'maxJobs' => env('HORIZON_SSH_MAX_JOBS', 0),
             'memory' => env('HORIZON_SSH_MEMORY', 128),
             'tries' => env('HORIZON_SSH_TRIES', 1),
             'timeout' => env('HORIZON_SSH_TIMEOUT', 1200),
             'nice' => env('HORIZON_SSH_NICE', 0),
+        ],
+
+        'ssh-checks' => [
+            'connection' => 'ssh',
+            'queue' => ['ssh-checks'],
+            'balance' => 'simple',
+            'maxProcesses' => env('HORIZON_SSH_CHECKS_MAX_PROCESSES', 1),
+            'memory' => 128,
+            'tries' => 1,
+            'timeout' => env('HORIZON_SSH_TIMEOUT', 1200),
+            'nice' => 5,
+            'maxJobs' => 100,
         ],
 
         'ssh-certbot' => [
@@ -148,10 +162,10 @@ return [
     'environments' => [
         '*' => [
             'default' => [
-                'maxProcesses' => env('HORIZON_DEFAULT_MAX_PROCESSES', 3),
+                'maxProcesses' => env('HORIZON_DEFAULT_MAX_PROCESSES', 1),
             ],
             'ssh' => [
-                'maxProcesses' => env('HORIZON_SSH_MAX_PROCESSES', 3),
+                'maxProcesses' => env('HORIZON_SSH_MAX_PROCESSES', 2),
             ],
             'ssh-certbot' => [
                 'maxProcesses' => env('HORIZON_SSH_CERTBOT_MAX_PROCESSES', 1),

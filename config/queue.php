@@ -18,7 +18,7 @@ return [
             'driver' => 'redis',
             'connection' => 'default',
             'queue' => env('REDIS_QUEUE', 'default'),
-            'retry_after' => 600,
+            'retry_after' => max((int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
             'after_commit' => false,
         ],
@@ -28,7 +28,7 @@ return [
             'connection' => 'default',
             'queue' => 'default',
             'timeout' => 90,
-            'retry_after' => 600,
+            'retry_after' => max((int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
             'after_commit' => false,
         ],
@@ -42,7 +42,7 @@ return [
 
 
 
-            'retry_after' => max(300, (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
+            'retry_after' => max(300, (int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
             'after_commit' => false,
         ],

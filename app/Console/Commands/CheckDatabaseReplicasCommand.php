@@ -27,7 +27,7 @@ class CheckDatabaseReplicasCommand extends Command
             ->whereHas('replica')
             ->chunkById(100, function ($replicas) use (&$total): void {
                 foreach ($replicas as $replica) {
-                    dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh');
+                    dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh-checks');
                     $total++;
                 }
             });

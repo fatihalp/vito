@@ -16,7 +16,7 @@ class RefreshServices
         }
 
         try {
-            dispatch(new RefreshServicesJob($server))->onQueue('ssh');
+            dispatch(new RefreshServicesJob($server))->onQueue('ssh-checks');
         } catch (Throwable $e) {
             self::clearFlag($server);
 
