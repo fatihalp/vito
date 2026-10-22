@@ -11,6 +11,7 @@ import {
   UserIcon,
 } from 'lucide-react';
 import { Server } from '@/types/server';
+import { SharedData } from '@/types';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -93,7 +94,7 @@ function CommandRow({ item }: { item: CommandItem }) {
 }
 
 export default function ServerCommands() {
-  const { server: initialServer, initialData } = usePage<PageProps>().props;
+  const { server: initialServer, initialData, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
   const [source, setSource] = useState<'sudo' | 'bash'>(initialData?.source ?? 'sudo');
@@ -106,12 +107,11 @@ export default function ServerCommands() {
     async (newSource = source, newLines = lines, newSearch = search) => {
       setLoading(true);
       try {
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
         const response = await fetch(`/servers/${server.id}/commands/query`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
+            'X-CSRF-TOKEN': csrf_token,
             'X-Requested-With': 'XMLHttpRequest',
             Accept: 'application/json',
           },
@@ -131,7 +131,7 @@ export default function ServerCommands() {
         setLoading(false);
       }
     },
-    [lines, search, server.id, source]
+    [csrf_token, lines, search, server.id, source]
   );
 
   const filteredItems = items.filter((item) => {
