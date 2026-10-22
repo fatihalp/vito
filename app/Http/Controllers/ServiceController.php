@@ -26,6 +26,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
+use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('servers/{server}/services')]
 #[Middleware(['auth', 'has-project'])]
@@ -33,9 +34,13 @@ class ServiceController extends Controller
 {
 
     #[Get('/', name: 'services')]
-    public function index(Server $server): Response
+    public function index(Request $request, Server $server): Response
     {
         $this->authorize('viewAny', [Service::class, $server]);
+
+        if ($server->isReady() && ! $request->hasHeader('X-Inertia-Partial-Component')) {
+            app(RefreshServices::class)->refresh($server);
+        }
 
         return Inertia::render('services/index', [
             'services' => ServiceTable::make($server->services())->simplePaginate(),
@@ -112,6 +117,7 @@ class ServiceController extends Controller
     }
 
     #[Post('/{service}', name: 'services.manage')]
+    #[WhereNumber('service')]
     public function manage(Request $request, Server $server, Service $service): RedirectResponse
     {
         $action = $request->input('action');

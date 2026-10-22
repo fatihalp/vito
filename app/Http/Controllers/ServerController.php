@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Server\CreateServer;
+use App\Actions\Server\CheckPhpVersions;
 use App\Actions\Server\DeleteServer;
 use App\Actions\Server\ExecuteServerReboot;
 use App\Actions\Server\GetAccessibleServers;
@@ -52,7 +53,7 @@ class ServerController extends Controller
             : ServerProvider::getByProjectId((int) $result['scope'], user())->get();
 
         return Inertia::render('servers/index', [
-            'servers' => ServerTable::make($result['query'])
+            'servers' => ServerTable::make(clone $result['query'])
                 ->withGrouping($result['groupBy'])
                 ->withScope($result['scope'])
                 ->simplePaginate(),
@@ -60,7 +61,21 @@ class ServerController extends Controller
             'server_providers' => ServerProviderResource::collection($serverProviders),
             'serverScope' => $result['scope'],
             'groupBy' => $result['groupBy'],
+            'phpVersionsChecking' => fn (): bool => app(CheckPhpVersions::class)->checking($result['query']),
         ]);
+    }
+
+    #[Post('/check-php-versions', name: 'servers.check-php-versions')]
+    public function checkPhpVersions(Request $request): RedirectResponse
+    {
+        $this->authorize('checkPhpVersions', Server::class);
+
+        $result = app(GetAccessibleServers::class)->get(user(), $request->input());
+        $count = app(CheckPhpVersions::class)->dispatch($result['query']);
+
+        return back()->with('info', $count > 0
+            ? __('PHP version checks queued for :count servers.', ['count' => $count])
+            : __('No new PHP version checks to start.'));
     }
 
     #[Get('/json', name: 'servers.json')]

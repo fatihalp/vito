@@ -11,13 +11,18 @@ use App\Models\Service;
 use App\Services\AbstractService;
 use App\Services\SupportsNetworking;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use RuntimeException;
 
 class ProbeServices
 {
     
-    public function probe(Server $server): void
+    public function probe(Server $server, bool $phpOnly = false): void
     {
         $descriptors = $this->descriptors($server);
+
+        if ($phpOnly) {
+            $descriptors = array_values(array_filter($descriptors, fn (array $descriptor): bool => $descriptor['service']->type === 'php'));
+        }
 
         if ($descriptors === []) {
             $this->broadcastRefreshed($server);
@@ -34,6 +39,10 @@ class ProbeServices
         $sections = $this->parseSections($output);
 
         foreach ($descriptors as $descriptor) {
+            if ($phpOnly && $descriptor['handler']->parseVersionOutput($sections[$descriptor['service']->id]['version'] ?? '') === null) {
+                throw new RuntimeException('PHP version could not be detected.');
+            }
+
             $this->persist($server, $descriptor, $sections[$descriptor['service']->id] ?? []);
         }
 

@@ -108,7 +108,7 @@ export default function ServicesIndex() {
 
   useEffect(() => {
     if (!refreshing) return;
-    const interval = setInterval(() => router.reload(), 5000);
+    const interval = setInterval(() => router.reload({ only: ['services', 'refreshing'] }), 5000);
     return () => clearInterval(interval);
   }, [refreshing]);
 
