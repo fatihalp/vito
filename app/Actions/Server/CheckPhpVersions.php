@@ -9,12 +9,38 @@ use App\Models\Server;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
 class CheckPhpVersions
 {
+    public function filter(Builder $query, array $input): Builder
+    {
+        $validated = Validator::make($input, ['php_status' => ['nullable', 'in:all,outdated']])->validate();
+
+        if (($validated['php_status'] ?? 'all') !== 'outdated') {
+            return $query;
+        }
+
+        $ids = [];
+
+        foreach ((clone $query)->select('servers.id')->lazyById(500)->chunk(500) as $servers) {
+            $keys = $servers->map(fn (Server $server): string => $this->resultKey($server->id));
+            $results = Cache::many($keys->all());
+
+            foreach ($servers as $server) {
+                if (($results[$this->resultKey($server->id)]['status'] ?? null) === 'outdated') {
+                    $ids[] = $server->id;
+                }
+            }
+        }
+
+        return $query->whereIn('servers.id', $ids)
+            ->whereHas('services', fn (Builder $services) => $services->where('type', 'php'));
+    }
+
     public function dispatch(Builder $query): int
     {
         $run = (string) Str::uuid();

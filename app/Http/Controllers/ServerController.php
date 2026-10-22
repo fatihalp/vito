@@ -53,7 +53,7 @@ class ServerController extends Controller
             : ServerProvider::getByProjectId((int) $result['scope'], user())->get();
 
         return Inertia::render('servers/index', [
-            'servers' => ServerTable::make(clone $result['query'])
+            'servers' => ServerTable::make(app(CheckPhpVersions::class)->filter(clone $result['query'], $request->input()))
                 ->withGrouping($result['groupBy'])
                 ->withScope($result['scope'])
                 ->simplePaginate(),
@@ -61,6 +61,7 @@ class ServerController extends Controller
             'server_providers' => ServerProviderResource::collection($serverProviders),
             'serverScope' => $result['scope'],
             'groupBy' => $result['groupBy'],
+            'phpStatus' => $request->input('php_status', 'all'),
             'phpVersionsChecking' => fn (): bool => app(CheckPhpVersions::class)->checking($result['query']),
         ]);
     }
