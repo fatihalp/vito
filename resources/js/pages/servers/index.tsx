@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 type Page = {
   servers: InertiaTableData;
   phpVersionsChecking: boolean;
+  phpStatus: 'all' | 'outdated';
   public_key: string;
   configs: Configs;
   serverScope?: string;
@@ -311,6 +312,27 @@ export default function Servers() {
           }}
           toolbar={
             <div className="flex flex-wrap items-center gap-3">
+              <Select
+                value={page.props.phpStatus ?? 'all'}
+                onValueChange={(status) => {
+                  const url = new URL(window.location.href);
+                  if (status === 'all') {
+                    url.searchParams.delete('php_status');
+                  } else {
+                    url.searchParams.set('php_status', status);
+                  }
+                  url.searchParams.delete('page');
+                  router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                }}
+              >
+                <SelectTrigger className="w-56" aria-label="PHP güncellik filtresi">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tüm PHP durumları</SelectItem>
+                  <SelectItem value="outdated">PHP güncel olmayanlar</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="flex items-center gap-2">
                 <span className="text-muted-foreground text-sm">Group by</span>
                 <Select

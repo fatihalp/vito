@@ -17,6 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ServerTable extends Table
 {
+    protected int $perPage = 50;
+
     protected string $defaultSort = '-cpu_usage_percent';
 
     protected array $tableSettings = ['realtime' => 'server'];
