@@ -14,6 +14,7 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import { Server } from '@/types/server';
+import { SharedData } from '@/types';
 import { ServerLog } from '@/types/server-log';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
@@ -31,7 +32,7 @@ type PageProps = {
 };
 
 export default function ServerUpdate() {
-  const { server: initialServer, initialLog } = usePage<PageProps>().props;
+  const { server: initialServer, initialLog, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
   const [activeLogId, setActiveLogId] = useState<number>(() => {
@@ -68,12 +69,11 @@ export default function ServerUpdate() {
       setUpdateType(type);
 
       try {
-        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
         const response = await fetch(`/servers/${server.id}/update/trigger`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'X-CSRF-TOKEN': token,
+            'X-CSRF-TOKEN': csrf_token,
             'X-Requested-With': 'XMLHttpRequest',
             Accept: 'application/json',
           },
@@ -95,7 +95,7 @@ export default function ServerUpdate() {
         setIsTriggering(false);
       }
     },
-    [isTriggering, server.id, server.status]
+    [csrf_token, isTriggering, server.id, server.status]
   );
 
   useEffect(() => {

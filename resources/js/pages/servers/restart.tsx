@@ -9,6 +9,7 @@ import {
   TerminalIcon,
 } from 'lucide-react';
 import { Server } from '@/types/server';
+import { SharedData } from '@/types';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,7 @@ type Milestone = {
 };
 
 export default function ServerRestart() {
-  const { server: initialServer } = usePage<PageProps>().props;
+  const { server: initialServer, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
   const [phase, setPhase] = useState<RestartPhase>(
@@ -53,12 +54,11 @@ export default function ServerRestart() {
 
   const probeConnection = useCallback(async (): Promise<boolean> => {
     try {
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
       const response = await fetch(`/servers/${server.id}/restart/probe`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': token,
+          'X-CSRF-TOKEN': csrf_token,
           'X-Requested-With': 'XMLHttpRequest',
           Accept: 'application/json',
         },
@@ -78,7 +78,7 @@ export default function ServerRestart() {
     } catch {
       return false;
     }
-  }, [addMilestone, server.id]);
+  }, [addMilestone, csrf_token, server.id]);
 
   const triggerReboot = useCallback(async () => {
     setPhase('rebooting');
@@ -87,12 +87,11 @@ export default function ServerRestart() {
     setMilestones([{ id: `${Date.now()}`, time: new Date().toLocaleTimeString(), text: 'Reboot signal sent ($ sudo reboot)' }]);
 
     try {
-      const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ?? '';
       await fetch(`/servers/${server.id}/restart/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-CSRF-TOKEN': token,
+          'X-CSRF-TOKEN': csrf_token,
           'X-Requested-With': 'XMLHttpRequest',
           Accept: 'application/json',
         },
@@ -101,7 +100,7 @@ export default function ServerRestart() {
     }
 
     setPhase('probing');
-  }, [server.id]);
+  }, [csrf_token, server.id]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
