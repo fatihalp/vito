@@ -12,6 +12,7 @@ use Forjed\InertiaTable\Columns\LinkColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
 use App\Tables\AbstractTable as Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ServerTable extends Table
 {
@@ -52,7 +53,7 @@ class ServerTable extends Table
             ->selectSub($cpuSubquery, 'cpu_usage_percent')
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
-            ->with(['latestMetric', 'project', 'services' => fn (Builder $query) => $query->where('type', 'php')->select('id', 'server_id')]);
+            ->with(['latestMetric', 'project', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id')]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
             $this->query
