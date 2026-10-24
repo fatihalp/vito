@@ -44,7 +44,8 @@ export VITO_AGENT_CONFIG="
 }
 "
 
-echo "${VITO_AGENT_CONFIG}" | sudo tee /etc/vito-agent/config.json
+sudo install -m 600 /dev/null /etc/vito-agent/config.json
+echo "${VITO_AGENT_CONFIG}" | sudo tee /etc/vito-agent/config.json > /dev/null
 
 sudo systemctl daemon-reload
 sudo systemctl enable vito-agent

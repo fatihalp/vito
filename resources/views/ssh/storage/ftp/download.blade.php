@@ -1,1 +1,1 @@
-curl {{ $passive }} -u "{{ $username }}:{{ $password }}" ftp{{ $ssl }}://{{ $host }}:{{ $port }}/{{ $src }} -o "{{ $dest }}"
+curl {{ $passive }} -u {!! escapeshellarg($username.':'.$password) !!} {!! escapeshellarg('ftp'.$ssl.'://'.$host.':'.$port.'/'.$src) !!} -o {!! escapeshellarg($dest) !!}

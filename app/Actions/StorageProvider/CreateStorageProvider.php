@@ -60,7 +60,7 @@ class CreateStorageProvider
             ],
         ];
 
-        if (isset($input['provider'])) {
+        if (isset($input['provider']) && config('storage-provider.providers.'.$input['provider'].'.handler')) {
             $provider = (new StorageProvider(['provider' => $input['provider']]))->provider();
             $rules = array_merge($rules, $provider->validationRules());
         }

@@ -44,8 +44,16 @@ trait UniqueQueue
                 $lock->release();
             }
         } else {
-            $this->release(30);
+            $this->whenLocked();
         }
+    }
+
+    /**
+     * Called when another run holds the lock. Jobs whose next scheduled run supersedes this one override it to return without re-queueing.
+     */
+    protected function whenLocked(): void
+    {
+        $this->release(30);
     }
 
     protected function isTransientDatabaseError(Throwable $e): bool

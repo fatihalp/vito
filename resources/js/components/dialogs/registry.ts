@@ -20,6 +20,7 @@ const DnsProviderEditDialog = lazy(() => import('@/pages/dns-providers/component
 const NotificationChannelEditDialog = lazy(() => import('@/pages/notification-channels/components/edit-dialog'));
 const ServiceConfigFileDialog = lazy(() => import('@/pages/services/components/config-file-dialog'));
 const ServiceNetworkingDialog = lazy(() => import('@/pages/services/components/networking-dialog'));
+const ServiceResyncStatsDialog = lazy(() => import('@/pages/services/components/resync-stats-dialog'));
 const CreateHostedDomain = lazy(() => import('@/pages/hosted-domains/components/create-hosted-domain'));
 const EditHostedDomain = lazy(() => import('@/pages/hosted-domains/components/edit-hosted-domain'));
 const FirewallRuleForm = lazy(() => import('@/pages/firewall/components/form'));
@@ -82,6 +83,7 @@ export const dialogs = {
   notificationChannelEdit: NotificationChannelEditDialog,
   serviceConfigFile: ServiceConfigFileDialog,
   serviceNetworking: ServiceNetworkingDialog,
+  serviceResyncStats: ServiceResyncStatsDialog,
   createHostedDomain: CreateHostedDomain,
   editHostedDomain: EditHostedDomain,
   firewallForm: FirewallRuleForm,

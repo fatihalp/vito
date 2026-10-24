@@ -1,4 +1,6 @@
-import { Head, usePage, usePoll } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { useSocketStore } from '@/stores/socket-store';
+import { Head, router, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -20,7 +22,16 @@ export default function StorageMigrations() {
   const page = usePage<Page>();
   const dialog = useDialog();
 
-  usePoll(5000, { only: ['storageMigrations'] });
+  const socketStatus = useSocketStore((s) => s.status);
+
+  useEffect(() => {
+    if (socketStatus === 'connected') return;
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') router.reload({ only: ['storageMigrations'] });
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [socketStatus]);
 
   return (
     <SettingsLayout>

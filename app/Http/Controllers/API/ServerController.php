@@ -86,7 +86,7 @@ class ServerController extends Controller
 
         app(DeleteServer::class)->delete($server, [
             'name' => $server->name,
-            'delete_from_provider' => $request->boolean('delete_from_provider', true),
+            'delete_from_provider' => $request->boolean('delete_from_provider'),
         ]);
 
         return response()->noContent();

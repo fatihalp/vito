@@ -30,6 +30,7 @@ const SLOW_RECONNECT_INTERVAL = 30000;
 let ws: WebSocket | null = null;
 let reconnectAttempt = 0;
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+let connecting: ReturnType<typeof requestEventsToken> | null = null;
 
 type SocketStore = {
   status: SocketStatus;
@@ -81,9 +82,19 @@ export const useSocketStore = create<SocketStore>((set, get) => ({
       return;
     }
 
+    if (connecting) {
+      await connecting;
+
+      return;
+    }
+
     set({ status: 'connecting' });
 
-    const tokenData = await requestEventsToken(csrfToken);
+    connecting = requestEventsToken(csrfToken).finally(() => {
+      connecting = null;
+    });
+    const tokenData = await connecting;
+
     if (!tokenData) {
       scheduleReconnect(csrfToken);
       return;

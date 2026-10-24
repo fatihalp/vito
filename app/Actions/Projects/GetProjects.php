@@ -12,7 +12,7 @@ class GetProjects
     {
         $validated = $this->validate($input);
 
-        $projectsQuery = $user->allProjects();
+        $projectsQuery = $user->allProjects()->forResource($user);
 
         if (! empty($validated['query'])) {
             $projectsQuery->where('name', 'like', "%{$validated['query']}%");

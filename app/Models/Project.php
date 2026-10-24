@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\UserRole;
 use Carbon\Carbon;
 use Database\Factories\ProjectFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -22,6 +23,16 @@ class Project extends AbstractModel
     ];
 
     
+    /**
+     * Loads what ProjectResource reads for the given viewer: their membership row (for role) and server/site counts.
+     */
+    public function scopeForResource(Builder $query, User $viewer): Builder
+    {
+        return $query
+            ->withCount(['servers', 'sites'])
+            ->with(['users' => fn ($users) => $users->where('user_id', $viewer->id)]);
+    }
+
     public function servers(): HasMany
     {
         return $this->hasMany(Server::class);

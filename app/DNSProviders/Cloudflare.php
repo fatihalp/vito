@@ -128,31 +128,41 @@ class Cloudflare extends AbstractDNSProvider
 
     public function getDomains(): array
     {
-        try {
-            $response = $this->getClient()->get('zones', [
-                'per_page' => 100,
-            ]);
+        return collect($this->paginate('zones'))->map(function (array $zone) {
+            return [
+                'id' => $zone['id'],
+                'name' => $zone['name'],
+                'status' => $zone['status'],
+                'created_on' => $zone['created_on'],
+                'modified_on' => $zone['modified_on'],
+            ];
+        })->toArray();
+    }
+
+    /**
+     * Cloudflare caps per_page at 100, so every list endpoint is walked page by page.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function paginate(string $endpoint): array
+    {
+        $results = [];
+        $page = 1;
+
+        do {
+            $response = $this->getClient()->get($endpoint, ['per_page' => 100, 'page' => $page]);
 
             if (! $response->successful()) {
-                Log::error('Failed to fetch Cloudflare domains', ['response' => $response->json()]);
-
-                return [];
+                Log::error('Cloudflare API request failed', ['endpoint' => $endpoint, 'status' => $response->status()]);
+                throw new \RuntimeException('Cloudflare request failed: '.($response->json('errors')[0]['message'] ?? 'Unknown error'));
             }
 
-            return collect($response->json('result'))->map(function (array $zone) {
-                return [
-                    'id' => $zone['id'],
-                    'name' => $zone['name'],
-                    'status' => $zone['status'],
-                    'created_on' => $zone['created_on'],
-                    'modified_on' => $zone['modified_on'],
-                ];
-            })->toArray();
-        } catch (Throwable $e) {
-            Log::error('Cloudflare getDomains exception', ['error' => $e->getMessage()]);
+            $results = [...$results, ...$response->json('result', [])];
+            $totalPages = (int) $response->json('result_info.total_pages', 1);
+            $page++;
+        } while ($page <= $totalPages);
 
-            return [];
-        }
+        return $results;
     }
 
     public function getDomain(string $domainId): array
@@ -184,16 +194,7 @@ class Cloudflare extends AbstractDNSProvider
 
     public function getRecords(string $domainId): array
     {
-        $response = $this->getClient()->get("zones/{$domainId}/dns_records", [
-            'per_page' => 100,
-        ]);
-
-        if (! $response->successful()) {
-            Log::error('Failed to fetch Cloudflare DNS records', ['domainId' => $domainId, 'response' => $response->json()]);
-            throw new \RuntimeException('Failed to fetch DNS records: '.($response->json('errors')[0]['message'] ?? 'Unknown error'));
-        }
-
-        return collect($response->json('result'))->map(function (array $record) {
+        return collect($this->paginate("zones/{$domainId}/dns_records"))->map(function (array $record) {
             return [
                 'id' => $record['id'],
                 'type' => $record['type'],

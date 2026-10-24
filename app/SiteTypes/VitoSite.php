@@ -2,6 +2,8 @@
 
 namespace App\SiteTypes;
 
+use Illuminate\Support\Facades\Validator;
+use App\Actions\Redirect\CreateRedirect;
 use App\Actions\CronJob\CreateCronJob;
 use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Worker\CreateWorker;
@@ -354,6 +356,10 @@ class VitoSite extends PHPSite
             $log?->write("Failed to install {$serviceName}: {$e->getMessage()}\n");
             Log::error("Failed to auto-install {$serviceName} for server #{$server->id}: {$e->getMessage()}", ['exception' => $e]);
 
+            if (isset($service) && $service->exists) {
+                $service->forceFill(['status' => ServiceStatus::INSTALLATION_FAILED, 'is_default' => false])->save();
+            }
+
             return null;
         }
     }
@@ -391,6 +397,18 @@ class VitoSite extends PHPSite
                 ->exists();
 
             if ($exists) {
+                continue;
+            }
+
+            $validator = Validator::make([
+                'from' => $proxy['from'],
+                'to' => $proxy['to'],
+                'mode' => Redirect::MODE_PROXY,
+            ], CreateRedirect::rules($this->site));
+
+            if ($validator->fails()) {
+                Log::warning('Skipping invalid proxy from vito.json', ['site_id' => $this->site->id, 'errors' => $validator->errors()->all()]);
+
                 continue;
             }
 
@@ -662,8 +680,11 @@ class VitoSite extends PHPSite
 
         $log->write("\n$ {$command}\n");
 
-        $isSudo = str_starts_with(trim($command), 'sudo ');
-        $ssh = $isSudo ? $this->site->server->ssh() : $this->site->server->ssh($this->site->user);
+        if (preg_match('/(^|[;&|]\s*)sudo\b/', $command) === 1) {
+            throw new RuntimeException(__('Commands from vito.json run as the site user; sudo is not allowed: :command', ['command' => $command]));
+        }
+
+        $ssh = $this->site->server->ssh($this->site->user);
         $ssh->setLog($log);
         $ssh->variables($variables);
 
@@ -673,12 +694,6 @@ class VitoSite extends PHPSite
             $this->site->id
         );
 
-        if ($isSudo) {
-            try {
-                $this->site->server->ssh()->exec("sudo chown -R {$this->site->user}:{$this->site->user} {$sitePath}");
-            } catch (Throwable) {
-            }
-        }
     }
 
     private function applyDeploymentScript(array $commands): void

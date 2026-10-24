@@ -133,6 +133,7 @@ class PHP extends AbstractService implements HasLogs
             "/etc/php/{$version}/fpm/pool.d/{$user}.conf",
             view('ssh.services.php.fpm-pool', [
                 'user' => $user,
+                'owner' => $this->service->server->getSshUser(),
                 'version' => $version,
             ]),
             'root'

@@ -10,9 +10,9 @@ rsync -a {{ $site->basePath() }}/source/ {{ $site->basePath() }}/releases/initia
 
 @if (count($sharedResources) > 0)
     @foreach ($sharedResources as $resource)
-        rm -rf {{ $site->basePath() }}/releases/initial/{{ $resource }}
-        ln -sfn {{ $site->basePath() }}/source/{{ $resource }} {{ $site->basePath() }}/releases/initial/{{ $resource }}
-        echo "{{ $resource }} linked"
+        rm -rf {!! escapeshellarg($site->basePath().'/releases/initial/'.$resource) !!}
+        ln -sfn {!! escapeshellarg($site->basePath().'/source/'.$resource) !!} {!! escapeshellarg($site->basePath().'/releases/initial/'.$resource) !!}
+        echo {!! escapeshellarg($resource.' linked') !!}
     @endforeach
 @endif
 

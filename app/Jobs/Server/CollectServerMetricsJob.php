@@ -39,6 +39,10 @@ class CollectServerMetricsJob implements ShouldQueue
         });
     }
 
+    protected function whenLocked(): void
+    {
+    }
+
     public function failed(Throwable $e): void
     {
         Log::warning('Metrics job failed for server', ['server_id' => $this->server->id, 'error' => $e->getMessage()]);

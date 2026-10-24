@@ -113,10 +113,14 @@ export function useRealtime<T extends { id: number }>(
             if (!Object.entries(scopeRef.current ?? {}).every(([key, value]) => (eventData as Record<string, unknown>)[key] === value)) {
               break;
             }
-            setData((prev) => ({
-              ...prev,
-              data: [eventData as unknown as T, ...prev.data],
-            }));
+            setData((prev) => {
+              const limit = prev.meta?.per_page ?? prev.data.length + 1;
+
+              return {
+                ...prev,
+                data: [eventData as unknown as T, ...prev.data.filter((item) => item.id !== (eventData as unknown as T).id)].slice(0, limit),
+              };
+            });
             break;
           case 'updated':
             setData((prev) => ({

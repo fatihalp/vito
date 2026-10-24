@@ -38,7 +38,7 @@ class ApiKeyController extends Controller
 
         return Inertia::render('api-keys/index', [
             'apiKeys' => ApiKeyResource::collection($tokens),
-            'projects' => ProjectResource::collection(user()->projects()->get()),
+            'projects' => ProjectResource::collection(user()->projects()->forResource(user())->get()),
         ]);
     }
 

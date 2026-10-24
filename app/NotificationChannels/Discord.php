@@ -73,7 +73,7 @@ class Discord extends AbstractNotificationChannel
         $this->notificationChannel = $notifiable;
         $data = $this->notificationChannel->data;
         Http::post($data['webhook_url'], [
-            'content' => $notification->toSlack($notifiable),
-        ]);
+            'content' => $notification->toDiscord($notifiable),
+        ])->throw();
     }
 }

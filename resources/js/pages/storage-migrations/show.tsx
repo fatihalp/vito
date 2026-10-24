@@ -1,4 +1,5 @@
-import { Head, useForm, usePage, usePoll } from '@inertiajs/react';
+import { useEffect } from 'react';
+import { Head, router, useForm, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -30,9 +31,16 @@ export default function ShowStorageMigration() {
   const page = usePage<Page>();
   const storageMigration = useRealtimeRecord<StorageMigration>(page.props.storageMigration, 'storage-migration') ?? page.props.storageMigration;
 
-  usePoll(5000, { only: ['storageMigration', 'items', 'itemsAvailable'] });
-  const workers = useForm({ worker_count: page.props.storageMigration.worker_count });
   const isOpen = ['pending', 'scanning', 'running', 'verifying', 'paused'].includes(storageMigration.status);
+  useEffect(() => {
+    if (!isOpen) return;
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') router.reload({ only: ['items', 'itemsAvailable'] });
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [isOpen]);
+  const workers = useForm({ worker_count: page.props.storageMigration.worker_count });
   const transferLabel = storageMigration.transfer_paused ? 'paused' : !isOpen ? storageMigration.status : storageMigration.status === 'verifying' ? 'verifying' : storageMigration.items_processing > 0 ? 'processing files' : !storageMigration.scan_completed_at && !storageMigration.target_scan_completed_at ? 'waiting for the target listing' : storageMigration.items_total === storageMigration.items_copied + storageMigration.items_skipped + storageMigration.items_failed && !storageMigration.scan_completed_at ? 'waiting for discovery' : 'waiting for a worker';
 
   const progress = storageMigration.progress;

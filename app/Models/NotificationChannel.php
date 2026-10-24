@@ -31,7 +31,7 @@ class NotificationChannel extends AbstractModel
 
     protected $casts = [
         'project_id' => 'integer',
-        'data' => 'array',
+        'data' => 'encrypted:array',
         'connected' => 'boolean',
         'is_default' => 'boolean',
         'user_id' => 'integer',
@@ -47,12 +47,30 @@ class NotificationChannel extends AbstractModel
         return $provider;
     }
 
-    public static function notifyAll(NotificationInterface $notification): void
+    /**
+     * Sends to the channels of the project the notifiable belongs to plus global channels; a notifiable without a
+     * project (or null) reaches global channels only.
+     */
+    public static function notifyAll(NotificationInterface $notification, ?object $notifiable = null): void
     {
-        $channels = self::all();
-        foreach ($channels as $channel) {
-            $channel->notify($notification);
-        }
+        $projectId = self::projectIdOf($notifiable);
+
+        self::query()
+            ->where(fn ($query) => $query->whereNull('project_id')->when($projectId !== null, fn ($q) => $q->orWhere('project_id', $projectId)))
+            ->get()
+            ->each(fn (NotificationChannel $channel) => $channel->notify($notification));
+    }
+
+    private static function projectIdOf(?object $notifiable): ?int
+    {
+        return match (true) {
+            $notifiable instanceof Project => $notifiable->id,
+            $notifiable instanceof Server => $notifiable->project_id,
+            $notifiable instanceof Site => $notifiable->server?->project_id,
+            $notifiable !== null && isset($notifiable->project_id) => (int) $notifiable->project_id,
+            $notifiable !== null && isset($notifiable->server) => $notifiable->server?->project_id,
+            default => null,
+        };
     }
 
     

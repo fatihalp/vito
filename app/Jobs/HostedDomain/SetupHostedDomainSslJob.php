@@ -72,6 +72,7 @@ class SetupHostedDomainSslJob implements ShouldQueue
             if ($ssl) {
                 $ssl->status = SslStatus::CREATING;
                 $ssl->save();
+                $ssl->domains = $leDomains;
             } else {
                 $email = $this->resolveEmail($site);
                 $ssl = new Ssl([

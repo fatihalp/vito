@@ -32,7 +32,7 @@ class ProjectController extends Controller
             $projects->whereIn('projects.id', $scopedProjectIds);
         }
 
-        return ProjectResource::collection($projects->get());
+        return ProjectResource::collection($projects->forResource(user())->get());
     }
 
     #[Post('api/projects', name: 'api.projects.create', middleware: 'ability:write')]

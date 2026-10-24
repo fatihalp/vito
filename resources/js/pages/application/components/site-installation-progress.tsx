@@ -169,7 +169,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
       const res = await axios.get(`/servers/${server.id}/logs/json/${site.id}`);
       return res.data;
     },
-    refetchInterval: site.status === 'installing' ? 3000 : 8000,
+    refetchInterval: site.status === 'installing' ? 3000 : false,
   });
 
   const logsList: ServerLog[] = useMemo(() => {
