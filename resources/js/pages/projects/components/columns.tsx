@@ -12,10 +12,16 @@ import { UsersIcon } from 'lucide-react';
 import LeaveProject from '@/pages/projects/components/leave-project';
 import { useDialog } from '@/hooks/use-dialog';
 
+import { ProjectUser } from '@/types/project-user';
+
 const CurrentProject = ({ project }: { project: Project }) => {
   const page = usePage<SharedData>();
   return <>{project.id === page.props.auth.currentProject?.id && <Badge variant="default">current</Badge>}</>;
 };
+
+function getActiveRegisteredUsers(project: Project): ProjectUser[] {
+  return (project.users || []).filter((user) => user.type === 'user' && Boolean(user.name || user.email));
+}
 
 function ProjectActions({ project }: { project: Project }) {
   const dialog = useDialog();
@@ -72,7 +78,7 @@ export const columns: ColumnDef<Project>[] = [
     enableColumnFilter: true,
     enableSorting: true,
     cell: ({ row }) => {
-      const users = row.original.users?.filter((u) => u.type === 'user') ?? [];
+      const users = getActiveRegisteredUsers(row.original);
       const count = users.length;
       const serversCount = row.original.servers_count ?? 0;
 
@@ -103,15 +109,19 @@ export const columns: ColumnDef<Project>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
-      const users = row.original.users.filter((user) => user.type === 'user');
+      const users = getActiveRegisteredUsers(row.original);
 
       return (
         <div className="flex max-w-md flex-wrap gap-1">
-          {users.map((user) => (
-            <Badge key={user.id} variant="outline" title={user.email}>
-              {user.name ?? user.email}
-            </Badge>
-          ))}
+          {users.map((user) => {
+            const label = user.name || user.email;
+            if (!label) return null;
+            return (
+              <Badge key={user.id} variant="outline" title={user.email || user.name}>
+                {label}
+              </Badge>
+            );
+          })}
         </div>
       );
     },

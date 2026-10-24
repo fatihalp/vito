@@ -3,9 +3,10 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\User\CreateUser;
+use App\Actions\User\DeleteUser;
+use App\Actions\User\GetUsers;
 use App\Actions\User\SearchUsers;
 use App\Actions\User\UpdateUser;
-use App\Helpers\QueryBuilder;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
 use App\Models\Project;
@@ -28,28 +29,12 @@ class UserController extends Controller
 {
 
     #[Get('/', name: 'users')]
-    public function index(): Response
+    public function index(GetUsers $getUsers): Response
     {
         $this->authorize('viewAny', User::class);
 
-        $users = QueryBuilder::for(
-            User::query()->with([
-                'projects' => fn ($query) => $query->withCount(['servers', 'sites'])->with(['users' => fn ($users) => $users->where('user_id', user()->id)]),
-                'projectMemberships.project',
-            ])
-        )
-            ->searchableFields(['name', 'email'])
-            ->sortable('created_at', 'desc', [
-                'name' => 'name',
-                'email' => 'email',
-                'last_login_at' => 'last_login_at',
-                'last_activity_at' => 'last_activity_at',
-                'created_at' => 'created_at',
-            ])
-            ->simplePaginate();
-
         return Inertia::render('users/index', [
-            'users' => UserResource::collection($users),
+            'users' => UserResource::collection($getUsers->get(user())),
             'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
@@ -83,11 +68,11 @@ class UserController extends Controller
     }
 
     #[Delete('/{user}', 'users.destroy')]
-    public function destroy(User $user): RedirectResponse
+    public function destroy(User $user, DeleteUser $deleteUser): RedirectResponse
     {
         $this->authorize('delete', $user);
 
-        $user->delete();
+        $deleteUser->delete($user);
 
         return to_route('users')->with('success', 'User was successfully deleted.');
     }
