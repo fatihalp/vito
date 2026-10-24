@@ -74,14 +74,27 @@ export const columns: ColumnDef<Project>[] = [
     cell: ({ row }) => {
       const users = row.original.users?.filter((u) => u.type === 'user') ?? [];
       const count = users.length;
+      const serversCount = row.original.servers_count ?? 0;
 
       return (
-        <div className="flex items-center space-x-1.5">
+        <div className="flex items-center gap-1.5">
           <span className="font-medium">{row.original.name}</span>
           <span className="text-muted-foreground text-xs font-normal">({count})</span>
+          <Badge variant="secondary" className="text-xs font-normal">
+            {serversCount} {serversCount === 1 ? 'server' : 'servers'}
+          </Badge>
           <CurrentProject project={row.original} />
         </div>
       );
+    },
+  },
+  {
+    accessorKey: 'servers_count',
+    header: 'Servers',
+    enableColumnFilter: false,
+    enableSorting: true,
+    cell: ({ row }) => {
+      return <Badge variant="outline">{row.original.servers_count ?? 0}</Badge>;
     },
   },
   {

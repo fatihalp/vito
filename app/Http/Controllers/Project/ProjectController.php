@@ -6,6 +6,7 @@ use App\Actions\Projects\CreateProject;
 use App\Actions\Projects\DeleteProject;
 use App\Actions\Projects\GetProjects;
 use App\Actions\Projects\UpdateProject;
+use App\Helpers\QueryBuilder;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ProjectUserResource;
@@ -33,14 +34,22 @@ class ProjectController extends Controller
     {
         $this->authorize('viewAny', Project::class);
 
+        $projects = QueryBuilder::for(
+            user()
+                ->allProjects()
+                ->withCount(['servers', 'sites'])
+                ->with(['users.project', 'users.user'])
+        )
+            ->searchableFields(['name'])
+            ->sortable('created_at', 'desc', [
+                'name' => 'name',
+                'servers_count' => 'servers_count',
+                'created_at' => 'created_at',
+            ])
+            ->simplePaginate(20);
+
         return Inertia::render('projects/index', [
-            'projects' => ProjectResource::collection(
-                user()
-                    ->allProjects()
-                    ->withCount(['servers', 'sites'])
-                    ->with(['users.project', 'users.user'])
-                    ->simplePaginate(20)
-            ),
+            'projects' => ProjectResource::collection($projects),
             'invitations' => ProjectUserResource::collection(
                 UserProject::query()
                     ->where('email', user()->email)
