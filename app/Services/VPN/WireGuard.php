@@ -193,9 +193,8 @@ class WireGuard extends AbstractService implements VPN
     
     public function latestHandshakes(Network $network): array
     {
-        $output = $this->service->server->ssh()->exec(
-            view('ssh.services.wireguard.latest-handshakes', ['networkId' => $network->id]),
-            'wireguard-latest-handshakes'
+        $output = $this->service->server->ssh()->clearLog()->exec(
+            view('ssh.services.wireguard.latest-handshakes', ['networkId' => $network->id])
         );
 
         $handshakes = [];

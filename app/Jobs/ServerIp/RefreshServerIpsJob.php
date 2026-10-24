@@ -8,9 +8,9 @@ use App\Events\SocketEvent;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class RefreshServerIpsJob implements ShouldQueue
 {
@@ -32,7 +32,7 @@ class RefreshServerIpsJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->server, 'refresh-server-ips-failed', $e->getMessage());
     }

@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum SiteResourceStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case CONNECTING = 'connecting';
     case READY = 'ready';
     case FAILED = 'failed';
@@ -17,10 +20,5 @@ enum SiteResourceStatus: string implements VitoEnum
             self::READY => 'success',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

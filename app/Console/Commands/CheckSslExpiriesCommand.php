@@ -27,10 +27,8 @@ class CheckSslExpiriesCommand extends Command
             ->distinct()
             ->pluck('server_id');
 
-        $serverIds->each(function (int $serverId) {
-            dispatch(new CheckSslExpiryJob(
-                Server::findOrFail($serverId)
-            ))->onQueue('ssh');
+        Server::query()->whereKey($serverIds)->each(function (Server $server): void {
+            dispatch(new CheckSslExpiryJob($server))->onQueue('ssh');
         });
     }
 }

@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum DatabaseReplicaHealth: string implements VitoEnum
 {
+    use TextIsValue;
+
     case HEALTHY = 'healthy';
     case WARNING = 'warning';
     case CRITICAL = 'critical';
@@ -19,10 +22,5 @@ enum DatabaseReplicaHealth: string implements VitoEnum
             self::CRITICAL => 'danger',
             self::UNKNOWN => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

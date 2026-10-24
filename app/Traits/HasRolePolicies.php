@@ -16,6 +16,14 @@ trait HasRolePolicies
             && ($server->isReady() || $server->status === ServerStatus::DISCONNECTED);
     }
 
+    /**
+     * Writing to the server that hosts Vito itself is reserved for panel admins, since a cron job or SSH key there is root on the panel.
+     */
+    protected function hasServerWriteAccess(User $user, Server $server): bool
+    {
+        return $this->hasWriteAccess($user, $server->project) && (! $server->is_self || $user->isAdmin());
+    }
+
     protected function hasReadAccess(User $user, Project $project): bool
     {
         if (! $user->tokenAllowsProject($project->id)) {

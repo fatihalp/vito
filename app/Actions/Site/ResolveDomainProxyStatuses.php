@@ -14,10 +14,12 @@ class ResolveDomainProxyStatuses
             ->unique()
             ->values();
 
-        $dnsRecords = DNSRecord::where('type', 'A')
-            ->whereHas('domain.dnsProvider', function ($query) {
-                $query->where('connected', true);
-            })
+        $dnsRecords = DNSRecord::query()
+            ->where('type', 'A')
+            ->whereHas('domain', fn ($query) => $query
+                ->where('project_id', $site->server->project_id)
+                ->whereHas('dnsProvider', fn ($provider) => $provider->where('connected', true)))
+            ->with('domain')
             ->get();
 
         $domainProxyStatus = [];

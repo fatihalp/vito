@@ -25,6 +25,10 @@ class SyncCronJobs
         
         $crontabOutput = $this->getUserCrontab($server, $user);
 
+        if ($crontabOutput === null) {
+            return;
+        }
+
         
         $vitoCronJobs = $server->cronJobs()
             ->where('user', $user)
@@ -161,15 +165,17 @@ class SyncCronJobs
     }
 
     
-    private function getUserCrontab(Server $server, string $user): string
+    /**
+     * Returns null when the crontab could not be read, so callers never mistake an SSH failure for an empty crontab.
+     */
+    private function getUserCrontab(Server $server, string $user): ?string
     {
         try {
             $output = $server->ssh($user)->exec("crontab -l 2>/dev/null || echo ''", 'get-user-crontab');
-            $output = str_replace('cron updated!', '', $output);
 
-            return trim($output);
+            return trim(str_replace('cron updated!', '', $output));
         } catch (\Throwable) {
-            return '';
+            return null;
         }
     }
 }

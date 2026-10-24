@@ -643,6 +643,14 @@ class Site extends AbstractModel
             ->exists();
     }
 
+    /**
+     * Relations and counts SiteResource reads, so site lists load them in one go instead of per row.
+     */
+    public function scopeForResource(Builder $query): Builder
+    {
+        return $query->with(['server.services', 'gitHook'])->withCount(['hostedDomains', 'workers', 'resources', 'commands']);
+    }
+
     public function webserver(): Webserver
     {
         

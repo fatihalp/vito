@@ -9,7 +9,6 @@ use App\Models\ServerLog;
 use App\Models\Site;
 use App\Notifications\WebhookDeploymentFailed;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +46,7 @@ class TriggerDeployFromWebhookJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Log::error('webhook-deploy-job-failed', [
             'site_id' => $this->siteId,

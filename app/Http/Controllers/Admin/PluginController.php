@@ -47,8 +47,8 @@ class PluginController extends Controller
     public function disable(Request $request, DisablePlugin $action): RedirectResponse
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -65,8 +65,8 @@ class PluginController extends Controller
     public function enable(Request $request, EnablePlugin $action): RedirectResponse
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -96,8 +96,8 @@ class PluginController extends Controller
     public function install(Request $request, InstallPlugin $action): RedirectResponse
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -122,8 +122,8 @@ class PluginController extends Controller
     public function update(Request $request, UpdateGithubPlugin $action)
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -140,8 +140,8 @@ class PluginController extends Controller
     public function uninstall(Request $request, UninstallPlugin $action): RedirectResponse
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -158,8 +158,8 @@ class PluginController extends Controller
     public function clearLogs(Request $request, ClearLogs $action): RedirectResponse
     {
         $data = $this->validate($request, ['id' => 'required']);
-        if (config('app.demo')) {
-            return back()->with('error', 'Plugins are disabled in demo mode.');
+        if ($denied = $this->denyInDemo()) {
+            return $denied;
         }
 
         try {
@@ -172,5 +172,10 @@ class PluginController extends Controller
         $displayName = $plugin->name ?? $plugin->folder;
 
         return back()->with('success', "Plugin '$displayName' logs cleared");
+    }
+
+    private function denyInDemo(): ?RedirectResponse
+    {
+        return config('app.demo') ? back()->with('error', 'Plugins are disabled in demo mode.') : null;
     }
 }

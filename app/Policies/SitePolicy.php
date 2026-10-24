@@ -35,7 +35,7 @@ class SitePolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project)
+        return $this->hasServerWriteAccess($user, $server)
             && ! $server->is_self
             && $server->isReady()
             && $server->role === ServerRole::APP
@@ -46,7 +46,7 @@ class SitePolicy
     {
         $siteServer = $site->server;
 
-        return $this->hasWriteAccess($user, $siteServer->project)
+        return $this->hasServerWriteAccess($user, $siteServer)
             && $site->server_id === $server->id
             && $siteServer->isReady()
             && $siteServer->webserver();

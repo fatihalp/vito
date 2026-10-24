@@ -8,10 +8,10 @@ use App\Models\Backup;
 use App\Exceptions\SSHError;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Carbon;
+use Throwable;
 
 class VerifyPgBackRestJob implements ShouldQueue
 {
@@ -54,7 +54,7 @@ class VerifyPgBackRestJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $backup = Backup::query()->find($this->backup->id);
 

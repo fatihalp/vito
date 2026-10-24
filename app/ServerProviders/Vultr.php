@@ -336,7 +336,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
                 return;
             }
 
-            if (! $delete->ok()) {
+            if (! $delete->successful()) {
                 Notifier::send($this->server, new FailedToDeleteServerFromProvider($this->server));
             }
         }

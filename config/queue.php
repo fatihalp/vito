@@ -20,7 +20,7 @@ return [
             'queue' => env('REDIS_QUEUE', 'default'),
             'retry_after' => max((int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'default' => [
@@ -30,7 +30,7 @@ return [
             'timeout' => 90,
             'retry_after' => max((int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'ssh' => [
@@ -44,7 +44,7 @@ return [
 
             'retry_after' => max(300, (int) env('HORIZON_SSH_TIMEOUT', 1200), (int) env('BACKUP_RUN_TIMEOUT', 3600)) + 60,
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'storage-migration' => [
@@ -54,7 +54,7 @@ return [
             'timeout' => 1800,
             'retry_after' => max(300, (int) env('STORAGE_MIGRATION_JOB_TIMEOUT', 1800)) + 60,
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
         'storage-migration-scan' => [
@@ -64,7 +64,7 @@ return [
             'timeout' => 21600,
             'retry_after' => max(300, (int) env('STORAGE_MIGRATION_SCAN_TIMEOUT', 21600)) + 60,
             'block_for' => null,
-            'after_commit' => false,
+            'after_commit' => true,
         ],
 
     ],

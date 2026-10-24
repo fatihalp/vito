@@ -34,20 +34,20 @@ class BackupFilePolicy
     {
         $server = $backup->server;
 
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function update(User $user, BackupFile $backupFile): bool
     {
         $server = $backupFile->backup->server;
 
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function delete(User $user, BackupFile $backupFile): bool
     {
         $server = $backupFile->backup->server;
 
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 }

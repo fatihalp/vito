@@ -105,6 +105,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         $this->service->server->ssh()->exec(
             view('ssh.services.process-manager.supervisor.delete-worker', [
                 'id' => $id,
+                'logFile' => Worker::query()->find($id)?->getLogFile() ?? "/home/{$this->service->server->getSshUser()}/.logs/workers/{$id}.log",
             ]),
             'delete-worker',
             $siteId

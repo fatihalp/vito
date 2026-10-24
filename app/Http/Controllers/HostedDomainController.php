@@ -13,10 +13,9 @@ use App\Actions\SSL\CheckSiteSslsExpiry;
 use App\Actions\SSL\CheckSslExpiry;
 use App\Actions\SSL\GetMatchingSslCertificates;
 use App\Actions\SSL\RenewSiteSsl;
-use App\Enums\HostedDomainStatus;
+use App\Actions\HostedDomain\VerifyHostedDomain;
 use App\Enums\SslStatus;
 use App\Enums\SslType;
-use App\Jobs\HostedDomain\CheckDomainJob;
 use App\Models\HostedDomain;
 use App\Models\Server;
 use App\Models\Site;
@@ -125,10 +124,7 @@ class HostedDomainController extends Controller
     {
         $this->authorize('update', [$hostedDomain, $site, $server]);
 
-        $hostedDomain->status = HostedDomainStatus::UPDATING;
-        $hostedDomain->save();
-
-        dispatch(new CheckDomainJob($hostedDomain))->onQueue('ssh');
+        app(VerifyHostedDomain::class)->queueCheck($hostedDomain);
 
         return back()
             ->with('info', 'Validating domain.');

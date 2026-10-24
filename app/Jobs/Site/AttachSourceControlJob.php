@@ -18,6 +18,7 @@ use App\Traits\UniqueQueue;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class AttachSourceControlJob implements ShouldQueue
 {
@@ -40,7 +41,7 @@ class AttachSourceControlJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->site->source_control_id = null;
         $this->site->repository = null;

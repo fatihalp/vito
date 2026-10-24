@@ -68,7 +68,7 @@ class BackupController extends Controller
 
         return response()->json([
             'backup' => BackupResource::make($backup),
-            'files' => BackupFileResource::collection($backup->files()->simplePaginate(config('web.pagination_size'))),
+            'files' => BackupFileResource::collection($backup->files()->with('server')->simplePaginate(config('web.pagination_size'))),
         ]);
     }
 

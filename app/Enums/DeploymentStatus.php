@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum DeploymentStatus: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case DEPLOYING = 'deploying';
     case FINISHED = 'finished';
     case FAILED = 'failed';
@@ -18,10 +21,5 @@ enum DeploymentStatus: string implements HasTableDisplay, VitoEnum
             self::FINISHED => 'success',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

@@ -6,9 +6,9 @@ use App\Actions\PostgresCluster\PromoteReplica;
 use App\Models\PostgresCluster;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class PromoteReplicaJob implements ShouldQueue
 {
@@ -31,7 +31,7 @@ class PromoteReplicaJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $cluster = PostgresCluster::query()->find($this->cluster->id);
 

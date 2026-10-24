@@ -83,7 +83,7 @@ class ServerProviderController extends Controller
         $this->authorize('view', $serverProvider);
 
         try {
-            $regions = $serverProvider->provider()->regions();
+            $regions = $serverProvider->cachedRegions();
 
             if (empty($regions)) {
                 return response()->json([
@@ -105,7 +105,7 @@ class ServerProviderController extends Controller
         $this->authorize('view', $serverProvider);
 
         try {
-            $plans = $serverProvider->provider()->plans($region);
+            $plans = $serverProvider->cachedPlans($region);
 
             return response()->json($plans);
         } catch (\Throwable $e) {

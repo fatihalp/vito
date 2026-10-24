@@ -12,7 +12,6 @@ use App\Models\Service;
 use App\Models\SiteResource;
 use App\Services\SupportsNetworking;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
@@ -72,7 +71,7 @@ class FinalizeConnectionJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $exception): void
+    public function failed(Throwable $exception): void
     {
         $resource = SiteResource::query()->find($this->resource->id);
         if (! $resource || $resource->status !== SiteResourceStatus::CONNECTING) {

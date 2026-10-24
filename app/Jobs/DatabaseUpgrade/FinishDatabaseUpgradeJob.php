@@ -2,13 +2,14 @@
 
 namespace App\Jobs\DatabaseUpgrade;
 
+use App\Jobs\DatabaseUpgrade\RunDatabaseUpgradeJob;
 use App\Actions\DatabaseUpgrade\ManageDatabaseUpgrade;
 use App\Enums\DatabaseUpgradeStatus;
 use App\Models\DatabaseUpgrade;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class FinishDatabaseUpgradeJob implements ShouldQueue
 {
@@ -28,7 +29,7 @@ class FinishDatabaseUpgradeJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $upgrade = DatabaseUpgrade::query()->find($this->upgrade->id);
 
@@ -42,6 +43,8 @@ class FinishDatabaseUpgradeJob implements ShouldQueue
                 'step' => null,
                 'message' => $e->getMessage(),
             ]);
+
+            dispatch(new RunDatabaseUpgradeJob($upgrade))->onQueue('ssh')->delay(now()->addMinute());
 
             return;
         }

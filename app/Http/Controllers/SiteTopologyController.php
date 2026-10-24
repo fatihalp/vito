@@ -34,7 +34,7 @@ class SiteTopologyController extends Controller
                 $site->resources()->with(['server', 'storageProvider'])->get()
             ),
             'hostedDomains' => HostedDomainResource::collection(
-                $site->hostedDomains()->with('ssl')->get()
+                $site->hostedDomains()->with('ssl', 'site:id,server_id')->get()
             ),
             'dnsProviders' => DNSProviderResource::collection(
                 DNSProvider::getByProjectId($user->current_project_id, $user)->where('connected', true)->get()

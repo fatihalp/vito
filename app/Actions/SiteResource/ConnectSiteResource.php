@@ -38,7 +38,7 @@ class ConnectSiteResource
         $type = SiteResourceType::tryFrom((string) ($input['type'] ?? ''));
         $projectId = $site->server->project_id;
         $user = auth()->user();
-        $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+        $isAdmin = $user?->isAdmin() ?? false;
 
         $validator = Validator::make($input, [
             'type' => ['required', Rule::enum(SiteResourceType::class)],

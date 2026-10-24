@@ -10,11 +10,11 @@ use App\Models\Server;
 use App\Models\ServerIpAddress;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class PersistServerIpsJob implements ShouldQueue
 {
@@ -57,7 +57,7 @@ class PersistServerIpsJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->server->ipAddresses()
             ->whereIn('status', [IpAddressStatus::CONFIGURING, IpAddressStatus::DELETING])

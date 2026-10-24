@@ -11,9 +11,9 @@ use App\Models\ServerLog;
 use App\Models\Service;
 use App\Services\Firewall\Firewall;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class ApplyRulesJob implements ShouldQueue
 {
@@ -51,7 +51,7 @@ class ApplyRulesJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $failedRules = $this->rule->server->firewallRules()
             ->where('status', '!=', FirewallRuleStatus::READY)

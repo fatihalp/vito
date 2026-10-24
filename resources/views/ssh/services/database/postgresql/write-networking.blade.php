@@ -6,6 +6,11 @@ if sudo test -f {{ $hba }}; then
     sudo cp {{ $hba }} {{ $hba }}.vito.bak
 fi
 
+sudo rm -f {{ $dropIn }}.vito.bak
+if sudo test -f {{ $dropIn }}; then
+    sudo cp {{ $dropIn }} {{ $dropIn }}.vito.bak
+fi
+
 sudo grep -Eq '^[[:space:]]*include_dir[[:space:]]*=' {{ $conf }} || printf "\ninclude_dir = 'conf.d'\n" | sudo tee -a {{ $conf }} > /dev/null
 
 sudo mkdir -p {{ $directory }}

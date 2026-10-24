@@ -20,6 +20,7 @@ use App\SSH\OS\Security;
 use App\SSH\OS\Systemd;
 use Carbon\Carbon;
 use Database\Factories\ServerFactory;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -132,7 +133,8 @@ class Server extends AbstractModel
                     $site->gitHook?->destroyHook();
                 });
                 $server->sites()->delete();
-                $server->logs()->each(function ($log): void {
+                $server->logs()->where('is_remote', false)->delete();
+                $server->logs()->where('is_remote', true)->each(function ($log): void {
                     $log->delete();
                 });
                 $server->backups()->each(function ($backup): void {
@@ -353,10 +355,42 @@ class Server extends AbstractModel
         return $users;
     }
 
+    /**
+     * Relations and counts ServerResource reads, so lists and broadcasts load them in one go instead of per row.
+     */
+    public function scopeForResource(Builder $query): Builder
+    {
+        return $query->with(self::resourceRelations())->withCount(self::resourceCounts());
+    }
+
+    public function loadForResource(): static
+    {
+        return $this->load(self::resourceRelations())->loadCount(self::resourceCounts());
+    }
+
+    /**
+     * @return list<string>
+     */
+    public static function resourceRelations(): array
+    {
+        return ['latestMetric', 'sshKeys', 'serverProvider', 'services'];
+    }
+
+    /**
+     * @return array<int|string, string|\Closure>
+     */
+    public static function resourceCounts(): array
+    {
+        return ['sites', 'cronJobs', 'workers', 'backups', 'services', 'databases', 'databaseUsers', 'backups as backups_with_health_count' => fn (Builder $query) => $query->whereNotNull('health')];
+    }
+
     public function service(string $type, mixed $version = null): ?Service
     {
-        
-        $service = $this->services()
+        if ($this->relationLoaded('services')) {
+            return $this->services->first(fn (Service $service): bool => $service->type === $type && (! $version || $service->version == $version));
+        }
+
+        return $this->services()
             ->where(function ($query) use ($type, $version): void {
                 $query->where('type', $type);
                 if ($version) {
@@ -364,27 +398,19 @@ class Server extends AbstractModel
                 }
             })
             ->first();
-
-        return $service;
     }
 
     public function defaultService(string $type): ?Service
     {
-        
-        $service = $this->services()
-            ->where('type', $type)
-            ->where('is_default', 1)
-            ->first();
+        if ($this->relationLoaded('services')) {
+            $ofType = $this->services->where('type', $type);
 
-        
-        if (! $service) {
-            $service = $this->services()
-                ->where('type', $type)
-                ->whereIn('status', [ServiceStatus::READY, ServiceStatus::STOPPED])
-                ->first();
+            return $ofType->first(fn (Service $service): bool => $service->is_default && $service->status !== ServiceStatus::INSTALLATION_FAILED)
+                ?? $ofType->first(fn (Service $service): bool => in_array($service->status, [ServiceStatus::READY, ServiceStatus::STOPPED], true));
         }
 
-        return $service;
+        return $this->services()->where('type', $type)->where('is_default', 1)->where('status', '!=', ServiceStatus::INSTALLATION_FAILED)->first()
+            ?? $this->services()->where('type', $type)->whereIn('status', [ServiceStatus::READY, ServiceStatus::STOPPED])->first();
     }
 
     public function ssh(?string $user = null): \App\Helpers\SSH
@@ -600,7 +626,7 @@ class Server extends AbstractModel
             ];
         }
 
-        $backups = $this->backups()->whereNotNull('health')->count();
+        $backups = (int) ($this->backups_with_health_count ?? $this->backups()->whereNotNull('health')->count());
 
         if ($backups > 0) {
             $warnings[] = ['key' => 'backups_need_attention', 'count' => $backups];

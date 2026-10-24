@@ -79,7 +79,7 @@ class CreateLetsEncryptWildcardSslJob implements ShouldQueue
             $this->deleteDnsRecordSafely($recordId);
         }
 
-        $this->ssl->status = SslStatus::FAILED;
+        $this->ssl->status = $this->isRenewal && $this->ssl->certificate_path ? SslStatus::CREATED : SslStatus::FAILED;
         $this->ssl->save();
         $this->broadcastSslUpdate();
 

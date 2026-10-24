@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum BackupFileStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case CREATED = 'created';
     case CREATING = 'creating';
     case FAILED = 'failed';
@@ -27,10 +30,5 @@ enum BackupFileStatus: string implements VitoEnum
             self::DELETE_FAILED => 'danger',
             self::RESTORED => 'info',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

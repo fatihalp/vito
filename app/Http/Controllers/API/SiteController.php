@@ -45,7 +45,7 @@ class SiteController extends Controller
 
         $this->validateRoute($project, $server);
 
-        return SiteResource::collection($server->sites()->simplePaginate(25));
+        return SiteResource::collection($server->sites()->forResource()->simplePaginate(25));
     }
 
     #[Post('/', name: 'api.projects.servers.sites.create', middleware: 'ability:write')]

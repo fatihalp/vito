@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum DatabaseUserPermission: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case READ = 'read';
     case WRITE = 'write';
     case ADMIN = 'admin';
@@ -18,10 +21,5 @@ enum DatabaseUserPermission: string implements HasTableDisplay, VitoEnum
             self::WRITE => 'info',
             self::ADMIN => 'warning',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

@@ -16,7 +16,6 @@ use App\StorageProviders\S3;
 use App\Support\S3ObjectCopier;
 use App\Traits\UniqueQueue;
 use Aws\S3\S3Client;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Collection;
@@ -118,7 +117,7 @@ class CopyStorageMigrationItems implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         StorageMigration::whereKey($this->storageMigration->id)->update([
             'status' => StorageMigrationStatus::FAILED->value,

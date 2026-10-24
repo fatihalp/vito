@@ -17,7 +17,6 @@ use App\Models\ServerLog;
 use App\Models\Service;
 use App\Services\Database\Database;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
@@ -72,7 +71,7 @@ class RunJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->file->status = BackupFileStatus::FAILED;
         $this->file->message = Str::limit($e->getMessage(), 1000);

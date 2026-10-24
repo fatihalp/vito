@@ -33,7 +33,10 @@ class AuthServiceProvider extends ServiceProvider
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username()).'|'.$request->ip()));
 
-            return Limit::perMinute(5)->by($throttleKey);
+            return [
+                Limit::perMinute(5)->by($throttleKey),
+                Limit::perMinute(20)->by('login-email:'.Str::transliterate(Str::lower((string) $request->input(Fortify::username())))),
+            ];
         });
 
         RateLimiter::for('two-factor', function (Request $request) {

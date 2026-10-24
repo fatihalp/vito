@@ -24,7 +24,7 @@ class CreateLog
     private function validate(array $input): void
     {
         Validator::make($input, [
-            'path' => 'required',
+            'path' => ['required', 'string', 'max:500', 'regex:/^\/[A-Za-z0-9._\/@+-]+$/'],
         ])->validate();
     }
 }

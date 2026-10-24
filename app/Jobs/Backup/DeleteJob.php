@@ -10,10 +10,10 @@ use App\Events\SocketEvent;
 use App\Models\Backup;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Throwable;
 
 class DeleteJob implements ShouldQueue
 {
@@ -58,7 +58,7 @@ class DeleteJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->backup->server, 'delete-backup-failed', $e->getMessage());
 

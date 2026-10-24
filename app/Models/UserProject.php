@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class UserProject extends Model
+class UserProject extends AbstractModel
 {
     protected $table = 'user_project';
 

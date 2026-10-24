@@ -28,7 +28,7 @@ class FirewallRulePolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project)
+        return $this->hasServerWriteAccess($user, $server)
             && $server->isReady()
             && $server->firewall();
     }
@@ -37,7 +37,7 @@ class FirewallRulePolicy
     {
         $server = $rule->server;
 
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 
@@ -45,7 +45,7 @@ class FirewallRulePolicy
     {
         $server = $rule->server;
 
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 }

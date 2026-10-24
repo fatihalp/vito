@@ -13,6 +13,8 @@ class SiteResource extends JsonResource
     
     public function toArray(Request $request): array
     {
+        $webserver = $this->webserver();
+
         return [
             'id' => $this->id,
             'server_id' => $this->server_id,
@@ -29,8 +31,8 @@ class SiteResource extends JsonResource
             ],
             'domain' => $this->domain,
             'web_directory' => $this->web_directory,
-            'webserver' => $this->webserver()->id(),
-            'webserver_creates_site_ssls' => $this->webserver()->createsSiteSSLs(),
+            'webserver' => $webserver->id(),
+            'webserver_creates_site_ssls' => $webserver->createsSiteSSLs(),
             'path' => $this->path,
             'php_version' => $this->php_version,
             'php_settings' => $this->phpSettings(),
@@ -51,9 +53,9 @@ class SiteResource extends JsonResource
             'installation_steps' => $this->installationSteps(),
             'last_error' => $this->last_error,
             'features' => $this->features(),
-            'can_configure_ssl' => $this->webserver()->canConfigureSSL(),
-            'webserver_allowed_ssl_methods' => $this->webserver()->allowedSslMethods(),
-            'webserver_default_ssl_method' => $this->webserver()->defaultSslMethod()->value,
+            'can_configure_ssl' => $webserver->canConfigureSSL(),
+            'webserver_allowed_ssl_methods' => $webserver->allowedSslMethods(),
+            'webserver_default_ssl_method' => $webserver->defaultSslMethod()->value,
             'vhost_generation_enabled' => $this->vhost_generation_enabled,
             'has_custom_vhost_template' => $this->vhost_template !== null,
             'modern_deployment' => $this->modernDeploymentEnabled(),

@@ -90,6 +90,8 @@ class UpdateDatabaseUser
             $rules['password'] = [
                 'required',
                 'min:6',
+                'max:128',
+                'regex:/^[A-Za-z0-9!@#%^*()_+=\\-\\[\\]{}:,.?~\\/]+$/',
             ];
         }
 

@@ -77,6 +77,11 @@ class Nginx extends AbstractWebserver implements HasLogs
         return app(GenerateNginxConfig::class)->generate($site, $template);
     }
 
+    public function defaultVhostTemplate(): string
+    {
+        return app(GenerateNginxConfig::class)->defaultTemplate();
+    }
+
     
     public function createVHost(Site $site): void
     {

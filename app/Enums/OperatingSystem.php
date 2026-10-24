@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum OperatingSystem: string implements VitoEnum
 {
+    use TextIsValue;
+
     case UBUNTU18 = 'ubuntu_18';
     case UBUNTU20 = 'ubuntu_20';
     case UBUNTU22 = 'ubuntu_22';
@@ -15,11 +18,6 @@ enum OperatingSystem: string implements VitoEnum
     public function getColor(): string
     {
         return 'default';
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 
     public function getVersion(): string

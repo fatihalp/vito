@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum BackupType: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case DATABASE = 'database';
     case FILE = 'file';
     case PGBACKREST = 'pgbackrest';
@@ -14,10 +17,5 @@ enum BackupType: string implements HasTableDisplay, VitoEnum
     public function getColor(): string
     {
         return 'default';
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

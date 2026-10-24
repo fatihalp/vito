@@ -38,22 +38,22 @@ class ServerPolicy
 
     public function update(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->status !== ServerStatus::DISCONNECTED;
+        return $this->hasServerWriteAccess($user, $server) && $server->status !== ServerStatus::DISCONNECTED;
     }
 
     public function updateSettings(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasServerWriteAccess($user, $server);
     }
 
     public function start(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasServerWriteAccess($user, $server);
     }
 
     public function reboot(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasServerWriteAccess($user, $server);
     }
 
     public function delete(User $user, Server $server): bool
@@ -67,6 +67,6 @@ class ServerPolicy
 
     public function manage(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 }

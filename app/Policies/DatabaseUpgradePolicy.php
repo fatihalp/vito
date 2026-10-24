@@ -25,7 +25,7 @@ class DatabaseUpgradePolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function finish(User $user, DatabaseUpgrade $upgrade): bool
@@ -35,11 +35,11 @@ class DatabaseUpgradePolicy
 
     public function update(User $user, DatabaseUpgrade $upgrade): bool
     {
-        return $this->hasWriteAccess($user, $upgrade->source->project);
+        return $this->hasServerWriteAccess($user, $upgrade->source);
     }
 
     public function delete(User $user, DatabaseUpgrade $upgrade): bool
     {
-        return $this->hasWriteAccess($user, $upgrade->source->project);
+        return $this->hasServerWriteAccess($user, $upgrade->source);
     }
 }

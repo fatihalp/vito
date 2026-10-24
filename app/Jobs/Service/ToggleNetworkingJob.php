@@ -10,10 +10,10 @@ use App\Models\ServerLog;
 use App\Models\Service;
 use App\Services\SupportsNetworking;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
+use Throwable;
 
 class ToggleNetworkingJob implements ShouldQueue
 {
@@ -55,7 +55,7 @@ class ToggleNetworkingJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->service->refresh();
         $this->service->jsonUpdate('type_data', 'networking_failed', true, save: false);

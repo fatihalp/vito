@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use App\Traits\HasEnumHelpers;
 
 enum HostedDomainType: string implements VitoEnum
 {
+    use TextIsValue;
+
     use HasEnumHelpers;
 
     case PRIMARY = 'primary';
@@ -20,10 +23,5 @@ enum HostedDomainType: string implements VitoEnum
             self::ALIAS => 'default',
             self::REDIRECT => 'warning',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

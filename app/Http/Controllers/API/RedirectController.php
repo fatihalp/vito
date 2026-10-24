@@ -33,7 +33,7 @@ class RedirectController extends Controller
 
         $this->validateRoute($project, $server, $site);
 
-        return RedirectResource::collection($site->redirects()->simplePaginate(25));
+        return RedirectResource::collection($site->redirects()->with('site:id,server_id')->simplePaginate(25));
     }
 
     #[Post('/', name: 'api.projects.servers.sites.redirects.create', middleware: 'ability:write')]

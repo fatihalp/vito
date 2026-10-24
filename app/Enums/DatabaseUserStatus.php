@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum DatabaseUserStatus: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case READY = 'ready';
     case CREATING = 'creating';
     case FAILED = 'failed';
@@ -20,10 +23,5 @@ enum DatabaseUserStatus: string implements HasTableDisplay, VitoEnum
             self::DELETING => 'warning',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

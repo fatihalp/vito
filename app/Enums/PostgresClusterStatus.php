@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum PostgresClusterStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case ACTIVE = 'active';
     case FAILING_OVER = 'failing_over';
 
@@ -15,10 +18,5 @@ enum PostgresClusterStatus: string implements VitoEnum
             self::ACTIVE => 'success',
             self::FAILING_OVER => 'warning',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

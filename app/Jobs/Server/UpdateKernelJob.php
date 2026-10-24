@@ -9,9 +9,9 @@ use App\Models\Server;
 use App\Models\ServerLog;
 use App\Notifications\ServerUpdateFailed;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class UpdateKernelJob implements ShouldQueue
 {
@@ -38,7 +38,7 @@ class UpdateKernelJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Notifier::send($this->server, new ServerUpdateFailed($this->server));
         $this->server->checkConnection();

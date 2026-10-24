@@ -9,10 +9,10 @@ use App\Models\Site;
 use App\Services\LogAnalysis\GoAccess\GoAccess;
 use App\Traits\UniqueQueue;
 use Carbon\Carbon;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
+use Throwable;
 
 class RefreshSiteStatsJob implements ShouldQueue
 {
@@ -54,7 +54,7 @@ class RefreshSiteStatsJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log(
             $this->site->server,

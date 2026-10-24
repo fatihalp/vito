@@ -9,9 +9,9 @@ use App\Http\Resources\ServiceResource;
 use App\Models\ServerLog;
 use App\Models\Service;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class UninstallJob implements ShouldQueue
 {
@@ -42,7 +42,7 @@ class UninstallJob implements ShouldQueue
         }
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         
         if ($this->previousStatus === ServiceStatus::FAILED) {

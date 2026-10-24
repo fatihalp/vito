@@ -14,6 +14,7 @@ use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
+use Throwable;
 
 class DeleteSslJob implements ShouldQueue
 {
@@ -53,7 +54,7 @@ class DeleteSslJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $isServerSsl = $this->ssl->site_id === null;
 

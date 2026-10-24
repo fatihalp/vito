@@ -14,6 +14,7 @@ use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
+use Throwable;
 
 class CreateServerCsrJob implements ShouldQueue
 {
@@ -68,7 +69,7 @@ class CreateServerCsrJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->ssl->status = SslStatus::FAILED;
         $this->ssl->save();

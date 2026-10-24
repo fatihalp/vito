@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\SSL\DownloadCsr;
 use App\Actions\SSL\ActivateServerSsl;
 use App\Actions\SSL\CreateServerSsl;
 use App\Actions\SSL\DeleteSsl;
-use App\Enums\SslStatus;
 use App\Helpers\QueryBuilder;
 use App\Http\Resources\SslResource;
 use App\Models\Domain;
@@ -13,8 +13,6 @@ use App\Models\Server;
 use App\Models\Ssl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -39,7 +37,7 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
-        $ssls = QueryBuilder::for($server->ssls()->whereNull('site_id'))
+        $ssls = QueryBuilder::for($server->ssls()->whereNull('site_id')->with('log'))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 
@@ -91,28 +89,6 @@ class ServerSslController extends Controller
     {
         $this->authorize('downloadCsr', [$ssl, $server]);
 
-        if (! $ssl->has_csr || $ssl->status !== SslStatus::CREATED) {
-            abort(404, 'CSR file is not available for download.');
-        }
-
-        $csrPath = $ssl->csr_data['csr_path'] ?? null;
-        if (! $csrPath) {
-            abort(404, 'CSR file path not found.');
-        }
-
-        $tmpName = $server->id.'-'.strtotime('now').'-csr-'.$ssl->id.'.csr';
-        $tmpPath = Storage::disk('local')->path($tmpName);
-
-        $server->ssh()->download($tmpPath, $csrPath);
-
-        dispatch(function () use ($tmpPath): void {
-            if (File::exists($tmpPath)) {
-                File::delete($tmpPath);
-            }
-        })
-            ->delay(now()->addMinutes(5))
-            ->onQueue('default');
-
-        return Storage::disk('local')->download($tmpName, 'request.csr');
+        return app(DownloadCsr::class)->download($server, $ssl);
     }
 }

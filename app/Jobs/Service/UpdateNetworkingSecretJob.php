@@ -11,10 +11,10 @@ use App\Models\ServerLog;
 use App\Models\Service;
 use App\Services\SupportsNetworkingSecret;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
+use Throwable;
 
 class UpdateNetworkingSecretJob implements ShouldQueue
 {
@@ -50,7 +50,7 @@ class UpdateNetworkingSecretJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->service->refresh();
         $this->service->status = ServiceStatus::FAILED;

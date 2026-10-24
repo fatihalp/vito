@@ -49,6 +49,7 @@ class InstallJob implements ShouldQueue
     public function failed(\Throwable $e): void
     {
         $this->service->status = ServiceStatus::INSTALLATION_FAILED;
+        $this->service->is_default = false;
         $this->service->save();
         $this->broadcastServiceUpdate('service.updated');
 

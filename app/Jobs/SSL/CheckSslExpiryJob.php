@@ -9,16 +9,28 @@ use App\Models\Server;
 use App\Models\Ssl;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use App\Traits\UniqueQueue;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class CheckSslExpiryJob implements ShouldQueue
 {
     use Queueable;
+    use UniqueQueue;
 
     public function __construct(protected Server $server) {}
 
     public function handle(): void
+    {
+        $this->run("ssl-expiry-{$this->server->id}", fn () => $this->check());
+    }
+
+    public function failed(Throwable $e): void
+    {
+        Log::warning('[SSL expiry check] Job failed', ['server_id' => $this->server->id, 'error' => $e->getMessage()]);
+    }
+
+    private function check(): void
     {
         $ssls = Ssl::query()
             ->with('site.server')

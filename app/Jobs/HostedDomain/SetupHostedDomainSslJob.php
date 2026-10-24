@@ -23,6 +23,7 @@ use App\Traits\UniqueQueue;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class SetupHostedDomainSslJob implements ShouldQueue
 {
@@ -69,7 +70,6 @@ class SetupHostedDomainSslJob implements ShouldQueue
                 ->first();
 
             if ($ssl) {
-                $ssl->domains = $leDomains;
                 $ssl->status = SslStatus::CREATING;
                 $ssl->save();
             } else {
@@ -93,7 +93,7 @@ class SetupHostedDomainSslJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $site = $this->hostedDomain->site;
         $errorMessage = 'Unable to generate SSL certificate. Check server logs for details.';
@@ -104,7 +104,7 @@ class SetupHostedDomainSslJob implements ShouldQueue
             ->first();
 
         if ($ssl) {
-            $ssl->status = SslStatus::CREATED;
+            $ssl->status = $ssl->certificate_path ? SslStatus::CREATED : SslStatus::FAILED;
             $ssl->save();
         }
 
@@ -114,7 +114,7 @@ class SetupHostedDomainSslJob implements ShouldQueue
             ->get();
 
         foreach ($updatingDomains as $domain) {
-            if ($ssl && $ssl->coversDomain($domain->domain)) {
+            if ($ssl && $ssl->status === SslStatus::CREATED && $ssl->coversDomain($domain->domain)) {
                 $domain->error = $errorMessage;
                 $domain->status = HostedDomainStatus::ACTIVE;
             } else {

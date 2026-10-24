@@ -22,7 +22,7 @@ class HostedDomainTable extends Table
     {
         $this->perPage = config('web.pagination_size');
         $this->query
-            ->with('site', 'ssl')
+            ->with('site', 'ssl.log')
             ->orderByRaw("CASE WHEN type = 'primary' THEN 0 ELSE 1 END");
     }
 

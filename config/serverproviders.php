@@ -427,6 +427,7 @@ return [
         ],
         'images' => [
             'ubuntu_24' => 'linode/ubuntu24.04',
+            'ubuntu_26' => 'linode/ubuntu26.04',
         ],
     ],
     'digitalocean' => [

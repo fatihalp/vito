@@ -57,7 +57,8 @@ class ServerTable extends Table
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
             ->selectSub($this->phpVersionSubquery(), 'php_version_order')
-            ->with(['latestMetric', 'project', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id')]);
+            ->with(['latestMetric', 'project', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id')])
+            ->withCount(['backups as backups_with_health_count' => fn ($query) => $query->whereNotNull('health')]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
             $this->query

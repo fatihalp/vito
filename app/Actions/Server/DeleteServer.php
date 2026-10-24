@@ -15,6 +15,10 @@ class DeleteServer
         $this->validate($server, $input);
 
         $server->delete();
+
+        if ((bool) ($input['delete_from_provider'] ?? false)) {
+            $server->provider()->delete();
+        }
     }
 
     private function validate(Server $server, array $input): void
@@ -30,6 +34,7 @@ class DeleteServer
                 'required',
                 Rule::in([$server->name]),
             ],
+            'delete_from_provider' => ['nullable', 'boolean'],
         ])->validate();
     }
 }

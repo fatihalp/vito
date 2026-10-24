@@ -18,7 +18,7 @@ class FinalizeServerNetworkRules
             if ($emittedIds !== []) {
                 ServerNetworkRule::query()
                     ->whereIn('id', $emittedIds)
-                    ->where('status', '!=', FirewallRuleStatus::READY)
+                    ->whereIn('status', [FirewallRuleStatus::CREATING, FirewallRuleStatus::UPDATING, FirewallRuleStatus::FAILED])
                     ->update(['status' => FirewallRuleStatus::READY]);
             }
 

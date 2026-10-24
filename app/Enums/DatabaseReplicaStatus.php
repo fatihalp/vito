@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum DatabaseReplicaStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case PENDING = 'pending';
     case WAITING_FOR_BACKUP = 'waiting_for_backup';
     case WAITING_FOR_SERVER = 'waiting_for_server';
@@ -25,11 +28,6 @@ enum DatabaseReplicaStatus: string implements VitoEnum
             self::WAITING_FOR_BACKUP, self::WAITING_FOR_SERVER => 'info',
             default => 'warning',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 
     public function isBusy(): bool

@@ -50,10 +50,10 @@ class NodeJS extends AbstractService
         return [
             'service' => [
                 function (string $attribute, mixed $value, Closure $fail): void {
-                    $hasSite = $this->service->server->sites()
-                        ->where('nodejs_version', $this->service->version)
+                    $inUse = $this->service->server->isolatedUsers()
+                        ->where('installed_tooling->node->version', (string) $this->service->version)
                         ->exists();
-                    if ($hasSite) {
+                    if ($inUse) {
                         $fail('Some sites are using this NodeJS version.');
                     }
                 },

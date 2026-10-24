@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Actions\User\SearchUsers;
 use App\Actions\User\CreateUser;
 use App\Actions\User\UpdateUser;
 use App\Http\Controllers\Controller;
@@ -48,20 +49,7 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
-        $this->validate($request, [
-            'query' => [
-                'nullable',
-                'string',
-            ],
-        ]);
-
-        $users = User::query()->where('name', 'like', "%{$request->input('query')}%")
-            ->orWhere('email', 'like', "%{$request->input('query')}%")
-            ->with('projects')
-            ->take(10)
-            ->get();
-
-        return UserResource::collection($users);
+        return UserResource::collection(app(SearchUsers::class)->search($request->all()));
     }
 
     #[Post('/', name: 'users.store')]

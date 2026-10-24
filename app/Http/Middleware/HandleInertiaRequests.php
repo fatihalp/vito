@@ -60,8 +60,7 @@ class HandleInertiaRequests extends Middleware
                 $server = Server::find($server);
             }
             if ($server) {
-                $server->load('sshKeys')
-                    ->loadCount(['sites', 'cronJobs', 'workers', 'backups', 'services', 'databases', 'databaseUsers']);
+                $server->loadForResource();
             }
 
             $data['server'] = ServerResource::make($server);
@@ -72,7 +71,7 @@ class HandleInertiaRequests extends Middleware
                     $site = Site::find($site);
                 }
                 if ($site) {
-                    $site->load('hostedDomains.ssl', 'workers')
+                    $site->load('hostedDomains.ssl', 'workers', 'gitHook')
                         ->loadCount(['hostedDomains', 'workers', 'resources', 'commands']);
                     $data['site'] = SiteResource::make($site);
                 }
@@ -105,7 +104,7 @@ class HandleInertiaRequests extends Middleware
             'demo' => config('app.demo'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => $user ? [
-                'user' => UserResource::make($user->load('projects')),
+                'user' => UserResource::make($user->load(['projects' => fn ($query) => $query->withCount(['servers', 'sites'])->with(['users' => fn ($users) => $users->where('user_id', $user->id)])])),
                 'currentProject' => ProjectResource::make($currentProject),
                 'pendingInvitationsCount' => UserProject::query()
                     ->where('email', $user->email)

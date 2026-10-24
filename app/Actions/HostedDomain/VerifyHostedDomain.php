@@ -2,8 +2,10 @@
 
 namespace App\Actions\HostedDomain;
 
+use App\Jobs\HostedDomain\CheckDomainJob;
 use App\Actions\Site\EnsureSiteVerificationKey;
 use App\DTOs\VerificationResult;
+use App\Enums\HostedDomainStatus;
 use App\Models\HostedDomain;
 use App\Models\Site;
 use Illuminate\Support\Facades\Http;
@@ -13,6 +15,13 @@ use Throwable;
 
 class VerifyHostedDomain
 {
+    public function queueCheck(HostedDomain $hostedDomain): void
+    {
+        $hostedDomain->update(['status' => HostedDomainStatus::UPDATING]);
+
+        dispatch(new CheckDomainJob($hostedDomain))->onQueue('ssh');
+    }
+
     private const DOH_PROVIDERS = [
         'https://cloudflare-dns.com/dns-query',
         'https://dns.google/resolve',

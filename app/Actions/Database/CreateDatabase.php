@@ -80,6 +80,9 @@ class CreateDatabase
             'password' => [
                 'nullable',
                 'string',
+                'min:6',
+                'max:128',
+                'regex:/^[A-Za-z0-9!@#%^*()_+=\\-\\[\\]{}:,.?~\\/]+$/',
             ],
         ];
         if (isset($input['user']) && $input['user']) {

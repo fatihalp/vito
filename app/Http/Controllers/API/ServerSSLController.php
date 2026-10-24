@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers\API;
 
+use App\Actions\SSL\DownloadCsr;
 use App\Actions\SSL\ActivateServerSsl;
 use App\Actions\SSL\CreateLetsEncryptWildcardSsl;
 use App\Actions\SSL\CreateServerSsl;
 use App\Actions\SSL\DeleteSsl;
 use App\Actions\SSL\InstallCustomServerSsl;
-use App\Enums\SslStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\SslResource;
 use App\Models\Project;
@@ -16,8 +16,6 @@ use App\Models\Ssl;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Http\Response;
-use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
@@ -38,7 +36,7 @@ class ServerSSLController extends Controller
         $this->validateRoute($project, $server);
 
         return SslResource::collection(
-            $server->ssls()->whereNull('site_id')->simplePaginate(25)
+            $server->ssls()->whereNull('site_id')->with('log')->simplePaginate(25)
         );
     }
 
@@ -119,29 +117,7 @@ class ServerSSLController extends Controller
 
         $this->validateRoute($project, $server, $ssl);
 
-        if (! $ssl->has_csr || $ssl->status !== SslStatus::CREATED) {
-            abort(404, 'CSR file is not available for download.');
-        }
-
-        $csrPath = $ssl->csr_data['csr_path'] ?? null;
-        if (! $csrPath) {
-            abort(404, 'CSR file path not found.');
-        }
-
-        $tmpName = $server->id.'-'.strtotime('now').'-csr-'.$ssl->id.'.csr';
-        $tmpPath = Storage::disk('local')->path($tmpName);
-
-        $server->ssh()->download($tmpPath, $csrPath);
-
-        dispatch(function () use ($tmpPath): void {
-            if (File::exists($tmpPath)) {
-                File::delete($tmpPath);
-            }
-        })
-            ->delay(now()->addMinutes(5))
-            ->onQueue('default');
-
-        return Storage::disk('local')->download($tmpName, 'request.csr');
+        return app(DownloadCsr::class)->download($server, $ssl);
     }
 
     private function validateRoute(Project $project, Server $server, ?Ssl $ssl = null): void

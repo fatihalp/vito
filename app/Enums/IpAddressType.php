@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum IpAddressType: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case PUBLIC = 'public';
     case PRIVATE = 'private';
     case UNKNOWN = 'unknown';
@@ -18,10 +21,5 @@ enum IpAddressType: string implements HasTableDisplay, VitoEnum
             self::PRIVATE => 'warning',
             self::UNKNOWN => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

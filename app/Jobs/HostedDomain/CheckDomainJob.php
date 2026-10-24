@@ -9,30 +9,46 @@ use App\Enums\HostedDomainStatus;
 use App\Events\SocketEvent;
 use App\Http\Resources\HostedDomainResource;
 use App\Models\HostedDomain;
+use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Str;
+use Throwable;
 
 class CheckDomainJob implements ShouldQueue
 {
     use Queueable;
+    use UniqueQueue;
 
     public function __construct(protected HostedDomain $hostedDomain) {}
 
     public function handle(VerifyHostedDomain $verifier, ActivateHostedDomain $activator): void
     {
-        $result = $verifier->verify($this->hostedDomain);
+        $this->run("hosted-domain-check-{$this->hostedDomain->id}", function () use ($verifier, $activator): void {
+            $result = $verifier->verify($this->hostedDomain);
 
-        if ($result->verified) {
-            $this->hostedDomain->error = null;
-            $this->hostedDomain->save();
-            $activator->activate($this->hostedDomain);
-        } else {
-            $this->hostedDomain->status = HostedDomainStatus::PENDING;
-            $this->hostedDomain->error = $result->failureReason;
-            $this->hostedDomain->save();
+            if ($result->verified) {
+                $this->hostedDomain->error = null;
+                $this->hostedDomain->save();
+                $activator->activate($this->hostedDomain);
+            } else {
+                $this->hostedDomain->status = HostedDomainStatus::PENDING;
+                $this->hostedDomain->error = $result->failureReason;
+                $this->hostedDomain->save();
+            }
+
+            $this->broadcastUpdate();
+        });
+    }
+
+    public function failed(Throwable $e): void
+    {
+        $domain = HostedDomain::query()->find($this->hostedDomain->id);
+
+        if ($domain?->status->isProcessing()) {
+            $domain->update(['status' => HostedDomainStatus::PENDING, 'error' => Str::limit($e->getMessage(), 1000)]);
+            $this->broadcastUpdate();
         }
-
-        $this->broadcastUpdate();
     }
 
     private function broadcastUpdate(): void

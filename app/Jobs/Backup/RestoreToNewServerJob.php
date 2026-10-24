@@ -7,9 +7,9 @@ use App\Enums\BackupRestoreStatus;
 use App\Exceptions\SSHError;
 use App\Models\BackupRestore;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class RestoreToNewServerJob implements ShouldQueue
 {
@@ -48,7 +48,7 @@ class RestoreToNewServerJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $restore = BackupRestore::query()->find($this->restore->id);
 

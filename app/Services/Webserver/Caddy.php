@@ -132,6 +132,11 @@ class Caddy extends AbstractWebserver implements HasLogs
         return app(GenerateCaddyConfig::class)->generate($site, $template);
     }
 
+    public function defaultVhostTemplate(): string
+    {
+        return app(GenerateCaddyConfig::class)->defaultTemplate();
+    }
+
     
     public function updateVHost(Site $site, ?string $vhost = null, bool $restart = false): void
     {

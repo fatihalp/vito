@@ -25,21 +25,21 @@ class DatabaseReplicaPolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function manage(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project);
+        return $this->hasServerWriteAccess($user, $server);
     }
 
     public function update(User $user, DatabaseReplica $replica): bool
     {
-        return $this->hasWriteAccess($user, $replica->primary->project);
+        return $this->hasServerWriteAccess($user, $replica->primary);
     }
 
     public function delete(User $user, DatabaseReplica $replica): bool
     {
-        return $this->hasWriteAccess($user, $replica->primary->project);
+        return $this->hasServerWriteAccess($user, $replica->primary);
     }
 }

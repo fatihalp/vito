@@ -23,7 +23,7 @@ class HostedDomainPolicy
 
     public function create(User $user, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $site->server_id === $server->id &&
             $server->isReady() &&
             $site->isReady();
@@ -31,7 +31,7 @@ class HostedDomainPolicy
 
     public function update(User $user, HostedDomain $hostedDomain, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $site->server_id === $server->id &&
             $server->isReady() &&
             $site->isReady() &&
@@ -40,7 +40,7 @@ class HostedDomainPolicy
 
     public function delete(User $user, HostedDomain $hostedDomain, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $site->server_id === $server->id &&
             $server->isReady() &&
             $site->isReady() &&

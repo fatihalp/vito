@@ -15,7 +15,7 @@ class GetSites
     {
         $validated = $this->validate($input);
 
-        $sitesQuery = $server->sites()->with('server');
+        $sitesQuery = $server->sites()->forResource();
 
         if (! empty($validated['query'])) {
             $sitesQuery->where('domain', 'like', "%{$validated['query']}%");
@@ -32,7 +32,7 @@ class GetSites
         $accessibleProjectIds = $user->allProjects()->pluck('id');
 
         $sitesQuery = Site::query()
-            ->with('server')
+            ->forResource()
             ->whereHas('server', function (Builder $servers) use ($accessibleProjectIds): void {
                 $servers->whereIn('project_id', $accessibleProjectIds);
             });

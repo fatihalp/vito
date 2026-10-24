@@ -32,7 +32,7 @@ class RedirectPolicy
     {
         $siteServer = $site->server;
 
-        return $this->hasWriteAccess($user, $siteServer->project)
+        return $this->hasServerWriteAccess($user, $siteServer)
             && $site->server_id === $server->id
             && $siteServer->isReady();
     }
@@ -41,7 +41,7 @@ class RedirectPolicy
     {
         $siteServer = $site->server;
 
-        return $this->hasWriteAccess($user, $siteServer->project)
+        return $this->hasServerWriteAccess($user, $siteServer)
             && $site->server_id === $server->id
             && $server->isReady()
             && $redirect->site_id === $site->id;
@@ -51,7 +51,7 @@ class RedirectPolicy
     {
         $siteServer = $site->server;
 
-        return $this->hasWriteAccess($user, $siteServer->project)
+        return $this->hasServerWriteAccess($user, $siteServer)
             && $site->server_id === $server->id
             && $server->isReady()
             && $redirect->site_id === $site->id;

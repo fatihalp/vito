@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum NetworkPeerStatus: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case PENDING = 'pending';
     case ACTIVE = 'active';
     case DISABLED = 'disabled';
@@ -18,10 +21,5 @@ enum NetworkPeerStatus: string implements HasTableDisplay, VitoEnum
             self::ACTIVE => 'success',
             self::DISABLED => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

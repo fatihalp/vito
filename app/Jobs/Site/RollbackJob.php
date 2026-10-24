@@ -10,9 +10,9 @@ use App\Http\Resources\DeploymentResource;
 use App\Models\Deployment;
 use App\Notifications\DeploymentCompleted;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class RollbackJob implements ShouldQueue
 {
@@ -49,7 +49,7 @@ class RollbackJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $site = $this->deployment->site;
 

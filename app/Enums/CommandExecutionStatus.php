@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum CommandExecutionStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case EXECUTING = 'executing';
     case COMPLETED = 'completed';
     case FAILED = 'failed';
@@ -17,10 +20,5 @@ enum CommandExecutionStatus: string implements VitoEnum
             self::COMPLETED => 'success',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum RedirectStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case CREATING = 'creating';
     case READY = 'ready';
     case DELETING = 'deleting';
@@ -19,10 +22,5 @@ enum RedirectStatus: string implements VitoEnum
             self::READY => 'success',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }
