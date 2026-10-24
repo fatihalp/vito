@@ -41,7 +41,7 @@ class Domain extends AbstractModel
     
     public function dnsProvider(): BelongsTo
     {
-        return $this->belongsTo(DNSProvider::class);
+        return $this->belongsTo(DNSProvider::class)->withTrashed();
     }
 
     

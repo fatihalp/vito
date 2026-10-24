@@ -109,6 +109,7 @@ class HandleInertiaRequests extends Middleware
                 'pendingInvitationsCount' => UserProject::query()
                     ->where('email', $user->email)
                     ->whereNull('user_id')
+                    ->whereHas('project')
                     ->count(),
             ] : null,
             'csrf_token' => csrf_token(),
