@@ -19,6 +19,8 @@ const CurrentProject = ({ project }: { project: Project }) => {
 
 function ProjectActions({ project }: { project: Project }) {
   const dialog = useDialog();
+  const page = usePage<SharedData>();
+  const canDelete = project.role === 'owner' || page.props.auth.user.is_admin;
 
   return (
     <DropdownMenu modal={false}>
@@ -37,6 +39,26 @@ function ProjectActions({ project }: { project: Project }) {
           <LeaveProject project={project}>
             <DropdownMenuItem onSelect={(e) => e.preventDefault()}>Leave project</DropdownMenuItem>
           </LeaveProject>
+        )}
+        {canDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() =>
+                dialog.confirm.open({
+                  title: `Delete ${project.name}`,
+                  description: `Are you sure you want to delete ${project.name}?`,
+                  variant: 'destructive',
+                  confirmLabel: 'Delete',
+                  method: 'delete',
+                  url: `/settings/projects/${project.id}`,
+                })
+              }
+            >
+              Delete
+            </DropdownMenuItem>
+          </>
         )}
       </DropdownMenuContent>
     </DropdownMenu>

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Project;
 
 use App\Actions\Projects\CreateProject;
+use App\Actions\Projects\DeleteProject;
 use App\Actions\Projects\GetProjects;
 use App\Actions\Projects\UpdateProject;
 use App\Http\Controllers\Controller;
@@ -44,6 +45,7 @@ class ProjectController extends Controller
                 UserProject::query()
                     ->where('email', user()->email)
                     ->whereNull('user_id')
+                    ->whereHas('project')
                     ->simplePaginate(20)
             ),
         ]);
@@ -79,5 +81,16 @@ class ProjectController extends Controller
 
         return redirect()->route('projects')
             ->with('success', __('Project updated successfully.'));
+    }
+
+    #[Delete('/{project}', name: 'projects.destroy')]
+    public function destroy(Project $project): RedirectResponse
+    {
+        $this->authorize('delete', $project);
+
+        app(DeleteProject::class)->delete($project);
+
+        return redirect()->route('projects')
+            ->with('success', __('Project deleted successfully.'));
     }
 }

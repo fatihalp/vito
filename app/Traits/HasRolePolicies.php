@@ -24,9 +24,9 @@ trait HasRolePolicies
         return $this->hasWriteAccess($user, $server->project) && (! $server->is_self || $user->isAdmin());
     }
 
-    protected function hasReadAccess(User $user, Project $project): bool
+    protected function hasReadAccess(User $user, ?Project $project): bool
     {
-        if (! $user->tokenAllowsProject($project->id)) {
+        if (! $project || ! $user->tokenAllowsProject($project->id)) {
             return false;
         }
 
@@ -41,9 +41,9 @@ trait HasRolePolicies
         ]);
     }
 
-    protected function hasWriteAccess(User $user, Project $project): bool
+    protected function hasWriteAccess(User $user, ?Project $project): bool
     {
-        if (! $user->tokenAllowsProject($project->id, write: true)) {
+        if (! $project || ! $user->tokenAllowsProject($project->id, write: true)) {
             return false;
         }
 
@@ -58,9 +58,9 @@ trait HasRolePolicies
         ]);
     }
 
-    protected function hasOwnerAccess(User $user, Project $project): bool
+    protected function hasOwnerAccess(User $user, ?Project $project): bool
     {
-        if (! $user->tokenAllowsProject($project->id, write: true)) {
+        if (! $project || ! $user->tokenAllowsProject($project->id, write: true)) {
             return false;
         }
 

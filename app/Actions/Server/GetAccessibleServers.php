@@ -38,7 +38,7 @@ class GetAccessibleServers
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? 'all');
+        $scope = (string) ($validated['project'] ?? $user->current_project_id ?? 'all');
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 
         $query = Server::query()

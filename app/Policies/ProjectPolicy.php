@@ -30,7 +30,10 @@ class ProjectPolicy
         return $this->hasWriteAccess($user, $project);
     }
 
-
+    public function delete(User $user, Project $project): bool
+    {
+        return $this->hasOwnerAccess($user, $project);
+    }
 
     public function deleteUser(User $user, Project $project): bool
     {

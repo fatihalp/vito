@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\User\SearchUsers;
 use App\Actions\User\CreateUser;
+use App\Actions\User\SearchUsers;
 use App\Actions\User\UpdateUser;
+use App\Helpers\QueryBuilder;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
-use App\Models\User;
 use App\Models\Project;
+use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -31,15 +32,24 @@ class UserController extends Controller
     {
         $this->authorize('viewAny', User::class);
 
+        $users = QueryBuilder::for(
+            User::query()->with([
+                'projects' => fn ($query) => $query->withCount(['servers', 'sites'])->with(['users' => fn ($users) => $users->where('user_id', user()->id)]),
+                'projectMemberships.project',
+            ])
+        )
+            ->searchableFields(['name', 'email'])
+            ->sortable('created_at', 'desc', [
+                'name' => 'name',
+                'email' => 'email',
+                'last_login_at' => 'last_login_at',
+                'last_activity_at' => 'last_activity_at',
+                'created_at' => 'created_at',
+            ])
+            ->simplePaginate();
+
         return Inertia::render('users/index', [
-            'users' => UserResource::collection(
-                User::query()
-                    ->with([
-                        'projects' => fn ($query) => $query->withCount(['servers', 'sites'])->with(['users' => fn ($users) => $users->where('user_id', user()->id)]),
-                        'projectMemberships.project',
-                    ])
-                    ->simplePaginate(config('web.pagination_size'))
-            ),
+            'users' => UserResource::collection($users),
             'projects' => Project::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }

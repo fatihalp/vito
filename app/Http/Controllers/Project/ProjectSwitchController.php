@@ -23,6 +23,6 @@ class ProjectSwitchController extends Controller
             'current_project_id' => $project->id,
         ]);
 
-        return redirect()->route('overview');
+        return redirect()->route('servers');
     }
 }

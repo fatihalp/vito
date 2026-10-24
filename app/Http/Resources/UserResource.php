@@ -26,12 +26,15 @@ class UserResource extends JsonResource
                 'last_login_browser' => $this->last_login_browser,
                 'last_login_language' => $this->last_login_language,
                 'last_login_user_agent' => $this->last_login_user_agent,
-                'project_access' => $this->whenLoaded('projectMemberships', fn () => $this->projectMemberships->map(fn (UserProject $membership): array => [
-                    'project_id' => $membership->project_id,
-                    'name' => $membership->project?->name,
-                    'role' => $membership->role->getText(),
-                    'role_color' => $membership->role->getColor(),
-                ])),
+                'project_access' => $this->whenLoaded('projectMemberships', fn () => $this->projectMemberships
+                    ->filter(fn (UserProject $membership): bool => $membership->project !== null)
+                    ->values()
+                    ->map(fn (UserProject $membership): array => [
+                        'project_id' => $membership->project_id,
+                        'name' => $membership->project?->name,
+                        'role' => $membership->role->getText(),
+                        'role_color' => $membership->role->getColor(),
+                    ])),
             ]),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
