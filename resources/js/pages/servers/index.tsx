@@ -110,6 +110,43 @@ const cpuCell = metricCell(80);
 const ramCell = metricCell(85);
 const diskCell = metricCell(90);
 
+const coresCell = ({ value }: CellRenderProps) => {
+  const cores = typeof value === 'number' && value > 0 ? value : null;
+
+  if (cores === null) {
+    return <span className="text-muted-foreground text-xs">—</span>;
+  }
+
+  return <span className="font-mono text-sm">{cores} vCPU</span>;
+};
+
+type ServerCost = {
+  amount: number;
+  currency: string;
+  formatted: string;
+  plan: string;
+  region: string | null;
+};
+
+const costCell = ({ value }: CellRenderProps) => {
+  const cost = (value as ServerCost | null) ?? null;
+
+  if (!cost || !cost.formatted) {
+    return <span className="text-muted-foreground text-xs">—</span>;
+  }
+
+  return (
+    <div className="flex flex-col">
+      <span className="font-mono text-sm font-medium">{cost.formatted}</span>
+      {cost.plan && (
+        <span className="text-muted-foreground text-[11px]">
+          {cost.plan}{cost.region ? ` · ${cost.region}` : ''}
+        </span>
+      )}
+    </div>
+  );
+};
+
 const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
   const str = `${String(roleValue || '')} ${String(roleLabel || '')}`.toLowerCase();
 
@@ -359,6 +396,8 @@ export default function Servers() {
           }
           cellRenderers={{
             name: nameCell,
+            cpu_cores: coresCell,
+            monthly_cost: costCell,
             php_versions: phpVersionsCell,
             cpu_usage_percent: cpuCell,
             memory_used_percent: ramCell,

@@ -14,6 +14,8 @@ class GetAccessibleProjects
             ->allProjects()
             ->withCount(['servers', 'sites'])
             ->with([
+                'servers:id,project_id,provider,provider_id,provider_data',
+                'servers.serverProvider',
                 'users' => fn ($query) => $query->where(fn ($w) => $w->whereNull('user_id')->orWhereHas('user')),
                 'users.project',
                 'users.user',

@@ -3,6 +3,7 @@
 namespace App\Tables;
 
 use App\Actions\Server\CheckPhpVersions;
+use App\Actions\Server\ResolveHetznerServerSpecs;
 use App\Enums\ServerStatus;
 use App\Models\Metric;
 use App\Models\Server;
@@ -43,6 +44,7 @@ class ServerTable extends Table
 
     protected function query(): void
     {
+        $cpuCoresSubquery = $this->metricSubquery('cpu_cores');
         $cpuSubquery = $this->metricSubquery('cpu_usage_percent');
         $memorySubquery = $this->metricSubquery(
             'CASE WHEN memory_total > 0 THEN ROUND(memory_used * 100.0 / memory_total, 1) ELSE NULL END'
@@ -53,11 +55,12 @@ class ServerTable extends Table
 
         $this->query
             ->select('servers.*')
+            ->selectSub($cpuCoresSubquery, 'cpu_cores')
             ->selectSub($cpuSubquery, 'cpu_usage_percent')
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
             ->selectSub($this->phpVersionSubquery(), 'php_version_order')
-            ->with(['latestMetric', 'project', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id', 'type', 'name', 'version', 'status', 'is_default')])
+            ->with(['latestMetric', 'project', 'serverProvider', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id', 'type', 'name', 'version', 'status', 'is_default')])
             ->withCount(['backups as backups_with_health_count' => fn ($query) => $query->whereNotNull('health')]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
@@ -83,6 +86,11 @@ class ServerTable extends Table
             ...$columns,
             Column::data('id'),
             LinkColumn::make('name', 'Name')->sortable()->route('servers.show', ['server' => ':id']),
+            Column::make('cpu_cores', 'Cores')
+                ->sortable()
+                ->value(fn (Server $server): ?int => app(ResolveHetznerServerSpecs::class)->resolveCores($server)),
+            Column::make('monthly_cost', 'Cost')
+                ->value(fn (Server $server): ?array => app(ResolveHetznerServerSpecs::class)->resolveCost($server)),
             EnumColumn::make('role', 'Type')->sortable(),
             TextColumn::make('stage', 'Stage')->sortable(),
             TextColumn::make('ip', 'IP')->sortable(),

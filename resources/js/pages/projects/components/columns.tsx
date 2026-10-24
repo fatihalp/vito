@@ -81,6 +81,7 @@ export const columns: ColumnDef<Project>[] = [
       const users = getActiveRegisteredUsers(row.original);
       const count = users.length;
       const serversCount = row.original.servers_count ?? 0;
+      const monthlyCost = row.original.monthly_cost;
 
       return (
         <div className="flex items-center gap-1.5">
@@ -89,6 +90,11 @@ export const columns: ColumnDef<Project>[] = [
           <Badge variant="secondary" className="text-xs font-normal">
             {serversCount} {serversCount === 1 ? 'server' : 'servers'}
           </Badge>
+          {monthlyCost && monthlyCost.amount > 0 && (
+            <Badge variant="outline" className="font-mono text-xs font-normal">
+              {monthlyCost.formatted}
+            </Badge>
+          )}
           <CurrentProject project={row.original} />
         </div>
       );
@@ -101,6 +107,20 @@ export const columns: ColumnDef<Project>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       return <Badge variant="outline">{row.original.servers_count ?? 0}</Badge>;
+    },
+  },
+  {
+    id: 'monthly_cost',
+    header: 'Cost',
+    enableColumnFilter: false,
+    enableSorting: false,
+    cell: ({ row }) => {
+      const monthlyCost = row.original.monthly_cost;
+      if (!monthlyCost || monthlyCost.amount <= 0) {
+        return <span className="text-muted-foreground text-xs">—</span>;
+      }
+
+      return <span className="font-mono text-sm font-medium">{monthlyCost.formatted}</span>;
     },
   },
   {
