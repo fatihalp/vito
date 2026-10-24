@@ -103,7 +103,7 @@ class SiteController extends Controller
     {
         $this->authorize('viewAny', [Site::class, $server]);
 
-        return response()->json(app(GetSiteCreationDefaults::class)->get($server));
+        return response()->json(app(GetSiteCreationDefaults::class)->get($server, user()));
     }
 
     
