@@ -47,6 +47,8 @@ class CreateCronJob
         $rules = [
             'command' => [
                 'required',
+                'string',
+                'not_regex:/[\r\n]/',
             ],
             'user' => [
                 'required',

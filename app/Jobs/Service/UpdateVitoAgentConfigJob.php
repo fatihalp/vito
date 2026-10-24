@@ -7,7 +7,6 @@ use App\Models\Server;
 use App\Models\Service;
 use App\Services\Monitoring\VitoAgent\VitoAgent;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
@@ -63,7 +62,7 @@ class UpdateVitoAgentConfigJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Log::warning('Failed to update vito-agent config', [
             'server_id' => $this->server->id,

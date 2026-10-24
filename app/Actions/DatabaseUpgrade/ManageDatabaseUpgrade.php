@@ -316,7 +316,7 @@ class ManageDatabaseUpgrade
             ))]));
 
             $this->step($upgrade, __('Restoring the backup of :server onto the new server', ['server' => $source->name]));
-            $replication->startSeed(min($positions));
+            $replication->startSeed(collect($positions)->sortBy(fn (string $lsn): int => self::lsnToInt($lsn))->first());
 
             $upgrade->update([
                 'status' => DatabaseUpgradeStatus::SEEDING,
@@ -757,5 +757,15 @@ class ManageDatabaseUpgrade
             $extensions->isEmpty() ? null : trans_choice('{1}The extension :names must exist for PostgreSQL on the new server, else copying the schema fails.|[2,*]The extensions :names must exist for PostgreSQL on the new server, else copying the schema fails.', $extensions->count(), ['names' => $extensions->implode(', ')]),
             __('Tables created on the old server after the copy starts are not copied. Hold your migrations until the switch.'),
         ]));
+    }
+
+    /**
+     * Converts a PostgreSQL LSN such as 0/1A2B3C4D into a comparable integer.
+     */
+    private static function lsnToInt(string $lsn): int
+    {
+        [$high, $low] = array_pad(explode('/', $lsn, 2), 2, '0');
+
+        return (hexdec($high) << 32) | hexdec($low);
     }
 }

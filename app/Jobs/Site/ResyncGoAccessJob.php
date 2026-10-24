@@ -6,9 +6,9 @@ use App\Actions\SiteStats\SyncGoAccessServer;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class ResyncGoAccessJob implements ShouldQueue
 {
@@ -29,7 +29,7 @@ class ResyncGoAccessJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->server, 'resync-goaccess-failed', $e->getMessage());
     }

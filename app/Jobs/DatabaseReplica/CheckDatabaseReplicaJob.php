@@ -7,10 +7,10 @@ use App\Enums\DatabaseReplicaStatus;
 use App\Models\DatabaseReplica;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class CheckDatabaseReplicaJob implements ShouldQueue, ShouldBeUnique
 {
@@ -48,7 +48,7 @@ class CheckDatabaseReplicaJob implements ShouldQueue, ShouldBeUnique
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->replica->primary, 'database-replica-check-failed', $e->getMessage());
     }

@@ -3,10 +3,9 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-class PluginError extends Model
+class PluginError extends AbstractModel
 {
     protected $fillable = [
         'plugin_id',

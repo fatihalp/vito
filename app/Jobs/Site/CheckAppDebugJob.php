@@ -6,11 +6,11 @@ use App\Actions\Site\BroadcastSiteUpdate;
 use App\Actions\Site\CheckAppDebug;
 use App\Models\Site;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class CheckAppDebugJob implements ShouldQueue, ShouldBeUnique
 {
@@ -46,7 +46,7 @@ class CheckAppDebugJob implements ShouldQueue, ShouldBeUnique
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Cache::forget("site:{$this->site->id}:app-debug-disabled:pending");
     }

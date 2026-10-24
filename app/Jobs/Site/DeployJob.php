@@ -15,9 +15,9 @@ use App\Models\ServerLog;
 use App\Notifications\DeploymentCompleted;
 use App\SSH\OS\Git;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class DeployJob implements ShouldQueue
 {
@@ -63,7 +63,7 @@ class DeployJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $site = $this->deployment->site;
         $current = $site->deployments()->where('active', 1)->whereNotNull('release')->first();

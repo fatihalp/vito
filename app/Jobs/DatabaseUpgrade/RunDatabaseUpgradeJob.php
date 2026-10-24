@@ -7,9 +7,9 @@ use App\Enums\DatabaseUpgradeStatus;
 use App\Exceptions\SSHError;
 use App\Models\DatabaseUpgrade;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class RunDatabaseUpgradeJob implements ShouldQueue
 {
@@ -61,7 +61,7 @@ class RunDatabaseUpgradeJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $upgrade = DatabaseUpgrade::query()->find($this->upgrade->id);
 

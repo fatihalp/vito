@@ -2,6 +2,7 @@
 
 namespace App\Actions\Server;
 
+use Throwable;
 use App\Jobs\Server\InstallJob;
 use App\Enums\ServerRole;
 use App\Models\Project;
@@ -11,7 +12,6 @@ use App\Models\User;
 use App\ServerProviders\Custom;
 use App\ServerProviders\Existing;
 use App\ValidationRules\RestrictedIPAddressesRule;
-use Exception;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -77,7 +77,7 @@ class CreateServer
             $this->server->refresh();
 
             return $this->server;
-        } catch (Exception $e) {
+        } catch (Throwable $e) {
             $this->server->delete();
 
             throw ValidationException::withMessages([

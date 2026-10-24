@@ -28,7 +28,7 @@ class BackupTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with(['server', 'storage', 'database', 'lastFile'])->latest();
+        $this->query->with(['server', 'storage', 'database', 'cluster', 'lastFile.server'])->latest();
     }
 
     protected function columns(): array

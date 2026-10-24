@@ -9,9 +9,9 @@ use App\Http\Resources\ServiceResource;
 use App\Models\ServerLog;
 use App\Models\Service;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class ManageJob implements ShouldQueue
 {
@@ -34,7 +34,7 @@ class ManageJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->service->status = ServiceStatus::FAILED;
         $this->service->save();

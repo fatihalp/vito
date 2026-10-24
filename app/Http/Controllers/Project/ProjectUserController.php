@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Project;
 
+use App\Actions\Projects\RemoveUserFromProject;
 use App\Actions\Projects\InviteToProject;
 use App\Actions\Projects\GetProjectInvitees;
 use App\Actions\User\CreateUser;
@@ -9,7 +10,6 @@ use App\Enums\UserRole;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectInviteeResource;
 use App\Models\Project;
-use App\Models\UserProject;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -50,7 +50,10 @@ class ProjectUserController extends Controller
     {
         $this->authorize('update', $project);
 
-        $user = app(CreateUser::class)->create($request->all());
+        $user = app(CreateUser::class)->create([
+            ...$request->all(),
+            'role' => user()->isAdmin() ? $request->input('role', UserRole::USER->value) : UserRole::USER->value,
+        ]);
 
         return response()->json([
             'id' => $user->id,
@@ -64,20 +67,7 @@ class ProjectUserController extends Controller
     {
         $this->authorize('update', $project);
 
-        
-        $userProject = $project->users()->where('id', $id)->first();
-
-        if ($userProject?->user && $project->role($userProject->user) === UserRole::OWNER) {
-            return back()->with('error', __('You cannot remove the project owner.'));
-        }
-
-        if ($userProject?->email === user()->email || $userProject?->user_id === user()->id) {
-            return back()->with('error', __('You cannot remove yourself from the project.'));
-        }
-
-        $project->users()
-            ->where('id', $id)
-            ->delete();
+        app(RemoveUserFromProject::class)->remove($project, user(), $id);
 
         return back()->with('success', __('The user has been removed.'));
     }

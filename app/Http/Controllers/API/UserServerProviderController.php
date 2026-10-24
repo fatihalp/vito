@@ -91,7 +91,7 @@ class UserServerProviderController extends Controller
             abort(404, 'Server provider not found');
         }
 
-        return response()->json($serverProvider->provider()->regions());
+        return response()->json($serverProvider->cachedRegions());
     }
 
     #[Get('{serverProvider}/regions/{region}/plans', name: 'api.user.server-providers.plans', middleware: 'ability:read')]
@@ -104,7 +104,7 @@ class UserServerProviderController extends Controller
             abort(404, 'Server provider not found');
         }
 
-        return response()->json($serverProvider->provider()->availablePlans($region));
+        return response()->json($serverProvider->cachedPlans($region, available: true));
     }
 
     #[Delete('{serverProvider}', name: 'api.user.server-providers.delete', middleware: 'ability:write')]

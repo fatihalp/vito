@@ -20,7 +20,7 @@ class SslPolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 
@@ -33,14 +33,14 @@ class SslPolicy
 
     public function delete(User $user, Ssl $ssl, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $ssl->server_id === $server->id;
     }
 
     public function activate(User $user, Ssl $ssl, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $ssl->server_id === $server->id;
     }

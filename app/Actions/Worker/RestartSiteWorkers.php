@@ -19,14 +19,14 @@ class RestartSiteWorkers
 
     public function restart(Site $site, ?ServerLog $log = null): void
     {
-        
-        $handler = $site->server->processManager()->handler();
-
+        $processManager = $site->server->processManager();
         $workers = $site->loadMissing('workers.site')->workers;
 
-        if ($workers->isEmpty()) {
+        if ($processManager === null || $workers->isEmpty()) {
             return;
         }
+
+        $handler = $processManager->handler();
 
         try {
             $workers->each(fn (Worker $worker) => $handler->writeConfig($worker));

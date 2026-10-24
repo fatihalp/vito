@@ -5,10 +5,10 @@ namespace App\Jobs\Site;
 use App\Actions\Site\SearchEnvKey;
 use App\Models\User;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class SearchEnvKeyJob implements ShouldQueue
 {
@@ -30,7 +30,7 @@ class SearchEnvKeyJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Cache::put(
             "env-search-result:{$this->searchId}",

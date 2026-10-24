@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Actions\User\UpdateUserPassword;
+use App\Actions\User\UpdateUserProfileInformation;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
 use Inertia\Response;
 use Laravel\Fortify\Actions\DisableTwoFactorAuthentication;
@@ -41,20 +39,7 @@ class ProfileController extends Controller
     #[Patch('/', name: 'profile.update')]
     public function update(Request $request): RedirectResponse
     {
-        $this->validate($request, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'string',
-                'lowercase',
-                'email',
-                'max:255',
-                Rule::unique(User::class)->ignore(user()->id),
-            ],
-        ]);
-        $request->user()->fill($request->only('name', 'email'));
-
-        $request->user()->save();
+        app(UpdateUserProfileInformation::class)->update($request->user(), $request->only('name', 'email'));
 
         return to_route('profile');
     }
@@ -62,15 +47,7 @@ class ProfileController extends Controller
     #[Put('/', name: 'profile.password')]
     public function password(Request $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'current_password' => ['required', 'current_password'],
-            'password' => ['required', Password::defaults(), 'confirmed'],
-        ]);
-
-        $request->user()->update([
-            'password' => Hash::make($validated['password']),
-            'must_change_password' => false,
-        ]);
+        app(UpdateUserPassword::class)->update($request->user(), $request->only('current_password', 'password', 'password_confirmation'));
 
         return to_route('profile');
     }

@@ -31,7 +31,7 @@ class WorkerPolicy
 
     public function create(User $user, Server $server, ?Site $site = null): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             (! $site || $site->server_id === $server->id) &&
             $server->processManager();
@@ -39,7 +39,7 @@ class WorkerPolicy
 
     public function manage(User $user, Server $server, ?Site $site = null): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             (! $site || $site->server_id === $server->id) &&
             $server->processManager();
@@ -47,7 +47,7 @@ class WorkerPolicy
 
     public function update(User $user, Worker $worker, Server $server, ?Site $site = null): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $worker->server_id === $server->id &&
             (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&
@@ -56,7 +56,7 @@ class WorkerPolicy
 
     public function delete(User $user, Worker $worker, Server $server, ?Site $site = null): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $worker->server_id === $server->id &&
             (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&

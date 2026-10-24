@@ -26,7 +26,7 @@ class RefreshServerResourceConnections
                     SiteResourceType::STORAGE => null,
                 };
 
-                if ($key === null) {
+                if ($key === null || $resource->server_id === $resource->site?->server_id) {
                     return;
                 }
 
@@ -46,6 +46,10 @@ class RefreshServerResourceConnections
             ->get()
             ->flatMap(fn ($site) => $site->resources)
             ->each(function (SiteResource $resource) use ($server): void {
+                if ($resource->server_id === $resource->site?->server_id) {
+                    return;
+                }
+
                 if ($resource->type === SiteResourceType::DATABASE) {
                     $databaseUserId = $resource->configuration['database_user_id'] ?? null;
                     $databaseUser = $databaseUserId ? DatabaseUser::query()->find($databaseUserId) : null;

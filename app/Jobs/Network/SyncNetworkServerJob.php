@@ -108,11 +108,16 @@ class SyncNetworkServerJob implements ShouldQueue
 
         $this->applyFirewall();
 
-        $this->member->status = NetworkServerStatus::ACTIVE;
-        $this->member->sync_attempts = 0;
-        $this->member->save();
+        $activated = NetworkServer::query()
+            ->whereKey($this->member->id)
+            ->where('status', NetworkServerStatus::UPDATING)
+            ->update(['status' => NetworkServerStatus::ACTIVE, 'sync_attempts' => 0]);
 
-        $this->broadcastMember();
+        if ($activated === 1) {
+            $this->member->refresh();
+            $this->broadcastMember();
+        }
+
         app(RecomputeNetworkStatus::class)->handle($network);
     }
 
@@ -136,7 +141,7 @@ class SyncNetworkServerJob implements ShouldQueue
 
         $projectId = $network->project_id;
         $memberId = $this->member->id;
-        $this->member->delete();
+        NetworkServer::query()->whereKey($memberId)->where('status', NetworkServerStatus::LEAVING)->delete();
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $projectId,

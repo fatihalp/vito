@@ -12,7 +12,6 @@ use App\Models\BackupFile;
 use App\Models\ServerLog;
 use App\Notifications\RestoreFailed;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
@@ -63,7 +62,7 @@ class RestoreFileJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $server = $this->backupFile->backup->server;
         $this->backupFile->status = BackupFileStatus::RESTORE_FAILED;

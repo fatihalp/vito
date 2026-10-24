@@ -13,16 +13,22 @@ class DeleteOlderMetricsCommand extends Command
 
     public function handle(): void
     {
-        Service::query()->where('type', 'monitoring')->chunk(100, function ($services): void {
-            $services->each(function ($service): void {
-                $this->info("Deleting older metrics for service {$service->server->name}");
-                $service
-                    ->server
-                    ->metrics()
-                    ->where('created_at', '<', now()->subDays($service->handler()->data()['data_retention']))
-                    ->delete();
-                $this->info('Metrics deleted');
+        Service::query()
+            ->where('type', 'monitoring')
+            ->whereHas('server')
+            ->with('server')
+            ->chunkById(100, function ($services): void {
+                foreach ($services as $service) {
+                    $cutoff = now()->subDays((int) ($service->handler()->data()['data_retention'] ?? 10));
+                    $deleted = 0;
+
+                    do {
+                        $batch = $service->server->metrics()->where('created_at', '<', $cutoff)->limit(5000)->delete();
+                        $deleted += $batch;
+                    } while ($batch > 0);
+
+                    $this->info("Deleted {$deleted} older metrics for server {$service->server->name}");
+                }
             });
-        });
     }
 }

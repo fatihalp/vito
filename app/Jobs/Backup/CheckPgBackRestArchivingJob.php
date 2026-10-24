@@ -7,9 +7,9 @@ use App\Actions\Backup\ManagePgBackRest;
 use App\Models\Backup;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class CheckPgBackRestArchivingJob implements ShouldQueue
 {
@@ -28,7 +28,7 @@ class CheckPgBackRestArchivingJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->backup->server, 'pgbackrest-archiving-check-failed', $e->getMessage());
     }

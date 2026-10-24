@@ -23,6 +23,7 @@ use App\Traits\UniqueQueue;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class CreateJob implements ShouldQueue
 {
@@ -56,7 +57,7 @@ class CreateJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->site->status = SiteStatus::INSTALLATION_FAILED;
         $this->site->last_error = $this->safeErrorSummary($e);

@@ -12,9 +12,9 @@ use App\Models\Service;
 use App\Models\Site;
 use App\Services\Webserver\Webserver;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class CreateJob implements ShouldQueue
 {
@@ -37,7 +37,7 @@ class CreateJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->redirect->status = RedirectStatus::FAILED;
         $this->redirect->save();

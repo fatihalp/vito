@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use App\Traits\HasEnumHelpers;
 
 enum SslType: string implements VitoEnum
 {
+    use TextIsValue;
+
     use HasEnumHelpers;
 
     case LETSENCRYPT = 'letsencrypt';
@@ -20,10 +23,5 @@ enum SslType: string implements VitoEnum
             self::CUSTOM,
             self::CSR => 'default',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

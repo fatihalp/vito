@@ -2,33 +2,30 @@
 
 namespace App\Actions\Site;
 
-use App\Actions\Webserver\GenerateCaddyConfig;
-use App\Actions\Webserver\GenerateNginxConfig;
 use App\Models\Site;
+use Illuminate\Support\Facades\Validator;
 
 class UpdateVhostTemplate
 {
-    
     public function update(Site $site, array $input): void
     {
-        $validated = validator($input, [
+        $validated = Validator::make($input, [
             'template' => ['required', 'string', 'max:65535'],
         ])->validate();
 
-        $site->vhost_template = $this->matchesDefault($site, $validated['template'])
-            ? null
-            : $validated['template'];
+        $this->apply($site, rtrim($validated['template']) === rtrim($site->webserver()->defaultVhostTemplate()) ? null : $validated['template']);
+    }
+
+    public function reset(Site $site): void
+    {
+        $this->apply($site, null);
+    }
+
+    private function apply(Site $site, ?string $template): void
+    {
+        $site->vhost_template = $template;
         $site->save();
 
         $site->webserver()->updateVHost($site);
-    }
-
-    private function matchesDefault(Site $site, string $template): bool
-    {
-        $generator = $site->webserver()::id() === 'caddy'
-            ? app(GenerateCaddyConfig::class)
-            : app(GenerateNginxConfig::class);
-
-        return rtrim($template) === rtrim($generator->defaultTemplate());
     }
 }

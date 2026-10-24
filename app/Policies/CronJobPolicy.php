@@ -31,7 +31,7 @@ class CronJobPolicy
 
     public function create(User $user, Server $server, ?Site $site = null): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady() &&
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady() &&
             (! $site || $site->server_id === $server->id);
     }
 
@@ -39,7 +39,7 @@ class CronJobPolicy
     {
         $cronJobServer = $cronjob->server;
 
-        return $this->hasWriteAccess($user, $cronJobServer->project) &&
+        return $this->hasServerWriteAccess($user, $cronJobServer) &&
             $cronJobServer->isReady() &&
             $cronjob->server_id === $server->id &&
             (! $site || ($site->server_id === $server->id && $cronjob->site_id === $site->id));
@@ -49,7 +49,7 @@ class CronJobPolicy
     {
         $cronJobServer = $cronjob->server;
 
-        return $this->hasWriteAccess($user, $cronJobServer->project) &&
+        return $this->hasServerWriteAccess($user, $cronJobServer) &&
             $cronJobServer->isReady() &&
             $cronjob->server_id === $server->id &&
             (! $site || ($site->server_id === $server->id && $cronjob->site_id === $site->id));

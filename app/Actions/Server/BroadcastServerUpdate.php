@@ -11,7 +11,7 @@ class BroadcastServerUpdate
 {
     public function broadcast(Server $server): void
     {
-        $server->refresh()->load('latestMetric');
+        $server->refresh()->loadForResource();
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $server->project_id,

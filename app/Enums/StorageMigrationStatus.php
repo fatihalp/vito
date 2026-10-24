@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum StorageMigrationStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case PENDING = 'pending';
     case SCANNING = 'scanning';
     case RUNNING = 'running';
@@ -29,11 +32,6 @@ enum StorageMigrationStatus: string implements VitoEnum
             self::FAILED => 'danger',
             self::CANCELLED => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 
     public function isActive(): bool

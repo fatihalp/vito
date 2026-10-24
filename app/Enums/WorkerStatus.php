@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum WorkerStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case RUNNING = 'running';
     case CREATING = 'creating';
     case DELETING = 'deleting';
@@ -27,10 +30,5 @@ enum WorkerStatus: string implements VitoEnum
             self::FAILED => 'danger',
             self::STOPPED => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

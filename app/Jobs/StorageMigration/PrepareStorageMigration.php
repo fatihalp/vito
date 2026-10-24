@@ -16,7 +16,6 @@ use App\Models\StorageProvider;
 use App\StorageProviders\S3;
 use App\Support\S3ObjectCopier;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Queue\Queueable;
@@ -87,7 +86,7 @@ class PrepareStorageMigration implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         StorageMigration::whereKey($this->storageMigration->id)->update([
             'status' => StorageMigrationStatus::FAILED->value,

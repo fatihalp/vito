@@ -29,7 +29,7 @@ class DatabasePolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $server->database();
     }
@@ -38,7 +38,7 @@ class DatabasePolicy
     {
         $server = $database->server;
 
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $server->database();
     }

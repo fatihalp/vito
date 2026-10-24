@@ -14,6 +14,7 @@ use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
+use Throwable;
 
 class ActivateServerSslJob implements ShouldQueue
 {
@@ -37,13 +38,6 @@ class ActivateServerSslJob implements ShouldQueue
                 $ssh->write($basePath.'/ca.pem', $this->ssl->ca, 'root');
             }
 
-            $this->ssl->certificate_path = $basePath.'/cert.pem';
-            $this->ssl->pk_path = $pkPath;
-            $this->ssl->ca_path = $this->ssl->ca ? $basePath.'/ca.pem' : null;
-            $this->ssl->type = 'custom';
-            $this->ssl->status = SslStatus::CREATED;
-            $this->ssl->save();
-
             $result = $ssh->exec(view('ssh.ssl.activate-ssl', [
                 'passphrase' => $this->ssl->csr_passphrase,
                 'pkPath' => $pkPath,
@@ -54,11 +48,18 @@ class ActivateServerSslJob implements ShouldQueue
                 throw new Exception('SSL activation failed: '.$result);
             }
 
+            $this->ssl->certificate_path = $basePath.'/cert.pem';
+            $this->ssl->pk_path = $pkPath;
+            $this->ssl->ca_path = $this->ssl->ca ? $basePath.'/ca.pem' : null;
+            $this->ssl->type = 'custom';
+            $this->ssl->status = SslStatus::CREATED;
+            $this->ssl->save();
+
             $this->broadcastSslUpdate();
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->ssl->status = SslStatus::FAILED;
         $this->ssl->save();

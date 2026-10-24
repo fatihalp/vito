@@ -11,9 +11,9 @@ use App\Models\ServerLog;
 use App\Notifications\ServerAutoUpdateCompleted;
 use App\Notifications\ServerUpdateFailed;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class UpdateJob implements ShouldQueue
 {
@@ -52,7 +52,7 @@ class UpdateJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         Notifier::send($this->server, new ServerUpdateFailed($this->server));
         $this->server->checkConnection();

@@ -39,6 +39,7 @@ type GithubAppData = {
 
 type Manifest = {
   manifest: string;
+  state: string;
   submit_url: string;
 };
 
@@ -152,6 +153,7 @@ function CreateAppCard({ manifest, manualSetup }: { manifest: Manifest; manualSe
               </p>
               <form method="post" action={manifest.submit_url}>
                 <input type="hidden" name="manifest" value={manifest.manifest} />
+                <input type="hidden" name="state" value={manifest.state} />
                 <Button type="submit">
                   <GithubIcon />
                   Create GitHub App

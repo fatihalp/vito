@@ -40,6 +40,7 @@ class WorkerController extends Controller
         $this->authorize('viewAny', [Worker::class, $server]);
 
         $workers = $server->workers()
+            ->with('site:id,server_id,type_data')
             ->latest()
             ->simplePaginate(25);
 
@@ -54,6 +55,7 @@ class WorkerController extends Controller
         $this->authorize('viewAny', [Worker::class, $server, $site]);
 
         $workers = $site->workers()
+            ->with('site:id,server_id,type_data')
             ->latest()
             ->simplePaginate(25);
 

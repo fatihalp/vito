@@ -7,6 +7,7 @@ use App\Actions\Site\DeleteSite;
 use App\Actions\Site\PreviewVhost;
 use App\Actions\Site\UpdateBasicAuth;
 use App\Actions\Site\UpdateBranch;
+use App\Actions\Site\UpdateForceSsl;
 use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Site\UpdatePHPVersion;
 use App\Actions\Site\UpdatePort;
@@ -19,8 +20,6 @@ use App\Actions\Site\UpdateVhostGeneration;
 use App\Actions\Site\UpdateVhostTemplate;
 use App\Actions\Site\UpdateWebDirectory;
 use App\Actions\Site\WorkerStartCommandUpdateResult;
-use App\Actions\Webserver\GenerateCaddyConfig;
-use App\Actions\Webserver\GenerateNginxConfig;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
 use App\Helpers\EnvParser;
 use App\Http\Resources\SourceControlResource;
@@ -30,7 +29,6 @@ use App\SiteTypes\AbstractProxiedSiteType;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -251,10 +249,8 @@ class SiteSettingController extends Controller
     {
         $this->authorize('update', [$site, $server]);
 
-        $generator = $this->getVhostGenerator($site);
-
         return response()->json([
-            'template' => $site->vhost_template ?? $generator->defaultTemplate(),
+            'template' => $site->vhost_template ?? $site->webserver()->defaultVhostTemplate(),
         ]);
     }
 
@@ -273,9 +269,7 @@ class SiteSettingController extends Controller
     {
         $this->authorize('update', [$site, $server]);
 
-        $site->vhost_template = null;
-        $site->save();
-        $site->webserver()->updateVHost($site);
+        app(UpdateVhostTemplate::class)->reset($site);
 
         return back()->with('success', 'VHost template reset to default.');
     }
@@ -302,30 +296,13 @@ class SiteSettingController extends Controller
         return back()->with('success', 'VHost generation setting updated successfully.');
     }
 
-    private function getVhostGenerator(Site $site): GenerateNginxConfig|GenerateCaddyConfig
-    {
-        return $site->webserver()::id() === 'caddy'
-            ? app(GenerateCaddyConfig::class)
-            : app(GenerateNginxConfig::class);
-    }
 
     #[Post('/toggle-force-ssl', name: 'site-settings.toggle-force-ssl')]
     public function toggleForceSsl(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
-        if (! $site->webserver()->canConfigureSSL()) {
-            throw ValidationException::withMessages([
-                'force_ssl' => 'Force SSL cannot be changed for this webserver.',
-            ]);
-        }
-        
-        $request->validate(['enabled' => 'required|boolean']);
-        $enabled = (bool) $request->input('enabled');
-
-        $site->force_ssl = $enabled;
-        $site->save();
-        $site->webserver()->updateVHost($site);
+        $enabled = app(UpdateForceSsl::class)->update($site, $request->input());
 
         return back()->with('success', $enabled ? 'Force SSL enabled successfully.' : 'Force SSL disabled successfully.');
     }
@@ -335,16 +312,9 @@ class SiteSettingController extends Controller
     {
         $this->authorize('update', [$site, $server]);
         
-        $request->validate(['enabled' => 'required|boolean']);
-        $enabled = (bool) $request->input('enabled');
+        $enabled = app(UpdateSiteStats::class)->toggle($site, $request->input());
 
-        if ($enabled) {
-            app(UpdateSiteStats::class)->enable($site);
-            return back()->with('success', 'Statistics enabled for this site.');
-        }
-
-        app(UpdateSiteStats::class)->disable($site);
-        return back()->with('success', 'Statistics disabled and historical data erased.');
+        return back()->with('success', $enabled ? 'Statistics enabled for this site.' : 'Statistics disabled and historical data erased.');
     }
 
     

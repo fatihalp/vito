@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum CronjobStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case CREATING = 'creating';
     case READY = 'ready';
     case DELETING = 'deleting';
@@ -25,10 +28,5 @@ enum CronjobStatus: string implements VitoEnum
             self::DELETING => 'danger',
             self::DISABLED => 'gray',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

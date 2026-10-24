@@ -10,9 +10,9 @@ use App\Models\Command;
 use App\Models\CommandExecution;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class ExecuteCommandJob implements ShouldQueue
 {
@@ -51,7 +51,7 @@ class ExecuteCommandJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->execution->status = CommandExecutionStatus::FAILED;
         $this->execution->save();

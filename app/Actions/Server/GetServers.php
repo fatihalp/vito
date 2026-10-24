@@ -12,7 +12,7 @@ class GetServers
     {
         $validated = $this->validate($input);
 
-        $serversQuery = $project->servers();
+        $serversQuery = $project->servers()->forResource();
 
         if (! empty($validated['exclude_self'])) {
             $serversQuery->where(function ($query) {

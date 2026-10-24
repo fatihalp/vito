@@ -9,9 +9,9 @@ use App\Enums\BackupStatus;
 use App\Models\Backup;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class SetupPgBackRestJob implements ShouldQueue
 {
@@ -29,7 +29,7 @@ class SetupPgBackRestJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $this->backup->status = BackupStatus::FAILED;
         $this->backup->save();

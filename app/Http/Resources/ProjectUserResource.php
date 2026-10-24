@@ -17,7 +17,7 @@ class ProjectUserResource extends JsonResource
             'project_name' => $this->project->name ?? null,
             'name' => $this->user?->name,
             'email' => $this->email ?? $this->user?->email,
-            'role' => $this->role,
+            'role' => $this->role?->getText(),
             'type' => $this->user_id ? 'user' : 'invitation',
         ];
     }

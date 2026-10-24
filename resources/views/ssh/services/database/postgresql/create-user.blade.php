@@ -1,4 +1,4 @@
-if ! sudo -u postgres psql <<'EOSQL'
+if ! sudo -u postgres psql -v ON_ERROR_STOP=1 <<'EOSQL'
 DO $$
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = '{{ $username }}') THEN

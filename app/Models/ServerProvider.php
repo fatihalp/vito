@@ -66,39 +66,28 @@ class ServerProvider extends AbstractModel
         return $this->belongsTo(Project::class);
     }
 
-    /** @return array<string> */
-    public static function regions(?int $id): array
+    /**
+     * Provider catalogues change rarely, so they are cached per provider and dropped by forgetCatalogue() when credentials change.
+     *
+     * @return array<string, mixed>
+     */
+    public function cachedRegions(): array
     {
-        if ($id === null || $id === 0) {
-            return [];
-        }
-        
-        $profile = self::find($id);
-        if (! $profile) {
-            return [];
-        }
-
-        if (Cache::get('regions-'.$id)) {
-            return Cache::get('regions-'.$id);
-        }
-
-        $regions = $profile->provider()->regions();
-        Cache::put('regions-'.$id, $regions, 600);
-
-        return $regions;
+        return Cache::remember("server-provider:{$this->id}:regions", now()->addMinutes(10), fn (): array => $this->provider()->regions());
     }
 
-    
-    public static function plans(?int $id, ?string $region): array
+    /**
+     * @return array<string, mixed>
+     */
+    public function cachedPlans(string $region, bool $available = false): array
     {
-        if ($id === null || $id === 0) {
-            return [];
-        }
-        $profile = self::find($id);
-        if (! $profile) {
-            return [];
-        }
-
-        return $profile->provider()->plans($region);
+        return Cache::remember("server-provider:{$this->id}:plans:".($available ? 'available:' : '').$region, now()->addMinutes(10), fn (): array => $available ? $this->provider()->availablePlans($region) : $this->provider()->plans($region));
     }
+
+    public function forgetCatalogue(): void
+    {
+        Cache::forget("server-provider:{$this->id}:regions");
+    }
+
+
 }

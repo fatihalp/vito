@@ -2,12 +2,15 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use App\Traits\HasEnumHelpers;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum HostedDomainStatus: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     use HasEnumHelpers;
 
     case CREATING = 'creating';
@@ -27,11 +30,6 @@ enum HostedDomainStatus: string implements HasTableDisplay, VitoEnum
             self::INACTIVE => 'gray',
             self::DELETING => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 
     public function isProcessing(): bool

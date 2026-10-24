@@ -31,7 +31,7 @@ class CommandPolicy
 
     public function create(User $user, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $site->server_id === $server->id &&
             $server->isReady() &&
             $site->isReady();
@@ -39,7 +39,7 @@ class CommandPolicy
 
     public function update(User $user, Command $command, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
            $site->server_id === $server->id &&
            $server->isReady() &&
            $site->isReady() &&
@@ -48,7 +48,7 @@ class CommandPolicy
 
     public function delete(User $user, Command $command, Site $site, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $site->server_id === $server->id &&
             $server->isReady() &&
             $site->isReady() &&

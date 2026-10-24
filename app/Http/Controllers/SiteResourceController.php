@@ -37,7 +37,7 @@ class SiteResourceController extends Controller
 
         $project = $server->project;
         $user = user();
-        $isAdmin = $user && method_exists($user, 'isAdmin') && $user->isAdmin();
+        $isAdmin = $user?->isAdmin() ?? false;
 
         $serversQuery = $isAdmin ? Server::query() : $project->servers();
         $storageProviders = $isAdmin

@@ -6,9 +6,9 @@ use App\Models\Server;
 use App\Models\ServerLog;
 use App\Services\LogAnalysis\GoAccess\GoAccess;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class CleanupSiteStatsJob implements ShouldQueue
 {
@@ -37,7 +37,7 @@ class CleanupSiteStatsJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log(
             $this->server,

@@ -2,11 +2,14 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 use Forjed\InertiaTable\Contracts\HasTableDisplay;
 
 enum ServerStatus: string implements HasTableDisplay, VitoEnum
 {
+    use TextIsValue;
+
     case READY = 'ready';
     case INSTALLING = 'installing';
     case INSTALLATION_FAILED = 'installation_failed';
@@ -22,10 +25,5 @@ enum ServerStatus: string implements HasTableDisplay, VitoEnum
             self::DISCONNECTED => 'gray',
             self::INSTALLATION_FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

@@ -70,6 +70,8 @@ class CreateDatabaseUser
             'password' => [
                 'required',
                 'min:6',
+                'max:128',
+                'regex:/^[A-Za-z0-9!@#%^*()_+=\\-\\[\\]{}:,.?~\\/]+$/',
             ],
             'permission' => [
                 'nullable',

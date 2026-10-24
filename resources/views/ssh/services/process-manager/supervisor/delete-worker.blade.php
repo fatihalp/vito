@@ -2,7 +2,7 @@ if ! sudo supervisorctl stop {{ $id }}:*; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
 
-if ! sudo rm -rf ~/.logs/workers/{{ $id }}.log; then
+if ! sudo rm -f {!! escapeshellarg($logFile) !!}; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
 

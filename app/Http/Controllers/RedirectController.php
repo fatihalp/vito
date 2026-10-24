@@ -31,7 +31,7 @@ class RedirectController extends Controller
     {
         $this->authorize('viewAny', [Redirect::class, $site, $server]);
 
-        $redirects = QueryBuilder::for($site->redirects())
+        $redirects = QueryBuilder::for($site->redirects()->with('site:id,server_id'))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 

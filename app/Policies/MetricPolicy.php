@@ -27,7 +27,7 @@ class MetricPolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 
@@ -35,7 +35,7 @@ class MetricPolicy
     {
         $server = $metric->server;
 
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 
@@ -43,7 +43,7 @@ class MetricPolicy
     {
         $server = $metric->server;
 
-        return $this->hasWriteAccess($user, $server->project) &&
+        return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady();
     }
 }

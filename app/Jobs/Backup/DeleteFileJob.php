@@ -10,10 +10,10 @@ use App\Http\Resources\BackupFileResource;
 use App\Models\BackupFile;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Str;
+use Throwable;
 
 class DeleteFileJob implements ShouldQueue
 {
@@ -52,7 +52,7 @@ class DeleteFileJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         ServerLog::log($this->file->backup->server, 'delete-backup-file-failed', $e->getMessage());
 

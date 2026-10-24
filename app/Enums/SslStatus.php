@@ -2,10 +2,13 @@
 
 namespace App\Enums;
 
+use App\Enums\Concerns\TextIsValue;
 use App\Contracts\VitoEnum;
 
 enum SslStatus: string implements VitoEnum
 {
+    use TextIsValue;
+
     case CREATED = 'created';
     case CREATING = 'creating';
     case DELETING = 'deleting';
@@ -19,10 +22,5 @@ enum SslStatus: string implements VitoEnum
             self::DELETING => 'warning',
             self::FAILED => 'danger',
         };
-    }
-
-    public function getText(): string
-    {
-        return $this->value;
     }
 }

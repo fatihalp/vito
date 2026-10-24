@@ -91,6 +91,8 @@ class CreateWorker
             ],
             'command' => [
                 'required',
+                'string',
+                'not_regex:/[\r\n]/',
             ],
             'directory' => [
                 'nullable',

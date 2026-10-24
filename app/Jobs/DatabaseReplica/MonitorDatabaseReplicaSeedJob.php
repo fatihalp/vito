@@ -7,9 +7,9 @@ use App\Enums\DatabaseReplicaStatus;
 use App\Exceptions\SSHError;
 use App\Models\DatabaseReplica;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Throwable;
 
 class MonitorDatabaseReplicaSeedJob implements ShouldQueue
 {
@@ -49,7 +49,7 @@ class MonitorDatabaseReplicaSeedJob implements ShouldQueue
         });
     }
 
-    public function failed(Exception $e): void
+    public function failed(Throwable $e): void
     {
         $replica = DatabaseReplica::query()->find($this->replica->id);
 

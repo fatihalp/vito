@@ -23,6 +23,7 @@ class EditServerProvider
         $serverProvider->project_id = $projectId;
 
         $serverProvider->save();
+        $serverProvider->forgetCatalogue();
 
         SocketEvent::dispatch(new SocketEventDTO(
             $serverProvider->project_id ?? 0,

@@ -27,21 +27,21 @@ class ServicePolicy
 
     public function create(User $user, Server $server): bool
     {
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function update(User $user, Service $service, ?Server $server = null): bool
     {
         $server ??= $service->server;
 
-        return $service->server_id === $server->id && $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $service->server_id === $server->id && $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function delete(User $user, Service $service): bool
     {
         $server = $service->server;
 
-        return $this->hasWriteAccess($user, $server->project) && $server->isReady();
+        return $this->hasServerWriteAccess($user, $server) && $server->isReady();
     }
 
     public function start(User $user, Service $service): bool

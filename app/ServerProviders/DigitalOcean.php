@@ -361,7 +361,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
             $delete = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->delete($this->apiUrl.'/droplets/'.$this->server->provider_data['droplet_id']);
 
-            if (! $delete->ok()) {
+            if (! $delete->successful()) {
                 Notifier::send($this->server, new FailedToDeleteServerFromProvider($this->server));
             }
         }

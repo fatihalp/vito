@@ -37,7 +37,7 @@ class BackupFileController extends Controller
         return Inertia::render('backups/files', [
             'backup' => BackupResource::make($backup),
             'files' => BackupFileResource::collection(
-                $backup->files()->with('backup')->latest()->simplePaginate(config('web.pagination_size'))
+                $backup->files()->with(['server', 'backup.storage', 'backup.database', 'backup.cluster'])->latest()->simplePaginate(config('web.pagination_size'))
             ),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
             'restores' => BackupRestoreResource::collection($backup->restores()->with('server', 'file')->latest('id')->limit(10)->get()),

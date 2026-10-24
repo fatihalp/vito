@@ -53,6 +53,7 @@ class GithubAppController extends Controller
             ] : null,
             'manifest' => [
                 'manifest' => $manifestJson,
+                'state' => $this->manifestState($request),
                 'submit_url' => 'https://github.com/settings/apps/new',
             ],
             'manualSetup' => [
@@ -69,13 +70,30 @@ class GithubAppController extends Controller
         ]);
     }
 
+    private function manifestState(Request $request): string
+    {
+        $state = $request->session()->get('github-app.manifest-state');
+
+        if (! is_string($state) || $state === '') {
+            $state = Str::random(40);
+            $request->session()->put('github-app.manifest-state', $state);
+        }
+
+        return $state;
+    }
+
     #[Get('/manifest-callback', name: 'github-app.manifest-callback')]
     public function manifestCallback(Request $request, CreateGithubAppFromManifest $action): RedirectResponse
     {
         $code = (string) $request->query('code');
+        $state = $request->session()->pull('github-app.manifest-state');
 
         if ($code === '') {
             return to_route('github-app')->with('error', __('GitHub did not return a manifest code.'));
+        }
+
+        if ($state === null || ! hash_equals($state, (string) $request->query('state'))) {
+            return to_route('github-app')->with('error', __('The GitHub App creation request did not originate from this session. Try again.'));
         }
 
         try {

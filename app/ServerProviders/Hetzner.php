@@ -442,7 +442,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
             $delete = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->delete($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id']);
 
-            if (! $delete->ok()) {
+            if (! $delete->successful()) {
                 Notifier::send($this->server, new FailedToDeleteServerFromProvider($this->server));
             }
         }
