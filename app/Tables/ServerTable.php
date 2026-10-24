@@ -53,14 +53,23 @@ class ServerTable extends Table
             'CASE WHEN disk_total > 0 THEN ROUND(disk_used * 100.0 / disk_total, 1) ELSE NULL END'
         );
 
+        $costOrderSql = app(ResolveHetznerServerSpecs::class)->serverCostOrderSql();
+
         $this->query
             ->select('servers.*')
             ->selectSub($cpuCoresSubquery, 'cpu_cores')
+            ->selectRaw("({$costOrderSql}) as monthly_cost_order")
             ->selectSub($cpuSubquery, 'cpu_usage_percent')
             ->selectSub($memorySubquery, 'memory_used_percent')
             ->selectSub($diskSubquery, 'disk_used_percent')
             ->selectSub($this->phpVersionSubquery(), 'php_version_order')
-            ->with(['latestMetric', 'project', 'serverProvider', 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id', 'type', 'name', 'version', 'status', 'is_default')])
+            ->with([
+                'latestMetric',
+                'project.servers:id,project_id,provider,provider_id,provider_data',
+                'project.servers.serverProvider',
+                'serverProvider',
+                'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id', 'type', 'name', 'version', 'status', 'is_default'),
+            ])
             ->withCount(['backups as backups_with_health_count' => fn ($query) => $query->whereNotNull('health')]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
@@ -90,6 +99,8 @@ class ServerTable extends Table
                 ->sortable()
                 ->value(fn (Server $server): ?int => app(ResolveHetznerServerSpecs::class)->resolveCores($server)),
             Column::make('monthly_cost', 'Cost')
+                ->accessor('monthly_cost_order')
+                ->sortable()
                 ->value(fn (Server $server): ?array => app(ResolveHetznerServerSpecs::class)->resolveCost($server)),
             EnumColumn::make('role', 'Type')->sortable(),
             TextColumn::make('stage', 'Stage')->sortable(),
@@ -108,6 +119,9 @@ class ServerTable extends Table
             Column::data('role_value', fn (Server $server) => $server->role->value),
             Column::data('project_id', fn (Server $server) => $server->project_id),
             Column::data('project_name', fn (Server $server) => $server->project?->name),
+            Column::data('project_monthly_cost', fn (Server $server) => $server->project
+                ? app(ResolveHetznerServerSpecs::class)->resolveProjectCost($server->project)
+                : null),
             Column::data('status', fn (Server $server) => $server->status->value),
             Column::data('status_color', fn (Server $server) => $server->status->getColor()),
             Column::data('status_text', fn (Server $server) => $server->status->getText()),

@@ -235,17 +235,34 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                     : null;
 
                   if (currentKey !== prevKey) {
-                    const groupCount = orderedTableData.data.filter((r) => {
+                    const groupRows = orderedTableData.data.filter((r) => {
                       const k =
                         groupBy === 'project'
                           ? String(r.project_name || r['server.project.name'] || r['project.name'] || 'Unknown Project')
                           : String(r.server_name || 'Unknown Server');
                       return k === currentKey;
-                    }).length;
+                    });
+                    const groupCount = groupRows.length;
 
                     const itemLabel = 'ip' in row
                       ? (groupCount === 1 ? 'server' : 'servers')
                       : (groupCount === 1 ? 'site' : 'sites');
+
+                    let groupCostFormatted: string | null = null;
+                    if (groupBy === 'project') {
+                      const projectCost = row.project_monthly_cost as { amount?: number; formatted?: string } | null | undefined;
+                      if (projectCost && typeof projectCost.amount === 'number' && projectCost.amount > 0 && projectCost.formatted) {
+                        groupCostFormatted = projectCost.formatted;
+                      } else {
+                        const summed = groupRows.reduce((acc, r) => {
+                          const c = r.monthly_cost as { amount?: number } | null | undefined;
+                          return acc + (c && typeof c.amount === 'number' ? c.amount : 0);
+                        }, 0);
+                        if (summed > 0) {
+                          groupCostFormatted = `€${summed.toFixed(2)}/mo`;
+                        }
+                      }
+                    }
 
                     groupHeader = (
                       <TableRow
@@ -263,6 +280,11 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                             <Badge variant="outline" className="text-xs font-normal">
                               {groupCount} {itemLabel}
                             </Badge>
+                            {groupCostFormatted && (
+                              <Badge variant="secondary" className="font-mono text-xs font-normal">
+                                {groupCostFormatted}
+                              </Badge>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>

@@ -135,6 +135,61 @@ class ResolveHetznerServerSpecs
         ];
     }
 
+    public function projectCostOrderSql(): string
+    {
+        $servers = Server::query()
+            ->where('provider', Hetzner::id())
+            ->with('serverProvider')
+            ->get(['id', 'project_id', 'provider', 'provider_id', 'provider_data']);
+
+        $totals = [];
+        foreach ($servers as $server) {
+            $cost = $this->resolveCost($server);
+            if ($cost !== null && $server->project_id !== null) {
+                $totals[$server->project_id] = round(($totals[$server->project_id] ?? 0.0) + $cost['amount'], 2);
+            }
+        }
+
+        if ($totals === []) {
+            return '0';
+        }
+
+        $cases = [];
+        foreach ($totals as $projectId => $amount) {
+            if ($amount > 0) {
+                $cases[] = sprintf('WHEN %d THEN %s', (int) $projectId, number_format($amount, 2, '.', ''));
+            }
+        }
+
+        if ($cases === []) {
+            return '0';
+        }
+
+        return 'CASE projects.id '.implode(' ', $cases).' ELSE 0 END';
+    }
+
+    public function serverCostOrderSql(): string
+    {
+        $servers = Server::query()
+            ->where('provider', Hetzner::id())
+            ->with('serverProvider')
+            ->get(['id', 'project_id', 'provider', 'provider_id', 'provider_data']);
+
+        $cases = [];
+        foreach ($servers as $server) {
+            $cost = $this->resolveCost($server);
+            if ($cost !== null && $cost['amount'] > 0) {
+                $cases[] = sprintf('WHEN %d THEN %s', (int) $server->id, number_format($cost['amount'], 2, '.', ''));
+            }
+        }
+
+        if ($cases === []) {
+            return '0';
+        }
+
+        return 'CASE servers.id '.implode(' ', $cases).' ELSE 0 END';
+    }
+
     private function resolvePlanPrice(?ServerProvider $serverProvider, string $plan, ?string $region): ?float
     {
         $liveTypes = $this->fetchLiveServerTypes($serverProvider);
