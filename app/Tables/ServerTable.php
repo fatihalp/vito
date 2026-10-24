@@ -70,7 +70,10 @@ class ServerTable extends Table
                 'serverProvider',
                 'services' => fn (HasMany $query) => $query->where('type', 'php')->select('id', 'server_id', 'type', 'name', 'version', 'status', 'is_default'),
             ])
-            ->withCount(['backups as backups_with_health_count' => fn ($query) => $query->whereNotNull('health')]);
+            ->withCount([
+                'sites',
+                'backups as backups_with_health_count' => fn ($query) => $query->whereNotNull('health'),
+            ]);
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
             $this->query
@@ -116,6 +119,7 @@ class ServerTable extends Table
             Column::make('warnings', 'Warnings')
                 ->value(fn (Server $server) => $server->getWarnings()),
             Column::data('updates'),
+            Column::data('sites_count', fn (Server $server) => (int) ($server->sites_count ?? 0)),
             Column::data('role_value', fn (Server $server) => $server->role->value),
             Column::data('project_id', fn (Server $server) => $server->project_id),
             Column::data('project_name', fn (Server $server) => $server->project?->name),

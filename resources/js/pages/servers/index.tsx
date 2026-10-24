@@ -36,15 +36,19 @@ const nameCell = ({ row, value }: CellRenderProps) => {
   const isSelf = Boolean(row.is_self);
   const id = row.id as number;
   const name = isSelf ? 'Vito sunucusu' : String(value || row.name || '');
+  const sitesCount = typeof row.sites_count === 'number' ? row.sites_count : 0;
 
   return (
     <div className="flex items-center gap-2">
-      <Link
-        href={`/servers/${id}`}
-        className={cn('font-medium hover:underline', isSelf && 'text-primary font-semibold')}
-      >
-        {name}
-      </Link>
+      <div className="flex items-center gap-1.5">
+        <Link
+          href={`/servers/${id}`}
+          className={cn('font-medium hover:underline', isSelf && 'text-primary font-semibold')}
+        >
+          {name}
+        </Link>
+        <span className="text-muted-foreground text-xs font-normal">({sitesCount})</span>
+      </div>
       {isUnreachable && (
         <TooltipProvider delayDuration={0}>
           <Tooltip>
