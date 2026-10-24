@@ -72,18 +72,18 @@ class SourceControlController extends Controller
     {
         $this->authorize('viewAny', SourceControl::class);
 
+        $user = user();
         $serverId = $request->integer('server');
 
         if ($serverId) {
             $server = Server::query()->findOrFail($serverId);
             $this->authorize('view', $server);
 
-            $sourceControls = SourceControl::usableForServer($server)->with('user')->get();
+            $sourceControls = SourceControl::usableForServer($server, $user)->with('user')->get();
 
             return SourceControlResource::collection($sourceControls);
         }
 
-        $user = user();
         $sourceControls = SourceControl::getByProjectId($user->current_project_id, $user)
             ->with('user')
             ->get();

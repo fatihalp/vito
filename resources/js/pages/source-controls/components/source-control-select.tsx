@@ -37,7 +37,7 @@ export default function SourceControlSelect({
           <SelectGroup>
             {query.isSuccess &&
               query.data.map((sourceControl: SourceControl) => (
-                <SelectItem key={`db-${sourceControl.name}`} value={sourceControl.id.toString()}>
+                <SelectItem key={`db-${sourceControl.id}`} value={sourceControl.id.toString()}>
                   {sourceControl.name}
                 </SelectItem>
               ))}

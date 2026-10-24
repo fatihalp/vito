@@ -58,25 +58,29 @@ class SourceControl extends AbstractModel
     }
 
 
-    public static function usableForServer(Server $server): Builder
+    public static function usableForServer(Server $server, ?User $user = null): Builder
     {
+        $userId = $user?->id ?? user()?->id ?? $server->user_id;
+
         return static::query()
             ->whereIn('provider', self::usableForSitesProviders())
-            ->where('user_id', $server->user_id)
+            ->where('user_id', $userId)
             ->where(function (Builder $query) use ($server): void {
                 $query->where('project_id', $server->project_id)->orWhereNull('project_id');
             });
     }
 
 
-    public static function siteValidationRules(Server $server): array
+    public static function siteValidationRules(Server $server, ?User $user = null): array
     {
+        $userId = $user?->id ?? user()?->id ?? $server->user_id;
+
         return [
             'required',
             Rule::exists('source_controls', 'id')
                 ->whereIn('provider', self::usableForSitesProviders())
-                ->where(function ($query) use ($server): void {
-                    $query->where('user_id', $server->user_id)
+                ->where(function ($query) use ($server, $userId): void {
+                    $query->where('user_id', $userId)
                         ->where(function ($q) use ($server): void {
                             $q->where('project_id', $server->project_id)->orWhereNull('project_id');
                         });
