@@ -4,14 +4,14 @@ namespace App\Http\Controllers\Project;
 
 use App\Actions\Projects\CreateProject;
 use App\Actions\Projects\DeleteProject;
+use App\Actions\Projects\GetAccessibleProjects;
+use App\Actions\Projects\GetPendingInvitations;
 use App\Actions\Projects\GetProjects;
 use App\Actions\Projects\UpdateProject;
-use App\Helpers\QueryBuilder;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ProjectUserResource;
 use App\Models\Project;
-use App\Models\UserProject;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
@@ -30,33 +30,13 @@ class ProjectController extends Controller
 {
 
     #[Get('/', name: 'projects')]
-    public function index(): Response
+    public function index(GetAccessibleProjects $getProjects, GetPendingInvitations $getInvitations): Response
     {
         $this->authorize('viewAny', Project::class);
 
-        $projects = QueryBuilder::for(
-            user()
-                ->allProjects()
-                ->withCount(['servers', 'sites'])
-                ->with(['users.project', 'users.user'])
-        )
-            ->searchableFields(['name'])
-            ->sortable('created_at', 'desc', [
-                'name' => 'name',
-                'servers_count' => 'servers_count',
-                'created_at' => 'created_at',
-            ])
-            ->simplePaginate(20);
-
         return Inertia::render('projects/index', [
-            'projects' => ProjectResource::collection($projects),
-            'invitations' => ProjectUserResource::collection(
-                UserProject::query()
-                    ->where('email', user()->email)
-                    ->whereNull('user_id')
-                    ->whereHas('project')
-                    ->simplePaginate(20)
-            ),
+            'projects' => ProjectResource::collection($getProjects->get(user())),
+            'invitations' => ProjectUserResource::collection($getInvitations->get(user())),
         ]);
     }
 

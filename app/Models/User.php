@@ -60,6 +60,10 @@ class User extends Authenticatable
                 $user->password_changed_at = now();
             }
         });
+
+        static::deleting(function (User $user): void {
+            $user->projectMemberships()->delete();
+        });
     }
 
     public function projectMemberships(): HasMany
