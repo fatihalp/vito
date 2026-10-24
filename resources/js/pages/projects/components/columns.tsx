@@ -110,10 +110,10 @@ export const columns: ColumnDef<Project>[] = [
     },
   },
   {
-    id: 'monthly_cost',
+    accessorKey: 'monthly_cost',
     header: 'Cost',
     enableColumnFilter: false,
-    enableSorting: false,
+    enableSorting: true,
     cell: ({ row }) => {
       const monthlyCost = row.original.monthly_cost;
       if (!monthlyCost || monthlyCost.amount <= 0) {
