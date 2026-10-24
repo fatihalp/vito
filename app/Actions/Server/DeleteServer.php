@@ -2,6 +2,10 @@
 
 namespace App\Actions\Server;
 
+use Throwable;
+use App\Notifications\FailedToDeleteServerFromProvider;
+use App\Models\ServerLog;
+use App\Facades\Notifier;
 use App\Models\Server;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -14,11 +18,16 @@ class DeleteServer
     {
         $this->validate($server, $input);
 
-        $server->delete();
-
         if ((bool) ($input['delete_from_provider'] ?? false)) {
-            $server->provider()->delete();
+            try {
+                $server->provider()->delete();
+            } catch (Throwable $e) {
+                ServerLog::log($server, 'delete-server-from-provider-failed', $e->getMessage());
+                Notifier::send($server, new FailedToDeleteServerFromProvider($server));
+            }
         }
+
+        $server->delete();
     }
 
     private function validate(Server $server, array $input): void

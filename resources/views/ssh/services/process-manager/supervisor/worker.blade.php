@@ -3,7 +3,7 @@ process_name=%(program_name)s_%(process_num)02d
 @if (!is_null($directory))
 directory={{ $directory }}
 @endif
-command={{ $command }}
+command={!! $command !!}
 autostart={{ $autoStart }}
 autorestart={{ $autoRestart }}
 user={{ $user }}

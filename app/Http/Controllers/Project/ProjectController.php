@@ -36,6 +36,7 @@ class ProjectController extends Controller
             'projects' => ProjectResource::collection(
                 user()
                     ->allProjects()
+                    ->withCount(['servers', 'sites'])
                     ->with(['users.project', 'users.user'])
                     ->simplePaginate(20)
             ),

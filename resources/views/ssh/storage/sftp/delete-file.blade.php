@@ -1,1 +1,1 @@
-curl -k -u "{{ $username }}:{{ $password }}" sftp://{{ $host }}:{{ $port }}/ -Q "rm {{ $src }}"
+curl -k -u {!! escapeshellarg($username.':'.$password) !!} {!! escapeshellarg('sftp://'.$host.':'.$port.'/') !!} -Q {!! escapeshellarg('rm '.$src) !!}

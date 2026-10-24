@@ -48,6 +48,8 @@ interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   showPagination?: boolean;
   toolbar?: ReactNode;
   groupBy?: 'project' | 'server' | 'none' | string | null;
+  /** Props to reload on realtime events; defaults to the whole page. */
+  reloadOnly?: string[];
 }
 
 function getRealtimePrefix(tableData: InertiaTableData): string | undefined {
@@ -88,7 +90,7 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
   return defaultRender();
 }
 
-export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, groupBy, ...props }: VitoTableProps) {
+export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, groupBy, reloadOnly, ...props }: VitoTableProps) {
   const orderedTableData = useMemo(() => {
     const rawCols = tableData?.columns ?? [];
     let cols = orderTableColumns(rawCols, (column) => column.name);
@@ -139,14 +141,19 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
   };
 
   const realtimePrefix = getRealtimePrefix(orderedTableData);
+  const reloadOnlyKey = reloadOnly?.join(',') ?? '';
   useEffect(() => {
     if (!realtimePrefix) return;
+    const only = reloadOnlyKey ? reloadOnlyKey.split(',') : undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
     const handler = (e: Event) => {
       const type = (e as CustomEvent<SocketEventData>).detail?.type;
       if (type?.startsWith(`${realtimePrefix}.`)) {
         if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => router.reload(), 900);
+        timeout = setTimeout(() => {
+          if (document.visibilityState !== 'visible') return;
+          router.reload(only ? { only } : {});
+        }, 900);
       }
     };
     window.addEventListener(SOCKET_EVENT, handler);
@@ -154,7 +161,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
       if (timeout) clearTimeout(timeout);
       window.removeEventListener(SOCKET_EVENT, handler);
     };
-  }, [realtimePrefix]);
+  }, [realtimePrefix, reloadOnlyKey]);
 
   const processing = isProcessing || isFetching;
 

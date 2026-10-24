@@ -1,3 +1,4 @@
+import { useClipboard } from '@/hooks/use-clipboard';
 import { ClipboardCheckIcon, ClipboardIcon, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,15 +31,10 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
   const [open, setOpen] = useState(false);
   const [token, setToken] = useState<string | undefined>();
   const tokenInputRef = useRef<HTMLInputElement>(null);
-  const [copySuccess, setCopySuccess] = useState(false);
+  const { copied: copySuccess, copy } = useClipboard();
   const copyToClipboard = () => {
     tokenInputRef.current?.select();
-    navigator.clipboard.writeText(token || '').then(() => {
-      setCopySuccess(true);
-      setTimeout(() => {
-        setCopySuccess(false);
-      }, 2000);
-    });
+    copy(token || '');
   };
 
   const form = useForm<Required<ApiKeyForm>>({

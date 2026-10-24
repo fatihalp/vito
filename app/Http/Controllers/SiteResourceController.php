@@ -55,6 +55,7 @@ class SiteResourceController extends Controller
                             ->orWhere('id', $site->server_id);
                     })
                     ->whereIn('status', ['ready', 'updating'])
+                    ->with('services')
                     ->orderBy('name')
                     ->get()
             ),

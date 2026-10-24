@@ -56,6 +56,11 @@ class EventsHandler implements WebSocketHandler
             return 'No active project';
         }
 
+        $user = User::find($tokenData['user_id']);
+        if (! $user || ! $user->allProjects()->where('projects.id', $projectId)->exists()) {
+            return 'Unauthorized for project';
+        }
+
         
         $this->pendingAuth[$token] = [
             'user_id' => $tokenData['user_id'],

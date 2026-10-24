@@ -19,12 +19,9 @@ export interface Server {
   local_ip?: string;
   port: number;
   os: string;
-  type: string;
-  type_data: string;
   provider: string;
   provider_id: number;
   provider_data: string;
-  authentication: string;
   public_key: string;
   status: string;
   is_self?: boolean;

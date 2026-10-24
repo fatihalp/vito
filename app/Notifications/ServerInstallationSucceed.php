@@ -13,11 +13,9 @@ class ServerInstallationSucceed extends AbstractNotification
     {
         $this->server->refresh();
 
-        return __("Installation succeed for server [:server] \nServer IP: :ip \nUser: :user\nPassword: :password\n:link", [
+        return __("Installation succeed for server [:server] \nServer IP: :ip \n:link", [
             'server' => $this->server->name,
             'ip' => $this->server->ip,
-            'user' => $this->server->authentication['user'],
-            'password' => $this->server->authentication['pass'],
             'link' => url('/servers/'.$this->server->id),
         ]);
     }
@@ -31,8 +29,6 @@ class ServerInstallationSucceed extends AbstractNotification
             ->subject(__('Your server is ready'))
             ->line(__('Your server [:server] has been installed successfully and is ready to use.', ['server' => $this->server->name]))
             ->line(__('Server IP: :ip', ['ip' => $this->server->ip]))
-            ->line(__('SSH user: :user', ['user' => $this->server->authentication['user']]))
-            ->line(__('SSH password: :password', ['password' => $this->server->authentication['pass']]))
             ->action(__('Manage your server'), url('/servers/'.$this->server->id));
     }
 }

@@ -1,1 +1,1 @@
-curl {{ $passive }} -u "{{ $username }}:{{ $password }}" ftp{{ $ssl }}://{{ $host }}:{{ $port }}/{{ $src }} -Q "DELE /{{ $src }}"
+curl {{ $passive }} -u {!! escapeshellarg($username.':'.$password) !!} {!! escapeshellarg('ftp'.$ssl.'://'.$host.':'.$port.'/'.$src) !!} -Q {!! escapeshellarg('DELE /'.$src) !!}

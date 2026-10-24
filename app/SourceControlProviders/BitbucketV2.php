@@ -2,6 +2,7 @@
 
 namespace App\SourceControlProviders;
 
+use Illuminate\Http\Client\RequestException;
 use App\Exceptions\FailedToDeployGitHook;
 use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\FailedToDestroyGitHook;
@@ -378,9 +379,9 @@ class BitbucketV2 extends AbstractSourceControlProvider
                     Log::error('Bitbucket API request failed', [
                         'endpoint' => $nextUrl,
                         'status' => $response->status(),
-                        'body' => $response->body(),
                     ]);
-                    break;
+
+                    throw new RequestException($response);
                 }
 
                 $data = $response->json();
@@ -393,12 +394,15 @@ class BitbucketV2 extends AbstractSourceControlProvider
                 $nextUrl = $data['next'] ?? null;
                 $pageCount++;
 
+            } catch (RequestException $e) {
+                throw $e;
             } catch (Throwable $e) {
                 Log::error('Error fetching Bitbucket API page', [
                     'endpoint' => $nextUrl,
                     'error' => $e->getMessage(),
                 ]);
-                break;
+
+                throw $e;
             }
         }
 

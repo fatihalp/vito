@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Head, usePage } from '@inertiajs/react';
+import { Head, usePage, router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { EraserIcon, CopyIcon, FileTextIcon, LoaderCircleIcon, RefreshCwIcon, TerminalIcon, Trash2Icon } from 'lucide-react';
@@ -267,7 +267,7 @@ export default function LogRotation() {
                 <span>Clear All</span>
               </Button>
             )}
-            <Button variant="outline" onClick={() => window.location.reload()}>
+            <Button variant="outline" onClick={() => router.reload()}>
               <RefreshCwIcon className="size-4" />
               <span className="hidden lg:block">Refresh</span>
             </Button>

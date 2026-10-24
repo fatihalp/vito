@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use Illuminate\Support\Carbon;
 use App\Actions\Backup\ManagePgBackRest;
 use App\Actions\Backup\RunBackup;
 use App\Enums\BackupType;
@@ -26,6 +27,7 @@ class RunBackupCommand extends Command
             ->whereNull('status')
             ->whereHas('server')
             ->with('server')
+            ->withMax('files', 'created_at')
             ->chunkById(100, function ($backups) use (&$total, &$failed): void {
                 /** @var Backup $backup */
                 foreach ($backups as $backup) {
@@ -53,7 +55,7 @@ class RunBackupCommand extends Command
 
         $due = Backup::lastDue((string) $backup->interval, now());
 
-        if ($due === null || $due->lte($backup->files()->latest('id')->value('created_at') ?? $backup->created_at)) {
+        if ($due === null || $due->lte($backup->files_max_created_at !== null ? Carbon::parse($backup->files_max_created_at) : $backup->created_at)) {
             return false;
         }
 

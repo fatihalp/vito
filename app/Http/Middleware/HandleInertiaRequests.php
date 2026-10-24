@@ -104,7 +104,7 @@ class HandleInertiaRequests extends Middleware
             'demo' => config('app.demo'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => $user ? [
-                'user' => UserResource::make($user->load(['projects' => fn ($query) => $query->withCount(['servers', 'sites'])->with(['users' => fn ($users) => $users->where('user_id', $user->id)])])),
+                'user' => UserResource::make($user->load(['projects' => fn ($query) => $query->forResource($user)])),
                 'currentProject' => ProjectResource::make($currentProject),
                 'pendingInvitationsCount' => UserProject::query()
                     ->where('email', $user->email)

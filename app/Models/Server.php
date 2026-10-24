@@ -387,7 +387,7 @@ class Server extends AbstractModel
     public function service(string $type, mixed $version = null): ?Service
     {
         if ($this->relationLoaded('services')) {
-            return $this->services->first(fn (Service $service): bool => $service->type === $type && (! $version || $service->version == $version));
+            return $this->services->first(fn (Service $service): bool => $service->type === $type && (! $version || (string) $service->version === (string) $version));
         }
 
         return $this->services()

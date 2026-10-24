@@ -1,3 +1,4 @@
+import { useSocketStore } from '@/stores/socket-store';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 
 import { type Configs, type SharedData } from '@/types';
@@ -258,21 +259,18 @@ export default function Servers() {
   const versionForm = useForm({ project: page.props.serverScope ?? 'all' });
   const checkingVersions = page.props.phpVersionsChecking || versionForm.processing;
 
-  useEffect(() => {
-    if (!page.props.phpVersionsChecking) return;
-    const interval = window.setInterval(() => router.reload({ only: ['servers', 'phpVersionsChecking'] }), 5000);
-    return () => window.clearInterval(interval);
-  }, [page.props.phpVersionsChecking]);
+  const socketStatus = useSocketStore((s) => s.status);
 
   useEffect(() => {
+    if (socketStatus === 'connected') return;
     const interval = window.setInterval(() => {
       if (document.visibilityState === 'visible') {
         router.reload({ only: ['servers', 'phpVersionsChecking'] });
       }
-    }, 60_000);
+    }, page.props.phpVersionsChecking ? 5000 : 60_000);
 
     return () => window.clearInterval(interval);
-  }, []);
+  }, [socketStatus, page.props.phpVersionsChecking]);
 
   return (
     <Layout>

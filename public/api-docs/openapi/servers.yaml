@@ -231,7 +231,7 @@ paths:
 
     delete:
       summary: Delete server
-      description: Delete a server. By default the underlying VM at the provider is also destroyed (when the server was provisioned through an API provider). Set `delete_from_provider` to `false` to keep the VM running and only remove it from Vito.
+      description: Remove a server from Vito. The VM at the provider is kept unless `delete_from_provider` is `true` (only applies to servers provisioned through an API provider).
       tags:
         - Servers
       security:
@@ -260,9 +260,9 @@ paths:
               properties:
                 delete_from_provider:
                   type: boolean
-                  description: When true (default), also destroy the underlying VM at the provider. When false, only remove the server from Vito. Ignored for manually added (`custom`) servers.
-                  default: true
-                  example: false
+                  description: When true, also destroy the underlying VM at the provider. When false (default), only remove the server from Vito. Ignored for manually added (`custom`) servers.
+                  default: false
+                  example: true
       responses:
         '204':
           description: Server deleted successfully

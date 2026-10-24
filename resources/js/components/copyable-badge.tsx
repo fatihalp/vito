@@ -8,11 +8,11 @@ export default function CopyableBadge({ text, tooltip }: { text: string | null |
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <div className="inline-flex cursor-pointer justify-start space-x-2 truncate" onClick={() => copy(text || '')}>
+        <button type="button" aria-label="Copy" className="inline-flex cursor-pointer justify-start space-x-2 truncate" onClick={() => copy(text || '')}>
           <Badge variant={copied ? 'success' : 'outline'} className="block max-w-[200px] overflow-hidden overflow-ellipsis">
             {text}
           </Badge>
-        </div>
+        </button>
       </TooltipTrigger>
       <TooltipContent side="top">
         <span className="flex items-center space-x-2">{tooltip ? text : 'Copy'}</span>

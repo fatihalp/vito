@@ -2,6 +2,7 @@
 
 namespace App\SourceControlProviders;
 
+use Illuminate\Http\Client\RequestException;
 use App\Exceptions\FailedToDeployGitHook;
 use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\FailedToDestroyGitHook;
@@ -328,9 +329,9 @@ class Gitlab extends AbstractSourceControlProvider
                 Log::error('GitLab API request failed', [
                     'endpoint' => $endpoint,
                     'status' => $response->status(),
-                    'body' => $response->body(),
                 ]);
-                break;
+
+                throw new RequestException($response);
             }
 
             $pageData = $response->json();

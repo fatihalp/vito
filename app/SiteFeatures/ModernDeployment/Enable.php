@@ -2,6 +2,7 @@
 
 namespace App\SiteFeatures\ModernDeployment;
 
+use Illuminate\Validation\ValidationException;
 use App\DTOs\DynamicField;
 use App\DTOs\DynamicForm;
 use App\Exceptions\SSHError;
@@ -60,7 +61,13 @@ class Enable extends Action
 
         $this->ssh = $this->site->server->ssh($this->site->user);
 
-        $sharedResources = explode(',', trim($request->input('shared_resources')));
+        $sharedResources = array_values(array_filter(array_map('trim', explode(',', (string) $request->input('shared_resources')))));
+
+        foreach ($sharedResources as $resource) {
+            if (preg_match('/^[A-Za-z0-9._\-\/]+$/', $resource) !== 1 || str_contains($resource, '..') || str_starts_with($resource, '/')) {
+                throw ValidationException::withMessages(['shared_resources' => __('Shared resource :resource must be a relative path without special characters.', ['resource' => $resource])]);
+            }
+        }
 
         $this->ssh->exec(view('ssh.modern-deployment.enable', [
             'site' => $this->site,

@@ -250,9 +250,12 @@ export default function CreateSitePage({
     const targetServerId = form.data.server || server?.id.toString();
     if (!targetServerId) return;
 
+    let active = true;
+
     axios
       .get<SiteCreationDefaults>(`/servers/${encodeURIComponent(String(targetServerId))}/site-creation-defaults`)
       .then(({ data }) => {
+        if (!active) return;
         if (data.php_version && !form.data.php_version) {
           form.setData('php_version', data.php_version);
         }
@@ -261,6 +264,10 @@ export default function CreateSitePage({
         }
       })
       .catch(() => {});
+
+    return () => {
+      active = false;
+    };
   }, [form.data.server, server?.id]);
 
   const submit: FormEventHandler = (e) => {

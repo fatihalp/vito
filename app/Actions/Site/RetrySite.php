@@ -24,7 +24,7 @@ class RetrySite
         }
 
         $validated = Validator::make($input, [
-            'composer_install_command' => ['nullable', 'string', 'max:2000'],
+            'composer_install_command' => ['nullable', 'string', 'max:2000', 'not_regex:/[\r\n]/'],
         ])->validate();
 
         DB::transaction(function () use ($site, $validated): void {

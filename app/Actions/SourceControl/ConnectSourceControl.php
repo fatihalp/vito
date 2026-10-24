@@ -71,7 +71,7 @@ class ConnectSourceControl
     
     private function providerRules(array $input): array
     {
-        if (! isset($input['provider'])) {
+        if (! isset($input['provider']) || ! config('source-control.providers.'.$input['provider'].'.handler')) {
             return [];
         }
 

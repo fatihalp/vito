@@ -1,14 +1,28 @@
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import { useSocketListener } from '@/hooks/use-socket-events';
 import { TableSkeleton } from '@/components/table-skeleton';
 import { DataTable } from '@/components/data-table';
 import { columns } from '@/pages/server-logs/components/columns';
 
 export default function Logs({ server, site }: { server: Server; site?: Site }) {
   const [currentPage, setCurrentPage] = useState(1);
+  const queryClient = useQueryClient();
+
+  useSocketListener(
+    useCallback(
+      (event) => {
+        const data = event.data as { server_id?: number } | undefined;
+        if (event.type?.startsWith('server-log.') && (data?.server_id === undefined || data.server_id === server.id)) {
+          void queryClient.invalidateQueries({ queryKey: ['serverLogs', server.id] });
+        }
+      },
+      [queryClient, server.id],
+    ),
+  );
 
   const query = useQuery({
     queryKey: ['serverLogs', server.id, site?.id, currentPage],
@@ -20,7 +34,6 @@ export default function Logs({ server, site }: { server: Server; site?: Site }) 
       ).data;
     },
     placeholderData: (prev) => prev,
-    refetchInterval: 5000,
   });
 
   return (

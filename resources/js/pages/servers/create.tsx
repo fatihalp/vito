@@ -517,11 +517,14 @@ export default function CreateServerPage({
 
   const copyPublicKeyCommand = () => {
     if (!publicKey) return;
-    navigator.clipboard.writeText(publicKey).then(() => {
-      setCopiedKey(true);
-      setTimeout(() => setCopiedKey(false), 2000);
-      toast.success('SSH setup command copied');
-    });
+    navigator.clipboard
+      .writeText(publicKey)
+      .then(() => {
+        setCopiedKey(true);
+        setTimeout(() => setCopiedKey(false), 2000);
+        toast.success('SSH setup command copied');
+      })
+      .catch(() => toast.error('Failed to copy to clipboard'));
   };
 
   const canGoNextFromStep0 = (): boolean => {

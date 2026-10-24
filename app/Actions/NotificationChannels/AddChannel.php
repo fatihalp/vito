@@ -67,7 +67,7 @@ class AddChannel
 
     private function providerRules(array $input): array
     {
-        if (! isset($input['provider'])) {
+        if (! isset($input['provider']) || ! config('notification-channel.providers.'.$input['provider'].'.handler')) {
             return [];
         }
 

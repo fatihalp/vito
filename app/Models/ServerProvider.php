@@ -73,7 +73,7 @@ class ServerProvider extends AbstractModel
      */
     public function cachedRegions(): array
     {
-        return Cache::remember("server-provider:{$this->id}:regions", now()->addMinutes(10), fn (): array => $this->provider()->regions());
+        return Cache::remember($this->catalogueKey('regions'), now()->addMinutes(10), fn (): array => $this->provider()->regions());
     }
 
     /**
@@ -81,12 +81,19 @@ class ServerProvider extends AbstractModel
      */
     public function cachedPlans(string $region, bool $available = false): array
     {
-        return Cache::remember("server-provider:{$this->id}:plans:".($available ? 'available:' : '').$region, now()->addMinutes(10), fn (): array => $available ? $this->provider()->availablePlans($region) : $this->provider()->plans($region));
+        return Cache::remember($this->catalogueKey('plans:'.($available ? 'available:' : '').$region), now()->addMinutes(10), fn (): array => $available ? $this->provider()->availablePlans($region) : $this->provider()->plans($region));
     }
 
     public function forgetCatalogue(): void
     {
-        Cache::forget("server-provider:{$this->id}:regions");
+        Cache::forever("server-provider:{$this->id}:catalogue-version", (string) now()->getTimestampMs());
+    }
+
+    private function catalogueKey(string $suffix): string
+    {
+        $version = Cache::get("server-provider:{$this->id}:catalogue-version", '0');
+
+        return "server-provider:{$this->id}:{$version}:{$suffix}";
     }
 
 

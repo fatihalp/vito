@@ -10,6 +10,6 @@ class Notifier
     
     public function send(object $notifiable, NotificationInterface $notification): void
     {
-        NotificationChannel::notifyAll($notification);
+        NotificationChannel::notifyAll($notification, $notifiable);
     }
 }

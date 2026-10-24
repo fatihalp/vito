@@ -19,7 +19,9 @@ function InstantLogContent({ serverId, logId }: { serverId: number; logId: numbe
   logIdRef.current = logId;
 
   useEffect(() => {
-    fetch(`/servers/${serverId}/logs/${logId}`)
+    const controller = new AbortController();
+
+    fetch(`/servers/${serverId}/logs/${logId}`, { signal: controller.signal })
       .then((response) => {
         if (!response.ok) {
           toast.error('Failed to fetch log');
@@ -29,7 +31,14 @@ function InstantLogContent({ serverId, logId }: { serverId: number; logId: numbe
       })
       .then((text) => {
         if (text) setContent(text);
+      })
+      .catch((error: unknown) => {
+        if (!(error instanceof DOMException && error.name === 'AbortError')) {
+          toast.error('Failed to fetch log');
+        }
       });
+
+    return () => controller.abort();
   }, [serverId, logId]);
 
   useSocketListener(

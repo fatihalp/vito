@@ -74,6 +74,6 @@ class Slack extends AbstractNotificationChannel
         $data = $this->notificationChannel->data;
         Http::post($data['webhook_url'], [
             'text' => $notification->toSlack($notifiable),
-        ]);
+        ])->throw();
     }
 }

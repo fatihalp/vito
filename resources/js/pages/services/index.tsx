@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Head, router, useForm, usePage } from '@inertiajs/react';
+import { Head, useForm, usePage } from '@inertiajs/react';
 import { CircleIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Server } from '@/types/server';
@@ -102,15 +102,11 @@ export default function ServicesIndex() {
   useEffect(() => {
     if (isOffline) return;
     fetchLiveStatuses();
-    const interval = setInterval(fetchLiveStatuses, 10_000);
+    const interval = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchLiveStatuses();
+    }, 10_000);
     return () => clearInterval(interval);
   }, [fetchLiveStatuses, isOffline]);
-
-  useEffect(() => {
-    if (!refreshing) return;
-    const interval = setInterval(() => router.reload({ only: ['services', 'refreshing'] }), 5000);
-    return () => clearInterval(interval);
-  }, [refreshing]);
 
   const refresh = () => {
     form.post(`/servers/${server.id}/services/refresh`, { preserveScroll: true });

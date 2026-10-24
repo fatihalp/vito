@@ -29,19 +29,26 @@ class HetznerController extends Controller
     #[Get('/latency', name: 'hetzner.latency')]
     public function latency(): JsonResponse
     {
-        $latencies = Cache::remember('hetzner:latencies', now()->addHours(6), function (): array {
-            $responses = Http::pool(fn (Pool $pool) => collect(self::LOCATIONS)
-                ->map(fn (string $host, string $location) => $pool->as($location)->timeout(5)->connectTimeout(5)->withHeaders(['Range' => 'bytes=0-0'])->get("http://{$host}/100MB.bin"))
-                ->all());
-
-            return collect(self::LOCATIONS)
-                ->map(fn (string $host, string $location): ?int => ($responses[$location] ?? null) instanceof Response
-                    ? (int) round($responses[$location]->transferStats?->getTransferTime() * 1000)
-                    : null)
-                ->all();
+        $latencies = Cache::get('hetzner:latencies') ?? tap($this->measure(), function (array $latencies): void {
+            Cache::put('hetzner:latencies', $latencies, in_array(null, $latencies, true) ? now()->addMinutes(5) : now()->addHours(6));
         });
 
         return response()->json(['latencies' => $latencies]);
     }
 
+    /**
+     * @return array<string, ?int>
+     */
+    private function measure(): array
+    {
+        $responses = Http::pool(fn (Pool $pool) => collect(self::LOCATIONS)
+            ->map(fn (string $host, string $location) => $pool->as($location)->timeout(5)->connectTimeout(5)->withHeaders(['Range' => 'bytes=0-0'])->get("http://{$host}/100MB.bin"))
+            ->all());
+
+        return collect(self::LOCATIONS)
+            ->map(fn (string $host, string $location): ?int => ($responses[$location] ?? null) instanceof Response
+                ? (int) round($responses[$location]->transferStats?->getTransferTime() * 1000)
+                : null)
+            ->all();
+    }
 }

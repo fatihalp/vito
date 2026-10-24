@@ -1,3 +1,4 @@
+import { useClipboard } from '@/hooks/use-clipboard';
 import { useCallback, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import {
@@ -40,14 +41,9 @@ type PageProps = {
 };
 
 function CommandRow({ item }: { item: CommandItem }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useClipboard(1500);
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(item.command).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    });
-  };
+  const handleCopy = () => copy(item.command);
 
   return (
     <div className="flex flex-col gap-1.5 p-3 hover:bg-muted/40 transition-colors sm:flex-row sm:items-center sm:justify-between">

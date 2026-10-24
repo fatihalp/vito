@@ -15,6 +15,6 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 # Install Caddy and Certbot
 sudo DEBIAN_FRONTEND=noninteractive apt-get install caddy certbot -y
 
-sudo mkdir /etc/caddy/sites-available
+sudo mkdir -p /etc/caddy/sites-available
 
-sudo mkdir /etc/caddy/sites-enabled
+sudo mkdir -p /etc/caddy/sites-enabled
