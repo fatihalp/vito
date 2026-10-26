@@ -38,13 +38,13 @@ class VitoCommand extends Command
         }
 
         if (! $this->option('no-restart')) {
-            foreach (['queue:restart', 'schedule:interrupt'] as $command) {
+            foreach (['queue:restart', 'schedule:interrupt', 'horizon:terminate'] as $command) {
                 if ($this->call($command) !== self::SUCCESS) {
                     return self::FAILURE;
                 }
             }
 
-            if (! $this->runProcess(['sh', '-c', 'nohup sh -c "sleep 2 && sudo -n supervisorctl restart worker:* websocket" >/dev/null 2>&1 &'], 30)) {
+            if (! $this->runProcess(['sudo', '-n', 'supervisorctl', 'restart', 'websocket'], 30)) {
                 return self::FAILURE;
             }
         }

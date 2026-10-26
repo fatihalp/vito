@@ -101,13 +101,15 @@ class Git
         }
 
         $escapedPath = escapeshellarg($site->path);
-        $escapedUser = escapeshellarg((string) ($site->user ?: 'vito'));
+        $user = $site->user ?: (string) config('core.ssh_user', 'vito');
+        $escapedUser = escapeshellarg($user);
+        $escapedHome = escapeshellarg(home_path($user));
 
         try {
             $site->server->ssh($site->user)->exec(<<<BASH
 sudo -n bash -c '
   user={$escapedUser}
-  home_dir=\$(eval echo ~\$user)
+  home_dir={$escapedHome}
   mkdir -p "\$home_dir/.ssh"
   touch "\$home_dir/.ssh/config" "\$home_dir/.ssh/known_hosts"
   for key in /root/.ssh/id_ed25519 /root/.ssh/id_rsa /root/.ssh/id_ecdsa; do
