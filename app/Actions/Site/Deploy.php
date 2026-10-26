@@ -14,10 +14,11 @@ use App\Models\Deployment;
 use App\Models\ServerLog;
 use App\Models\Site;
 use App\Models\User;
+use Illuminate\Support\Facades\Cache;
+use Throwable;
 
 class Deploy
 {
-    
     public function run(
         Site $site,
         bool $modern = true,
@@ -33,6 +34,10 @@ class Deploy
 
         if (! $site->deploymentScript?->content) {
             throw new DeploymentScriptIsEmptyException;
+        }
+
+        if ($site->isSelf()) {
+            $this->recoverSelfWorker($site);
         }
 
         $deployment = new Deployment([
@@ -61,6 +66,27 @@ class Deploy
         }
 
         return $this->deployModern($site, $deployment, $log);
+    }
+
+    private function recoverSelfWorker(Site $site): void
+    {
+        $site->deployments()
+            ->where('status', DeploymentStatus::DEPLOYING)
+            ->update([
+                'status' => DeploymentStatus::FAILED,
+                'finished_at' => now(),
+            ]);
+
+        Cache::lock("unique-queue:site-{$site->id}")->forceRelease();
+
+        try {
+            $site->server->ssh()->exec(
+                'sudo -n pkill -f "supervisorctl restart worker" 2>/dev/null || true; '
+                .'if sudo -n supervisorctl status worker:* 2>/dev/null | grep -q STOPPING; then sudo -n pkill -9 -f "artisan horizon" 2>/dev/null || true; fi; '
+                .'sudo -n supervisorctl start worker:* 2>/dev/null || true'
+            );
+        } catch (Throwable) {
+        }
     }
 
     private function broadcastDeploymentCreated(Site $site, Deployment $deployment): void
