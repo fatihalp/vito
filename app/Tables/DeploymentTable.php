@@ -61,8 +61,10 @@ class DeploymentTable extends Table
             Column::make('commit', 'Commit'),
             Column::make('deployed_by', 'Deployed By')
                 ->value(fn (Deployment $deployment): ?string => $deployment->user?->name),
-            DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
             EnumColumn::make('status', 'Status')->sortable(! $this->overview),
+            Column::make('duration', 'Duration')
+                ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
+            DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
             Column::make('release', 'Release'),
             TextColumn::make('id', 'ID')
                 ->sortable(! $this->overview)
@@ -79,6 +81,9 @@ class DeploymentTable extends Table
             Column::data('rolled_back_by', fn (Deployment $deployment): ?string => $deployment->rolledBackBy?->name),
             Column::data('rolled_back_at', fn (Deployment $deployment) => $deployment->rolled_back_at),
             Column::data('commit_data'),
+            Column::data('finished_at', fn (Deployment $deployment) => $deployment->finished_at),
+            Column::data('duration', fn (Deployment $deployment): ?int => $deployment->duration()),
+            Column::data('formatted_duration', fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
             Column::data('log', fn (Deployment $deployment) => $deployment->log ? ServerLogResource::make($deployment->log) : null),
             ActionsColumn::make(),
         ];

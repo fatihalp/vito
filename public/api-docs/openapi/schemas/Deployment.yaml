@@ -80,6 +80,14 @@ properties:
     type: string
     nullable: true
     format: date-time
+  duration:
+    type: integer
+    nullable: true
+    example: 45
+  formatted_duration:
+    type: string
+    nullable: true
+    example: '45s'
   progress:
     type: object
     nullable: true

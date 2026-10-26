@@ -44,16 +44,15 @@ class GetDeploymentProgress
         $durations = Deployment::query()
             ->where('site_id', $deployment->site_id)
             ->where('status', DeploymentStatus::FINISHED)
+            ->whereNotNull('finished_at')
             ->where('id', '!=', $deployment->id)
             ->latest('id')
             ->limit(self::SAMPLE_SIZE)
-            ->get(['created_at', 'updated_at', 'finished_at'])
+            ->get(['created_at', 'finished_at'])
             ->map(function (Deployment $previous): int {
-                $end = $previous->finished_at ?? $previous->updated_at;
-
-                return (int) abs($end->diffInSeconds($previous->created_at));
+                return (int) abs($previous->finished_at->diffInSeconds($previous->created_at));
             })
-            ->filter(fn (int $seconds): bool => $seconds > 0)
+            ->filter(fn (int $seconds): bool => $seconds > 0 && $seconds <= 1800)
             ->values();
 
         return [

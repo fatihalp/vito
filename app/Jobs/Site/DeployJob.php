@@ -50,6 +50,7 @@ class DeployJob implements ShouldQueue
             }
 
             $this->deployment->status = DeploymentStatus::FINISHED;
+            $this->deployment->finished_at = now();
             $this->deployment->save();
             dispatch(new CheckAppDebugJob($site));
             $this->deployment->activate();
@@ -69,6 +70,7 @@ class DeployJob implements ShouldQueue
         $current = $site->deployments()->where('active', 1)->whereNotNull('release')->first();
 
         $this->deployment->status = DeploymentStatus::FAILED;
+        $this->deployment->finished_at = now();
         $this->deployment->save();
         $this->deployment->activate();
         $this->deployment->log?->write("Deployment failed: {$e->getMessage()}");

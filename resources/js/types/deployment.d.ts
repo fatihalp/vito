@@ -36,6 +36,8 @@ export interface Deployment {
   rolled_back_by: string | null;
   rolled_back_at: string | null;
   finished_at: string | null;
+  duration?: number | null;
+  formatted_duration?: string | null;
   progress?: DeploymentProgress;
   created_at: string;
   updated_at: string;
