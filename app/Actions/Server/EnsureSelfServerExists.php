@@ -44,7 +44,7 @@ class EnsureSelfServerExists
 
     public function ensure(?User $user = null, bool $force = false): ?Server
     {
-        $cacheKey = 'vito:self_server_ensured_v2:'.($user?->id ?? 0);
+        $cacheKey = 'vito:self_server_ensured_v3:'.($user?->id ?? 0);
 
         if (! $force && ($cachedId = Cache::get($cacheKey)) && ($cached = Server::query()->find($cachedId))) {
             return $cached;
@@ -163,7 +163,6 @@ class EnsureSelfServerExists
             'git pull origin $BRANCH',
             'composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev',
             'php artisan vito',
-            'echo "✅ Vito updated successfully!"',
         ]);
 
         $script = DeploymentScript::query()->firstOrCreate(
@@ -171,7 +170,8 @@ class EnsureSelfServerExists
             ['content' => $defaultScriptContent, 'configs' => ['restart_workers' => false]],
         );
 
-        if (trim((string) $script->content) === '') {
+        $currentContent = trim((string) $script->content);
+        if ($currentContent === '' || str_starts_with($currentContent, "git pull\nphp artisan vito")) {
             $script->update(['content' => $defaultScriptContent, 'configs' => ['restart_workers' => false]]);
         }
 

@@ -560,6 +560,10 @@ class Site extends AbstractModel
             'PHP_PATH' => '/usr/bin/php'.$this->php_version,
         ];
 
+        if ($this->isSelf()) {
+            $variables['GIT_SSH_COMMAND'] = 'ssh -o StrictHostKeyChecking=accept-new';
+        }
+
         if ($this->sourceControl?->isGithubApp()) {
             
             $provider = $this->sourceControl->provider();

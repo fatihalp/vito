@@ -5,18 +5,13 @@ import {
   CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
-  Clock3Icon,
+  CircleIcon,
   CopyIcon,
-  HistoryIcon,
   LoaderCircleIcon,
-  LucideIcon,
-  SparklesIcon,
-  TimerIcon,
   XCircleIcon,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { LogStep } from '@/lib/log';
@@ -26,33 +21,32 @@ import { Deployment, DeploymentStep } from '@/types/deployment';
 type StepState = 'completed' | 'running' | 'failed' | 'pending';
 
 const STEP_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => string)]> = [
-  [/^git\s+(checkout|pull|fetch|reset|clone)/i, 'Fetch & checkout repository'],
+  [/^git\s+(checkout|pull|fetch|reset|clone)/i, 'Pull repository'],
   [/^git\s+/i, 'Git command'],
-  [/^composer\s+install/i, 'Install PHP dependencies (Composer)'],
-  [/^composer\s+update/i, 'Update PHP dependencies (Composer)'],
-  [/^composer\s+dump-autoload/i, 'Dump Composer autoload'],
-  [/^composer\s+/i, 'Run Composer command'],
-  [/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i, 'Install frontend packages'],
-  [/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i, 'Build frontend assets'],
-  [/^php\s+artisan\s+vito\b/i, 'Update & optimize Vito application'],
-  [/^php\s+artisan\s+migrate/i, 'Run database migrations'],
-  [/^php\s+artisan\s+(optimize:clear|clear-compiled)/i, 'Clear application cache'],
-  [/^php\s+artisan\s+(optimize|config:cache|route:cache|view:cache|event:cache)/i, 'Cache configuration & optimize'],
-  [/^php\s+artisan\s+queue:restart/i, 'Restart background queue workers'],
-  [/^php\s+artisan\s+down/i, 'Enable maintenance mode'],
-  [/^php\s+artisan\s+up/i, 'Disable maintenance mode'],
-  [/^php\s+artisan\s+([a-z0-9:-]+)/i, (m) => `Artisan: ${m[1]}`],
-  [/sudo\s+(systemctl|service)\s+(reload|restart)/i, 'Reload server service'],
-  [/^(chmod|chown)/i, 'Update file permissions'],
-  [/^mkdir/i, 'Create deployment directories'],
-  [/^cd\s+/i, 'Navigate to application directory'],
-  [/^echo\s+["'].*(completed|finished|successful|updated).*["']/i, 'Finalize deployment'],
+  [/^composer\s+install/i, 'Composer install'],
+  [/^composer\s+update/i, 'Composer update'],
+  [/^composer\s+dump-autoload/i, 'Dump autoload'],
+  [/^composer\s+/i, 'Composer'],
+  [/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i, 'Install packages'],
+  [/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i, 'Build assets'],
+  [/^php\s+artisan\s+vito\b/i, 'Update Vito'],
+  [/^php\s+artisan\s+migrate/i, 'Run migrations'],
+  [/^php\s+artisan\s+(optimize:clear|clear-compiled)/i, 'Clear cache'],
+  [/^php\s+artisan\s+(optimize|config:cache|route:cache|view:cache|event:cache)/i, 'Optimize application'],
+  [/^php\s+artisan\s+queue:restart/i, 'Restart queue'],
+  [/^php\s+artisan\s+down/i, 'Maintenance mode on'],
+  [/^php\s+artisan\s+up/i, 'Maintenance mode off'],
+  [/^php\s+artisan\s+([a-z0-9:-]+)/i, (m) => `artisan ${m[1]}`],
+  [/sudo\s+(systemctl|service)\s+(reload|restart)/i, 'Reload service'],
+  [/^(chmod|chown)/i, 'Fix permissions'],
+  [/^mkdir/i, 'Create directory'],
+  [/^cd\s+/i, 'Change directory'],
   [/^echo\s+["']?([^"'\n\r]+)["']?/i, (m) => m[1]],
 ];
 
 export function getStepTitle(command: string): string {
   const trimmed = command.trim();
-  if (!trimmed) return 'Run command';
+  if (!trimmed) return 'Command';
 
   for (const [pattern, label] of STEP_RULES) {
     const match = trimmed.match(pattern);
@@ -61,7 +55,7 @@ export function getStepTitle(command: string): string {
     }
   }
 
-  return `Execute ${trimmed.split(/\s+/)[0]}`;
+  return trimmed.split(/\s+/)[0];
 }
 
 export function formatDuration(seconds: number): string {
@@ -119,133 +113,60 @@ function calculateProgressPercent(
   return stepsCount > 0 ? 2 : 0;
 }
 
-function MetricCard({
-  icon: Icon,
-  iconClassName,
-  label,
-  value,
-  valueClassName,
-  title,
-}: {
-  icon: LucideIcon;
-  iconClassName?: string;
-  label: string;
-  value: ReactNode;
-  valueClassName?: string;
-  title?: string;
-}) {
-  return (
-    <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
-      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Icon className={cn('size-3.5', iconClassName)} />
-        <span>{label}</span>
-      </div>
-      <span className={cn('text-sm font-semibold tracking-tight text-foreground', valueClassName)} title={title}>
-        {value}
-      </span>
-    </div>
-  );
-}
-
 function StepRow({
   stepItem,
   index,
-  total,
   state,
 }: {
   stepItem: DeploymentStep;
   index: number;
-  total: number;
   state: StepState;
 }) {
   const { copied, copy } = useClipboard();
-  const isLast = index === total - 1;
 
   return (
     <div
       className={cn(
-        'group relative flex items-start gap-3 rounded-lg p-2.5 transition-colors',
-        state === 'running' && 'bg-warning/10 border border-warning/30 shadow-xs',
-        state === 'failed' && 'bg-destructive/10 border border-destructive/30',
-        state === 'completed' && 'hover:bg-accent/40',
-        state === 'pending' && 'opacity-60 hover:opacity-100 hover:bg-accent/20',
+        'group flex items-center justify-between gap-3 px-3 py-1.5 text-xs transition-colors',
+        state === 'running' && 'bg-muted/50',
+        state === 'failed' && 'bg-destructive/5',
+        state === 'pending' && 'opacity-60',
       )}
     >
-      {!isLast && (
+      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+        {state === 'completed' ? (
+          <CheckCircle2Icon className="size-3.5 text-emerald-500 shrink-0" />
+        ) : state === 'running' ? (
+          <LoaderCircleIcon className="size-3.5 text-primary animate-spin shrink-0" />
+        ) : state === 'failed' ? (
+          <XCircleIcon className="size-3.5 text-destructive shrink-0" />
+        ) : (
+          <CircleIcon className="size-3.5 text-muted-foreground/40 shrink-0" />
+        )}
+
         <span
           className={cn(
-            'absolute left-6.5 top-11 -bottom-2.5 w-0.5',
-            state === 'completed' ? 'bg-success/50' : 'bg-border/60',
+            'font-medium shrink-0',
+            state === 'failed' ? 'text-destructive' : 'text-foreground',
           )}
-          aria-hidden="true"
-        />
-      )}
+        >
+          {index + 1}. {getStepTitle(stepItem.command)}
+        </span>
 
-      <div
-        className={cn(
-          'size-8 rounded-full flex items-center justify-center shrink-0 z-10 font-mono text-xs font-semibold transition-all',
-          state === 'completed' && 'bg-success/15 text-success border border-success/40',
-          state === 'running' &&
-            'bg-warning/20 text-warning border border-warning/60 ring-2 ring-warning/30 animate-pulse',
-          state === 'failed' && 'bg-destructive/20 text-destructive border border-destructive/50',
-          state === 'pending' && 'bg-muted text-muted-foreground border border-border',
-        )}
-      >
-        {state === 'completed' ? (
-          <CheckCircle2Icon className="size-4.5" />
-        ) : state === 'running' ? (
-          <LoaderCircleIcon className="size-4.5 animate-spin" />
-        ) : state === 'failed' ? (
-          <XCircleIcon className="size-4.5" />
-        ) : (
-          index + 1
-        )}
-      </div>
-
-      <div className="flex-1 min-w-0 flex flex-col gap-1 pt-0.5">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium text-foreground truncate">{getStepTitle(stepItem.command)}</span>
-            <span className="text-xs text-muted-foreground shrink-0">(Step {index + 1})</span>
-          </div>
-
-          <div className="flex items-center gap-1.5 shrink-0">
-            {state === 'running' && (
-              <Badge variant="warning" className="gap-1 animate-pulse text-[11px] py-0">
-                <LoaderCircleIcon className="size-3 animate-spin" />
-                Running
-              </Badge>
-            )}
-            {state === 'completed' && (
-              <Badge variant="outline" className="text-success border-success/40 bg-success/10 gap-1 text-[11px] py-0">
-                <CheckCircle2Icon className="size-3" />
-                Completed
-              </Badge>
-            )}
-            {state === 'failed' && (
-              <Badge variant="destructive" className="gap-1 text-[11px] py-0">
-                <XCircleIcon className="size-3" />
-                Failed
-              </Badge>
-            )}
-            {state === 'pending' && <span className="text-xs text-muted-foreground">Queued</span>}
-
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              onClick={() => copy(stepItem.command)}
-              title="Copy command"
-            >
-              {copied ? <CheckIcon className="size-3.5 text-success" /> : <CopyIcon className="size-3.5" />}
-            </Button>
-          </div>
-        </div>
-
-        <code className="text-muted-foreground text-xs font-mono break-all line-clamp-2 bg-background/60 rounded px-2 py-1 border border-border/40">
+        <code className="text-muted-foreground font-mono truncate">
           $ {stepItem.command}
         </code>
       </div>
+
+      <Button
+        variant="ghost"
+        size="icon"
+        className="size-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+        onClick={() => copy(stepItem.command)}
+        title="Copy command"
+      >
+        {copied ? <CheckIcon className="size-3 text-emerald-500" /> : <CopyIcon className="size-3" />}
+      </Button>
     </div>
   );
 }
@@ -271,7 +192,6 @@ export default function DeploymentProgress({
 
   const steps = deployment.progress?.steps ?? [];
   const estimate = deployment.progress?.estimated_duration ?? null;
-  const samples = deployment.progress?.samples ?? 0;
   const current = step ? steps.findLastIndex((s) => s.group === step.group && s.line <= step.line) : -1;
 
   const endedAt = deploying ? now : moment(deployment.finished_at ?? deployment.updated_at).valueOf();
@@ -279,164 +199,89 @@ export default function DeploymentProgress({
   const remaining = estimate !== null ? estimate - elapsed : null;
   const percent = calculateProgressPercent(deployment.status, steps.length, current, elapsed, estimate);
 
-  const title = deploying ? 'Deployment in Progress' : failed ? 'Deployment Failed' : 'Deployment Finished';
-  const Icon = deploying ? LoaderCircleIcon : failed ? XCircleIcon : CheckCircle2Icon;
+  const title = deploying ? 'Deploying...' : failed ? 'Deployment failed' : 'Deployment completed';
   const activeStep = current >= 0 && steps[current] ? steps[current] : steps[0] ?? null;
 
+  const stepLabel =
+    steps.length > 0
+      ? finished
+        ? `${steps.length}/${steps.length} steps`
+        : `Step ${Math.max(1, current + 1)} of ${steps.length}`
+      : null;
+
   return (
-    <Card className={cn('overflow-hidden', className)}>
-      <CardContent className="flex flex-col gap-4 p-4 sm:p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2.5">
-            <div
-              className={cn(
-                'size-8 rounded-full flex items-center justify-center shrink-0 border',
-                deploying && 'bg-warning/15 border-warning/40 text-warning',
-                finished && 'bg-success/15 border-success/40 text-success',
-                failed && 'bg-destructive/15 border-destructive/40 text-destructive',
-              )}
-            >
-              <Icon className={cn('size-4.5 shrink-0', deploying && 'animate-spin')} />
-            </div>
+    <Card className={cn('p-3.5 flex flex-col gap-2.5 shadow-none', className)}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          {deploying ? (
+            <LoaderCircleIcon className="size-4 text-primary animate-spin shrink-0" />
+          ) : failed ? (
+            <XCircleIcon className="size-4 text-destructive shrink-0" />
+          ) : (
+            <CheckCircle2Icon className="size-4 text-emerald-500 shrink-0" />
+          )}
 
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-base font-semibold tracking-tight">{title}</span>
-              {steps.length > 0 && (
-                <Badge variant="outline" className="text-xs">
-                  {finished
-                    ? `All ${steps.length} steps completed`
-                    : failed
-                      ? `Failed at step ${Math.max(1, current + 1)} of ${steps.length}`
-                      : current >= 0
-                        ? `Step ${current + 1} of ${steps.length}`
-                        : `Preparing (${steps.length} steps)`}
-                </Badge>
-              )}
-            </div>
-          </div>
+          <span className="text-sm font-medium">{title}</span>
 
-          <div className="flex items-center gap-2">
-            {steps.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-xs gap-1.5 cursor-pointer"
-                onClick={() => setShowSteps((prev) => !prev)}
-              >
-                <span>{showSteps ? 'Hide steps' : `View all steps (${steps.length})`}</span>
-                {showSteps ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
-              </Button>
-            )}
-            {action}
-          </div>
+          {stepLabel && (
+            <span className="text-xs text-muted-foreground">· {stepLabel}</span>
+          )}
+
+          {!showSteps && activeStep && (
+            <code className="hidden sm:inline text-xs text-muted-foreground font-mono truncate max-w-md">
+              · $ {activeStep.command}
+            </code>
+          )}
         </div>
 
-        <div className="flex flex-col gap-1.5">
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Overall Progress</span>
-            <span className="font-semibold text-foreground">{percent}%</span>
-          </div>
-          <Progress
-            value={percent}
-            aria-label="Deployment progress"
-            className={cn(
-              'h-2.5',
-              failed && 'bg-destructive/20 [&>[data-slot=progress-indicator]]:bg-destructive',
-              deploying && 'bg-warning/20 [&>[data-slot=progress-indicator]]:bg-warning',
-              finished && 'bg-success/20 [&>[data-slot=progress-indicator]]:bg-success',
-            )}
-          />
-        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="font-mono">{formatDuration(elapsed)}</span>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <MetricCard
-            icon={Clock3Icon}
-            label={deploying ? 'Elapsed Time' : 'Total Duration'}
-            value={formatDuration(elapsed)}
-          />
-          <MetricCard
-            icon={TimerIcon}
-            iconClassName={deploying ? 'text-warning' : undefined}
-            label={deploying ? 'Est. Remaining' : 'Status'}
-            valueClassName={deploying ? 'text-warning' : failed ? 'text-destructive' : 'text-success'}
-            value={
-              deploying
-                ? remaining !== null
-                  ? remaining > 0
-                    ? `~${formatDuration(remaining)}`
-                    : `+${formatDuration(Math.abs(remaining))} over`
-                  : 'Estimating...'
-                : failed
-                  ? 'Failed'
-                  : 'Completed'
-            }
-          />
-          <MetricCard
-            icon={HistoryIcon}
-            label="Avg. Benchmark"
-            title={samples > 0 ? `Based on last ${samples} successful deployments` : undefined}
-            value={
-              <>
-                {estimate !== null ? `~${formatDuration(estimate)}` : 'No history'}
-                {samples > 0 && <span className="text-[11px] font-normal text-muted-foreground ml-1">({samples})</span>}
-              </>
-            }
-          />
-          <MetricCard icon={SparklesIcon} label="Progress" value={`${percent}%`} />
-        </div>
+          {deploying && remaining !== null && remaining > 0 && (
+            <span>· ~{formatDuration(remaining)} left</span>
+          )}
 
-        {steps.length > 0 && !showSteps && activeStep && (
-          <div className="flex items-center justify-between gap-3 p-2.5 rounded-lg border bg-muted/30 text-xs">
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="font-semibold shrink-0">
-                {failed ? 'Failed at:' : deploying ? 'Active Step:' : 'Latest Step:'}
-              </span>
-              <span className="font-medium text-foreground truncate">{getStepTitle(activeStep.command)}</span>
-              <span className="text-muted-foreground font-mono truncate hidden sm:inline">
-                ({activeStep.command})
-              </span>
-            </div>
+          {!deploying && estimate !== null && (
+            <span className="hidden sm:inline">· avg ~{formatDuration(estimate)}</span>
+          )}
+
+          {steps.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
-              className="h-7 text-xs px-2 shrink-0 cursor-pointer"
-              onClick={() => setShowSteps(true)}
+              className="h-7 px-2 text-xs gap-1 cursor-pointer"
+              onClick={() => setShowSteps((prev) => !prev)}
             >
-              <span>View steps</span>
-              <ChevronDownIcon className="size-3.5" />
+              <span>{showSteps ? 'Hide steps' : `Steps (${steps.length})`}</span>
+              {showSteps ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
             </Button>
-          </div>
-        )}
+          )}
 
-        {steps.length > 0 && showSteps && (
-          <div className="flex flex-col gap-2 pt-2 border-t">
-            <div className="flex items-center justify-between text-xs text-muted-foreground pb-1">
-              <span className="font-semibold uppercase tracking-wider text-[11px]">
-                Deployment Pipeline ({steps.length} Steps)
-              </span>
-              <span>
-                {finished
-                  ? 'All steps completed'
-                  : current >= 0
-                    ? `Executing step ${current + 1} of ${steps.length}`
-                    : 'Starting execution...'}
-              </span>
-            </div>
+          {action}
+        </div>
+      </div>
 
-            <div className="relative flex flex-col gap-1">
-              {steps.map((stepItem, index) => (
-                <StepRow
-                  key={`${stepItem.group}-${stepItem.line}-${index}`}
-                  stepItem={stepItem}
-                  index={index}
-                  total={steps.length}
-                  state={getStepState(index, current, deployment.status)}
-                />
-              ))}
-            </div>
-          </div>
+      <Progress
+        value={percent}
+        aria-label="Deployment progress"
+        className={cn(
+          'h-1.5',
+          failed && '[&>[data-slot=progress-indicator]]:bg-destructive',
         )}
-      </CardContent>
+      />
+
+      {steps.length > 0 && showSteps && (
+        <div className="divide-y rounded-md border bg-muted/10 overflow-hidden">
+          {steps.map((stepItem, index) => (
+            <StepRow
+              key={`${stepItem.group}-${stepItem.line}-${index}`}
+              stepItem={stepItem}
+              index={index}
+              state={getStepState(index, current, deployment.status)}
+            />
+          ))}
+        </div>
+      )}
     </Card>
   );
 }
