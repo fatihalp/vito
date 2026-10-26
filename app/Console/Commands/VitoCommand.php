@@ -43,10 +43,6 @@ class VitoCommand extends Command
                     return self::FAILURE;
                 }
             }
-
-            if (! $this->runProcess(['sudo', '-n', 'supervisorctl', 'restart', 'websocket'], 30)) {
-                return self::FAILURE;
-            }
         }
 
         $this->components->info('Vito update maintenance completed.');
