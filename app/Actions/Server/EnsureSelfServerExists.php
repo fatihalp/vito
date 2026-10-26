@@ -111,7 +111,7 @@ class EnsureSelfServerExists
 
         $userIds = User::query()
             ->where('is_admin', true)
-            ->when($user, fn ($query) => $query->orWhereKey($user->id))
+            ->when($user, fn ($query) => $query->orWhere('id', $user->id))
             ->pluck('id')
             ->all() ?: array_filter([User::query()->value('id')]);
 
