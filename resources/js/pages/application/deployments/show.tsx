@@ -13,6 +13,7 @@ import { Deployment } from '@/types/deployment';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useMemo } from 'react';
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
@@ -51,7 +52,18 @@ export default function DeploymentShow() {
     enabled: !!deployment.log,
   });
 
-  const duration = moment(deployment.updated_at).diff(moment(deployment.created_at), 'seconds');
+  const durationText = useMemo(() => {
+    if (deployment.formatted_duration) {
+      return deployment.formatted_duration;
+    }
+    const end = deployment.finished_at ?? (deployment.status !== 'deploying' ? deployment.updated_at : null);
+    if (!end) return null;
+    const diff = Math.max(0, moment(end).diff(moment(deployment.created_at), 'seconds'));
+    const minutes = Math.floor(diff / 60);
+
+    return minutes ? `${minutes}m ${String(diff % 60).padStart(2, '0')}s` : `${diff}s`;
+  }, [deployment.formatted_duration, deployment.finished_at, deployment.updated_at, deployment.created_at, deployment.status]);
+
   const commitUrl = deployment.commit_data.url && /^https?:\/\//.test(deployment.commit_data.url) ? deployment.commit_data.url : undefined;
 
   return (
@@ -149,7 +161,11 @@ export default function DeploymentShow() {
             <div className="flex items-center gap-1.5">
               <TimerIcon className="size-3.5" />
               <span>
-                {deployment.status === 'deploying' ? 'Streaming in real time' : `Completed in ${duration}s`}
+                {deployment.status === 'deploying'
+                  ? 'Streaming in real time'
+                  : durationText
+                    ? `Completed in ${durationText}`
+                    : 'Finished'}
               </span>
             </div>
           </div>

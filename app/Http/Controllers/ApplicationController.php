@@ -62,7 +62,14 @@ class ApplicationController extends Controller
             return $overview ??= app(GetSiteOverview::class)->get($site);
         };
 
+        $activeDeployment = $site->deployments()
+            ->where('status', DeploymentStatus::DEPLOYING)
+            ->with('log', 'user')
+            ->latest('id')
+            ->first();
+
         return Inertia::render('application/index', [
+            'activeDeployment' => $activeDeployment ? new DeploymentResource($activeDeployment) : null,
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
             'deploymentScript' => Inertia::defer(fn () => $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null, 'deployments'),
             'buildScript' => Inertia::defer(fn () => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null, 'deployments'),
@@ -152,9 +159,13 @@ class ApplicationController extends Controller
     {
         $this->authorize('update', [$site, $server]);
 
-        app(Deploy::class)->run($site, user: $request->user());
+        $deployment = app(Deploy::class)->run($site, user: $request->user());
 
-        return back()->with('info', 'Deployment started, please wait...');
+        return redirect()->route('application.deployments.show', [
+            'server' => $server,
+            'site' => $site,
+            'deployment' => $deployment,
+        ])->with('info', 'Deployment started, please wait...');
     }
 
     #[Post('/rollback/{deployment}', name: 'application.rollback')]

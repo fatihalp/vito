@@ -126,4 +126,26 @@ class Deployment extends AbstractModel
         $this->active = true;
         $this->save();
     }
+
+    public function duration(): ?int
+    {
+        if (! $this->finished_at) {
+            return null;
+        }
+
+        return (int) abs($this->finished_at->diffInSeconds($this->created_at));
+    }
+
+    public function formattedDuration(): ?string
+    {
+        $duration = $this->duration();
+        if ($duration === null) {
+            return null;
+        }
+
+        $minutes = intdiv($duration, 60);
+        $seconds = $duration % 60;
+
+        return $minutes > 0 ? sprintf('%dm %02ds', $minutes, $seconds) : sprintf('%ds', $seconds);
+    }
 }

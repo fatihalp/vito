@@ -10,6 +10,7 @@ import { asRow } from '@/lib/inertia-table';
 import { Download, View } from '@/pages/server-logs/components/columns';
 import { Deployment } from '@/types/deployment';
 import DateTime from '@/components/date-time';
+import moment from 'moment';
 
 const commitCell = ({ row }: CellRenderProps) => {
   const commit = (row.commit_data ?? {}) as Deployment['commit_data'];
@@ -78,6 +79,32 @@ const statusCell = ({ row, value }: CellRenderProps) => {
   );
 };
 
+const durationCell = ({ row }: CellRenderProps) => {
+  const deployment = row as unknown as Deployment;
+  if (deployment.status === 'deploying') {
+    return (
+      <span className="text-warning text-xs font-mono inline-flex items-center gap-1">
+        <LoaderCircleIcon className="size-3 animate-spin" />
+        <span>Running</span>
+      </span>
+    );
+  }
+
+  if (deployment.formatted_duration) {
+    return <span className="text-xs font-mono text-muted-foreground font-medium">{deployment.formatted_duration}</span>;
+  }
+
+  if (deployment.finished_at && deployment.created_at) {
+    const diff = Math.max(0, moment(deployment.finished_at).diff(moment(deployment.created_at), 'seconds'));
+    const minutes = Math.floor(diff / 60);
+    const text = minutes ? `${minutes}m ${String(diff % 60).padStart(2, '0')}s` : `${diff}s`;
+
+    return <span className="text-xs font-mono text-muted-foreground font-medium">{text}</span>;
+  }
+
+  return <span className="text-muted-foreground">—</span>;
+};
+
 export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
   const dialog = useDialog();
 
@@ -89,7 +116,14 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
     <VitoTable
       tableData={deployments}
       showPagination={showPagination}
-      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell, deployed_by: deployedByCell, status: statusCell }}
+      cellRenderers={{
+        commit: commitCell,
+        release: releaseCell,
+        created_at: deployedAtCell,
+        deployed_by: deployedByCell,
+        status: statusCell,
+        duration: durationCell,
+      }}
       actions={(row: Row) => {
         const deployment = asRow<Deployment>(row, ['id', 'site_id', 'server_id']);
 

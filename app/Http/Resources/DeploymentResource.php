@@ -32,6 +32,8 @@ class DeploymentResource extends JsonResource
             'rolled_back_by' => $this->rolledBackBy?->name,
             'rolled_back_at' => $this->rolled_back_at,
             'finished_at' => $this->finished_at,
+            'duration' => $this->duration(),
+            'formatted_duration' => $this->formattedDuration(),
             'progress' => app(GetDeploymentProgress::class)->get($this->resource),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
