@@ -64,9 +64,10 @@ class ApplicationController extends Controller
 
         $activeDeployment = $site->deployments()
             ->where('status', DeploymentStatus::DEPLOYING)
-            ->with('log', 'user')
+            ->with('log', 'user', 'deploymentScript')
             ->latest('id')
             ->first();
+        $activeDeployment?->setRelation('site', $site);
 
         return Inertia::render('application/index', [
             'activeDeployment' => $activeDeployment ? new DeploymentResource($activeDeployment) : null,
@@ -116,9 +117,10 @@ class ApplicationController extends Controller
 
         $activeDeployment = $site->deployments()
             ->where('status', DeploymentStatus::DEPLOYING)
-            ->with('log', 'user')
+            ->with('log', 'user', 'deploymentScript')
             ->latest('id')
             ->first();
+        $activeDeployment?->setRelation('site', $site);
 
         return Inertia::render('application/deployments/index', [
             'deployments' => DeploymentTable::make($site->deployments())->paginate(),
@@ -135,8 +137,11 @@ class ApplicationController extends Controller
             abort(404);
         }
 
+        $deployment->load('log', 'user', 'rolledBackBy', 'deploymentScript');
+        $deployment->setRelation('site', $site);
+
         return Inertia::render('application/deployments/show', [
-            'deployment' => new DeploymentResource($deployment->load('log', 'user', 'rolledBackBy')),
+            'deployment' => new DeploymentResource($deployment),
         ]);
     }
 

@@ -115,7 +115,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       onlyActivePath: `/servers/${serverId}/sites`,
       icon: MousePointerClickIcon,
       isDisabled: isMenuDisabled,
-      hidden: !services['webserver'] || Boolean(server.is_self),
+      hidden: !services['webserver'],
       flyoutContent: <RecentSitesFlyout server={server} />,
     },
     {

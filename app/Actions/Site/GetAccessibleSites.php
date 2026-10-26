@@ -2,6 +2,7 @@
 
 namespace App\Actions\Site;
 
+use App\Actions\Server\EnsureSelfServerExists;
 use App\Models\Server;
 use App\Models\Site;
 use App\Models\User;
@@ -23,13 +24,12 @@ class GetAccessibleSites
      */
     public function get(User $user, array $input): array
     {
+        app(EnsureSelfServerExists::class)->ensure($user);
+
         $accessibleProjectIds = $user->allProjects()->pluck('id');
 
         $accessibleServers = Server::query()
             ->whereIn('project_id', $accessibleProjectIds)
-            ->where(function (Builder $query): void {
-                $query->where('is_self', false)->orWhereNull('is_self');
-            })
             ->with('project:id,name')
             ->orderBy('name')
             ->get(['id', 'name', 'project_id']);

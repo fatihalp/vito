@@ -9,6 +9,7 @@ import {
   CopyIcon,
   HistoryIcon,
   LoaderCircleIcon,
+  LucideIcon,
   SparklesIcon,
   TimerIcon,
   XCircleIcon,
@@ -17,92 +18,53 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { LogStep } from '@/lib/log';
 import { cn } from '@/lib/utils';
 import { Deployment, DeploymentStep } from '@/types/deployment';
-import { toast } from 'sonner';
+
+type StepState = 'completed' | 'running' | 'failed' | 'pending';
+
+const STEP_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => string)]> = [
+  [/^git\s+(checkout|pull|fetch|reset|clone)/i, 'Fetch & checkout repository'],
+  [/^git\s+/i, 'Git command'],
+  [/^composer\s+install/i, 'Install PHP dependencies (Composer)'],
+  [/^composer\s+update/i, 'Update PHP dependencies (Composer)'],
+  [/^composer\s+dump-autoload/i, 'Dump Composer autoload'],
+  [/^composer\s+/i, 'Run Composer command'],
+  [/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i, 'Install frontend packages'],
+  [/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i, 'Build frontend assets'],
+  [/^php\s+artisan\s+vito\b/i, 'Update & optimize Vito application'],
+  [/^php\s+artisan\s+migrate/i, 'Run database migrations'],
+  [/^php\s+artisan\s+(optimize:clear|clear-compiled)/i, 'Clear application cache'],
+  [/^php\s+artisan\s+(optimize|config:cache|route:cache|view:cache|event:cache)/i, 'Cache configuration & optimize'],
+  [/^php\s+artisan\s+queue:restart/i, 'Restart background queue workers'],
+  [/^php\s+artisan\s+down/i, 'Enable maintenance mode'],
+  [/^php\s+artisan\s+up/i, 'Disable maintenance mode'],
+  [/^php\s+artisan\s+([a-z0-9:-]+)/i, (m) => `Artisan: ${m[1]}`],
+  [/sudo\s+(systemctl|service)\s+(reload|restart)/i, 'Reload server service'],
+  [/^(chmod|chown)/i, 'Update file permissions'],
+  [/^mkdir/i, 'Create deployment directories'],
+  [/^cd\s+/i, 'Navigate to application directory'],
+  [/^echo\s+["'].*(completed|finished|successful|updated).*["']/i, 'Finalize deployment'],
+  [/^echo\s+["']?([^"'\n\r]+)["']?/i, (m) => m[1]],
+];
 
 export function getStepTitle(command: string): string {
   const trimmed = command.trim();
   if (!trimmed) return 'Run command';
 
-  if (/^git\s+(checkout|pull|fetch|reset|clone)/i.test(trimmed)) {
-    return 'Fetch & checkout repository';
-  }
-  if (/^git\s+/i.test(trimmed)) {
-    return 'Git command';
-  }
-
-  if (/^composer\s+install/i.test(trimmed)) {
-    return 'Install PHP dependencies (Composer)';
-  }
-  if (/^composer\s+update/i.test(trimmed)) {
-    return 'Update PHP dependencies (Composer)';
-  }
-  if (/^composer\s+dump-autoload/i.test(trimmed)) {
-    return 'Dump Composer autoload';
-  }
-  if (/^composer\s+/i.test(trimmed)) {
-    return 'Run Composer command';
+  for (const [pattern, label] of STEP_RULES) {
+    const match = trimmed.match(pattern);
+    if (match) {
+      return typeof label === 'function' ? label(match) : label;
+    }
   }
 
-  if (/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i.test(trimmed)) {
-    return 'Install frontend packages';
-  }
-  if (/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i.test(trimmed)) {
-    return 'Build frontend assets';
-  }
-
-  if (/^php\s+artisan\s+migrate/i.test(trimmed)) {
-    return 'Run database migrations';
-  }
-  if (/^php\s+artisan\s+(optimize:clear|clear-compiled)/i.test(trimmed)) {
-    return 'Clear application cache';
-  }
-  if (/^php\s+artisan\s+(optimize|config:cache|route:cache|view:cache|event:cache)/i.test(trimmed)) {
-    return 'Cache configuration & optimize';
-  }
-  if (/^php\s+artisan\s+queue:restart/i.test(trimmed)) {
-    return 'Restart background queue workers';
-  }
-  if (/^php\s+artisan\s+down/i.test(trimmed)) {
-    return 'Enable maintenance mode';
-  }
-  if (/^php\s+artisan\s+up/i.test(trimmed)) {
-    return 'Disable maintenance mode';
-  }
-  if (/^php\s+artisan\s+/i.test(trimmed)) {
-    const match = trimmed.match(/^php\s+artisan\s+([a-z0-9:-]+)/i);
-    return match ? `Artisan: ${match[1]}` : 'Run Artisan command';
-  }
-
-  if (/sudo\s+(systemctl|service)\s+(reload|restart)/i.test(trimmed)) {
-    return 'Reload server service';
-  }
-
-  if (/^(chmod|chown)/i.test(trimmed)) {
-    return 'Update file permissions';
-  }
-  if (/^mkdir/i.test(trimmed)) {
-    return 'Create deployment directories';
-  }
-  if (/^cd\s+/i.test(trimmed)) {
-    return 'Navigate to application directory';
-  }
-
-  if (/^echo\s+["'].*(completed|finished|successful).*["']/i.test(trimmed)) {
-    return 'Finalize deployment';
-  }
-  if (/^echo\s+/i.test(trimmed)) {
-    const match = trimmed.match(/^echo\s+["']?([^"'\n\r]+)["']?/i);
-    return match ? match[1] : 'Output message';
-  }
-
-  const firstWord = trimmed.split(/\s+/)[0];
-  return `Execute ${firstWord}`;
+  return `Execute ${trimmed.split(/\s+/)[0]}`;
 }
 
-function formatDuration(seconds: number): string {
+export function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
   const minutes = Math.floor(total / 60);
 
@@ -122,31 +84,67 @@ function useNow(enabled: boolean): number {
   return now;
 }
 
-function getStepState(
-  index: number,
+function getStepState(index: number, current: number, status: string): StepState {
+  if (status === 'finished') return 'completed';
+
+  const activeIndex = current >= 0 ? current : 0;
+  if (index < activeIndex) return 'completed';
+  if (index > activeIndex) return 'pending';
+
+  return status === 'failed' ? 'failed' : 'running';
+}
+
+function calculateProgressPercent(
+  status: string,
+  stepsCount: number,
   current: number,
-  deploymentStatus: string,
-): 'completed' | 'running' | 'failed' | 'pending' {
-  if (deploymentStatus === 'finished') {
-    return 'completed';
+  elapsed: number,
+  estimate: number | null,
+): number {
+  if (status === 'finished') return 100;
+
+  if (status === 'failed') {
+    return stepsCount > 0 && current >= 0 ? Math.round(((current + 1) / stepsCount) * 100) : 0;
   }
 
-  if (deploymentStatus === 'failed') {
-    if (current >= 0) {
-      if (index < current) return 'completed';
-      if (index === current) return 'failed';
-      return 'pending';
-    }
-    return index === 0 ? 'failed' : 'pending';
+  if (stepsCount > 0 && current >= 0) {
+    return Math.min(95, Math.max(5, Math.round(((current + 0.5) / stepsCount) * 100)));
   }
 
-  if (current >= 0) {
-    if (index < current) return 'completed';
-    if (index === current) return 'running';
-    return 'pending';
+  if (estimate && estimate > 0) {
+    const cap = stepsCount > 0 ? 25 : 95;
+    return Math.min(cap, Math.max(2, Math.round((elapsed / estimate) * 100)));
   }
 
-  return index === 0 ? 'running' : 'pending';
+  return stepsCount > 0 ? 2 : 0;
+}
+
+function MetricCard({
+  icon: Icon,
+  iconClassName,
+  label,
+  value,
+  valueClassName,
+  title,
+}: {
+  icon: LucideIcon;
+  iconClassName?: string;
+  label: string;
+  value: ReactNode;
+  valueClassName?: string;
+  title?: string;
+}) {
+  return (
+    <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
+      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+        <Icon className={cn('size-3.5', iconClassName)} />
+        <span>{label}</span>
+      </div>
+      <span className={cn('text-sm font-semibold tracking-tight text-foreground', valueClassName)} title={title}>
+        {value}
+      </span>
+    </div>
+  );
 }
 
 function StepRow({
@@ -158,22 +156,10 @@ function StepRow({
   stepItem: DeploymentStep;
   index: number;
   total: number;
-  state: 'completed' | 'running' | 'failed' | 'pending';
+  state: StepState;
 }) {
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useClipboard();
   const isLast = index === total - 1;
-  const title = getStepTitle(stepItem.command);
-
-  const handleCopy = () => {
-    navigator.clipboard
-      .writeText(stepItem.command)
-      .then(() => {
-        setCopied(true);
-        toast.success('Command copied to clipboard');
-        setTimeout(() => setCopied(false), 2000);
-      })
-      .catch(() => toast.error('Failed to copy command'));
-  };
 
   return (
     <div
@@ -219,7 +205,7 @@ function StepRow({
       <div className="flex-1 min-w-0 flex flex-col gap-1 pt-0.5">
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-sm font-medium text-foreground truncate">{title}</span>
+            <span className="text-sm font-medium text-foreground truncate">{getStepTitle(stepItem.command)}</span>
             <span className="text-xs text-muted-foreground shrink-0">(Step {index + 1})</span>
           </div>
 
@@ -248,7 +234,7 @@ function StepRow({
               variant="ghost"
               size="icon"
               className="size-7 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              onClick={handleCopy}
+              onClick={() => copy(stepItem.command)}
               title="Copy command"
             >
               {copied ? <CheckIcon className="size-3.5 text-success" /> : <CopyIcon className="size-3.5" />}
@@ -281,6 +267,7 @@ export default function DeploymentProgress({
   const failed = deployment.status === 'failed';
   const finished = deployment.status === 'finished';
   const now = useNow(deploying);
+  const [showSteps, setShowSteps] = useState(defaultShowSteps);
 
   const steps = deployment.progress?.steps ?? [];
   const estimate = deployment.progress?.estimated_duration ?? null;
@@ -290,35 +277,11 @@ export default function DeploymentProgress({
   const endedAt = deploying ? now : moment(deployment.finished_at ?? deployment.updated_at).valueOf();
   const elapsed = Math.max(0, (endedAt - moment(deployment.created_at).valueOf()) / 1000);
   const remaining = estimate !== null ? estimate - elapsed : null;
-
-  const [showSteps, setShowSteps] = useState(defaultShowSteps);
-
-  let percent = 0;
-  if (finished) {
-    percent = 100;
-  } else if (failed) {
-    if (steps.length > 0 && current >= 0) {
-      percent = Math.round(((current + 1) / steps.length) * 100);
-    } else {
-      percent = 0;
-    }
-  } else if (steps.length > 0) {
-    if (current >= 0) {
-      percent = Math.min(95, Math.max(5, Math.round(((current + 0.5) / steps.length) * 100)));
-    } else if (estimate && estimate > 0) {
-      percent = Math.min(25, Math.max(2, Math.round((elapsed / estimate) * 100)));
-    } else {
-      percent = 2;
-    }
-  } else if (estimate && estimate > 0) {
-    percent = Math.min(95, Math.max(2, Math.round((elapsed / estimate) * 100)));
-  }
+  const percent = calculateProgressPercent(deployment.status, steps.length, current, elapsed, estimate);
 
   const title = deploying ? 'Deployment in Progress' : failed ? 'Deployment Failed' : 'Deployment Finished';
   const Icon = deploying ? LoaderCircleIcon : failed ? XCircleIcon : CheckCircle2Icon;
-  const iconClass = deploying ? 'text-warning animate-spin' : failed ? 'text-destructive' : 'text-success';
-
-  const activeStep = current >= 0 && steps[current] ? steps[current] : steps.length > 0 ? steps[0] : null;
+  const activeStep = current >= 0 && steps[current] ? steps[current] : steps[0] ?? null;
 
   return (
     <Card className={cn('overflow-hidden', className)}>
@@ -333,24 +296,22 @@ export default function DeploymentProgress({
                 failed && 'bg-destructive/15 border-destructive/40 text-destructive',
               )}
             >
-              <Icon className={cn('size-4.5 shrink-0', iconClass)} />
+              <Icon className={cn('size-4.5 shrink-0', deploying && 'animate-spin')} />
             </div>
 
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-base font-semibold tracking-tight">{title}</span>
-                {steps.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {finished
-                      ? `All ${steps.length} steps completed`
-                      : failed
-                        ? `Failed at step ${Math.max(1, current + 1)} of ${steps.length}`
-                        : current >= 0
-                          ? `Step ${current + 1} of ${steps.length}`
-                          : `Preparing (${steps.length} steps)`}
-                  </Badge>
-                )}
-              </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-base font-semibold tracking-tight">{title}</span>
+              {steps.length > 0 && (
+                <Badge variant="outline" className="text-xs">
+                  {finished
+                    ? `All ${steps.length} steps completed`
+                    : failed
+                      ? `Failed at step ${Math.max(1, current + 1)} of ${steps.length}`
+                      : current >= 0
+                        ? `Step ${current + 1} of ${steps.length}`
+                        : `Preparing (${steps.length} steps)`}
+                </Badge>
+              )}
             </div>
           </div>
 
@@ -388,28 +349,18 @@ export default function DeploymentProgress({
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-          <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <Clock3Icon className="size-3.5" />
-              <span>{deploying ? 'Elapsed Time' : 'Total Duration'}</span>
-            </div>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              {formatDuration(elapsed)}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <TimerIcon className={cn('size-3.5', deploying && 'text-warning')} />
-              <span>{deploying ? 'Est. Remaining' : 'Status'}</span>
-            </div>
-            <span
-              className={cn(
-                'text-sm font-semibold tracking-tight',
-                deploying ? 'text-warning' : failed ? 'text-destructive' : 'text-success',
-              )}
-            >
-              {deploying
+          <MetricCard
+            icon={Clock3Icon}
+            label={deploying ? 'Elapsed Time' : 'Total Duration'}
+            value={formatDuration(elapsed)}
+          />
+          <MetricCard
+            icon={TimerIcon}
+            iconClassName={deploying ? 'text-warning' : undefined}
+            label={deploying ? 'Est. Remaining' : 'Status'}
+            valueClassName={deploying ? 'text-warning' : failed ? 'text-destructive' : 'text-success'}
+            value={
+              deploying
                 ? remaining !== null
                   ? remaining > 0
                     ? `~${formatDuration(remaining)}`
@@ -417,33 +368,21 @@ export default function DeploymentProgress({
                   : 'Estimating...'
                 : failed
                   ? 'Failed'
-                  : 'Completed'}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <HistoryIcon className="size-3.5" />
-              <span>Avg. Benchmark</span>
-            </div>
-            <span
-              className="text-sm font-semibold tracking-tight text-foreground"
-              title={samples > 0 ? `Based on last ${samples} successful deployments` : undefined}
-            >
-              {estimate !== null ? `~${formatDuration(estimate)}` : 'No history'}
-              {samples > 0 && <span className="text-[11px] font-normal text-muted-foreground ml-1">({samples})</span>}
-            </span>
-          </div>
-
-          <div className="flex flex-col gap-0.5 rounded-lg border bg-muted/20 p-2.5">
-            <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <SparklesIcon className="size-3.5" />
-              <span>Progress</span>
-            </div>
-            <span className="text-sm font-semibold tracking-tight text-foreground">
-              {percent}%
-            </span>
-          </div>
+                  : 'Completed'
+            }
+          />
+          <MetricCard
+            icon={HistoryIcon}
+            label="Avg. Benchmark"
+            title={samples > 0 ? `Based on last ${samples} successful deployments` : undefined}
+            value={
+              <>
+                {estimate !== null ? `~${formatDuration(estimate)}` : 'No history'}
+                {samples > 0 && <span className="text-[11px] font-normal text-muted-foreground ml-1">({samples})</span>}
+              </>
+            }
+          />
+          <MetricCard icon={SparklesIcon} label="Progress" value={`${percent}%`} />
         </div>
 
         {steps.length > 0 && !showSteps && activeStep && (

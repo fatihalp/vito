@@ -4,18 +4,19 @@ import SiteBanners from '@/components/site-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useClipboard } from '@/hooks/use-clipboard';
 import { useDialog } from '@/hooks/use-dialog';
 import { useLogContent } from '@/hooks/use-log-content';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import Deploy from '@/pages/application/components/deploy';
-import DeploymentProgress from '@/pages/application/deployments/progress';
+import DeploymentProgress, { formatDuration } from '@/pages/application/deployments/progress';
 import { Deployment } from '@/types/deployment';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
@@ -34,7 +35,6 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import moment from 'moment';
-import { toast } from 'sonner';
 
 function StatusIcon({ status }: { status: string }) {
   if (status === 'deploying') {
@@ -53,6 +53,8 @@ export default function DeploymentShow() {
   const { server, site } = page.props;
   const deployment = useRealtimeRecord<Deployment>(page.props.deployment, 'deployment')!;
   const dialog = useDialog();
+  const { copied: copiedSha, copy: copySha } = useClipboard();
+  const { copied: copiedLog, copy: copyLog } = useClipboard();
 
   const { content, step, isLoading, error } = useLogContent({
     serverId: server.id,
@@ -60,52 +62,20 @@ export default function DeploymentShow() {
     enabled: !!deployment.log,
   });
 
-  const [copiedSha, setCopiedSha] = useState(false);
-  const [copiedLog, setCopiedLog] = useState(false);
-
   const durationText = useMemo(() => {
     if (deployment.formatted_duration) {
       return deployment.formatted_duration;
     }
     const end = deployment.finished_at ?? (deployment.status !== 'deploying' ? deployment.updated_at : null);
     if (!end) return null;
-    const diff = Math.max(0, moment(end).diff(moment(deployment.created_at), 'seconds'));
-    const minutes = Math.floor(diff / 60);
 
-    return minutes ? `${minutes}m ${String(diff % 60).padStart(2, '0')}s` : `${diff}s`;
+    return formatDuration(moment(end).diff(moment(deployment.created_at), 'seconds'));
   }, [deployment.formatted_duration, deployment.finished_at, deployment.updated_at, deployment.created_at, deployment.status]);
 
   const commitUrl =
     deployment.commit_data.url && /^https?:\/\//.test(deployment.commit_data.url)
       ? deployment.commit_data.url
       : undefined;
-
-  const handleCopySha = () => {
-    const sha = deployment.commit_id || deployment.commit_id_short;
-    if (!sha) return;
-
-    navigator.clipboard
-      .writeText(sha)
-      .then(() => {
-        setCopiedSha(true);
-        toast.success('Commit hash copied to clipboard');
-        setTimeout(() => setCopiedSha(false), 2000);
-      })
-      .catch(() => toast.error('Failed to copy commit hash'));
-  };
-
-  const handleCopyLog = () => {
-    if (!content) return;
-
-    navigator.clipboard
-      .writeText(content)
-      .then(() => {
-        setCopiedLog(true);
-        toast.success('Console log copied to clipboard');
-        setTimeout(() => setCopiedLog(false), 2000);
-      })
-      .catch(() => toast.error('Failed to copy console log'));
-  };
 
   return (
     <ServerLayout>
@@ -204,7 +174,7 @@ export default function DeploymentShow() {
                   variant="ghost"
                   size="icon"
                   className="size-5 cursor-pointer"
-                  onClick={handleCopySha}
+                  onClick={() => copySha(deployment.commit_id || deployment.commit_id_short)}
                   title="Copy commit SHA"
                 >
                   {copiedSha ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
@@ -299,7 +269,7 @@ export default function DeploymentShow() {
                   variant="ghost"
                   size="sm"
                   className="h-7 text-xs gap-1.5 cursor-pointer"
-                  onClick={handleCopyLog}
+                  onClick={() => copyLog(content)}
                 >
                   {copiedLog ? <CheckIcon className="size-3.5 text-success" /> : <CopyIcon className="size-3.5" />}
                   <span>{copiedLog ? 'Copied' : 'Copy log'}</span>

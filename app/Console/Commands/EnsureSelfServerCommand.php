@@ -13,7 +13,7 @@ class EnsureSelfServerCommand extends Command
 
     public function handle(EnsureSelfServerExists $action): int
     {
-        $server = $action->ensure();
+        $server = $action->ensure(force: true);
 
         if (! $server) {
             $this->warn('No project or user found. Create a user first before provisioning the self server.');

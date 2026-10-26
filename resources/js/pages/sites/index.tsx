@@ -181,20 +181,22 @@ export default function Sites() {
                   </div>
                 </div>
               )}
-              <div className="ml-auto">
-                <Button asChild>
-                  <Link
-                    href={
-                      page.props.server
-                        ? `/servers/${page.props.server.id}/sites/create`
-                        : "/sites/create"
-                    }
-                  >
-                    <PlusIcon />
-                    Create site
-                  </Link>
-                </Button>
-              </div>
+              {!page.props.server?.is_self && (
+                <div className="ml-auto">
+                  <Button asChild>
+                    <Link
+                      href={
+                        page.props.server
+                          ? `/servers/${page.props.server.id}/sites/create`
+                          : "/sites/create"
+                      }
+                    >
+                      <PlusIcon />
+                      Create site
+                    </Link>
+                  </Button>
+                </div>
+              )}
             </>
           }
           cellRenderers={{

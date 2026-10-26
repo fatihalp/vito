@@ -38,7 +38,7 @@ class VitoCommand extends Command
                 }
             }
 
-            if (! $this->runProcess(['sudo', '-n', 'supervisorctl', 'restart', 'worker:*', 'websocket'], 3660)) {
+            if (! $this->runProcess(['sh', '-c', 'nohup sh -c "sleep 2 && sudo -n supervisorctl restart worker:* websocket" >/dev/null 2>&1 &'], 30)) {
                 return self::FAILURE;
             }
         }

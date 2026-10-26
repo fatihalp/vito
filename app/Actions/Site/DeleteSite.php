@@ -19,6 +19,12 @@ class DeleteSite
     
     public function delete(Site $site, array $input): void
     {
+        if ($site->isSelf()) {
+            throw ValidationException::withMessages([
+                'domain' => __('The Vito application site cannot be deleted.'),
+            ]);
+        }
+
         $this->validate($site, $input);
 
         $force = (bool) ($input['force'] ?? false);

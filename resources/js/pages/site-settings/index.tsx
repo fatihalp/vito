@@ -110,7 +110,7 @@ export default function SiteSettings() {
               </Field>
 
               <Field label="Branch">
-                {page.props.site.source_control_id ? (
+                {page.props.site.source_control_id || page.props.site.branch ? (
                   <ChangeBranch site={page.props.site}>
                     <Button variant="outline" className="h-6">
                       {page.props.site.branch}
@@ -214,21 +214,23 @@ export default function SiteSettings() {
           </CardContent>
         </Card>
 
-        <Card className="border-destructive/50 overflow-hidden">
-          <CardHeader>
-            <CardTitle>Delete site</CardTitle>
-            <CardDescription>Here you can delete the site.</CardDescription>
-          </CardHeader>
-          <CardContent className="bg-background">
-            <div className="space-y-2 p-4">
-              <p>please note that this action is irreversible and will delete all data associated with the site.</p>
+        {!page.props.site.type_data?.is_self && (
+          <Card className="border-destructive/50 overflow-hidden">
+            <CardHeader>
+              <CardTitle>Delete site</CardTitle>
+              <CardDescription>Here you can delete the site.</CardDescription>
+            </CardHeader>
+            <CardContent className="bg-background">
+              <div className="space-y-2 p-4">
+                <p>please note that this action is irreversible and will delete all data associated with the site.</p>
 
-              <DeleteSite site={page.props.site}>
-                <Button variant="destructive">Delete site</Button>
-              </DeleteSite>
-            </div>
-          </CardContent>
-        </Card>
+                <DeleteSite site={page.props.site}>
+                  <Button variant="destructive">Delete site</Button>
+                </DeleteSite>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </Container>
     </ServerLayout>
   );
