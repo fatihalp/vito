@@ -6,8 +6,10 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CircleIcon,
+  Clock3Icon,
   CopyIcon,
   LoaderCircleIcon,
+  TimerIcon,
   XCircleIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -44,6 +46,14 @@ const STEP_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => string)]
   [/^echo\s+["']?([^"'\n\r]+)["']?/i, (m) => m[1]],
 ];
 
+const STEP_DURATION_RULES: Array<[RegExp, number]> = [
+  [/^php\s+artisan\s+vito\b/i, 45],
+  [/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i, 40],
+  [/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i, 25],
+  [/^composer\s+(install|update)/i, 15],
+  [/^git\s+(checkout|pull|fetch|clone)/i, 5],
+];
+
 export function getStepTitle(command: string): string {
   const trimmed = command.trim();
   if (!trimmed) return 'Command';
@@ -63,6 +73,54 @@ export function formatDuration(seconds: number): string {
   const minutes = Math.floor(total / 60);
 
   return minutes ? `${minutes}m ${String(total % 60).padStart(2, '0')}s` : `${total}s`;
+}
+
+export function formatCountdown(seconds: number): string {
+  const total = Math.max(0, Math.round(seconds));
+  const minutes = Math.floor(total / 60);
+  const secs = total % 60;
+
+  return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function estimateStepSeconds(command: string): number {
+  const trimmed = command.trim();
+  for (const [pattern, seconds] of STEP_DURATION_RULES) {
+    if (pattern.test(trimmed)) {
+      return seconds;
+    }
+  }
+
+  return 5;
+}
+
+function calculateRemainingSeconds(
+  steps: DeploymentStep[],
+  current: number,
+  elapsed: number,
+  estimate: number | null,
+): number {
+  const activeIndex = Math.max(0, current);
+  const remainingStepsEstimate =
+    steps.length > 0
+      ? steps.slice(activeIndex).reduce((sum, item) => sum + estimateStepSeconds(item.command), 0)
+      : 20;
+
+  const targetTotal = estimate && estimate > 0 ? estimate : Math.max(15, remainingStepsEstimate);
+
+  if (elapsed < targetTotal) {
+    return Math.max(1, Math.round(targetTotal - elapsed));
+  }
+
+  const tailEstimate =
+    steps.length > 0 && activeIndex < steps.length - 1
+      ? steps.slice(activeIndex + 1).reduce((sum, item) => sum + estimateStepSeconds(item.command), 5)
+      : 10;
+
+  const overtime = Math.floor(elapsed - targetTotal);
+  const windowSize = Math.max(10, tailEstimate);
+
+  return Math.max(1, windowSize - (overtime % windowSize));
 }
 
 function useNow(enabled: boolean): number {
@@ -196,7 +254,7 @@ export default function DeploymentProgress({
 
   const endedAt = deploying ? now : moment(deployment.finished_at ?? deployment.updated_at).valueOf();
   const elapsed = Math.max(0, (endedAt - moment(deployment.created_at).valueOf()) / 1000);
-  const remaining = estimate !== null ? estimate - elapsed : null;
+  const remainingSeconds = deploying ? calculateRemainingSeconds(steps, current, elapsed, estimate) : 0;
   const percent = calculateProgressPercent(deployment.status, steps.length, current, elapsed, estimate);
 
   const title = deploying ? 'Deploying...' : failed ? 'Deployment failed' : 'Deployment completed';
@@ -234,15 +292,30 @@ export default function DeploymentProgress({
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-mono">{formatDuration(elapsed)}</span>
-
-          {deploying && remaining !== null && remaining > 0 && (
-            <span>· ~{formatDuration(remaining)} left</span>
-          )}
-
-          {!deploying && estimate !== null && (
-            <span className="hidden sm:inline">· avg ~{formatDuration(estimate)}</span>
+        <div className="flex items-center gap-2 text-xs">
+          {deploying ? (
+            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2.5 py-1 tabular-nums">
+              <TimerIcon className="size-3.5 text-primary animate-pulse shrink-0" />
+              <span className="text-muted-foreground">Remaining</span>
+              <span className="font-mono font-semibold text-foreground">
+                {formatCountdown(remainingSeconds)}
+              </span>
+              <span className="text-muted-foreground/60">·</span>
+              <span className="font-mono text-muted-foreground">
+                {formatCountdown(elapsed)} elapsed
+              </span>
+            </div>
+          ) : (
+            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/20 px-2.5 py-1 text-muted-foreground tabular-nums">
+              <Clock3Icon className="size-3.5 shrink-0" />
+              <span>Duration</span>
+              <span className="font-mono font-medium text-foreground">{formatDuration(elapsed)}</span>
+              {estimate !== null && (
+                <span className="hidden sm:inline text-muted-foreground">
+                  (avg ~{formatDuration(estimate)})
+                </span>
+              )}
+            </div>
           )}
 
           {steps.length > 0 && (
