@@ -143,7 +143,7 @@ class EnsureSelfServerExists
             'web_directory' => 'public',
             'path' => $path,
             'php_version' => $site->php_version ?: $phpVersion,
-            'repository' => $site->repository ?: $this->detectGitRepository(),
+            'repository' => $site->repository && $site->repository !== 'vitodeploy/vito' ? $site->repository : $this->detectGitRepository(),
             'branch' => $site->branch ?: $this->detectGitBranch(),
             'status' => SiteStatus::READY,
             'progress' => 100,
@@ -263,15 +263,16 @@ class EnsureSelfServerExists
             return;
         }
 
-        $sshDir = (getenv('HOME') ?: ($_SERVER['HOME'] ?? '/home/vito')).'/.ssh';
+        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? home_path((string) config('core.ssh_user', 'vito')));
+        $sshDir = $home.'/.ssh';
         $authKeysPath = $sshDir.'/authorized_keys';
 
-        if (! File::isDirectory($sshDir)) {
-            File::makeDirectory($sshDir, 0700, true, true);
+        if (! File::isDirectory($sshDir) && ! @mkdir($sshDir, 0700, true) && ! File::isDirectory($sshDir)) {
+            return;
         }
 
         if (! File::exists($authKeysPath) || ! str_contains((string) File::get($authKeysPath), $pubKey)) {
-            File::append($authKeysPath, PHP_EOL.$pubKey.PHP_EOL);
+            @file_put_contents($authKeysPath, PHP_EOL.$pubKey.PHP_EOL, FILE_APPEND);
             @chmod($authKeysPath, 0600);
         }
     }

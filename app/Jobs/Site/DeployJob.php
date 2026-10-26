@@ -121,7 +121,7 @@ class DeployJob implements ShouldQueue
         );
 
         if (! $this->deployment->commit_id && $site->repository && ($lastCommit = app(Git::class)->lastCommit($site))) {
-            $this->deployment->fill($lastCommit);
+            $this->deployment->fill($lastCommit)->save();
         }
 
         if ($site->deploymentScriptFor(false)?->shouldRestartWorkers()) {
