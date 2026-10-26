@@ -41,7 +41,7 @@ function formatLogNode(node: ReactNode): ReactNode {
 
 export default function LogOutput({ className, children }: { className?: string; children: ReactNode }) {
   const endRef = useRef<HTMLDivElement>(null);
-  const [autoScroll, setAutoScroll] = useState(false);
+  const [autoScroll, setAutoScroll] = useState(true);
 
   const formattedContent = useMemo(() => {
     return formatLogNode(children);
@@ -61,8 +61,13 @@ export default function LogOutput({ className, children }: { className?: string;
   }, [children]);
 
   useEffect(() => {
-    if (autoScroll && endRef.current) {
-      endRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (!autoScroll || !endRef.current) return;
+
+    const viewport = endRef.current.closest<HTMLElement>('[data-slot="scroll-area-viewport"]');
+    if (viewport) {
+      viewport.scrollTop = viewport.scrollHeight;
+    } else {
+      endRef.current.scrollIntoView({ block: 'nearest' });
     }
   }, [children, autoScroll]);
 
