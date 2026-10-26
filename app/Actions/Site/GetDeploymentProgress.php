@@ -6,53 +6,44 @@ use App\Enums\DeploymentStatus;
 use App\Models\Deployment;
 use App\Models\DeploymentScript;
 use App\Models\Site;
-use Illuminate\Database\Eloquent\Model;
 
 class GetDeploymentProgress
 {
     private const int SAMPLE_SIZE = 10;
 
-    /**
-     * @return array{
-     *     steps: list<array{group: string, line: int, command: string}>,
-     *     estimated_duration: ?int,
-     *     samples: int
-     * }
-     */
+    private static array $siteDurationsCache = [];
+
+    private static array $stepsCache = [];
+
     public function get(Deployment $deployment): array
     {
-        if ($deployment->rolled_back_at) {
+        if ($deployment->rolled_back_at || ! ($site = $deployment->site) instanceof Site) {
             return ['steps' => [], 'estimated_duration' => null, 'samples' => 0];
         }
 
-        /** @var Site|null $site */
-        $site = $deployment->site;
-        if (! $site) {
-            return ['steps' => [], 'estimated_duration' => null, 'samples' => 0];
-        }
-
-        if ($deployment->release) {
-            $steps = [
+        $steps = $deployment->release
+            ? [
                 ...$this->steps('build', $site->buildScript),
                 ...$this->steps('pre-flight', $site->preFlightScript),
-            ];
-        } else {
-            $script = $deployment->deploymentScript ?? $site->deploymentScript;
-            $steps = $this->steps('deploy', $script);
-        }
+            ]
+            : $this->steps('deploy', $deployment->deploymentScript ?? $site->deploymentScript);
 
-        $durations = Deployment::query()
+        $allDurations = self::$siteDurationsCache[$deployment->site_id] ??= Deployment::query()
             ->where('site_id', $deployment->site_id)
             ->where('status', DeploymentStatus::FINISHED)
             ->whereNotNull('finished_at')
-            ->where('id', '!=', $deployment->id)
             ->latest('id')
-            ->limit(self::SAMPLE_SIZE)
-            ->get(['created_at', 'finished_at'])
-            ->map(function (Deployment $previous): int {
-                return (int) abs($previous->finished_at->diffInSeconds($previous->created_at));
-            })
+            ->limit(self::SAMPLE_SIZE + 1)
+            ->get(['id', 'created_at', 'finished_at'])
+            ->mapWithKeys(fn (Deployment $previous): array => [
+                $previous->id => (int) abs($previous->finished_at->diffInSeconds($previous->created_at)),
+            ])
             ->filter(fn (int $seconds): bool => $seconds > 0 && $seconds <= 1800)
+            ->all();
+
+        $durations = collect($allDurations)
+            ->except([$deployment->id])
+            ->take(self::SAMPLE_SIZE)
             ->values();
 
         return [
@@ -62,15 +53,15 @@ class GetDeploymentProgress
         ];
     }
 
-    /**
-     * Executable lines of a script, matching the line markers emitted by the run-script template.
-     *
-     * @return list<array{group: string, line: int, command: string}>
-     */
     private function steps(string $group, mixed $script): array
     {
         if (! $script instanceof DeploymentScript || ! $script->content) {
             return [];
+        }
+
+        $cacheKey = $group.':'.$script->id.':'.md5($script->content);
+        if (isset(self::$stepsCache[$cacheKey])) {
+            return self::$stepsCache[$cacheKey];
         }
 
         $steps = [];
@@ -88,6 +79,6 @@ class GetDeploymentProgress
             $steps[] = ['group' => $group, 'line' => $index + 1, 'command' => rtrim($command, '\\ ')];
         }
 
-        return $steps;
+        return self::$stepsCache[$cacheKey] = $steps;
     }
 }

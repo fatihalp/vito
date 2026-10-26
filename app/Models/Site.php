@@ -95,6 +95,10 @@ class Site extends AbstractModel
         parent::boot();
 
         static::deleting(function (Site $site): void {
+            if ($site->isSelf()) {
+                throw new RuntimeException('The Vito application site cannot be deleted.');
+            }
+
             app(CleanupSiteResources::class)->cleanup($site);
             $site->workers()->each(function ($worker): void {
                 $worker->delete();
@@ -130,6 +134,11 @@ class Site extends AbstractModel
     public function isReady(): bool
     {
         return $this->status === SiteStatus::READY;
+    }
+
+    public function isSelf(): bool
+    {
+        return (bool) ($this->type_data['is_self'] ?? false);
     }
 
     public function ssh(): SSH
@@ -177,9 +186,9 @@ class Site extends AbstractModel
         return $this->belongsTo(IsolatedUser::class);
     }
 
-    public function getUserAttribute(): ?string
+    public function getUserAttribute(?string $value = null): ?string
     {
-        return $this->isolatedUser?->username;
+        return $this->isolatedUser?->username ?? $value;
     }
 
     public function getSshKeyAttribute(): ?string
@@ -438,6 +447,10 @@ class Site extends AbstractModel
 
     public function getUrl(): string
     {
+        if ($this->isSelf()) {
+            return (string) config('app.url');
+        }
+
         if ($this->ssl_enabled) {
             return 'https://'.$this->domain;
         }

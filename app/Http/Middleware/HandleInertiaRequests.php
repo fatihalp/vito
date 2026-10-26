@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Actions\Bootstrap\GetBootstrap;
+use App\Actions\Server\EnsureSelfServerExists;
 use App\Http\Resources\NetworkResource;
 use App\Http\Resources\ProjectResource;
 use App\Http\Resources\ServerResource;
@@ -51,6 +52,11 @@ class HandleInertiaRequests extends Middleware
                 $server = Server::find($server);
             }
             if ($server) {
+                if ($server->is_self) {
+                    $server = app(EnsureSelfServerExists::class)->ensure($user) ?? $server;
+                    $request->route()?->setParameter('server', $server);
+                }
+
                 $server->loadForResource();
 
                 if ($user && $user->can('view', $server)) {

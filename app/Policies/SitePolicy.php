@@ -17,7 +17,6 @@ class SitePolicy
     public function viewAny(User $user, Server $server): bool
     {
         return $this->hasServerReadAccess($user, $server)
-            && ! $server->is_self
             && $server->role === ServerRole::APP
             && $server->webserver();
     }
@@ -28,7 +27,6 @@ class SitePolicy
 
         return $this->hasServerReadAccess($user, $siteServer)
             && $site->server_id === $server->id
-            && ! $siteServer->is_self
             && $siteServer->role === ServerRole::APP
             && $siteServer->webserver();
     }
@@ -67,6 +65,10 @@ class SitePolicy
 
     public function delete(User $user, Site $site, Server $server): bool
     {
+        if ($site->isSelf()) {
+            return false;
+        }
+
         return $this->update($user, $site, $server);
     }
 

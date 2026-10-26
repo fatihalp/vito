@@ -108,10 +108,13 @@ class GetOverviewResources
 
     private function recent(Builder $query, array $ids, ?int $fallbackServerId = null): Collection
     {
-        $items = (clone $query)->whereKey($ids)->get();
+        $items = $ids !== [] ? (clone $query)->whereKey($ids)->get() : new Collection;
 
         if ($items->count() < self::LIMIT) {
-            $topUp = (clone $query)->whereNotIn('id', $items->modelKeys());
+            $topUp = clone $query;
+            if ($items->isNotEmpty()) {
+                $topUp->whereNotIn('id', $items->modelKeys());
+            }
 
             if ($fallbackServerId !== null) {
                 $topUp->where('server_id', $fallbackServerId);

@@ -32,6 +32,10 @@ class ProjectPolicy
 
     public function delete(User $user, Project $project): bool
     {
+        if ($project->isSelf()) {
+            return false;
+        }
+
         return $this->hasOwnerAccess($user, $project);
     }
 

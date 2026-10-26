@@ -116,6 +116,10 @@ class DeployJob implements ShouldQueue
             stepGroup: 'deploy',
         );
 
+        if (! $this->deployment->commit_id && ($lastCommit = app(Git::class)->lastCommit($site))) {
+            $this->deployment->fill($lastCommit);
+        }
+
         if ($site->deploymentScriptFor(false)?->shouldRestartWorkers()) {
             app(RestartSiteWorkers::class)->restart($site, $log);
         }

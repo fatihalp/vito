@@ -83,4 +83,33 @@ class Git
             $site->id
         );
     }
+
+    public function lastCommit(Site $site, ?string $path = null): ?array
+    {
+        $targetPath = $path ?? $site->path;
+        if (! $targetPath) {
+            return null;
+        }
+
+        try {
+            $output = trim($site->server->ssh($site->user)->exec(
+                'cd '.escapeshellarg($targetPath).' && git log -1 --format="%H%n%an%n%ae%n%s" 2>/dev/null || true'
+            ));
+            $lines = explode("\n", $output);
+
+            if (count($lines) >= 4 && preg_match('/^[0-9a-f]{40}$/i', trim($lines[0]))) {
+                return [
+                    'commit_id' => trim($lines[0]),
+                    'commit_data' => [
+                        'name' => trim($lines[1]),
+                        'email' => trim($lines[2]),
+                        'message' => trim($lines[3]),
+                    ],
+                ];
+            }
+        } catch (\Throwable) {
+        }
+
+        return null;
+    }
 }

@@ -23,6 +23,22 @@ class Project extends AbstractModel
         'name',
     ];
 
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function (Project $project): void {
+            if ($project->isSelf()) {
+                throw new \RuntimeException('The Vito system project cannot be deleted.');
+            }
+        });
+    }
+
+    public function isSelf(): bool
+    {
+        return $this->name === 'Vito' || $this->servers()->where('is_self', true)->exists();
+    }
+
     
     /**
      * Loads what ProjectResource reads for the given viewer: their membership row (for role) and server/site counts.
