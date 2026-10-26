@@ -8,7 +8,7 @@ export type { SocketEventData, SocketStatus, WebSocketMessage } from '@/stores/s
 export { SOCKET_EVENT } from '@/stores/socket-store';
 
 export function useSocketEvents(): { status: SocketStatus; reconnect: () => void } {
-  const { auth, csrf_token } = usePage<SharedData>().props;
+  const { auth, server, network, csrf_token } = usePage<SharedData>().props;
   const csrfRef = useRef(csrf_token);
   csrfRef.current = csrf_token;
 
@@ -18,7 +18,7 @@ export function useSocketEvents(): { status: SocketStatus; reconnect: () => void
   const storeReconnect = useSocketStore((s) => s.reconnect);
   const switchProject = useSocketStore((s) => s.switchProject);
 
-  const projectId = auth?.currentProject?.id;
+  const projectId = server?.project_id ?? network?.project_id ?? auth?.currentProject?.id;
 
   useEffect(() => {
     if (auth && csrfRef.current) {

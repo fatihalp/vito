@@ -2,7 +2,7 @@ import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Project } from '@/types/project';
 import { router, useForm, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, Layers3Icon, PlusIcon } from 'lucide-react';
 import { getInitials } from "@/lib/utils";
@@ -17,13 +17,29 @@ export function ProjectSwitch() {
   const isAllProjects = page.props.siteScope === 'all' || page.props.serverScope === 'all';
   const [open, setOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
-  const [selected, setSelected] = useState<string>(isAllProjects ? 'all' : (auth.currentProject?.id?.toString() ?? ''));
   const initials = getInitials;
   const form = useForm();
 
+  const currentProject = useMemo(() => {
+    if (isAllProjects) return null;
+    const serverProjectId = page.props.server?.project_id;
+    if (serverProjectId && auth.user?.projects) {
+      const found = auth.user.projects.find((p) => p.id === serverProjectId);
+      if (found) return found;
+    }
+    const networkProjectId = page.props.network?.project_id;
+    if (networkProjectId && auth.user?.projects) {
+      const found = auth.user.projects.find((p) => p.id === networkProjectId);
+      if (found) return found;
+    }
+    return auth.currentProject ?? null;
+  }, [isAllProjects, page.props.server?.project_id, page.props.network?.project_id, auth.user?.projects, auth.currentProject]);
+
+  const [selected, setSelected] = useState<string>(isAllProjects ? 'all' : (currentProject?.id?.toString() ?? ''));
+
   useEffect(() => {
-    setSelected(isAllProjects ? 'all' : (auth.currentProject?.id?.toString() ?? ''));
-  }, [auth.currentProject?.id, isAllProjects]);
+    setSelected(isAllProjects ? 'all' : (currentProject?.id?.toString() ?? ''));
+  }, [currentProject?.id, isAllProjects]);
 
   const handleProjectChange = (value: string, project: Project) => {
     setSelected(value);
@@ -76,12 +92,12 @@ export function ProjectSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Switch project. Current project: ${isAllProjects ? 'All Projects' : (auth.currentProject?.name ?? 'none')}`}
+      aria-label={`Switch project. Current project: ${isAllProjects ? 'All Projects' : (currentProject?.name ?? 'none')}`}
     >
       <Avatar className="size-6 rounded-sm">
-        <AvatarFallback className="rounded-sm">{isAllProjects ? 'AP' : initials(auth.currentProject?.name ?? '')}</AvatarFallback>
+        <AvatarFallback className="rounded-sm">{isAllProjects ? 'AP' : initials(currentProject?.name ?? '')}</AvatarFallback>
       </Avatar>
-      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? 'All Projects' : auth.currentProject?.name}</span>
+      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? 'All Projects' : currentProject?.name}</span>
       <ChevronsUpDownIcon size={5} />
     </Button>
   );

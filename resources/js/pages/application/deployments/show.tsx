@@ -8,6 +8,7 @@ import { useLogContent } from '@/hooks/use-log-content';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
+import DeploymentProgress from '@/pages/application/deployments/progress';
 import { Deployment } from '@/types/deployment';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
@@ -44,7 +45,7 @@ export default function DeploymentShow() {
   const page = usePage<{ server: Server; site: Site; deployment: Deployment }>();
   const { server, site } = page.props;
   const deployment = useRealtimeRecord<Deployment>(page.props.deployment, 'deployment')!;
-  const { content, isLoading, error } = useLogContent({
+  const { content, step, isLoading, error } = useLogContent({
     serverId: server.id,
     logId: deployment.log?.id ?? 0,
     enabled: !!deployment.log,
@@ -153,6 +154,8 @@ export default function DeploymentShow() {
             </div>
           </div>
         </div>
+
+        <DeploymentProgress deployment={deployment} step={step} />
 
         <Card className="flex-1 overflow-hidden border flex flex-col min-h-[550px]">
           <LogOutput className="h-[calc(100vh-250px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4">

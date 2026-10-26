@@ -21,6 +21,7 @@ class CronJobResource extends JsonResource
             'frequency' => $this->frequency,
             'status' => $this->status->getText(),
             'status_color' => $this->status->getColor(),
+            'last_execution' => $this->whenLoaded('lastExecution', fn () => $this->lastExecution ? new CommandExecutionResource($this->lastExecution) : null),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -20,3 +20,18 @@ export function appendLogContent(previous: string, chunk: string): string {
   if (!chunk) return previous;
   return isPendingLog(previous) ? chunk : previous + chunk;
 }
+
+const STEP_MARKER = /::vito-step::([\w-]+)::(\d+)\r?\n?/g;
+
+export type LogStep = { group: string; line: number };
+
+export function stripStepMarkers(content: string): string {
+  return content.replace(STEP_MARKER, '');
+}
+
+export function lastStepMarker(content: string): LogStep | null {
+  const matches = [...content.matchAll(STEP_MARKER)];
+  const last = matches[matches.length - 1];
+
+  return last ? { group: last[1], line: Number(last[2]) } : null;
+}

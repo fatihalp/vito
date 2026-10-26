@@ -15,6 +15,7 @@ class CommandExecution extends AbstractModel
 
     protected $fillable = [
         'command_id',
+        'cron_job_id',
         'server_id',
         'user_id',
         'server_log_id',
@@ -24,6 +25,7 @@ class CommandExecution extends AbstractModel
 
     protected $casts = [
         'command_id' => 'integer',
+        'cron_job_id' => 'integer',
         'server_id' => 'integer',
         'user_id' => 'integer',
         'server_log_id' => 'integer',
@@ -37,10 +39,15 @@ class CommandExecution extends AbstractModel
         return $this->belongsTo(Command::class);
     }
 
+    public function cronJob(): BelongsTo
+    {
+        return $this->belongsTo(CronJob::class);
+    }
+
     public function getContent(): string
     {
-        $content = $this->command->command;
-        foreach ($this->variables as $variable => $value) {
+        $content = (string) ($this->command?->command ?? $this->cronJob?->command ?? '');
+        foreach ((array) $this->variables as $variable => $value) {
             if (is_string($value) && ($value !== '' && $value !== '0')) {
                 $content = str_replace('${'.$variable.'}', $value, $content);
             }

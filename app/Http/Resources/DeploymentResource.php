@@ -2,6 +2,8 @@
 
 namespace App\Http\Resources;
 
+use App\Actions\Site\GetDeploymentProgress;
+use App\Enums\DeploymentStatus;
 use App\Models\Deployment;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -29,6 +31,8 @@ class DeploymentResource extends JsonResource
             'trigger_color' => $this->trigger?->getColor(),
             'rolled_back_by' => $this->rolledBackBy?->name,
             'rolled_back_at' => $this->rolled_back_at,
+            'finished_at' => $this->finished_at,
+            'progress' => app(GetDeploymentProgress::class)->get($this->resource),
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];

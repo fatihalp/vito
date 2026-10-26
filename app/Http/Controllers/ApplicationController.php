@@ -12,6 +12,7 @@ use App\Actions\Site\StringifyEnv;
 use App\Actions\Site\UpdateDeploymentScript;
 use App\Actions\Site\UpdateEnv;
 use App\Actions\Site\UpdateLoadBalancer;
+use App\Enums\DeploymentStatus;
 use App\Enums\EnvVersionSource;
 use App\Http\Resources\DeploymentScriptResource;
 use App\Http\Resources\EnvVersionResource;
@@ -106,8 +107,15 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
+        $activeDeployment = $site->deployments()
+            ->where('status', DeploymentStatus::DEPLOYING)
+            ->with('log', 'user')
+            ->latest('id')
+            ->first();
+
         return Inertia::render('application/deployments/index', [
             'deployments' => DeploymentTable::make($site->deployments())->paginate(),
+            'activeDeployment' => $activeDeployment ? new DeploymentResource($activeDeployment) : null,
         ]);
     }
 

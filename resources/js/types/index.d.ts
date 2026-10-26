@@ -143,6 +143,7 @@ export interface SharedData {
   auth: Auth;
   server?: Server;
   site?: Site;
+  network?: { id: number; project_id: number; [key: string]: unknown };
   csrf_token: string;
   bootstrap_version: string;
   flash?: {

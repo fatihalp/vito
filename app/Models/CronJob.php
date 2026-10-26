@@ -6,11 +6,22 @@ use App\Enums\CronjobStatus;
 use Database\Factories\CronJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class CronJob extends AbstractModel
 {
     
     use HasFactory;
+
+    public static function boot(): void
+    {
+        parent::boot();
+
+        static::deleting(function (CronJob $cronJob): void {
+            $cronJob->executions()->delete();
+        });
+    }
 
     protected $fillable = [
         'server_id',
@@ -39,6 +50,16 @@ class CronJob extends AbstractModel
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function executions(): HasMany
+    {
+        return $this->hasMany(CommandExecution::class);
+    }
+
+    public function lastExecution(): HasOne
+    {
+        return $this->hasOne(CommandExecution::class)->latestOfMany();
     }
 
     public function getServerIdAttribute(?int $value): ?int

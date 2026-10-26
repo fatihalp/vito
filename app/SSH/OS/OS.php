@@ -235,7 +235,8 @@ class OS
         ?ServerLog $serverLog,
         ?string $user = null,
         ?array $variables = [],
-        ?array $aliases = []
+        ?array $aliases = [],
+        ?string $stepGroup = null,
     ): ServerLog {
         $ssh = $this->server->ssh($user);
         if ($serverLog instanceof ServerLog) {
@@ -259,6 +260,7 @@ class OS
         $command .= view('ssh.os.run-script', [
             'path' => $path,
             'script' => $script,
+            'stepGroup' => $stepGroup,
         ]);
 
         $ssh->exec($command, 'run-script');

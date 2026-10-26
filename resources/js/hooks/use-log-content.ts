@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
-import { appendLogContent } from '@/lib/log';
+import { appendLogContent, lastStepMarker, LogStep, stripStepMarkers } from '@/lib/log';
 
 type UseLogContentOptions = {
   
@@ -14,13 +14,14 @@ type UseLogContentOptions = {
 
 type UseLogContentReturn = {
   content: string;
+  step: LogStep | null;
   isLoading: boolean;
   error: string | null;
 };
 
 
 export function useLogContent({ serverId, logId, enabled = true }: UseLogContentOptions): UseLogContentReturn {
-  const [content, setContent] = useState('');
+  const [raw, setRaw] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -33,14 +34,14 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
     const controller = new AbortController();
     setIsLoading(true);
     setError(null);
-    setContent('');
+    setRaw('');
 
     axios
       .get(`/servers/${serverId}/logs/${logId}`, { signal: controller.signal })
       .then((response) => {
         if (controller.signal.aborted) return;
         const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
-        setContent(data);
+        setRaw(data);
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;
@@ -64,9 +65,12 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
 
     const buf = (event.data as { content?: string }).content;
     if (buf) {
-      setContent((prev) => appendLogContent(prev, buf));
+      setRaw((prev) => appendLogContent(prev, buf));
     }
   });
 
-  return { content, isLoading: enabled && !!logId && isLoading, error };
+  const content = useMemo(() => stripStepMarkers(raw), [raw]);
+  const step = useMemo(() => lastStepMarker(raw), [raw]);
+
+  return { content, step, isLoading: enabled && !!logId && isLoading, error };
 }

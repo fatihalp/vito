@@ -26,6 +26,7 @@ class Deployment extends AbstractModel
         'trigger',
         'rolled_back_by_id',
         'rolled_back_at',
+        'finished_at',
     ];
 
     protected $casts = [
@@ -39,10 +40,17 @@ class Deployment extends AbstractModel
         'trigger' => DeploymentTrigger::class,
         'rolled_back_by_id' => 'integer',
         'rolled_back_at' => 'datetime',
+        'finished_at' => 'datetime',
     ];
 
     protected static function booted(): void
     {
+        static::saving(function (Deployment $deployment): void {
+            if ($deployment->finished_at === null && $deployment->isDirty('status') && $deployment->status !== DeploymentStatus::DEPLOYING) {
+                $deployment->finished_at = now();
+            }
+        });
+
         static::created(function (Deployment $deployment): void {
             $site = $deployment->site;
             $keep = $site->type_data['modern_deployment_history'] ?? 10;

@@ -16,7 +16,6 @@ export function SiteSwitch() {
   const page = usePage<SharedData>();
   const { setOpenTransient: setPrimaryNavOpen } = useSidebar();
   const [open, setOpen] = useState(false);
-  const storedSite = siteHelper.getStoredSite();
   const currentSite = page.props.site || null;
   const [selected, setSelected] = useState<string>(currentSite?.id?.toString() ?? '');
   const initials = getInitials;
@@ -25,20 +24,13 @@ export function SiteSwitch() {
   useEffect(() => {
     const site = page.props.site || null;
     setSelected(site?.id?.toString() ?? '');
-  }, [page.props.site, page.props.server?.id]);
+  }, [page.props.site?.id]);
 
   useEffect(() => {
     if (page.props.site) {
       siteHelper.storeSite(page.props.site, page.props.auth.user.id, page.props.server?.project_id);
     }
   }, [page.props.auth.user.id, page.props.server?.project_id, page.props.site]);
-
-  useEffect(() => {
-    if (storedSite && page.props.server && storedSite.server_id !== page.props.server.id) {
-      siteHelper.storeSite(undefined);
-      setSelected('');
-    }
-  }, [page.props.server, storedSite]);
 
   const handleSiteChange = (value: string, site: Site) => {
     if (!site || !site.id || !site.server_id) {

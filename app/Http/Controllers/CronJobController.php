@@ -7,8 +7,10 @@ use App\Actions\CronJob\DeleteCronJob;
 use App\Actions\CronJob\DisableCronJob;
 use App\Actions\CronJob\EditCronJob;
 use App\Actions\CronJob\EnableCronJob;
+use App\Actions\CronJob\ExecuteCronJob;
 use App\Actions\CronJob\SyncCronJobs;
 use App\Helpers\QueryBuilder;
+use App\Http\Resources\CommandExecutionResource;
 use App\Http\Resources\CronJobResource;
 use App\Models\CronJob;
 use App\Models\Server;
@@ -35,7 +37,7 @@ class CronJobController extends Controller
     {
         $this->authorize('viewAny', [CronJob::class, $server]);
 
-        $cronjobs = QueryBuilder::for($server->cronJobs()->where('hidden', false))
+        $cronjobs = QueryBuilder::for($server->cronJobs()->where('hidden', false)->with('lastExecution.serverLog'))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 
@@ -127,11 +129,61 @@ class CronJobController extends Controller
 
         return Inertia::render('cronjobs/index', [
             'cronjobs' => CronJobResource::collection(
-                $site->cronJobs()->latest()->simplePaginate(config('web.pagination_size'))
+                $site->cronJobs()->with('lastExecution.serverLog')->latest()->simplePaginate(config('web.pagination_size'))
             ),
             'sites' => $server->sites()->select('id', 'domain')->get(),
             'ssh_users' => $site->getSshUsers(),
         ]);
+    }
+
+    #[Get('/cronjobs/{cronJob}', name: 'cronjobs.show')]
+    #[WhereNumber('cronJob')]
+    public function show(Server $server, CronJob $cronJob, ?Site $site = null): Response
+    {
+        $this->authorize('view', [$cronJob, $server, $site]);
+
+        return Inertia::render('cronjobs/show', [
+            'cronjob' => new CronJobResource($cronJob),
+            'executions' => CommandExecutionResource::collection(
+                $cronJob->executions()->with('serverLog')->latest()->simplePaginate(config('web.pagination_size'))
+            ),
+        ]);
+    }
+
+    #[Get('/sites/{site}/cronjobs/{cronJob}', name: 'cronjobs.site.show')]
+    #[WhereNumber('cronJob')]
+    public function siteShow(Server $server, Site $site, CronJob $cronJob): Response
+    {
+        return $this->show($server, $cronJob, $site);
+    }
+
+    #[Post('/cronjobs/{cronJob}/execute', name: 'cronjobs.execute')]
+    #[WhereNumber('cronJob')]
+    public function execute(Server $server, CronJob $cronJob, ?Site $site = null): RedirectResponse
+    {
+        $this->authorize('update', [$cronJob, $server, $site]);
+
+        app(ExecuteCronJob::class)->execute($server, $cronJob, user());
+
+        if ($site) {
+            return redirect()->route('cronjobs.site.show', [
+                'server' => $server,
+                'site' => $site,
+                'cronJob' => $cronJob,
+            ])->with('info', 'Cron job is being executed.');
+        }
+
+        return redirect()->route('cronjobs.show', [
+            'server' => $server,
+            'cronJob' => $cronJob,
+        ])->with('info', 'Cron job is being executed.');
+    }
+
+    #[Post('/sites/{site}/cronjobs/{cronJob}/execute', name: 'cronjobs.site.execute')]
+    #[WhereNumber('cronJob')]
+    public function siteExecute(Server $server, Site $site, CronJob $cronJob): RedirectResponse
+    {
+        return $this->execute($server, $cronJob, $site);
     }
 
     

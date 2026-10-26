@@ -78,23 +78,38 @@ class SyncManagedEnvironment
     public function enforce(Site $site, array $variables): array
     {
         $managed = $this->managed($site->loadMissing('resources'));
-        $map = [];
+        $result = [];
+        $seenManaged = [];
 
         foreach ($variables as $variable) {
-            if (! isset($managed[$variable['key']])) {
-                $map[$variable['key']] = $variable;
+            $key = $variable['key'];
+            if (! isset($managed[$key])) {
+                $result[] = $variable;
+
+                continue;
+            }
+
+            if (! isset($seenManaged[$key])) {
+                $result[] = [
+                    'key' => $key,
+                    'value' => $managed[$key]['value'],
+                    'is_secret' => EnvParser::isSecretKey($key),
+                ];
+                $seenManaged[$key] = true;
             }
         }
 
         foreach ($managed as $key => $item) {
-            $map[$key] = [
-                'key' => $key,
-                'value' => $item['value'],
-                'is_secret' => EnvParser::isSecretKey($key),
-            ];
+            if (! isset($seenManaged[$key])) {
+                $result[] = [
+                    'key' => $key,
+                    'value' => $item['value'],
+                    'is_secret' => EnvParser::isSecretKey($key),
+                ];
+            }
         }
 
-        return array_values($map);
+        return $result;
     }
 
     public function enforceRaw(Site $site, string $raw): string

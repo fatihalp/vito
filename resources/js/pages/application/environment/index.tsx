@@ -9,9 +9,19 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertCircleIcon,
+  AlertTriangleIcon,
   ArrowLeftIcon,
   CheckIcon,
   FileCode2Icon,
@@ -22,6 +32,7 @@ import {
   PlusIcon,
   SaveIcon,
   SlidersHorizontalIcon,
+  XIcon,
 } from 'lucide-react';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
@@ -31,7 +42,7 @@ import { EnvVariable } from '@/types/env';
 import EnvVariableRow from '@/pages/application/components/env-variable-row';
 import EnvHistory from '@/pages/application/components/env-history';
 import { generateUniqueKey } from '@/lib/env';
-import { rowId } from '@/lib/utils';
+import { cn, rowId } from '@/lib/utils';
 import { errorMessage } from '@/lib/errors';
 
 type ParsedVariable = { key: string; value: string; is_secret: boolean; managed_by?: string };
@@ -78,6 +89,8 @@ function EnvironmentEditorContent() {
   const [searchFilter, setSearchFilter] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const [generatingKey, setGeneratingKey] = useState(false);
+  const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
+  const [filterDuplicatesOnly, setFilterDuplicatesOnly] = useState(false);
 
   const form = useForm<{ path: string; env?: string; variables?: Array<{ key: string; value: string; is_secret: boolean }> }>({
     path: envPath,
@@ -106,33 +119,38 @@ function EnvironmentEditorContent() {
     }
   }, [monaco]);
 
-  const duplicateKeys = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const variable of variables) {
+  const duplicateDetails = useMemo(() => {
+    const map = new Map<string, Array<{ index: number; value: string; isSecret: boolean }>>();
+    variables.forEach((variable, index) => {
       const trimmed = variable.key.trim();
-      if (!trimmed) continue;
-      counts.set(trimmed, (counts.get(trimmed) ?? 0) + 1);
+      if (!trimmed) return;
+      if (!map.has(trimmed)) {
+        map.set(trimmed, []);
+      }
+      map.get(trimmed)!.push({ index, value: variable.value, isSecret: variable.isSecret });
+    });
+
+    const duplicates = new Map<string, Array<{ index: number; value: string; isSecret: boolean }>>();
+    for (const [key, entries] of map.entries()) {
+      if (entries.length > 1) {
+        duplicates.set(key, entries);
+      }
     }
-    const dupes = new Set<string>();
-    for (const [key, count] of counts) {
-      if (count > 1) dupes.add(key);
-    }
-    return dupes;
+    return duplicates;
   }, [variables]);
 
+  const duplicateKeys = useMemo(() => new Set(duplicateDetails.keys()), [duplicateDetails]);
   const hasDuplicates = duplicateKeys.size > 0;
   const busy = query.isFetching || isSwitching;
   const isDirty = mode === 'classic' ? rawDirty : variablesDirty;
 
-  const submit = (e?: FormEvent) => {
-    if (e) e.preventDefault();
-    if (canEdit !== true || showHistory) {
-      return;
+  useEffect(() => {
+    if (filterDuplicatesOnly && !hasDuplicates) {
+      setFilterDuplicatesOnly(false);
     }
-    if (mode === 'variables' && (hasDuplicates || variables.length === 0)) {
-      return;
-    }
+  }, [filterDuplicatesOnly, hasDuplicates]);
 
+  const executeSave = () => {
     form.transform(() =>
       mode === 'variables'
         ? { variables: variables.map((v) => ({ key: v.key, value: v.value, is_secret: v.isSecret })), path: envPath }
@@ -148,6 +166,23 @@ function EnvironmentEditorContent() {
         setTimeout(() => setSaveSuccess(false), 3000);
       },
     });
+  };
+
+  const submit = (e?: FormEvent) => {
+    if (e) e.preventDefault();
+    if (canEdit !== true || showHistory) {
+      return;
+    }
+    if (mode === 'variables' && variables.length === 0) {
+      return;
+    }
+
+    if (mode === 'variables' && hasDuplicates) {
+      setDuplicateModalOpen(true);
+      return;
+    }
+
+    executeSave();
   };
 
   useEffect(() => {
@@ -286,10 +321,16 @@ function EnvironmentEditorContent() {
   };
 
   const filteredVariables = useMemo(() => {
-    if (!searchFilter.trim()) return variables;
-    const term = searchFilter.toLowerCase();
-    return variables.filter((v) => v.key.toLowerCase().includes(term) || v.value.toLowerCase().includes(term));
-  }, [variables, searchFilter]);
+    let list = variables;
+    if (filterDuplicatesOnly) {
+      list = list.filter((v) => duplicateKeys.has(v.key.trim()));
+    }
+    if (searchFilter.trim()) {
+      const term = searchFilter.toLowerCase();
+      list = list.filter((v) => v.key.toLowerCase().includes(term) || v.value.toLowerCase().includes(term));
+    }
+    return list;
+  }, [variables, filterDuplicatesOnly, duplicateKeys, searchFilter]);
 
   return (
     <>
@@ -370,7 +411,7 @@ function EnvironmentEditorContent() {
                 showHistory ||
                 query.isError ||
                 canEdit !== true ||
-                (mode === 'variables' && (hasDuplicates || variables.length === 0))
+                (mode === 'variables' && variables.length === 0)
               }
               size="sm"
               className="h-9 px-4 gap-2 cursor-pointer font-semibold shadow-sm text-xs"
@@ -407,18 +448,35 @@ function EnvironmentEditorContent() {
         )}
 
         {mode === 'variables' && !showHistory && hasDuplicates && (
-          <Alert variant="destructive">
-            <AlertCircleIcon className="size-4" />
-            <AlertDescription>
+          <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-amber-900 dark:text-amber-200">
+            <div className="flex items-start sm:items-center gap-2.5">
+              <AlertTriangleIcon className="size-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5 sm:mt-0" />
               <div>
-                Duplicate keys: <span className="font-mono">{Array.from(duplicateKeys).join(', ')}</span>. Remove or rename them to save,
-                or edit the file in Classic mode.
+                Duplicate keys detected: <span className="font-mono font-semibold">{Array.from(duplicateKeys).join(', ')}</span>.
+                You can save anyway, but applications will typically only evaluate the last defined value.
               </div>
-              <Button type="button" variant="link" className="h-auto p-0" onClick={() => setSearchFilter(Array.from(duplicateKeys)[0])}>
-                Show duplicates
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setFilterDuplicatesOnly((prev) => !prev)}
+                className="h-7 text-xs bg-background/80 hover:bg-background border-amber-500/30 cursor-pointer"
+              >
+                {filterDuplicatesOnly ? 'Show all variables' : `Filter duplicates (${duplicateKeys.size})`}
               </Button>
-            </AlertDescription>
-          </Alert>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setDuplicateModalOpen(true)}
+                className="h-7 text-xs hover:bg-amber-500/20 cursor-pointer"
+              >
+                Inspect details
+              </Button>
+            </div>
+          </div>
         )}
 
         <Card className="overflow-hidden border flex-1 flex flex-col min-h-[550px]">
@@ -490,6 +548,16 @@ function EnvironmentEditorContent() {
                     data-form-type="other"
                     className="h-9"
                   />
+                  {filterDuplicatesOnly && (
+                    <Badge
+                      variant="warning"
+                      className="gap-1 text-xs shrink-0 cursor-pointer"
+                      onClick={() => setFilterDuplicatesOnly(false)}
+                    >
+                      <span>Duplicates only</span>
+                      <XIcon className="size-3" />
+                    </Badge>
+                  )}
                 </div>
                 <Button
                   type="button"
@@ -522,6 +590,17 @@ function EnvironmentEditorContent() {
                 <fieldset disabled={isSwitching || canEdit === false} className="flex flex-col gap-3 py-2">
                   {filteredVariables.map((variable) => {
                     const originalIndex = variables.findIndex((v) => v.id === variable.id);
+                    const occurrences = variables.filter((v) => v.key.trim() === variable.key.trim());
+                    const isDuplicate = occurrences.length > 1;
+                    const occurrenceIndex = isDuplicate ? occurrences.findIndex((v) => v.id === variable.id) : -1;
+                    const duplicateInfo = isDuplicate
+                      ? {
+                          index: occurrenceIndex + 1,
+                          total: occurrences.length,
+                          isEffective: occurrenceIndex === occurrences.length - 1,
+                        }
+                      : undefined;
+
                     return (
                       <EnvVariableRow
                         key={variable.id}
@@ -529,7 +608,7 @@ function EnvironmentEditorContent() {
                         revealable={canEdit === true}
                         onChange={(updated) => handleVariableChange(originalIndex, updated)}
                         onDelete={() => handleVariableDelete(originalIndex)}
-                        error={duplicateKeys.has(variable.key.trim()) ? 'Duplicate key' : undefined}
+                        duplicate={duplicateInfo}
                         action={
                           site.type === 'laravel' &&
                           canEdit === true &&
@@ -557,6 +636,90 @@ function EnvironmentEditorContent() {
             </div>
           )}
         </Card>
+
+        <Dialog open={duplicateModalOpen} onOpenChange={setDuplicateModalOpen}>
+          <DialogContent className="sm:max-w-xl max-h-[85vh] flex flex-col">
+            <DialogHeader>
+              <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+                <AlertTriangleIcon className="size-5" />
+                <DialogTitle className="text-foreground">Duplicate Keys Detected</DialogTitle>
+              </div>
+              <DialogDescription className="text-xs pt-1">
+                Your environment contains duplicate keys. In PHP and most runtime environments, duplicate keys are evaluated in order and only the <strong>last defined value</strong> takes effect.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="flex-1 overflow-y-auto max-h-[42vh] space-y-3 py-2 pr-1">
+              {Array.from(duplicateDetails.entries()).map(([key, entries]) => (
+                <div key={key} className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono text-xs font-semibold text-foreground">{key}</span>
+                    <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-[11px] font-medium text-amber-600 dark:text-amber-400">
+                      {entries.length} occurrences
+                    </span>
+                  </div>
+                  <div className="space-y-1 font-mono text-xs">
+                    {entries.map((entry, idx) => {
+                      const isLast = idx === entries.length - 1;
+                      const displayVal = entry.isSecret
+                        ? entry.value ? '•••••••• (updated)' : '•••••••• (secret)'
+                        : entry.value === '' ? '""' : entry.value;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={cn(
+                            'flex items-center justify-between rounded px-2.5 py-1 text-xs',
+                            isLast
+                              ? 'bg-amber-500/15 border border-amber-500/25 text-foreground font-medium'
+                              : 'text-muted-foreground bg-background/60',
+                          )}
+                        >
+                          <span className="truncate max-w-[280px]">
+                            #{idx + 1}: {displayVal}
+                          </span>
+                          <span className="text-[10px] shrink-0 uppercase tracking-wider font-sans font-medium">
+                            {isLast ? 'Effective value' : 'Overridden'}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  setDuplicateModalOpen(false);
+                  setFilterDuplicatesOnly(true);
+                }}
+                className="cursor-pointer"
+              >
+                Review & Edit Duplicates
+              </Button>
+              <Button
+                type="button"
+                onClick={() => {
+                  setDuplicateModalOpen(false);
+                  executeSave();
+                }}
+                disabled={form.processing}
+                className="cursor-pointer font-semibold"
+              >
+                {form.processing ? (
+                  <LoaderCircleIcon className="size-4 animate-spin" />
+                ) : (
+                  <SaveIcon className="size-4" />
+                )}
+                <span>Save with Duplicates</span>
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </Container>
     </>
   );

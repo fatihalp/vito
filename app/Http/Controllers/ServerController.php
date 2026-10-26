@@ -82,7 +82,11 @@ class ServerController extends Controller
     #[Get('/json', name: 'servers.json')]
     public function json(Request $request): ResourceCollection
     {
-        $project = user()->currentProject;
+        $projectId = $request->input('project_id');
+        /** @var \App\Models\Project $project */
+        $project = $projectId
+            ? user()->allProjects()->where('projects.id', (int) $projectId)->firstOrFail()
+            : user()->currentProject;
 
         $this->authorize('viewAny', [Server::class, $project]);
 
@@ -95,6 +99,7 @@ class ServerController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $projectId = $request->input('project_id');
+        /** @var \App\Models\Project $project */
         $project = $projectId
             ? user()->allProjects()->where('projects.id', (int) $projectId)->firstOrFail()
             : user()->currentProject;
