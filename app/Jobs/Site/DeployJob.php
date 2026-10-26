@@ -103,6 +103,10 @@ class DeployJob implements ShouldQueue
 
     private function handleClassicDeployment($site, $log): void
     {
+        if ($site->isSelf()) {
+            app(Git::class)->prepareSelf($site);
+        }
+
         $site->server->os()->runScript(
             path: $site->path,
             script: $site->deploymentScript->content,
@@ -116,7 +120,7 @@ class DeployJob implements ShouldQueue
             stepGroup: 'deploy',
         );
 
-        if (! $this->deployment->commit_id && ($lastCommit = app(Git::class)->lastCommit($site))) {
+        if (! $this->deployment->commit_id && $site->repository && ($lastCommit = app(Git::class)->lastCommit($site))) {
             $this->deployment->fill($lastCommit);
         }
 

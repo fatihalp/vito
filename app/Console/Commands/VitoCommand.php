@@ -21,8 +21,14 @@ class VitoCommand extends Command
             }
         }
 
-        if (! $this->option('no-build') && ! $this->runProcess(['npm', 'run', 'build'], 600)) {
-            return self::FAILURE;
+        if (! $this->option('no-build')) {
+            if (! is_dir(base_path('node_modules')) && ! $this->runProcess(['npm', 'install'], 600)) {
+                return self::FAILURE;
+            }
+
+            if (! $this->runProcess(['npm', 'run', 'build'], 600)) {
+                return self::FAILURE;
+            }
         }
 
         foreach (['config:cache', 'event:cache', 'route:cache', 'view:cache'] as $command) {

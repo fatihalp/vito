@@ -36,7 +36,14 @@ class Git
 
     public function checkout(Site $site, ?Server $server = null, ?string $path = null): void
     {
-        ($server ?? $site->server)->ssh($site->user)->exec(
+        $ssh = ($server ?? $site->server)->ssh($site->user);
+
+        if ($site->isSelf()) {
+            $this->prepareSelf($site);
+            $ssh = $ssh->variables($site->environmentVariables());
+        }
+
+        $ssh->exec(
             view('ssh.git.checkout', [
                 'path' => escapeshellarg((string) ($path ?? $site->path)),
                 'branch' => escapeshellarg((string) $site->branch),
@@ -50,7 +57,10 @@ class Git
     {
         $ssh = ($server ?? $site->server)->ssh($site->user);
 
-        if ($site->sourceControl?->isGithubApp()) {
+        if ($site->isSelf()) {
+            $this->prepareSelf($site);
+            $ssh = $ssh->variables($site->environmentVariables());
+        } elseif ($site->sourceControl?->isGithubApp()) {
             $ssh = $ssh->variables($site->environmentVariables());
         }
 
@@ -84,6 +94,43 @@ class Git
         );
     }
 
+    public function prepareSelf(Site $site): void
+    {
+        if (! $site->isSelf() || ! $site->path) {
+            return;
+        }
+
+        $escapedPath = escapeshellarg($site->path);
+        $escapedUser = escapeshellarg((string) ($site->user ?: 'vito'));
+
+        try {
+            $site->server->ssh($site->user)->exec(<<<BASH
+sudo -n bash -c '
+  user={$escapedUser}
+  home_dir=\$(eval echo ~\$user)
+  mkdir -p "\$home_dir/.ssh"
+  touch "\$home_dir/.ssh/config" "\$home_dir/.ssh/known_hosts"
+  for key in /root/.ssh/id_ed25519 /root/.ssh/id_rsa /root/.ssh/id_ecdsa; do
+    if [ -f "\$key" ]; then
+      target="\$home_dir/.ssh/root_\$(basename "\$key")"
+      cp -f "\$key" "\$target"
+      chmod 600 "\$target"
+      grep -qxF "IdentityFile \$target" "\$home_dir/.ssh/config" || echo "IdentityFile \$target" >> "\$home_dir/.ssh/config"
+    fi
+  done
+  if [ -f /root/.ssh/known_hosts ]; then
+    cat /root/.ssh/known_hosts >> "\$home_dir/.ssh/known_hosts"
+  fi
+  chmod 600 "\$home_dir/.ssh/config"
+  chmod 644 "\$home_dir/.ssh/known_hosts"
+  chown -R "\$user:\$user" "\$home_dir/.ssh" {$escapedPath}
+' 2>/dev/null || true
+git config --global --add safe.directory {$escapedPath} 2>/dev/null || true
+BASH);
+        } catch (\Throwable) {
+        }
+    }
+
     public function lastCommit(Site $site, ?string $path = null): ?array
     {
         $targetPath = $path ?? $site->path;
@@ -92,8 +139,9 @@ class Git
         }
 
         try {
+            $escapedPath = escapeshellarg($targetPath);
             $output = trim($site->server->ssh($site->user)->exec(
-                'cd '.escapeshellarg($targetPath).' && git log -1 --format="%H%n%an%n%ae%n%s" 2>/dev/null || true'
+                "cd {$escapedPath} && git -c safe.directory={$escapedPath} log -1 --format=\"%H%n%an%n%ae%n%s\" 2>/dev/null || true"
             ));
             $lines = explode("\n", $output);
 

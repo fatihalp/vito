@@ -11,8 +11,6 @@ class GetDeploymentProgress
 {
     private const int SAMPLE_SIZE = 10;
 
-    private static array $siteDurationsCache = [];
-
     private static array $stepsCache = [];
 
     public function get(Deployment $deployment): array
@@ -28,22 +26,16 @@ class GetDeploymentProgress
             ]
             : $this->steps('deploy', $deployment->deploymentScript ?? $site->deploymentScript);
 
-        $allDurations = self::$siteDurationsCache[$deployment->site_id] ??= Deployment::query()
+        $durations = Deployment::query()
             ->where('site_id', $deployment->site_id)
             ->where('status', DeploymentStatus::FINISHED)
             ->whereNotNull('finished_at')
+            ->where('id', '!=', $deployment->id)
             ->latest('id')
-            ->limit(self::SAMPLE_SIZE + 1)
-            ->get(['id', 'created_at', 'finished_at'])
-            ->mapWithKeys(fn (Deployment $previous): array => [
-                $previous->id => (int) abs($previous->finished_at->diffInSeconds($previous->created_at)),
-            ])
+            ->limit(self::SAMPLE_SIZE)
+            ->get(['created_at', 'finished_at'])
+            ->map(fn (Deployment $previous): int => (int) abs($previous->finished_at->diffInSeconds($previous->created_at)))
             ->filter(fn (int $seconds): bool => $seconds > 0 && $seconds <= 1800)
-            ->all();
-
-        $durations = collect($allDurations)
-            ->except([$deployment->id])
-            ->take(self::SAMPLE_SIZE)
             ->values();
 
         return [
