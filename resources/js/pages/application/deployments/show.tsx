@@ -4,21 +4,26 @@ import SiteBanners from '@/components/site-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
+import { useDialog } from '@/hooks/use-dialog';
 import { useLogContent } from '@/hooks/use-log-content';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
+import Deploy from '@/pages/application/components/deploy';
 import DeploymentProgress from '@/pages/application/deployments/progress';
 import { Deployment } from '@/types/deployment';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
+  CheckIcon,
   Clock3Icon,
+  CopyIcon,
   DownloadIcon,
+  ExternalLinkIcon,
   GitCommitHorizontalIcon,
   LoaderCircleIcon,
   RocketIcon,
@@ -29,6 +34,7 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import moment from 'moment';
+import { toast } from 'sonner';
 
 function StatusIcon({ status }: { status: string }) {
   if (status === 'deploying') {
@@ -46,11 +52,16 @@ export default function DeploymentShow() {
   const page = usePage<{ server: Server; site: Site; deployment: Deployment }>();
   const { server, site } = page.props;
   const deployment = useRealtimeRecord<Deployment>(page.props.deployment, 'deployment')!;
+  const dialog = useDialog();
+
   const { content, step, isLoading, error } = useLogContent({
     serverId: server.id,
     logId: deployment.log?.id ?? 0,
     enabled: !!deployment.log,
   });
+
+  const [copiedSha, setCopiedSha] = useState(false);
+  const [copiedLog, setCopiedLog] = useState(false);
 
   const durationText = useMemo(() => {
     if (deployment.formatted_duration) {
@@ -64,7 +75,37 @@ export default function DeploymentShow() {
     return minutes ? `${minutes}m ${String(diff % 60).padStart(2, '0')}s` : `${diff}s`;
   }, [deployment.formatted_duration, deployment.finished_at, deployment.updated_at, deployment.created_at, deployment.status]);
 
-  const commitUrl = deployment.commit_data.url && /^https?:\/\//.test(deployment.commit_data.url) ? deployment.commit_data.url : undefined;
+  const commitUrl =
+    deployment.commit_data.url && /^https?:\/\//.test(deployment.commit_data.url)
+      ? deployment.commit_data.url
+      : undefined;
+
+  const handleCopySha = () => {
+    const sha = deployment.commit_id || deployment.commit_id_short;
+    if (!sha) return;
+
+    navigator.clipboard
+      .writeText(sha)
+      .then(() => {
+        setCopiedSha(true);
+        toast.success('Commit hash copied to clipboard');
+        setTimeout(() => setCopiedSha(false), 2000);
+      })
+      .catch(() => toast.error('Failed to copy commit hash'));
+  };
+
+  const handleCopyLog = () => {
+    if (!content) return;
+
+    navigator.clipboard
+      .writeText(content)
+      .then(() => {
+        setCopiedLog(true);
+        toast.success('Console log copied to clipboard');
+        setTimeout(() => setCopiedLog(false), 2000);
+      })
+      .catch(() => toast.error('Failed to copy console log'));
+  };
 
   return (
     <ServerLayout>
@@ -75,7 +116,7 @@ export default function DeploymentShow() {
 
         <div className="flex flex-col gap-3">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
               <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 cursor-pointer">
                 <Link href={`/servers/${server.id}/sites/${site.id}/deployments`}>
                   <ArrowLeftIcon className="size-4" />
@@ -90,21 +131,50 @@ export default function DeploymentShow() {
                 </h1>
                 <Badge variant={deployment.status_color}>{deployment.status}</Badge>
                 {deployment.active && <Badge variant="outline">active</Badge>}
+                {deployment.release && (
+                  <Badge variant="secondary" className="font-mono text-xs">
+                    {deployment.release}
+                  </Badge>
+                )}
               </div>
             </div>
 
-            {deployment.log && (
-              <Button variant="outline" size="sm" className="h-9 gap-1.5 shrink-0 self-start sm:self-auto cursor-pointer" asChild>
-                <a
-                  href={`/servers/${server.id}/logs/${deployment.log.id}/download`}
-                  target="_blank"
-                  rel="noopener noreferrer"
+            <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+              {!deployment.active && deployment.release && deployment.status === 'finished' && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-9 gap-1.5 text-destructive hover:text-destructive cursor-pointer"
+                  onClick={() =>
+                    dialog.confirm.open({
+                      title: 'Rollback',
+                      description: `Are you sure you want to rollback your site to version [${deployment.release}]?`,
+                      confirmLabel: 'Rollback',
+                      method: 'post',
+                      url: `/servers/${encodeURIComponent(String(server.id))}/sites/${site.id}/rollback/${deployment.id}`,
+                    })
+                  }
                 >
-                  <DownloadIcon className="size-4" />
-                  <span>Download log</span>
-                </a>
-              </Button>
-            )}
+                  <RotateCcwIcon className="size-4" />
+                  <span>Rollback</span>
+                </Button>
+              )}
+
+              {deployment.status !== 'deploying' && <Deploy site={site} />}
+
+              {deployment.log && (
+                <Button variant="outline" size="sm" className="h-9 gap-1.5 cursor-pointer" asChild>
+                  <a
+                    href={`/servers/${server.id}/logs/${deployment.log.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <DownloadIcon className="size-4" />
+                    <span>Download log</span>
+                  </a>
+                </Button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-muted-foreground px-1">
@@ -118,12 +188,27 @@ export default function DeploymentShow() {
               <div className="flex items-center gap-1.5">
                 <GitCommitHorizontalIcon className="size-3.5" />
                 {commitUrl ? (
-                  <a href={commitUrl} target="_blank" rel="noopener noreferrer" className="text-foreground font-mono hover:underline">
-                    {deployment.commit_id_short}
+                  <a
+                    href={commitUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-foreground font-mono hover:underline inline-flex items-center gap-1"
+                  >
+                    <span>{deployment.commit_id_short}</span>
+                    <ExternalLinkIcon className="size-3" />
                   </a>
                 ) : (
                   <span className="text-foreground font-mono">{deployment.commit_id_short}</span>
                 )}
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-5 cursor-pointer"
+                  onClick={handleCopySha}
+                  title="Copy commit SHA"
+                >
+                  {copiedSha ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
+                </Button>
               </div>
             )}
 
@@ -146,12 +231,16 @@ export default function DeploymentShow() {
               <div className="flex items-center gap-1.5">
                 <RotateCcwIcon className="size-3.5" />
                 <span>
-                  Rolled back by {deployment.rolled_back_by ?? 'System'} <DateTime date={deployment.rolled_back_at} relative />
+                  Rolled back by {deployment.rolled_back_by ?? 'System'}{' '}
+                  <DateTime date={deployment.rolled_back_at} relative />
                 </span>
               </div>
             )}
 
-            <div className="flex items-center gap-1.5 cursor-default" title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>
+            <div
+              className="flex items-center gap-1.5 cursor-default"
+              title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}
+            >
               <Clock3Icon className="size-3.5" />
               <span>
                 <DateTime date={deployment.created_at} relative />
@@ -171,10 +260,68 @@ export default function DeploymentShow() {
           </div>
         </div>
 
-        <DeploymentProgress deployment={deployment} step={step} />
+        <DeploymentProgress deployment={deployment} step={step} defaultShowSteps={true} />
 
         <Card className="flex-1 overflow-hidden border flex flex-col min-h-[550px]">
-          <LogOutput className="h-[calc(100vh-250px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4">
+          <div className="flex items-center justify-between border-b px-4 py-2.5 bg-muted/30">
+            <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-1.5" aria-hidden="true">
+                <span className="size-2.5 rounded-full bg-destructive/70" />
+                <span className="size-2.5 rounded-full bg-warning/70" />
+                <span className="size-2.5 rounded-full bg-success/70" />
+              </div>
+              <div className="h-4 w-px bg-border mx-1" />
+              <div className="flex items-center gap-2">
+                <TerminalIcon className="size-4 text-muted-foreground" />
+                <span className="text-xs font-semibold tracking-tight">Console Output</span>
+              </div>
+              {deployment.status === 'deploying' ? (
+                <Badge variant="warning" className="gap-1 text-[11px] py-0 animate-pulse">
+                  <span className="size-1.5 rounded-full bg-warning animate-ping" />
+                  Live streaming
+                </Badge>
+              ) : deployment.status === 'failed' ? (
+                <Badge variant="destructive" className="gap-1 text-[11px] py-0">
+                  <XCircleIcon className="size-3" />
+                  Failed
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-success border-success/40 bg-success/10 gap-1 text-[11px] py-0">
+                  <CheckCircle2Icon className="size-3" />
+                  Completed
+                </Badge>
+              )}
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              {content && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 text-xs gap-1.5 cursor-pointer"
+                  onClick={handleCopyLog}
+                >
+                  {copiedLog ? <CheckIcon className="size-3.5 text-success" /> : <CopyIcon className="size-3.5" />}
+                  <span>{copiedLog ? 'Copied' : 'Copy log'}</span>
+                </Button>
+              )}
+
+              {deployment.log && (
+                <Button variant="ghost" size="sm" className="h-7 text-xs gap-1.5 cursor-pointer" asChild>
+                  <a
+                    href={`/servers/${server.id}/logs/${deployment.log.id}/download`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <DownloadIcon className="size-3.5" />
+                    <span>Download</span>
+                  </a>
+                </Button>
+              )}
+            </div>
+          </div>
+
+          <LogOutput className="h-[calc(100vh-280px)] min-h-[550px] w-full flex-1 rounded-none border-0 p-4">
             {isLoading && 'Loading deployment output...'}
             {error && <span className="text-destructive">{error}</span>}
             {!deployment.log && (
@@ -182,7 +329,11 @@ export default function DeploymentShow() {
                 <TerminalIcon className="size-4" /> No deployment output was recorded.
               </span>
             )}
-            {!isLoading && !error && deployment.log && (content || (deployment.status === 'deploying' ? 'Waiting for output...' : 'No output was recorded.'))}
+            {!isLoading &&
+              !error &&
+              deployment.log &&
+              (content ||
+                (deployment.status === 'deploying' ? 'Waiting for output...' : 'No output was recorded.'))}
           </LogOutput>
         </Card>
       </Container>
