@@ -300,10 +300,6 @@ export default function DeploymentProgress({
               <span className="font-mono font-semibold text-foreground">
                 {formatCountdown(remainingSeconds)}
               </span>
-              <span className="text-muted-foreground/60">·</span>
-              <span className="font-mono text-muted-foreground">
-                {formatCountdown(elapsed)} elapsed
-              </span>
             </div>
           ) : (
             <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/20 px-2.5 py-1 text-muted-foreground tabular-nums">
