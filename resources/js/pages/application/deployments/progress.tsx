@@ -263,14 +263,14 @@ export default function DeploymentProgress({
   const stepLabel =
     steps.length > 0
       ? finished
-        ? `${steps.length}/${steps.length} steps`
-        : `Step ${Math.max(1, current + 1)} of ${steps.length}`
+        ? `${steps.length}/${steps.length}`
+        : `${Math.max(1, current + 1)}/${steps.length}`
       : null;
 
   return (
     <Card className={cn('p-3.5 flex flex-col gap-2.5 shadow-none', className)}>
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 min-w-0">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0 flex-1">
           {deploying ? (
             <LoaderCircleIcon className="size-4 text-primary animate-spin shrink-0" />
           ) : failed ? (
@@ -279,50 +279,43 @@ export default function DeploymentProgress({
             <CheckCircle2Icon className="size-4 text-emerald-500 shrink-0" />
           )}
 
-          <span className="text-sm font-medium">{title}</span>
+          <span className="text-sm font-medium shrink-0">{title}</span>
 
           {stepLabel && (
-            <span className="text-xs text-muted-foreground">· {stepLabel}</span>
+            <span className="text-xs text-muted-foreground font-mono shrink-0">{stepLabel}</span>
           )}
 
           {!showSteps && activeStep && (
-            <code className="hidden sm:inline text-xs text-muted-foreground font-mono truncate max-w-md">
-              · $ {activeStep.command}
+            <code className="hidden sm:inline text-xs text-muted-foreground font-mono truncate">
+              $ {activeStep.command}
             </code>
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-xs">
+        <div className="flex items-center gap-1.5 text-xs shrink-0">
           {deploying ? (
-            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2.5 py-1 tabular-nums">
+            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/40 px-2 py-1 tabular-nums">
               <TimerIcon className="size-3.5 text-primary animate-pulse shrink-0" />
-              <span className="text-muted-foreground">Remaining</span>
               <span className="font-mono font-semibold text-foreground">
                 {formatCountdown(remainingSeconds)}
               </span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/20 px-2.5 py-1 text-muted-foreground tabular-nums">
+            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/20 px-2 py-1 text-muted-foreground tabular-nums">
               <Clock3Icon className="size-3.5 shrink-0" />
-              <span>Duration</span>
               <span className="font-mono font-medium text-foreground">{formatDuration(elapsed)}</span>
-              {estimate !== null && (
-                <span className="hidden sm:inline text-muted-foreground">
-                  (avg ~{formatDuration(estimate)})
-                </span>
-              )}
             </div>
           )}
 
           {steps.length > 0 && (
             <Button
               variant="ghost"
-              size="sm"
-              className="h-7 px-2 text-xs gap-1 cursor-pointer"
+              size="icon"
+              className="size-7 cursor-pointer"
               onClick={() => setShowSteps((prev) => !prev)}
+              aria-label={showSteps ? 'Hide steps' : 'Show steps'}
             >
-              <span>{showSteps ? 'Hide steps' : `Steps (${steps.length})`}</span>
-              {showSteps ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
+              {showSteps ? <ChevronUpIcon className="size-4" /> : <ChevronDownIcon className="size-4" />}
             </Button>
           )}
 
