@@ -111,6 +111,7 @@ class DeployJob implements ShouldQueue
                 $site->type()->deploymentEnvironment(),
             ),
             aliases: $site->environmentAliases(),
+            stepGroup: 'deploy',
         );
 
         if ($site->deploymentScriptFor(false)?->shouldRestartWorkers()) {
@@ -133,6 +134,7 @@ class DeployJob implements ShouldQueue
                 $site->type()->deploymentEnvironment(),
             ),
             aliases: $site->environmentAliases(),
+            stepGroup: 'build',
         );
 
         
@@ -158,6 +160,7 @@ class DeployJob implements ShouldQueue
                 $site->type()->deploymentEnvironment(),
             ),
             aliases: $site->environmentAliases(),
+            stepGroup: 'pre-flight',
         );
 
         

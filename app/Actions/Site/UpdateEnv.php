@@ -69,20 +69,7 @@ class UpdateEnv
 
         if ($hasVariables) {
             if ($existingRaw !== '') {
-                $liveParsed = EnvParser::parse($existingRaw);
-                $liveKeys = array_column($liveParsed, 'key');
-                $incomingKeys = array_column($variables, 'key');
-                $removedKeys = array_diff($liveKeys, $incomingKeys);
-
-                $patchValues = [];
-                foreach ($variables as $var) {
-                    $patchValues[$var['key']] = $var['value'];
-                }
-                foreach ($removedKeys as $removedKey) {
-                    $patchValues[$removedKey] = null;
-                }
-
-                $content = EnvParser::patch($existingRaw, $patchValues);
+                $content = EnvParser::patchVariables($existingRaw, $variables);
                 if ($hasManagedVariables) {
                     $content = $this->managedEnvironment->enforceRaw($site, $content);
                 }

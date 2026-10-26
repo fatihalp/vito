@@ -43,24 +43,24 @@ class HandleInertiaRequests extends Middleware
             $user->unsetRelation('currentProject');
             $currentProject = $user->currentProject;
         }
-        if ($currentProject) {
-            $currentProject->loadCount(['servers', 'sites']);
-        }
 
         $data = [];
         if ($request->route('server')) {
-            
             $server = $request->route('server');
-            if ($user && $user->can('view', $server) && $user->current_project_id !== $server->project_id) {
-                $user->current_project_id = $server->project_id;
-                $user->save();
-            }
-
             if (! ($server instanceof Server)) {
                 $server = Server::find($server);
             }
             if ($server) {
                 $server->loadForResource();
+
+                if ($user && $user->can('view', $server)) {
+                    if ($user->current_project_id !== $server->project_id) {
+                        $user->current_project_id = $server->project_id;
+                        $user->save();
+                    }
+
+                    $currentProject = $server->project;
+                }
             }
 
             $data['server'] = ServerResource::make($server);
@@ -79,20 +79,26 @@ class HandleInertiaRequests extends Middleware
         }
 
         if ($request->route('network')) {
-            
             $network = $request->route('network');
-            if ($user && $user->can('view', $network)) {
+            if (! ($network instanceof Network)) {
+                $network = Network::find($network);
+            }
+            if ($network && $user && $user->can('view', $network)) {
                 if ($user->current_project_id !== $network->project_id) {
                     $user->current_project_id = $network->project_id;
                     $user->save();
-                    $user->unsetRelation('currentProject');
-                    $currentProject = $user->currentProject;
                 }
+
+                $currentProject = $network->project;
 
                 $data['network'] = fn () => NetworkResource::make(
                     $network->load('serverProvider')->loadCount('servers')
                 );
             }
+        }
+
+        if ($currentProject) {
+            $currentProject->loadCount(['servers', 'sites']);
         }
 
         return [

@@ -100,6 +100,7 @@ export function ServerSwitch() {
     <div className="flex items-center">
       <ServerSelect
         value={selected}
+        projectId={page.props.server?.project_id ?? page.props.auth?.currentProject?.id}
         onValueChangeAdvanced={handleServerChange}
         trigger={trigger}
         open={open}

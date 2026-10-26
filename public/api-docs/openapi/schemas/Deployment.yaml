@@ -76,6 +76,35 @@ properties:
   active:
     type: boolean
     example: true
+  finished_at:
+    type: string
+    nullable: true
+    format: date-time
+  progress:
+    type: object
+    nullable: true
+    properties:
+      steps:
+        type: array
+        items:
+          type: object
+          properties:
+            group:
+              type: string
+              example: 'deploy'
+            line:
+              type: integer
+              example: 4
+            command:
+              type: string
+              example: 'composer install --no-dev'
+      estimated_duration:
+        type: integer
+        nullable: true
+        example: 42
+      samples:
+        type: integer
+        example: 5
   created_at:
     type: string
     format: date-time

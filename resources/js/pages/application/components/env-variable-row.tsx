@@ -14,10 +14,11 @@ interface EnvVariableRowProps {
   onDelete: () => void;
   revealable?: boolean;
   error?: string;
+  duplicate?: { index: number; total: number; isEffective: boolean };
   action?: React.ReactNode;
 }
 
-export default function EnvVariableRow({ variable, onChange, onDelete, revealable = false, error, action }: EnvVariableRowProps) {
+export default function EnvVariableRow({ variable, onChange, onDelete, revealable = false, error, duplicate, action }: EnvVariableRowProps) {
   const [showValue, setShowValue] = useState(false);
   const hintId = useId();
   const isMultiLine = variable.value.includes('\n');
@@ -194,6 +195,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
             className={cn(
               'font-mono',
               isManaged ? 'pr-36' : isExisting && variable.isSecret && !revealable ? 'pr-9' : '',
+              duplicate && !hasError && 'border-amber-500/70 focus-visible:ring-amber-500',
               hasError && 'border-destructive',
             )}
             disabled={isExisting}
@@ -217,6 +219,18 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
           ) : null}
         </div>
         {hasError && <p className="text-destructive mt-1 text-xs">{error}</p>}
+        {duplicate && !hasError && (
+          <p className={cn('mt-0.5 text-[11px] flex items-center gap-1.5', duplicate.isEffective ? 'text-amber-600 dark:text-amber-400 font-medium' : 'text-muted-foreground')}>
+            <span>Duplicate #{duplicate.index}</span>
+            {duplicate.isEffective ? (
+              <span className="rounded bg-amber-500/15 text-amber-700 dark:text-amber-300 px-1 py-0.2 text-[10px] font-semibold">
+                Active
+              </span>
+            ) : (
+              <span className="text-[10px] opacity-75">Overridden</span>
+            )}
+          </p>
+        )}
       </div>
     );
   };

@@ -13,6 +13,7 @@ import { type SharedData } from '@/types';
 
 interface ServerSelectProps {
   value: string;
+  projectId?: number;
   valueBy?: keyof Server;
   onValueChange?: (selectedServer?: Server) => void;
   
@@ -32,6 +33,7 @@ interface ServerSelectProps {
 
 export default function ServerSelect({
   value,
+  projectId,
   valueBy = 'id',
   onValueChange,
   onValueChangeAdvanced,
@@ -71,11 +73,18 @@ export default function ServerSelect({
     return () => clearTimeout(timeoutId);
   }, [query]);
 
+  const activeProjectId = projectId ?? page.props.server?.project_id ?? page.props.auth.currentProject?.id;
+
   const { data, isFetching, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<Server[]>({
-    queryKey: ['servers', page.props.auth.currentProject?.id, debouncedQuery, excludeSelf],
+    queryKey: ['servers', activeProjectId, debouncedQuery, excludeSelf],
     queryFn: async ({ pageParam = 1 }) => {
       const response = await axios.get(
-        withQuery("/servers/json", { query: debouncedQuery || '', page: pageParam, exclude_self: excludeSelf ? 1 : undefined }),
+        withQuery("/servers/json", {
+          project_id: activeProjectId,
+          query: debouncedQuery || '',
+          page: pageParam,
+          exclude_self: excludeSelf ? 1 : undefined,
+        }),
       );
       return response.data;
     },

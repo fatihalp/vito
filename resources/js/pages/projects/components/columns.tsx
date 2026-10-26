@@ -137,7 +137,7 @@ export const columns: ColumnDef<Project>[] = [
             const label = user.name || user.email;
             if (!label) return null;
             return (
-              <Badge key={user.id} variant="outline" title={user.email || user.name}>
+              <Badge key={user.id} variant="outline" title={user.email || user.name || undefined}>
                 {label}
               </Badge>
             );

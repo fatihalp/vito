@@ -211,6 +211,80 @@ class EnvParser
         return implode($newline, $lines);
     }
 
+    public static function patchVariables(string $raw, array $variables): string
+    {
+        $newline = str_contains($raw, "\r\n") ? "\r\n" : "\n";
+        $endsInNewline = str_ends_with($raw, "\n");
+        $lines = $raw === '' ? [] : (preg_split('/\r?\n/', $raw) ?: []);
+
+        $incomingByKey = [];
+        foreach ($variables as $variable) {
+            $key = trim($variable['key'] ?? '');
+            if ($key === '') {
+                continue;
+            }
+
+            $incomingByKey[$key][] = [
+                'key' => $key,
+                'value' => (string) ($variable['value'] ?? ''),
+            ];
+        }
+
+        foreach ($lines as $index => $line) {
+            $trimmed = trim($line);
+            if ($trimmed === '' || str_starts_with($trimmed, '#')) {
+                continue;
+            }
+
+            $hasExport = preg_match('/^\s*export\s+/', $trimmed) === 1;
+            $lineWithoutExport = $hasExport ? (preg_replace('/^\s*export\s+/', '', $trimmed) ?? $trimmed) : $trimmed;
+            $equalsIndex = strpos($lineWithoutExport, '=');
+            if ($equalsIndex === false) {
+                continue;
+            }
+
+            $lineKey = trim(substr($lineWithoutExport, 0, $equalsIndex));
+            if ($lineKey === '') {
+                continue;
+            }
+
+            if (! array_key_exists($lineKey, $incomingByKey)) {
+                $lines[$index] = null;
+
+                continue;
+            }
+
+            if (! empty($incomingByKey[$lineKey])) {
+                $nextVar = array_shift($incomingByKey[$lineKey]);
+                $rendered = self::stringify([$nextVar]);
+                if ($hasExport) {
+                    $rendered = 'export '.$rendered;
+                }
+                $lines[$index] = $rendered;
+            } else {
+                $lines[$index] = null;
+            }
+        }
+
+        $lines = array_values(array_filter($lines, fn (?string $line): bool => $line !== null));
+
+        while (! empty($lines) && end($lines) === '') {
+            array_pop($lines);
+        }
+
+        foreach ($incomingByKey as $remaining) {
+            foreach ($remaining as $var) {
+                $lines[] = self::stringify([$var]);
+            }
+        }
+
+        if ($endsInNewline && ! empty($lines)) {
+            $lines[] = '';
+        }
+
+        return implode($newline, $lines);
+    }
+
     
     public static function secretKeys(?array $stored): array
     {
@@ -263,16 +337,16 @@ class EnvParser
     
     public static function mergeWithLive(array $incoming, array $live): array
     {
-        $liveMap = [];
+        $liveQueue = [];
         foreach ($live as $variable) {
-            $liveMap[$variable['key']] = $variable['value'];
+            $liveQueue[$variable['key']][] = $variable['value'];
         }
 
-        return array_map(function ($variable) use ($liveMap) {
+        return array_map(function ($variable) use (&$liveQueue) {
             $key = $variable['key'];
 
-            if ($variable['is_secret'] && $variable['value'] === '' && isset($liveMap[$key])) {
-                $variable['value'] = $liveMap[$key];
+            if ($variable['is_secret'] && $variable['value'] === '' && ! empty($liveQueue[$key])) {
+                $variable['value'] = array_shift($liveQueue[$key]);
             }
 
             return $variable;

@@ -14,6 +14,7 @@ class CommandExecutionResource extends JsonResource
         return [
             'id' => $this->id,
             'command_id' => $this->command_id,
+            'cron_job_id' => $this->cron_job_id,
             'server_id' => $this->server_id,
             'user_id' => $this->user_id,
             'server_log_id' => $this->server_log_id,

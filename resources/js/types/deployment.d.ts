@@ -1,5 +1,17 @@
 import { ServerLog } from '@/types/server-log';
 
+export interface DeploymentStep {
+  group: string;
+  line: number;
+  command: string;
+}
+
+export interface DeploymentProgress {
+  steps: DeploymentStep[];
+  estimated_duration: number | null;
+  samples: number;
+}
+
 export interface Deployment {
   id: number;
   site_id: number;
@@ -23,6 +35,8 @@ export interface Deployment {
   trigger_color: 'gray' | 'info' | 'warning' | null;
   rolled_back_by: string | null;
   rolled_back_at: string | null;
+  finished_at: string | null;
+  progress?: DeploymentProgress;
   created_at: string;
   updated_at: string;
 

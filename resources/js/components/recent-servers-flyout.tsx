@@ -6,7 +6,7 @@ import { useOverviewResources } from '@/hooks/use-overview-resources';
 
 export default function RecentServersFlyout() {
   const page = usePage<SharedData>();
-  const projectId = page.props.auth?.currentProject?.id;
+  const projectId = page.props.server?.project_id ?? page.props.auth?.currentProject?.id;
   const resources = useOverviewResources(projectId, [], [], Boolean(projectId));
   const servers = resources.data?.servers ?? [];
 

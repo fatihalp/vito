@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Badge } from '@/components/ui/badge';
+import { LoaderCircleIcon } from 'lucide-react';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VitoTable } from '@/components/vito-table';
@@ -65,6 +66,18 @@ const deployedByCell = ({ row }: CellRenderProps) => {
   );
 };
 
+const statusCell = ({ row, value }: CellRenderProps) => {
+  const status = String(row.status || value || '');
+  const statusColor = (row.status_color as 'warning' | 'success' | 'danger' | 'gray') || 'default';
+
+  return (
+    <div className="inline-flex items-center gap-1.5">
+      {status === 'deploying' && <LoaderCircleIcon className="size-3.5 animate-spin text-warning shrink-0" />}
+      <Badge variant={statusColor}>{status}</Badge>
+    </div>
+  );
+};
+
 export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
   const dialog = useDialog();
 
@@ -76,7 +89,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
     <VitoTable
       tableData={deployments}
       showPagination={showPagination}
-      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell, deployed_by: deployedByCell }}
+      cellRenderers={{ commit: commitCell, release: releaseCell, created_at: deployedAtCell, deployed_by: deployedByCell, status: statusCell }}
       actions={(row: Row) => {
         const deployment = asRow<Deployment>(row, ['id', 'site_id', 'server_id']);
 
