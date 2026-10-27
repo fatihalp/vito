@@ -65,7 +65,7 @@ export default function DeploymentShow() {
         <SiteBanners site={site} />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <div className="flex items-center gap-2.5 flex-wrap text-xs text-muted-foreground">
+          <div className="flex items-center gap-2.5 flex-wrap text-sm text-muted-foreground">
             <Button variant="outline" size="icon" asChild className="size-8 cursor-pointer">
               <Link href={`/servers/${server.id}/sites/${site.id}/deployments`} title="Back to deployments">
                 <ArrowLeftIcon className="size-4" />
@@ -155,7 +155,7 @@ export default function DeploymentShow() {
           <div className="flex items-center justify-between border-b px-3.5 py-2 bg-muted/20">
             <div className="flex items-center gap-2">
               <TerminalIcon className="size-3.5 text-muted-foreground" />
-              <span className="text-xs font-medium">Output</span>
+              <span className="text-sm font-medium">Output</span>
             </div>
 
             <div className="flex items-center gap-1">
@@ -163,7 +163,7 @@ export default function DeploymentShow() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-7 px-2 text-xs gap-1.5 cursor-pointer"
+                  className="h-8 px-2 text-sm gap-1.5 cursor-pointer"
                   onClick={() => copyLog(content)}
                 >
                   {copiedLog ? <CheckIcon className="size-3.5 text-emerald-500" /> : <CopyIcon className="size-3.5" />}
@@ -172,7 +172,7 @@ export default function DeploymentShow() {
               )}
 
               {deployment.log && (
-                <Button variant="ghost" size="sm" className="h-7 px-2 text-xs gap-1.5 cursor-pointer" asChild>
+                <Button variant="ghost" size="sm" className="h-8 px-2 text-sm gap-1.5 cursor-pointer" asChild>
                   <a
                     href={`/servers/${server.id}/logs/${deployment.log.id}/download`}
                     target="_blank"

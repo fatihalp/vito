@@ -12,11 +12,17 @@ class GetSiteOverview
     
     public function get(Site $site): array
     {
+        $workers = $site->workers()
+            ->latest()
+            ->limit(3)
+            ->get()
+            ->each(fn (Worker $worker) => $worker->setRelation('site', $site));
+
         return [
-            'workers' => $site->workers()->with('site:id,server_id,type_data')->latest()->limit(3)->get(),
-            'workers_count' => $site->workers()->count(),
+            'workers' => $workers,
+            'workers_count' => (int) ($site->workers_count ?? $site->workers()->count()),
             'cron_jobs' => $site->cronJobs()->latest()->limit(3)->get(),
-            'cron_jobs_count' => $site->cronJobs()->count(),
+            'cron_jobs_count' => (int) ($site->cron_jobs_count ?? $site->cronJobs()->count()),
         ];
     }
 }

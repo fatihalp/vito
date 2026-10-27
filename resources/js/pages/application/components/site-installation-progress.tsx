@@ -420,8 +420,8 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
         {/* Step-by-Step Timeline (5 columns on desktop) */}
         <Card className="border-border/60 shadow-none lg:col-span-5">
           <CardHeader className="p-3.5 border-b flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-sm font-semibold">Installation Steps</CardTitle>
-            <span className="text-xs text-muted-foreground font-mono">
+            <CardTitle className="text-base font-semibold">Installation Steps</CardTitle>
+            <span className="text-sm text-muted-foreground font-mono">
               {completedCount}/{totalSteps}
             </span>
           </CardHeader>
@@ -434,27 +434,27 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                 const isStepPending = !isStepCompleted && !isStepFailed && !isStepActive;
 
                 return (
-                  <div key={s.key} className="flex gap-3 relative py-2.5 first:pt-0 last:pb-0">
+                  <div key={s.key} aria-current={isStepActive ? 'step' : undefined} className="flex gap-3 relative py-3 first:pt-0 last:pb-0">
                     {/* Vertical connecting line */}
                     {index < steps.length - 1 && (
                       <div
                         className={cn(
-                          'absolute left-[9px] top-6 bottom-0 w-px',
+                          'absolute left-[11px] top-7 bottom-0 w-px',
                           isStepCompleted ? 'bg-emerald-500/30' : 'bg-border/60'
                         )}
                       />
                     )}
 
                     {/* Step Icon */}
-                    <div className="relative z-10 flex size-5 shrink-0 items-center justify-center bg-card">
+                    <div className="relative z-10 flex size-6 shrink-0 items-center justify-center bg-card">
                       {isStepCompleted ? (
-                        <CheckCircle2 className="size-4 text-emerald-500" />
+                        <CheckCircle2 className="size-5 text-emerald-500" />
                       ) : isStepActive ? (
-                        <Loader2 className="size-4 text-primary animate-spin" />
+                        <Loader2 className="size-5 text-primary animate-spin" />
                       ) : isStepFailed ? (
-                        <AlertCircle className="size-4 text-destructive" />
+                        <AlertCircle className="size-5 text-destructive" />
                       ) : (
-                        <div className="size-1.5 rounded-full bg-muted-foreground/30" />
+                        <div className="size-2 rounded-full bg-muted-foreground" />
                       )}
                     </div>
 
@@ -462,11 +462,11 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     <div className="flex flex-1 flex-col min-w-0 justify-center">
                       <span
                         className={cn(
-                          'text-xs leading-snug',
-                          isStepActive && 'font-semibold text-primary',
+                          'text-base leading-6 break-words',
+                          isStepActive && 'font-semibold text-foreground',
                           isStepFailed && 'font-semibold text-destructive',
                           isStepCompleted && 'font-medium text-foreground',
-                          isStepPending && 'text-muted-foreground'
+                          isStepPending && 'text-foreground/80'
                         )}
                       >
                         {index + 1}. {s.label}
@@ -486,21 +486,21 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                               <div
                                 key={cmdIdx}
                                 className={cn(
-                                  'flex items-center gap-1.5 text-[11px] font-mono leading-tight truncate',
-                                  isCmdDone && 'text-muted-foreground line-through opacity-70',
-                                  isCmdActive && 'text-primary font-medium',
-                                  !isCmdDone && !isCmdActive && 'text-muted-foreground/50'
+                                  'flex items-start gap-2 text-sm font-mono leading-6',
+                                  isCmdDone && 'text-muted-foreground line-through',
+                                  isCmdActive && 'text-foreground font-medium',
+                                  !isCmdDone && !isCmdActive && 'text-foreground/80'
                                 )}
                                 title={cmd}
                               >
                                 {isCmdDone ? (
-                                  <CheckCircle2 className="size-3 text-emerald-500 shrink-0" />
+                                  <CheckCircle2 className="size-4 my-1 text-emerald-500 shrink-0" />
                                 ) : isCmdActive ? (
-                                  <Loader2 className="size-3 text-primary animate-spin shrink-0" />
+                                  <Loader2 className="size-4 my-1 text-primary animate-spin shrink-0" />
                                 ) : (
-                                  <div className="size-1 rounded-full bg-muted-foreground/40 shrink-0" />
+                                  <div className="size-1.5 my-2 rounded-full bg-muted-foreground shrink-0" />
                                 )}
-                                <span className="truncate">{cmd}</span>
+                                <span className="min-w-0 break-words [overflow-wrap:anywhere]">{cmd}</span>
                               </div>
                             );
                           })}

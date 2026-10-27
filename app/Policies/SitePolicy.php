@@ -23,12 +23,17 @@ class SitePolicy
 
     public function view(User $user, Site $site, Server $server): bool
     {
-        $siteServer = $site->server;
+        if ($site->server_id !== $server->id) {
+            return false;
+        }
 
-        return $this->hasServerReadAccess($user, $siteServer)
-            && $site->server_id === $server->id
-            && $siteServer->role === ServerRole::APP
-            && $siteServer->webserver();
+        if (! $site->relationLoaded('server')) {
+            $site->setRelation('server', $server);
+        }
+
+        return $this->hasServerReadAccess($user, $server)
+            && $server->role === ServerRole::APP
+            && $server->webserver();
     }
 
     public function create(User $user, Server $server): bool
@@ -42,12 +47,17 @@ class SitePolicy
 
     public function update(User $user, Site $site, Server $server): bool
     {
-        $siteServer = $site->server;
+        if ($site->server_id !== $server->id) {
+            return false;
+        }
 
-        return $this->hasServerWriteAccess($user, $siteServer)
-            && $site->server_id === $server->id
-            && $siteServer->isReady()
-            && $siteServer->webserver();
+        if (! $site->relationLoaded('server')) {
+            $site->setRelation('server', $server);
+        }
+
+        return $this->hasServerWriteAccess($user, $server)
+            && $server->isReady()
+            && $server->webserver();
     }
 
     

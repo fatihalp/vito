@@ -185,41 +185,42 @@ function StepRow({
   return (
     <div
       className={cn(
-        'group flex items-center justify-between gap-3 px-3 py-1.5 text-xs transition-colors',
+        'group flex items-start justify-between gap-3 px-3 py-3 text-sm leading-relaxed transition-colors',
         state === 'running' && 'bg-muted/50',
         state === 'failed' && 'bg-destructive/5',
-        state === 'pending' && 'opacity-60',
       )}
     >
-      <div className="flex items-center gap-2.5 min-w-0 flex-1">
+      <div className="flex items-start gap-3 min-w-0 flex-1">
         {state === 'completed' ? (
-          <CheckCircle2Icon className="size-3.5 text-emerald-500 shrink-0" />
+          <CheckCircle2Icon className="size-5 my-0.5 text-emerald-500 shrink-0" />
         ) : state === 'running' ? (
-          <LoaderCircleIcon className="size-3.5 text-primary animate-spin shrink-0" />
+          <LoaderCircleIcon className="size-5 my-0.5 text-primary animate-spin shrink-0" />
         ) : state === 'failed' ? (
-          <XCircleIcon className="size-3.5 text-destructive shrink-0" />
+          <XCircleIcon className="size-5 my-0.5 text-destructive shrink-0" />
         ) : (
-          <CircleIcon className="size-3.5 text-muted-foreground/40 shrink-0" />
+          <CircleIcon className="size-5 my-0.5 text-muted-foreground shrink-0" />
         )}
 
-        <span
-          className={cn(
-            'font-medium shrink-0',
-            state === 'failed' ? 'text-destructive' : 'text-foreground',
-          )}
-        >
-          {index + 1}. {getStepTitle(stepItem.command)}
-        </span>
+        <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:gap-3">
+          <span
+            className={cn(
+              'font-medium break-words sm:w-48 sm:shrink-0',
+              state === 'failed' ? 'text-destructive' : 'text-foreground',
+            )}
+          >
+            {index + 1}. {getStepTitle(stepItem.command)}
+          </span>
 
-        <code className="text-muted-foreground font-mono truncate">
-          $ {stepItem.command}
-        </code>
+          <code className="text-foreground/80 min-w-0 font-mono whitespace-pre-wrap break-all">
+            $ {stepItem.command}
+          </code>
+        </div>
       </div>
 
       <Button
         variant="ghost"
         size="icon"
-        className="size-6 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer shrink-0"
+        className="size-7 text-muted-foreground cursor-pointer shrink-0"
         onClick={() => copy(stepItem.command)}
         title="Copy command"
       >
@@ -258,7 +259,7 @@ export default function DeploymentProgress({
   const percent = calculateProgressPercent(deployment.status, steps.length, current, elapsed, estimate);
 
   const title = deploying ? 'Deploying...' : failed ? 'Deployment failed' : 'Deployment completed';
-  const activeStep = current >= 0 && steps[current] ? steps[current] : steps[0] ?? null;
+  const activeStep = finished ? null : current >= 0 && steps[current] ? steps[current] : deploying ? (steps[0] ?? null) : null;
 
   const stepLabel =
     steps.length > 0

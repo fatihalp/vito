@@ -53,7 +53,9 @@ class ServerTable extends Table
             'CASE WHEN disk_total > 0 THEN ROUND(disk_used * 100.0 / disk_total, 1) ELSE NULL END'
         );
 
-        $costOrderSql = app(ResolveHetznerServerSpecs::class)->serverCostOrderSql();
+        $sort = (string) request()->input($this->getSortParam(), '');
+        $sortingByCost = in_array(ltrim($sort, '-'), ['monthly_cost', 'monthly_cost_order'], true);
+        $costOrderSql = $sortingByCost ? app(ResolveHetznerServerSpecs::class)->serverCostOrderSql() : '0';
 
         $this->query
             ->select('servers.*')

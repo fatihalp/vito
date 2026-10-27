@@ -12,6 +12,10 @@ use Throwable;
 
 class ResolveHetznerServerSpecs
 {
+    private static array $liveTypesCache = [];
+
+    private static array $projectCostCache = [];
+
     /**
      * @var array<string, array{cores: int, memory: int, prices: array{eu: float, us: float, sin: float}}>
      */
@@ -117,6 +121,10 @@ class ResolveHetznerServerSpecs
             return null;
         }
 
+        if (array_key_exists($project->id, self::$projectCostCache)) {
+            return self::$projectCostCache[$project->id];
+        }
+
         $total = 0.0;
 
         foreach ($project->servers as $server) {
@@ -128,7 +136,7 @@ class ResolveHetznerServerSpecs
 
         $total = round($total, 2);
 
-        return [
+        return self::$projectCostCache[$project->id] = [
             'amount' => $total,
             'currency' => 'EUR',
             'formatted' => '€'.number_format($total, 2).'/mo',
@@ -226,9 +234,13 @@ class ResolveHetznerServerSpecs
             return [];
         }
 
+        if (isset(self::$liveTypesCache[$serverProvider->id])) {
+            return self::$liveTypesCache[$serverProvider->id];
+        }
+
         $cacheKey = 'hetzner_server_types_'.$serverProvider->id;
 
-        return Cache::remember($cacheKey, now()->addHours(12), function () use ($serverProvider): array {
+        return self::$liveTypesCache[$serverProvider->id] = Cache::remember($cacheKey, now()->addHours(12), function () use ($serverProvider): array {
             try {
                 $token = $serverProvider->getCredentials()['token'] ?? null;
                 if (! is_string($token) || $token === '') {

@@ -31,9 +31,11 @@ class DeploymentController extends Controller
         $this->validateRoute($project, $server, $site);
 
         $deployments = $site->deployments()
-            ->with(['log', 'user', 'rolledBackBy'])
+            ->with(['log', 'user', 'rolledBackBy', 'deploymentScript'])
             ->latest()
             ->simplePaginate(25);
+
+        $deployments->getCollection()->each(fn (Deployment $deployment) => $deployment->setRelation('site', $site));
 
         return DeploymentResource::collection($deployments);
     }
@@ -65,7 +67,9 @@ class DeploymentController extends Controller
             abort(404, 'Deployment not found for this site');
         }
 
-        return new DeploymentResource($deployment->load('user', 'rolledBackBy'));
+        $deployment->setRelation('site', $site);
+
+        return new DeploymentResource($deployment->load('log', 'user', 'rolledBackBy', 'deploymentScript'));
     }
 
     private function validateRoute(Project $project, Server $server, ?Site $site = null): void

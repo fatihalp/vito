@@ -337,8 +337,15 @@ class Server extends AbstractModel
             $users[] = $sshUser;
         }
 
-        $users = array_merge($users, $this->isolatedUsers()->pluck('username')->toArray());
-        $users = array_merge($users, $this->sites()->whereNotNull('user')->pluck('user')->toArray());
+        $isolatedUsernames = $this->relationLoaded('isolatedUsers')
+            ? $this->isolatedUsers->pluck('username')->all()
+            : $this->isolatedUsers()->pluck('username')->all();
+
+        $siteUsernames = $this->relationLoaded('sites')
+            ? $this->sites->pluck('user')->all()
+            : $this->sites()->whereNotNull('user')->pluck('user')->all();
+
+        $users = array_merge($users, $isolatedUsernames, $siteUsernames);
 
         return array_values(array_unique(array_filter($users, fn ($u) => is_string($u) && $u !== '')));
     }
@@ -373,7 +380,7 @@ class Server extends AbstractModel
      */
     public static function resourceRelations(): array
     {
-        return ['latestMetric', 'sshKeys', 'serverProvider', 'services'];
+        return ['latestMetric', 'sshKeys', 'serverProvider', 'services', 'isolatedUsers'];
     }
 
     /**
@@ -421,6 +428,10 @@ class Server extends AbstractModel
     
     public function installedServiceVersions(string $type): array
     {
+        if ($this->relationLoaded('services')) {
+            return $this->services->where('type', $type)->pluck('version')->values()->all();
+        }
+
         return $this->services()->where('type', $type)->pluck('version')->all();
     }
 

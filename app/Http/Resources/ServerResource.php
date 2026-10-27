@@ -55,7 +55,7 @@ class ServerResource extends JsonResource
                 'cronjobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),
                 'workers' => (int) ($this->workers_count ?? $this->workers()->count()),
                 'backups' => (int) ($this->backups_count ?? $this->backups()->count()),
-                'services' => (int) ($this->services_count ?? $this->services()->count()),
+                'services' => (int) ($this->services_count ?? ($this->relationLoaded('services') ? $this->services->count() : $this->services()->count())),
                 'databases' => (int) ($this->databases_count ?? $this->databases()->count()),
                 'database_users' => (int) ($this->database_users_count ?? $this->databaseUsers()->count()),
             ],

@@ -251,12 +251,20 @@ class SSH
 
         $sftp->put($tempPath, $local, SFTP::SOURCE_LOCAL_FILE);
 
-        $this->exec(sprintf('chmod %s %s && sudo mv %s %s', $permission, $tempPath, $tempPath, $remote));
         if ($owner === null || $owner === '' || $owner === '0') {
             $owner = $this->user;
         }
-        $this->exec(sprintf('sudo chown %s:%s %s', $owner, $owner, $remote));
-        $this->exec(sprintf('sudo chmod %s %s', $permission, $remote));
+
+        $this->exec(sprintf(
+            'sudo mv %s %s && sudo chown %s:%s %s && sudo chmod %s %s',
+            $tempPath,
+            $remote,
+            $owner,
+            $owner,
+            $remote,
+            $permission,
+            $remote
+        ));
     }
 
     
