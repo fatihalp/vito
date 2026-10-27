@@ -103,6 +103,7 @@ export type SiteWarning =
   | { key: 'needs_first_deploy' }
   | { key: 'composer_install_failed' }
   | { key: 'app_debug_enabled' }
+  | { key: 'app_key_missing' }
   | {
       key: 'worker_not_running';
       worker_id: number;

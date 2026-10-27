@@ -75,7 +75,7 @@ export default function LogOutput({ className, children }: { className?: string;
     <div className="relative w-full h-full flex flex-col flex-1 min-h-0">
       <ScrollArea
         className={cn(
-          'bg-accent/50 text-accent-foreground relative h-[500px] w-full overflow-auto p-4 font-mono text-sm break-all whitespace-pre-wrap',
+          'bg-accent/50 text-accent-foreground relative h-[500px] w-full overflow-auto p-4 font-mono text-sm leading-relaxed break-all whitespace-pre-wrap',
           className,
         )}
       >

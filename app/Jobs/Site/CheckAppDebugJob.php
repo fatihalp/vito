@@ -38,9 +38,10 @@ class CheckAppDebugJob implements ShouldQueue, ShouldBeUnique
     {
         $this->run("site-app-debug-{$this->site->id}", function (): void {
             $previous = Cache::get("site:{$this->site->id}:app-debug-disabled");
+            $previousKeyMissing = Cache::get("site:{$this->site->id}:app-key-missing");
             $current = app(CheckAppDebug::class)->refresh($this->site);
 
-            if ($previous !== $current) {
+            if ($previous !== $current || $previousKeyMissing !== Cache::get("site:{$this->site->id}:app-key-missing")) {
                 app(BroadcastSiteUpdate::class)->broadcast($this->site);
             }
         });

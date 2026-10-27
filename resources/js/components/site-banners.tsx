@@ -1,4 +1,4 @@
-import { Link, router } from '@inertiajs/react';
+import { Link, router, useForm } from '@inertiajs/react';
 import { OctagonAlertIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -9,6 +9,24 @@ import { humanizeStep } from '@/lib/utils';
 import { Site, SiteWarning } from '@/types/site';
 import { useState } from 'react';
 import { BannerItem, WarningsBlock, WarningsPopover } from '@/components/banners';
+
+function GenerateAppKeyButton({ site }: { site: Site }) {
+  const form = useForm<{ only_if_missing: boolean; env?: string }>({ only_if_missing: true });
+
+  return (
+    <div className="flex flex-col gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        disabled={form.processing}
+        onClick={() => form.post(`/servers/${site.server_id}/sites/${site.id}/env/generate-key`, { preserveScroll: true })}
+      >
+        {form.processing ? 'Generating...' : 'Generate Key'}
+      </Button>
+      {form.errors.env && <p role="alert" className="text-destructive max-w-64 text-sm">{form.errors.env}</p>}
+    </div>
+  );
+}
 
 function InstallationFailedBanner({ site }: { site: Site }) {
   const [open, setOpen] = useState(false);
@@ -142,6 +160,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   const needsFirstDeployWarning = warnings.find((w) => w.key === 'needs_first_deploy');
   const composerInstallFailedWarning = warnings.find((w) => w.key === 'composer_install_failed');
   const appDebugEnabledWarning = warnings.find((w) => w.key === 'app_debug_enabled');
+  const appKeyMissingWarning = warnings.find((w) => w.key === 'app_key_missing');
   const workerWarnings = warnings.filter((w): w is Extract<SiteWarning, { key: 'worker_not_running' }> => w.key === 'worker_not_running');
 
   const items: BannerItem[] = [];
@@ -295,6 +314,15 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
           </Button>
         </Link>
       ),
+    });
+  }
+
+  if (appKeyMissingWarning) {
+    items.push({
+      key: 'app-key-missing',
+      title: 'Laravel application key is missing',
+      description: 'APP_KEY is empty in this site’s .env file. Generate an application key to enable Laravel encryption.',
+      action: <GenerateAppKeyButton site={site} />,
     });
   }
 

@@ -19,6 +19,8 @@ class Project extends AbstractModel
     use SoftDeletes;
 
 
+    private array $resolvedUserRoles = [];
+
     protected $fillable = [
         'name',
     ];
@@ -91,20 +93,25 @@ class Project extends AbstractModel
 
     public function hasRoles(User $user, array $roles): bool
     {
-        return $this->users()
-            ->where('user_id', $user->id)
-            ->whereIn('role', $roles)
-            ->exists();
+        $role = $this->role($user);
+
+        return $role !== null && in_array($role, $roles, true);
     }
 
     public function role(User $user): ?UserRole
     {
-        
-        $userProject = $this->relationLoaded('users')
-            ? $this->users->firstWhere('user_id', $user->id)
-            : $this->users()->where('user_id', $user->id)->first();
+        if ($this->relationLoaded('users')) {
+            return $this->users->firstWhere('user_id', $user->id)?->role;
+        }
 
-        return $userProject?->role;
+        if (! array_key_exists($user->id, $this->resolvedUserRoles)) {
+            $this->resolvedUserRoles[$user->id] = $this->users()
+                ->where('user_id', $user->id)
+                ->first()
+                ?->role;
+        }
+
+        return $this->resolvedUserRoles[$user->id];
     }
 
     public function domains(): HasMany

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
-import { appendLogContent, lastStepMarker, LogStep, stripStepMarkers } from '@/lib/log';
+import { appendLogContent, isPendingLog, lastStepMarker, LogStep, stripStepMarkers } from '@/lib/log';
 
 type UseLogContentOptions = {
   
@@ -41,7 +41,11 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
       .then((response) => {
         if (controller.signal.aborted) return;
         const data = typeof response.data === 'string' ? response.data : JSON.stringify(response.data, null, 2);
-        setRaw(data);
+        setRaw((prev) => {
+          if (!prev) return data;
+          if (isPendingLog(data)) return prev;
+          return data.includes(prev) ? data : appendLogContent(data, prev);
+        });
       })
       .catch((err: unknown) => {
         if (controller.signal.aborted) return;

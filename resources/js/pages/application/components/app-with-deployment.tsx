@@ -103,11 +103,13 @@ export default function AppWithDeployment() {
   const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    setActiveDeployment(page.props.activeDeployment ?? null);
     if (page.props.activeDeployment) {
+      setActiveDeployment(page.props.activeDeployment);
       setDismissed(false);
+    } else {
+      setActiveDeployment((prev) => (prev && prev.site_id === site.id && prev.status !== 'deploying' ? prev : null));
     }
-  }, [page.props.activeDeployment]);
+  }, [page.props.activeDeployment, site.id]);
 
   useSocketListener(
     useCallback(

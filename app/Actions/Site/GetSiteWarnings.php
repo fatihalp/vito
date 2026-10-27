@@ -78,6 +78,10 @@ class GetSiteWarnings
             $warnings[] = ['key' => 'app_debug_enabled'];
         }
 
+        if ($this->appDebug->missingAppKey($site) === true) {
+            $warnings[] = ['key' => 'app_key_missing'];
+        }
+
         if ($site->relationLoaded('workers')) {
             $bootstrapId = $site->bootstrapWorkerId();
 

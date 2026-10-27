@@ -116,6 +116,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
     <VitoTable
       tableData={deployments}
       showPagination={showPagination}
+      reloadOnly={['deployments']}
       cellRenderers={{
         commit: commitCell,
         release: releaseCell,

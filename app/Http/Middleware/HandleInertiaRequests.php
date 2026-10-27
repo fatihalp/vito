@@ -32,17 +32,20 @@ class HandleInertiaRequests extends Middleware
     
     public function share(Request $request): array
     {
-        [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
-
-
-        
         $user = $request->user();
-        $currentProject = $user?->currentProject;
+        if ($user) {
+            $user->load(['projects' => fn ($query) => $query->forResource($user)]);
+        }
+
+        $currentProject = $user
+            ? ($user->projects->firstWhere('id', $user->current_project_id) ?? $user->currentProject)
+            : null;
         $canSeeCurrentProject = $user && $currentProject && $user->can('view', $currentProject);
+
         if ($user && (! $currentProject || ! $canSeeCurrentProject)) {
-            $user->ensureHasDefaultProject();
-            $user->unsetRelation('currentProject');
-            $currentProject = $user->currentProject;
+            $currentProject = $user->ensureHasDefaultProject();
+            $user->load(['projects' => fn ($query) => $query->forResource($user)]);
+            $currentProject = $user->projects->firstWhere('id', $currentProject->id) ?? $currentProject;
         }
 
         $data = [];
@@ -54,10 +57,14 @@ class HandleInertiaRequests extends Middleware
             if ($server) {
                 if ($server->is_self) {
                     $server = app(EnsureSelfServerExists::class)->ensure($user) ?? $server;
-                    $request->route()?->setParameter('server', $server);
                 }
 
-                $server->loadForResource();
+                $request->route()?->setParameter('server', $server);
+
+                $serverProject = $user?->projects->firstWhere('id', $server->project_id) ?? $server->project;
+                if ($serverProject) {
+                    $server->setRelation('project', $serverProject);
+                }
 
                 if ($user && $user->can('view', $server)) {
                     if ($user->current_project_id !== $server->project_id) {
@@ -65,11 +72,21 @@ class HandleInertiaRequests extends Middleware
                         $user->save();
                     }
 
-                    $currentProject = $server->project;
+                    $currentProject = $serverProject;
                 }
             }
 
-            $data['server'] = ServerResource::make($server);
+            $serverLoaded = false;
+            $resolveServer = function () use ($server, &$serverLoaded): ?Server {
+                if ($server && ! $serverLoaded) {
+                    $server->loadForResource();
+                    $serverLoaded = true;
+                }
+
+                return $server;
+            };
+
+            $data['server'] = fn (): ?ServerResource => $server ? ServerResource::make($resolveServer()) : null;
 
             if ($request->route('site')) {
                 $site = $request->route('site');
@@ -77,9 +94,18 @@ class HandleInertiaRequests extends Middleware
                     $site = Site::find($site);
                 }
                 if ($site) {
-                    $site->load('hostedDomains.ssl', 'workers', 'gitHook')
-                        ->loadCount(['hostedDomains', 'workers', 'resources', 'commands']);
-                    $data['site'] = SiteResource::make($site);
+                    if ($server && $site->server_id === $server->id) {
+                        $site->setRelation('server', $server);
+                    }
+                    $request->route()?->setParameter('site', $site);
+                    $data['site'] = function () use ($site, $resolveServer): SiteResource {
+                        $loadedServer = $resolveServer();
+                        if ($loadedServer && $site->server_id === $loadedServer->id) {
+                            $site->setRelation('server', $loadedServer);
+                        }
+
+                        return SiteResource::make($site->loadForResource());
+                    };
                 }
             }
         }
@@ -89,22 +115,32 @@ class HandleInertiaRequests extends Middleware
             if (! ($network instanceof Network)) {
                 $network = Network::find($network);
             }
-            if ($network && $user && $user->can('view', $network)) {
-                if ($user->current_project_id !== $network->project_id) {
-                    $user->current_project_id = $network->project_id;
-                    $user->save();
+            if ($network) {
+                $request->route()?->setParameter('network', $network);
+
+                $networkProject = $user?->projects->firstWhere('id', $network->project_id) ?? $network->project;
+                if ($networkProject) {
+                    $network->setRelation('project', $networkProject);
                 }
 
-                $currentProject = $network->project;
+                if ($user && $user->can('view', $network)) {
+                    if ($user->current_project_id !== $network->project_id) {
+                        $user->current_project_id = $network->project_id;
+                        $user->save();
+                    }
 
-                $data['network'] = fn () => NetworkResource::make(
-                    $network->load('serverProvider')->loadCount('servers')
-                );
+                    $currentProject = $networkProject;
+
+                    $data['network'] = fn (): NetworkResource => NetworkResource::make(
+                        $network->load('serverProvider')->loadCount('servers')
+                    );
+                }
             }
         }
 
-        if ($currentProject) {
-            $currentProject->loadCount(['servers', 'sites']);
+        if ($currentProject && $user) {
+            $currentProject = $user->projects->firstWhere('id', $currentProject->id) ?? $currentProject;
+            $user->setRelation('currentProject', $currentProject);
         }
 
         return [
@@ -114,10 +150,18 @@ class HandleInertiaRequests extends Middleware
             'version' => config('app.version'),
             'env' => config('app.env'),
             'demo' => config('app.demo'),
-            'quote' => ['message' => trim($message), 'author' => trim($author)],
-            'auth' => $user ? [
-                'user' => UserResource::make($user->load(['projects' => fn ($query) => $query->forResource($user)])),
-                'currentProject' => ProjectResource::make($currentProject),
+            'quote' => function (): array {
+                [$message, $author] = str(Inspiring::quotes()->random())->explode('-');
+
+                return ['message' => trim($message), 'author' => trim($author)];
+            },
+            'auth' => fn (): ?array => $user ? [
+                'user' => UserResource::make($user),
+                'currentProject' => $currentProject ? ProjectResource::make(
+                    $currentProject->servers_count === null
+                        ? $currentProject->loadCount(['servers', 'sites'])
+                        : $currentProject
+                ) : null,
                 'pendingInvitationsCount' => UserProject::query()
                     ->where('email', $user->email)
                     ->whereNull('user_id')
@@ -125,7 +169,7 @@ class HandleInertiaRequests extends Middleware
                     ->count(),
             ] : null,
             'csrf_token' => csrf_token(),
-            'bootstrap_version' => app(GetBootstrap::class)->version(),
+            'bootstrap_version' => fn (): string => app(GetBootstrap::class)->version(),
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),
                 'error' => fn () => $request->session()->get('error'),

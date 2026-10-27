@@ -42,12 +42,18 @@ class EnsureSelfServerExists
         'migrate' => 'php artisan migrate --force',
     ];
 
+    private static array $ensured = [];
+
     public function ensure(?User $user = null, bool $force = false): ?Server
     {
         $cacheKey = 'vito:self_server_ensured_v3:'.($user?->id ?? 0);
 
+        if (! $force && isset(self::$ensured[$cacheKey])) {
+            return self::$ensured[$cacheKey];
+        }
+
         if (! $force && ($cachedId = Cache::get($cacheKey)) && ($cached = Server::query()->find($cachedId))) {
-            return $cached;
+            return self::$ensured[$cacheKey] = $cached;
         }
 
         $project = $this->ensureVitoProject($user);
@@ -95,7 +101,7 @@ class EnsureSelfServerExists
 
         Cache::put($cacheKey, $server->id, 3600);
 
-        return $server;
+        return self::$ensured[$cacheKey] = $server;
     }
 
     private function ensureVitoProject(?User $user = null): ?Project
@@ -111,9 +117,9 @@ class EnsureSelfServerExists
 
         $userIds = User::query()
             ->where('is_admin', true)
-            ->when($user, fn ($query) => $query->orWhere('id', $user->id))
+            ->when($user?->isAdmin(), fn ($query) => $query->orWhere('id', $user->id))
             ->pluck('id')
-            ->all() ?: array_filter([User::query()->value('id')]);
+            ->all() ?: array_filter([$user?->id ?? User::query()->value('id')]);
 
         foreach ($userIds as $userId) {
             UserProject::query()->firstOrCreate(

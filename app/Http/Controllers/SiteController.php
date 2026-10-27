@@ -72,9 +72,7 @@ class SiteController extends Controller
     {
         $this->authorize('create', [Site::class, $server]);
 
-        return Inertia::render('sites/create', [
-            'server' => $server,
-        ]);
+        return Inertia::render('sites/create');
     }
 
     #[Get('/sites/json', name: 'sites.json')]
@@ -124,16 +122,19 @@ class SiteController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        $previousUrl = URL::previous();
-        $previousRequest = Request::create($previousUrl);
-        $previousRoute = app('router')->getRoutes()->match($previousRequest);
+        try {
+            $previousUrl = URL::previous();
+            $previousRequest = Request::create($previousUrl);
+            $previousRoute = app('router')->getRoutes()->match($previousRequest);
 
-        if ($previousRoute->hasParameter('site')) {
-            if (count($previousRoute->parameters()) > 2) {
-                return redirect()->route('application', ['server' => $server->id, 'site' => $site->id]);
+            if ($previousRoute->hasParameter('site') && $previousRoute->getName()) {
+                if (count($previousRoute->parameters()) > 2) {
+                    return redirect()->route('application', ['server' => $server->id, 'site' => $site->id]);
+                }
+
+                return redirect()->route($previousRoute->getName(), ['server' => $server, 'site' => $site->id]);
             }
-
-            return redirect()->route($previousRoute->getName(), ['server' => $server, 'site' => $site->id]);
+        } catch (\Throwable) {
         }
 
         return redirect()->route('application', ['server' => $server->id, 'site' => $site->id]);

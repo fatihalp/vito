@@ -251,38 +251,41 @@ class Site extends AbstractModel
 
     public function ensureDeploymentScriptsExist(): void
     {
-        $created = false;
+        $this->loadMissing('deploymentScripts');
 
-        if ($this->modernDeploymentEnabled()) {
-            if (! $this->buildScript) {
-                $this->deploymentScripts()->create([
-                    'name' => 'build',
-                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultBuildScript()),
-                ]);
-                $created = true;
-            }
-            if (! $this->preFlightScript) {
-                $this->deploymentScripts()->create([
-                    'name' => 'pre-flight',
-                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultPreFlightScript()),
-                    'configs' => [
-                        'restart_workers' => $this->deploymentScript?->shouldRestartWorkers() ?? false,
-                    ],
-                ]);
-                $created = true;
-            }
-        }
-
-        if (! $this->deploymentScript) {
-            $this->deploymentScripts()->create([
+        $default = $this->deploymentScripts->firstWhere('name', 'default');
+        if (! $default) {
+            $default = $this->deploymentScripts()->create([
                 'name' => 'default',
                 'content' => '',
             ]);
-            $created = true;
+            $this->deploymentScripts->push($default);
         }
+        $this->setRelation('deploymentScript', $default);
 
-        if ($created) {
-            $this->refresh();
+        if ($this->modernDeploymentEnabled()) {
+            $build = $this->deploymentScripts->firstWhere('name', 'build');
+            if (! $build) {
+                $build = $this->deploymentScripts()->create([
+                    'name' => 'build',
+                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultBuildScript()),
+                ]);
+                $this->deploymentScripts->push($build);
+            }
+            $this->setRelation('buildScript', $build);
+
+            $preFlight = $this->deploymentScripts->firstWhere('name', 'pre-flight');
+            if (! $preFlight) {
+                $preFlight = $this->deploymentScripts()->create([
+                    'name' => 'pre-flight',
+                    'content' => $this->resolveDefaultScript(fn (SiteType $type) => $type->defaultPreFlightScript()),
+                    'configs' => [
+                        'restart_workers' => $default->shouldRestartWorkers(),
+                    ],
+                ]);
+                $this->deploymentScripts->push($preFlight);
+            }
+            $this->setRelation('preFlightScript', $preFlight);
         }
     }
 
@@ -660,12 +663,33 @@ class Site extends AbstractModel
             ->exists();
     }
 
-    /**
-     * Relations and counts SiteResource reads, so site lists load them in one go instead of per row.
-     */
     public function scopeForResource(Builder $query): Builder
     {
-        return $query->with(['server.services', 'gitHook'])->withCount(['hostedDomains', 'workers', 'resources', 'commands']);
+        return $query
+            ->with([
+                'server' => fn (Builder $q) => $q->forResource(),
+                'hostedDomains.ssl',
+                'workers',
+                'gitHook',
+            ])
+            ->withCount(['hostedDomains', 'workers', 'resources', 'commands'])
+            ->withExists([
+                'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
+            ]);
+    }
+
+    public function loadForResource(): static
+    {
+        if (! $this->relationLoaded('server') || ! $this->server?->relationLoaded('services')) {
+            $this->load(['server' => fn ($q) => $q->forResource()]);
+        }
+
+        return $this
+            ->load(['hostedDomains.ssl', 'workers', 'gitHook'])
+            ->loadCount(['hostedDomains', 'workers', 'resources', 'commands'])
+            ->loadExists([
+                'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
+            ]);
     }
 
     public function webserver(): Webserver

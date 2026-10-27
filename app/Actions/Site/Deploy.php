@@ -40,32 +40,37 @@ class Deploy
             $this->recoverSelfWorker($site);
         }
 
-        $deployment = new Deployment([
-            'site_id' => $site->id,
-            'deployment_script_id' => $site->deploymentScript->id,
-            'status' => DeploymentStatus::DEPLOYING,
-            'user_id' => $user?->id,
-            'trigger' => $trigger,
-        ]);
         $log = ServerLog::newLog($site->server, 'deploy-'.strtotime('now'))
             ->forSite($site);
         $log->save();
-        $deployment->log_id = $log->id;
-        $deployment->save();
+
         $lastCommit = $site->sourceControl?->provider()?->getLastCommit($site->repository, $site->branch);
-        if ($lastCommit) {
-            $deployment->commit_id = $lastCommit['commit_id'];
-            $deployment->commit_data = $lastCommit['commit_data'];
+        $isModern = $modern && ($site->type_data['modern_deployment'] ?? false);
+
+        $deployment = new Deployment([
+            'site_id' => $site->id,
+            'deployment_script_id' => $site->deploymentScript->id,
+            'log_id' => $log->id,
+            'status' => DeploymentStatus::DEPLOYING,
+            'user_id' => $user?->id,
+            'trigger' => $trigger,
+            'commit_id' => $lastCommit['commit_id'] ?? null,
+            'commit_data' => $lastCommit['commit_data'] ?? null,
+            'release' => $isModern ? now()->format('YmdHis') : null,
+        ]);
+        $deployment->setRelation('site', $site);
+        $deployment->setRelation('log', $log);
+        $deployment->setRelation('deploymentScript', $site->deploymentScript);
+        if ($user) {
+            $deployment->setRelation('user', $user);
         }
         $deployment->save();
 
-        $typeData = $site->type_data;
+        dispatch(new DeployJob($deployment, $isModern));
 
-        if (! $modern || ! isset($typeData['modern_deployment']) || ! $typeData['modern_deployment']) {
-            return $this->deployClassic($site, $deployment, $log);
-        }
+        $this->broadcastDeploymentCreated($site, $deployment);
 
-        return $this->deployModern($site, $deployment, $log);
+        return $deployment;
     }
 
     private function recoverSelfWorker(Site $site): void
@@ -91,33 +96,10 @@ class Deploy
 
     private function broadcastDeploymentCreated(Site $site, Deployment $deployment): void
     {
-        $deployment->loadMissing('log', 'user');
-
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $site->server->project_id,
             type: 'deployment.created',
             data: new DeploymentResource($deployment),
         ));
-    }
-
-    private function deployClassic(Site $site, Deployment $deployment, ServerLog $log): Deployment
-    {
-        dispatch(new DeployJob($deployment, false));
-
-        $this->broadcastDeploymentCreated($site, $deployment);
-
-        return $deployment;
-    }
-
-    private function deployModern(Site $site, Deployment $deployment, ServerLog $log): Deployment
-    {
-        $deployment->release = now()->format('YmdHis');
-        $deployment->save();
-
-        dispatch(new DeployJob($deployment, true));
-
-        $this->broadcastDeploymentCreated($site, $deployment);
-
-        return $deployment;
     }
 }

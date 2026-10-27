@@ -13,6 +13,8 @@ class GetDeploymentProgress
 
     private static array $stepsCache = [];
 
+    private static array $durationCache = [];
+
     public function get(Deployment $deployment): array
     {
         if ($deployment->rolled_back_at || ! ($site = $deployment->site) instanceof Site) {
@@ -26,6 +28,17 @@ class GetDeploymentProgress
             ]
             : $this->steps('deploy', $deployment->deploymentScript ?? $site->deploymentScript);
 
+        [$estimatedDuration, $samples] = self::$durationCache[$deployment->site_id] ??= $this->resolveDuration($deployment);
+
+        return [
+            'steps' => $steps,
+            'estimated_duration' => $estimatedDuration,
+            'samples' => $samples,
+        ];
+    }
+
+    private function resolveDuration(Deployment $deployment): array
+    {
         $durations = Deployment::query()
             ->where('site_id', $deployment->site_id)
             ->where('status', DeploymentStatus::FINISHED)
@@ -39,9 +52,8 @@ class GetDeploymentProgress
             ->values();
 
         return [
-            'steps' => $steps,
-            'estimated_duration' => $durations->isEmpty() ? null : (int) round($durations->avg()),
-            'samples' => $durations->count(),
+            $durations->isEmpty() ? null : (int) round($durations->avg()),
+            $durations->count(),
         ];
     }
 

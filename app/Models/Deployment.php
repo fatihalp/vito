@@ -55,15 +55,16 @@ class Deployment extends AbstractModel
             $site = $deployment->site;
             $keep = $site->type_data['modern_deployment_history'] ?? 10;
             if ($site->deployments()->whereNotNull('release')->count() > $keep) {
-                
                 $lastDeploymentToKeep = $site->deployments()->whereNotNull('release')->orderByDesc('id')->skip($keep)->first();
                 if ($lastDeploymentToKeep) {
-                    $deployments = $site->deployments()->whereNotNull('release')
+                    $deployments = $site->deployments()
+                        ->whereNotNull('release')
+                        ->where('active', false)
                         ->where('id', '<=', $lastDeploymentToKeep->id)
                         ->get();
-                    
-                    foreach ($deployments as $deployment) {
-                        $deployment->remove(true);
+
+                    foreach ($deployments as $oldDeployment) {
+                        $oldDeployment->remove(true);
                     }
                 }
             }
@@ -105,9 +106,9 @@ class Deployment extends AbstractModel
 
     public function remove(bool $onlyRelease = false): void
     {
-        if ($this->release) {
+        if ($this->release !== null && $this->release !== '') {
             $site = $this->site;
-            $site->server->ssh($site->user)->exec('rm -rf '.$this->path());
+            $site->server->ssh($site->user)->exec('rm -rf '.escapeshellarg($this->path()));
             $this->release = null;
         }
 

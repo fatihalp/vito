@@ -182,10 +182,7 @@ class User extends Authenticatable
 
     public function hasRolesInProject(Project $project, array $roles): bool
     {
-        return $project->users()
-            ->where('user_id', $this->id)
-            ->whereIn('role', $roles)
-            ->exists();
+        return $project->hasRoles($this, $roles);
     }
 
     public function isAdmin(): bool

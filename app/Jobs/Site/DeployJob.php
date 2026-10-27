@@ -72,27 +72,30 @@ class DeployJob implements ShouldQueue
         $this->deployment->status = DeploymentStatus::FAILED;
         $this->deployment->finished_at = now();
         $this->deployment->save();
-        $this->deployment->activate();
         $this->deployment->log?->write("Deployment failed: {$e->getMessage()}");
-        $this->broadcastDeploymentUpdate();
-        Notifier::send($site, new DeploymentCompleted($this->deployment, $site));
 
         if ($this->isModern && $current) {
-            $this->deployment->site->server->ssh($site->user)->exec(
-                view('ssh.modern-deployment.release', [
-                    'site' => $site,
-                    'releasePath' => $current->path(),
-                ]),
-                'release',
-                $site->id
-            );
+            try {
+                $this->deployment->site->server->ssh($site->user)->exec(
+                    view('ssh.modern-deployment.release', [
+                        'site' => $site,
+                        'releasePath' => $current->path(),
+                    ]),
+                    'release',
+                    $site->id
+                );
+            } catch (Throwable) {
+            }
             $current->activate();
         }
+
+        $this->broadcastDeploymentUpdate();
+        Notifier::send($site, new DeploymentCompleted($this->deployment, $site));
     }
 
     private function broadcastDeploymentUpdate(): void
     {
-        $this->deployment->refresh();
+        $this->deployment->refresh()->load(['site.server', 'log', 'user', 'rolledBackBy', 'deploymentScript']);
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $this->deployment->site->server->project_id,

@@ -17,7 +17,11 @@ class HasProjectMiddleware
         }
 
         if (! $user->currentProject) {
-            if ($user->projects()->count() > 0) {
+            $hasProjects = $user->relationLoaded('projects')
+                ? $user->projects->isNotEmpty()
+                : $user->projects()->exists();
+
+            if ($hasProjects) {
                 $user->ensureHasDefaultProject();
                 $user->refresh();
 

@@ -2,6 +2,7 @@
 
 namespace App\Actions\Overview;
 
+use App\Enums\DeploymentStatus;
 use App\Http\Resources\ProjectOverviewServerResource;
 use App\Http\Resources\ProjectOverviewSiteResource;
 use App\Models\Backup;
@@ -37,7 +38,14 @@ class GetOverviewResources
             $this->projectIds = $user->allProjects()->pluck('projects.id')->all();
         }
 
-        $servers = $this->recent($this->scopeToProjects(Server::query())->with('latestMetric'), $serverIds);
+        $servers = $this->recent(
+            $this->scopeToProjects(Server::query())
+                ->with('latestMetric')
+                ->withCount([
+                    'backups as backups_with_health_count' => fn (Builder $query) => $query->whereNotNull('health'),
+                ]),
+            $serverIds,
+        );
         $sites = $this->recent($this->siteQuery(), $siteIds, $fallbackServerId);
 
         return [
@@ -108,7 +116,14 @@ class GetOverviewResources
 
     private function recent(Builder $query, array $ids, ?int $fallbackServerId = null): Collection
     {
-        $items = $ids !== [] ? (clone $query)->whereKey($ids)->get() : new Collection;
+        $ids = array_slice(array_values(array_unique($ids)), 0, self::LIMIT);
+        $items = $ids !== []
+            ? (clone $query)
+                ->whereKey($ids)
+                ->get()
+                ->sortBy(fn (Model $model): int => (int) array_search($model->getKey(), $ids, true))
+                ->values()
+            : new Collection;
 
         if ($items->count() < self::LIMIT) {
             $topUp = clone $query;
@@ -120,7 +135,7 @@ class GetOverviewResources
                 $topUp->where('server_id', $fallbackServerId);
             }
 
-            $items = $items->merge($topUp->latest('id')->limit(self::LIMIT - $items->count())->get());
+            $items = $items->concat($topUp->latest('id')->limit(self::LIMIT - $items->count())->get())->values();
         }
 
         return $items;
@@ -153,6 +168,10 @@ class GetOverviewResources
 
     private function siteQuery(): Builder
     {
-        return $this->scopeToServerProjects(Site::query())->with('server');
+        return $this->scopeToServerProjects(Site::query())
+            ->with(['server', 'hostedDomains.ssl', 'workers'])
+            ->withExists([
+                'deployments as has_finished_deployment' => fn (Builder $query) => $query->where('status', DeploymentStatus::FINISHED),
+            ]);
     }
 }

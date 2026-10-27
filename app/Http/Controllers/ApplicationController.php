@@ -53,29 +53,53 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        if ($server->isReady()) {
-            $site->ensureDeploymentScriptsExist();
-        }
+        $scriptsEnsured = false;
+        $ensureScripts = function () use ($server, $site, &$scriptsEnsured): void {
+            if (! $scriptsEnsured && $server->isReady()) {
+                $site->ensureDeploymentScriptsExist();
+                $scriptsEnsured = true;
+            }
+        };
 
         $overview = null;
         $getOverview = function () use ($site, &$overview): array {
             return $overview ??= app(GetSiteOverview::class)->get($site);
         };
 
-        $activeDeployment = $site->deployments()
-            ->where('status', DeploymentStatus::DEPLOYING)
-            ->with('log', 'user', 'deploymentScript')
-            ->latest('id')
-            ->first();
-        $activeDeployment?->setRelation('site', $site);
-
         return Inertia::render('application/index', [
-            'activeDeployment' => $activeDeployment ? new DeploymentResource($activeDeployment) : null,
+            'activeDeployment' => function () use ($site, $ensureScripts): ?DeploymentResource {
+                $activeDeployment = $site->deployments()
+                    ->where('status', DeploymentStatus::DEPLOYING)
+                    ->with('log', 'user', 'deploymentScript')
+                    ->latest('id')
+                    ->first();
+
+                if (! $activeDeployment) {
+                    return null;
+                }
+
+                $ensureScripts();
+                $activeDeployment->setRelation('site', $site);
+
+                return new DeploymentResource($activeDeployment);
+            },
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
-            'deploymentScript' => Inertia::defer(fn () => $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null, 'deployments'),
-            'buildScript' => Inertia::defer(fn () => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null, 'deployments'),
-            'preFlightScript' => Inertia::defer(fn () => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null, 'deployments'),
-            'loadBalancerServers' => $site->type === 'load-balancer'
+            'deploymentScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
+                $ensureScripts();
+
+                return $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null;
+            }, 'deployments'),
+            'buildScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
+                $ensureScripts();
+
+                return $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null;
+            }, 'deployments'),
+            'preFlightScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
+                $ensureScripts();
+
+                return $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null;
+            }, 'deployments'),
+            'loadBalancerServers' => fn () => $site->type === 'load-balancer'
                 ? LoadBalancerServerResource::collection($site->loadBalancerServers)
                 : [],
             'worker' => Inertia::defer(function () use ($site) {
@@ -115,16 +139,23 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        $activeDeployment = $site->deployments()
-            ->where('status', DeploymentStatus::DEPLOYING)
-            ->with('log', 'user', 'deploymentScript')
-            ->latest('id')
-            ->first();
-        $activeDeployment?->setRelation('site', $site);
-
         return Inertia::render('application/deployments/index', [
             'deployments' => DeploymentTable::make($site->deployments())->paginate(),
-            'activeDeployment' => $activeDeployment ? new DeploymentResource($activeDeployment) : null,
+            'activeDeployment' => function () use ($site): ?DeploymentResource {
+                $activeDeployment = $site->deployments()
+                    ->where('status', DeploymentStatus::DEPLOYING)
+                    ->with('log', 'user', 'deploymentScript')
+                    ->latest('id')
+                    ->first();
+
+                if (! $activeDeployment) {
+                    return null;
+                }
+
+                $activeDeployment->setRelation('site', $site);
+
+                return new DeploymentResource($activeDeployment);
+            },
         ]);
     }
 
@@ -264,11 +295,11 @@ class ApplicationController extends Controller
     }
 
     #[Post('/env/generate-key', name: 'application.env.generate-key')]
-    public function generateAppKey(Server $server, Site $site): RedirectResponse
+    public function generateAppKey(Request $request, Server $server, Site $site): RedirectResponse
     {
         $this->authorize('update', [$site, $server]);
 
-        app(GenerateAppKey::class)->generate($site, user());
+        app(GenerateAppKey::class)->generate($site, user(), $request->boolean('only_if_missing'));
 
         return back()->with('success', 'Application key generated successfully.');
     }
