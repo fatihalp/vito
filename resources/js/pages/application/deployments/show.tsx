@@ -16,7 +16,7 @@ import { Deployment } from '@/types/deployment';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { Head, Link, usePage } from '@inertiajs/react';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeftIcon,
   CheckIcon,
@@ -36,11 +36,33 @@ export default function DeploymentShow() {
   const { copied: copiedSha, copy: copySha } = useClipboard();
   const { copied: copiedLog, copy: copyLog } = useClipboard();
 
-  const { content, step, isLoading, error } = useLogContent({
+  const { content, segments, step, isLoading, error } = useLogContent({
     serverId: server.id,
     logId: deployment.log?.id ?? 0,
     enabled: !!deployment.log,
   });
+
+  const [selectedStep, setSelectedStep] = useState<number | null>(null);
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (deployment.status !== 'deploying') return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [deployment.status]);
+
+  const steps = deployment.progress?.steps ?? [];
+  const current = step ? steps.findLastIndex((item) => item.group === step.group && item.line <= step.line) : -1;
+  const activeIndex = deployment.status === 'finished' ? steps.length - 1 : current;
+  const displayedIndex = selectedStep ?? activeIndex;
+  const stepLogs = steps.map((_, index) => segments.filter((segment) =>
+    steps.findLastIndex((item) => item.group === segment.group && item.line <= segment.line) === index,
+  ));
+  const end = deployment.status === 'deploying' ? now : moment(deployment.finished_at ?? deployment.updated_at).valueOf();
+  const stepDurations = stepLogs.map((logs) => {
+    if (!logs.length || logs.some((log) => log.startedAt === null)) return null;
+    return logs.reduce((total, log) => total + Math.max(0, ((log.endedAt ?? end) - log.startedAt!) / 1000), 0);
+  });
+  const selectedOutput = displayedIndex >= 0 ? stepLogs[displayedIndex]?.map((log) => log.output).join('') ?? '' : content;
 
   const durationText = useMemo(() => {
     if (deployment.formatted_duration) {
@@ -149,13 +171,21 @@ export default function DeploymentShow() {
           </div>
         </div>
 
-        <DeploymentProgress deployment={deployment} step={step} defaultShowSteps={true} />
+        <DeploymentProgress
+          deployment={deployment}
+          step={step}
+          defaultShowSteps
+          stepDurations={stepDurations}
+          selectedStep={displayedIndex}
+          onStepSelect={(index) => setSelectedStep(index === activeIndex ? null : index)}
+        />
 
-        <Card className="flex-1 overflow-hidden border shadow-none flex flex-col min-h-[500px]">
+        <Card className="h-[520px] shrink-0 overflow-hidden border shadow-none flex flex-col">
           <div className="flex items-center justify-between border-b px-3.5 py-2 bg-muted/20">
             <div className="flex items-center gap-2">
               <TerminalIcon className="size-3.5 text-muted-foreground" />
               <span className="text-sm font-medium">Output</span>
+              {selectedStep !== null && <Button variant="ghost" size="sm" onClick={() => setSelectedStep(null)}>Follow current command</Button>}
             </div>
 
             <div className="flex items-center gap-1">
@@ -164,7 +194,7 @@ export default function DeploymentShow() {
                   variant="ghost"
                   size="sm"
                   className="h-8 px-2 text-sm gap-1.5 cursor-pointer"
-                  onClick={() => copyLog(content)}
+                  onClick={() => copyLog(selectedOutput)}
                 >
                   {copiedLog ? <CheckIcon className="size-3.5 text-emerald-500" /> : <CopyIcon className="size-3.5" />}
                   <span>{copiedLog ? 'Copied' : 'Copy'}</span>
@@ -186,7 +216,7 @@ export default function DeploymentShow() {
             </div>
           </div>
 
-          <LogOutput className="h-[calc(100vh-260px)] min-h-[500px] w-full flex-1 rounded-none border-0 p-4">
+          <LogOutput key={`${deployment.id}-${displayedIndex}`} className="h-full min-h-0 w-full flex-1 rounded-none border-0 p-4">
             {isLoading && 'Loading deployment output...'}
             {error && <span className="text-destructive">{error}</span>}
             {!deployment.log && (
@@ -197,7 +227,7 @@ export default function DeploymentShow() {
             {!isLoading &&
               !error &&
               deployment.log &&
-              (content ||
+              (selectedOutput ||
                 (deployment.status === 'deploying' ? 'Waiting for output...' : 'No output was recorded.'))}
           </LogOutput>
         </Card>

@@ -21,7 +21,7 @@ export function appendLogContent(previous: string, chunk: string): string {
   return isPendingLog(previous) ? chunk : previous + chunk;
 }
 
-const STEP_MARKER = /::vito-step::([\w-]+)::(\d+)\r?\n?/g;
+const STEP_MARKER = /::vito-step::([\w-]+)::(\d+)(?:::(\d+(?:\.\d+)?))?\r?\n?/g;
 
 export type LogStep = { group: string; line: number };
 
@@ -34,4 +34,20 @@ export function lastStepMarker(content: string): LogStep | null {
   const last = matches[matches.length - 1];
 
   return last ? { group: last[1], line: Number(last[2]) } : null;
+}
+
+export type LogSegment = LogStep & { output: string; startedAt: number | null; endedAt: number | null };
+
+export function logSegments(content: string): LogSegment[] {
+  const matches = [...content.matchAll(STEP_MARKER)];
+  return matches.map((match, index) => {
+    const next = matches[index + 1];
+    return {
+      group: match[1],
+      line: Number(match[2]),
+      startedAt: match[3] ? Number(match[3]) * 1000 : null,
+      endedAt: next?.[3] ? Number(next[3]) * 1000 : null,
+      output: content.slice(match.index! + match[0].length, next?.index ?? content.length),
+    };
+  });
 }

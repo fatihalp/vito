@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import axios from 'axios';
 import { useSocketListener } from '@/hooks/use-socket-events';
-import { appendLogContent, isPendingLog, lastStepMarker, LogStep, stripStepMarkers } from '@/lib/log';
+import { appendLogContent, logSegments, LogSegment, isPendingLog, lastStepMarker, LogStep, stripStepMarkers } from '@/lib/log';
 
 type UseLogContentOptions = {
   
@@ -14,6 +14,7 @@ type UseLogContentOptions = {
 
 type UseLogContentReturn = {
   content: string;
+  segments: LogSegment[];
   step: LogStep | null;
   isLoading: boolean;
   error: string | null;
@@ -76,5 +77,7 @@ export function useLogContent({ serverId, logId, enabled = true }: UseLogContent
   const content = useMemo(() => stripStepMarkers(raw), [raw]);
   const step = useMemo(() => lastStepMarker(raw), [raw]);
 
-  return { content, step, isLoading: enabled && !!logId && isLoading, error };
+  const segments = useMemo(() => logSegments(raw), [raw]);
+
+  return { content, segments, step, isLoading: enabled && !!logId && isLoading, error };
 }
