@@ -49,25 +49,28 @@ class BackupFile extends AbstractModel
 
     protected static function booted(): void
     {
-        static::created(function (BackupFile $backupFile): void {
-            if ($backupFile->backup->type === BackupType::PGBACKREST) {
+        static::updated(function (BackupFile $backupFile): void {
+            if (! $backupFile->wasChanged('status')
+                || $backupFile->status !== BackupFileStatus::CREATED
+                || $backupFile->backup->type === BackupType::PGBACKREST) {
                 return;
             }
 
-            $keep = $backupFile->backup->keep_backups;
-            if ($backupFile->backup->files()->count() > $keep) {
-                
-                $lastFileToKeep = $backupFile->backup->files()->orderByDesc('id')->skip($keep)->first();
-                if ($lastFileToKeep) {
-                    $files = $backupFile->backup->files()
-                        ->where('id', '<=', $lastFileToKeep->id)
-                        ->get();
-                    
-                    foreach ($files as $file) {
-                        app(ManageBackupFile::class)->delete($file);
-                    }
-                }
+            $oldestKept = $backupFile->backup->files()
+                ->whereIn('status', [BackupFileStatus::CREATED, BackupFileStatus::RESTORED, BackupFileStatus::RESTORE_FAILED])
+                ->orderByDesc('id')
+                ->skip($backupFile->backup->keep_backups - 1)
+                ->first();
+
+            if (! $oldestKept) {
+                return;
             }
+
+            $backupFile->backup->files()
+                ->where('id', '<', $oldestKept->id)
+                ->whereNotIn('status', [BackupFileStatus::CREATING, BackupFileStatus::DELETING, BackupFileStatus::RESTORING])
+                ->get()
+                ->each(fn (BackupFile $file) => app(ManageBackupFile::class)->delete($file));
         });
     }
 

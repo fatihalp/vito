@@ -418,7 +418,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
             $response = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweroff');
 
-            if (! $response->successful() && $response->status() !== 404) {
+            if (! $response->successful()) {
                 $this->providerError($response);
             }
         }
@@ -430,7 +430,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
             $response = Http::withToken($this->server->serverProvider->credentials['token'])
                 ->post($this->apiUrl.'/servers/'.$this->server->provider_data['hetzner_id'].'/actions/poweron');
 
-            if (! $response->successful() && $response->status() !== 404) {
+            if (! $response->successful()) {
                 $this->providerError($response);
             }
         }

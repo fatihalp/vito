@@ -323,7 +323,7 @@ class ManageDatabaseReplica
     private function queueSetup(DatabaseReplica $replica): void
     {
         $backup = $replica->cluster->backup;
-        $ready = $backup?->status === null && $backup->files()->where('status', BackupFileStatus::CREATED)->exists();
+        $ready = $backup !== null && $backup->status === null && $backup->files()->where('status', BackupFileStatus::CREATED)->exists();
 
         $replica->update(['status' => $ready ? DatabaseReplicaStatus::PENDING : DatabaseReplicaStatus::WAITING_FOR_BACKUP]);
         app(BroadcastDatabaseReplicaUpdate::class)->broadcast($replica);
