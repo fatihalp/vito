@@ -163,7 +163,7 @@ class VerifyHostedDomain
                 ->withOptions([
                     'allow_redirects' => false,
                     'curl' => [
-                        CURLOPT_RESOLVE => [sprintf('%s:80:%s', $domain, $ip)],
+                        CURLOPT_RESOLVE => [sprintf('%s:80:%s', $domain, filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) ? "[{$ip}]" : $ip)],
                     ],
                 ])
                 ->get($url);

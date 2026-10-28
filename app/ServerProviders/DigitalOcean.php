@@ -349,7 +349,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 'type' => $type,
             ]);
 
-        if (! $response->successful() && $response->status() !== 404) {
+        if (! $response->successful()) {
             throw new ServerProviderError($response->json('message') ?? __('DigitalOcean request failed with status :status', ['status' => $response->status()]));
         }
     }

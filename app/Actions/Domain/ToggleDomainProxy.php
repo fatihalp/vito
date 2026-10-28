@@ -6,8 +6,6 @@ use App\Models\DNSProvider;
 use App\Models\DNSRecord;
 use App\Models\Domain;
 use App\Models\Site;
-use Exception;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 
 class ToggleDomainProxy
@@ -62,7 +60,8 @@ class ToggleDomainProxy
     ): ?DNSRecord {
         $domains = Domain::where('project_id', $projectId)
             ->whereHas('dnsProvider', fn ($q) => $q->where('connected', true))
-            ->get();
+            ->get()
+            ->sortByDesc(fn (Domain $domain): int => strlen($domain->domain));
 
         foreach ($domains as $d) {
             $rootDomain = strtolower($d->domain);
@@ -89,29 +88,24 @@ class ToggleDomainProxy
             }
 
             $targetProxied = $proxied ?? true;
-            try {
-                $recordData = $d->dnsProvider->provider()->createRecord($d->provider_domain_id, [
-                    'type' => 'A',
-                    'name' => $domainName,
-                    'content' => $serverIp,
-                    'ttl' => 1,
-                    'proxied' => $targetProxied,
-                ]);
+            $recordData = $d->dnsProvider->provider()->createRecord($d->provider_domain_id, [
+                'type' => 'A',
+                'name' => $domainName,
+                'content' => $serverIp,
+                'ttl' => 1,
+                'proxied' => $targetProxied,
+            ]);
 
-                return DNSRecord::create([
-                    'domain_id' => $d->id,
-                    'provider_record_id' => $recordData['id'] ?? '',
-                    'type' => 'A',
-                    'name' => $domainName,
-                    'content' => $serverIp,
-                    'ttl' => 1,
-                    'proxied' => $targetProxied,
-                    'metadata' => $recordData,
-                ]);
-            } catch (Exception $e) {
-                Log::warning("Failed to create DNS record on provider for {$domainName}: " . $e->getMessage());
-            }
-            break;
+            return DNSRecord::create([
+                'domain_id' => $d->id,
+                'provider_record_id' => $recordData['id'] ?? '',
+                'type' => 'A',
+                'name' => $domainName,
+                'content' => $serverIp,
+                'ttl' => 1,
+                'proxied' => $targetProxied,
+                'metadata' => $recordData,
+            ]);
         }
 
         return null;
@@ -130,56 +124,51 @@ class ToggleDomainProxy
             ->first();
 
         if ($cloudflareProvider && $serverIp) {
-            try {
-                $zones = $cloudflareProvider->provider()->getDomains();
-                foreach ($zones as $zone) {
-                    $zoneName = strtolower($zone['name']);
-                    $zoneId = (string) $zone['id'];
+            $zone = collect($cloudflareProvider->provider()->getDomains())
+                ->filter(fn (array $zone): bool => $domainName === strtolower($zone['name']) || str_ends_with($domainName, '.'.strtolower($zone['name'])))
+                ->sortByDesc(fn (array $zone): int => strlen($zone['name']))
+                ->first();
 
-                    if ($domainName !== $zoneName && ! str_ends_with($domainName, '.' . $zoneName)) {
-                        continue;
-                    }
+            if ($zone) {
+                $zoneName = strtolower($zone['name']);
+                $zoneId = (string) $zone['id'];
+                $targetProxied = $proxied ?? true;
+                $recordData = $cloudflareProvider->provider()->createRecord($zoneId, [
+                    'type' => 'A',
+                    'name' => $domainName,
+                    'content' => $serverIp,
+                    'ttl' => 1,
+                    'proxied' => $targetProxied,
+                ]);
 
-                    $targetProxied = $proxied ?? true;
-                    $recordData = $cloudflareProvider->provider()->createRecord($zoneId, [
+                $domainModel = Domain::firstOrCreate(
+                    [
+                        'dns_provider_id' => $cloudflareProvider->id,
+                        'provider_domain_id' => $zoneId,
+                        'project_id' => $projectId,
+                    ],
+                    [
+                        'domain' => $zoneName,
+                        'user_id' => $cloudflareProvider->user_id,
+                    ]
+                );
+
+                DNSRecord::updateOrCreate(
+                    [
+                        'domain_id' => $domainModel->id,
+                        'provider_record_id' => $recordData['id'] ?? '',
+                    ],
+                    [
                         'type' => 'A',
                         'name' => $domainName,
                         'content' => $serverIp,
                         'ttl' => 1,
                         'proxied' => $targetProxied,
-                    ]);
+                        'metadata' => $recordData,
+                    ]
+                );
 
-                    $domainModel = Domain::firstOrCreate(
-                        [
-                            'dns_provider_id' => $cloudflareProvider->id,
-                            'provider_domain_id' => $zoneId,
-                            'project_id' => $projectId,
-                        ],
-                        [
-                            'domain' => $zoneName,
-                            'user_id' => $cloudflareProvider->user_id,
-                        ]
-                    );
-
-                    DNSRecord::updateOrCreate(
-                        [
-                            'domain_id' => $domainModel->id,
-                            'provider_record_id' => $recordData['id'] ?? '',
-                        ],
-                        [
-                            'type' => 'A',
-                            'name' => $domainName,
-                            'content' => $serverIp,
-                            'ttl' => 1,
-                            'proxied' => $targetProxied,
-                            'metadata' => $recordData,
-                        ]
-                    );
-
-                    return $targetProxied;
-                }
-            } catch (Exception $e) {
-                Log::warning("Cloudflare zone scan failed for {$domainName}: " . $e->getMessage());
+                return $targetProxied;
             }
         }
 

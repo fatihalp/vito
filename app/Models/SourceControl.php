@@ -78,6 +78,7 @@ class SourceControl extends AbstractModel
         return [
             'required',
             Rule::exists('source_controls', 'id')
+                ->withoutTrashed()
                 ->whereIn('provider', self::usableForSitesProviders())
                 ->where(function ($query) use ($server, $userId): void {
                     $query->where('user_id', $userId)
