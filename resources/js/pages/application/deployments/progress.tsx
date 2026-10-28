@@ -2,12 +2,10 @@ import { ReactNode, useEffect, useState } from 'react';
 import moment from 'moment';
 import {
   CheckCircle2Icon,
-  CheckIcon,
   ChevronDownIcon,
   ChevronUpIcon,
   CircleIcon,
   Clock3Icon,
-  CopyIcon,
   LoaderCircleIcon,
   TimerIcon,
   XCircleIcon,
@@ -15,36 +13,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
-import { useClipboard } from '@/hooks/use-clipboard';
 import { LogStep } from '@/lib/log';
 import { cn } from '@/lib/utils';
 import { Deployment, DeploymentStep } from '@/types/deployment';
 
 type StepState = 'completed' | 'running' | 'failed' | 'pending';
-
-const STEP_RULES: Array<[RegExp, string | ((match: RegExpMatchArray) => string)]> = [
-  [/^git\s+(checkout|pull|fetch|reset|clone)/i, 'Pull repository'],
-  [/^git\s+/i, 'Git command'],
-  [/^composer\s+install/i, 'Composer install'],
-  [/^composer\s+update/i, 'Composer update'],
-  [/^composer\s+dump-autoload/i, 'Dump autoload'],
-  [/^composer\s+/i, 'Composer'],
-  [/^(npm|pnpm|yarn|bun)\s+(install|ci|add)/i, 'Install packages'],
-  [/^(npm|pnpm|yarn|bun)\s+(run\s+)?build/i, 'Build assets'],
-  [/^php\s+artisan\s+vito\b/i, 'Update Vito'],
-  [/^php\s+artisan\s+migrate/i, 'Run migrations'],
-  [/^php\s+artisan\s+(optimize:clear|clear-compiled)/i, 'Clear cache'],
-  [/^php\s+artisan\s+(optimize|config:cache|route:cache|view:cache|event:cache)/i, 'Optimize application'],
-  [/^php\s+artisan\s+queue:restart/i, 'Restart queue'],
-  [/^php\s+artisan\s+down/i, 'Maintenance mode on'],
-  [/^php\s+artisan\s+up/i, 'Maintenance mode off'],
-  [/^php\s+artisan\s+([a-z0-9:-]+)/i, (m) => `artisan ${m[1]}`],
-  [/sudo\s+(systemctl|service)\s+(reload|restart)/i, 'Reload service'],
-  [/^(chmod|chown)/i, 'Fix permissions'],
-  [/^mkdir/i, 'Create directory'],
-  [/^cd\s+/i, 'Change directory'],
-  [/^echo\s+["']?([^"'\n\r]+)["']?/i, (m) => m[1]],
-];
 
 const STEP_DURATION_RULES: Array<[RegExp, number]> = [
   [/^php\s+artisan\s+vito\b/i, 45],
@@ -53,20 +26,6 @@ const STEP_DURATION_RULES: Array<[RegExp, number]> = [
   [/^composer\s+(install|update)/i, 15],
   [/^git\s+(checkout|pull|fetch|clone)/i, 5],
 ];
-
-export function getStepTitle(command: string): string {
-  const trimmed = command.trim();
-  if (!trimmed) return 'Command';
-
-  for (const [pattern, label] of STEP_RULES) {
-    const match = trimmed.match(pattern);
-    if (match) {
-      return typeof label === 'function' ? label(match) : label;
-    }
-  }
-
-  return trimmed.split(/\s+/)[0];
-}
 
 export function formatDuration(seconds: number): string {
   const total = Math.max(0, Math.round(seconds));
@@ -171,62 +130,34 @@ function calculateProgressPercent(
   return stepsCount > 0 ? 2 : 0;
 }
 
-function StepRow({
-  stepItem,
-  index,
-  state,
-}: {
+function StepRow({ stepItem, state, duration, selected, onSelect }: {
   stepItem: DeploymentStep;
-  index: number;
   state: StepState;
+  duration?: number | null;
+  selected: boolean;
+  onSelect?: () => void;
 }) {
-  const { copied, copy } = useClipboard();
-
   return (
-    <div
+    <button
+      type="button"
+      onClick={onSelect}
+      disabled={state === 'pending' || !onSelect}
+      aria-pressed={selected}
       className={cn(
-        'group flex items-start justify-between gap-3 px-3 py-3 text-sm leading-relaxed transition-colors',
-        state === 'running' && 'bg-muted/50',
-        state === 'failed' && 'bg-destructive/5',
+        'flex w-full items-center gap-3 px-3 py-3 text-left text-sm disabled:opacity-50',
+        onSelect && 'cursor-pointer hover:bg-muted/50',
+        selected && 'bg-muted/50',
       )}
     >
-      <div className="flex items-start gap-3 min-w-0 flex-1">
-        {state === 'completed' ? (
-          <CheckCircle2Icon className="size-5 my-0.5 text-emerald-500 shrink-0" />
-        ) : state === 'running' ? (
-          <LoaderCircleIcon className="size-5 my-0.5 text-primary animate-spin shrink-0" />
-        ) : state === 'failed' ? (
-          <XCircleIcon className="size-5 my-0.5 text-destructive shrink-0" />
-        ) : (
-          <CircleIcon className="size-5 my-0.5 text-muted-foreground shrink-0" />
-        )}
-
-        <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:gap-3">
-          <span
-            className={cn(
-              'font-medium break-words sm:w-48 sm:shrink-0',
-              state === 'failed' ? 'text-destructive' : 'text-foreground',
-            )}
-          >
-            {index + 1}. {getStepTitle(stepItem.command)}
-          </span>
-
-          <code className="text-foreground/80 min-w-0 font-mono whitespace-pre-wrap break-all">
-            $ {stepItem.command}
-          </code>
-        </div>
-      </div>
-
-      <Button
-        variant="ghost"
-        size="icon"
-        className="size-7 text-muted-foreground cursor-pointer shrink-0"
-        onClick={() => copy(stepItem.command)}
-        title="Copy command"
-      >
-        {copied ? <CheckIcon className="size-3 text-emerald-500" /> : <CopyIcon className="size-3" />}
-      </Button>
-    </div>
+      {state === 'completed' ? <CheckCircle2Icon className="size-4 shrink-0 text-primary" />
+        : state === 'running' ? <LoaderCircleIcon className="size-4 shrink-0 animate-spin text-primary" />
+        : state === 'failed' ? <XCircleIcon className="size-4 shrink-0 text-destructive" />
+        : <CircleIcon className="size-4 shrink-0 text-muted-foreground" />}
+      <code className="min-w-0 flex-1 whitespace-pre-wrap break-all">{stepItem.command}</code>
+      <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
+        {duration != null ? formatDuration(duration) : '—'}
+      </span>
+    </button>
   );
 }
 
@@ -236,12 +167,18 @@ export default function DeploymentProgress({
   action,
   defaultShowSteps = false,
   className,
+  stepDurations,
+  selectedStep,
+  onStepSelect,
 }: {
   deployment: Deployment;
   step: LogStep | null;
   action?: ReactNode;
   defaultShowSteps?: boolean;
   className?: string;
+  stepDurations?: (number | null)[];
+  selectedStep?: number;
+  onStepSelect?: (index: number) => void;
 }) {
   const deploying = deployment.status === 'deploying';
   const failed = deployment.status === 'failed';
@@ -339,7 +276,9 @@ export default function DeploymentProgress({
             <StepRow
               key={`${stepItem.group}-${stepItem.line}-${index}`}
               stepItem={stepItem}
-              index={index}
+              duration={stepDurations?.[index]}
+              selected={selectedStep === index}
+              onSelect={onStepSelect ? () => onStepSelect(index) : undefined}
               state={getStepState(index, current, deployment.status)}
             />
           ))}
