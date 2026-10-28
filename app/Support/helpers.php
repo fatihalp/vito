@@ -33,7 +33,7 @@ function generate_key_pair(string $path): void
     exec("ssh-keygen -t ed25519 -N '' -f {$path} -q");
 
     if (! file_exists($path)) {
-        throw new RuntimeException("Failed to generate SSH key pair at {$path}");
+        throw new RuntimeException('Failed to generate SSH key pair.');
     }
 
     chmod($path, 0400);

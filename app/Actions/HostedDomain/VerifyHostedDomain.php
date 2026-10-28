@@ -64,7 +64,7 @@ class VerifyHostedDomain
                 'site_id' => $site->id,
             ]);
 
-            return VerificationResult::failure('Could not stage verification challenge on server: '.$e->getMessage());
+            return VerificationResult::failure('Could not stage verification challenge on server.');
         }
 
         try {

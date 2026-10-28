@@ -50,23 +50,26 @@ class BackupFile extends AbstractModel
     protected static function booted(): void
     {
         static::updated(function (BackupFile $backupFile): void {
-            if (! $backupFile->wasChanged('status')
+            $backup = $backupFile->backup;
+
+            if ($backup === null
+                || ! $backupFile->wasChanged('status')
                 || $backupFile->status !== BackupFileStatus::CREATED
-                || $backupFile->backup->type === BackupType::PGBACKREST) {
+                || $backup->type === BackupType::PGBACKREST) {
                 return;
             }
 
-            $oldestKept = $backupFile->backup->files()
+            $oldestKept = $backup->files()
                 ->whereIn('status', [BackupFileStatus::CREATED, BackupFileStatus::RESTORED, BackupFileStatus::RESTORE_FAILED])
                 ->orderByDesc('id')
-                ->skip($backupFile->backup->keep_backups - 1)
+                ->skip(max(1, (int) $backup->keep_backups) - 1)
                 ->first();
 
             if (! $oldestKept) {
                 return;
             }
 
-            $backupFile->backup->files()
+            $backup->files()
                 ->where('id', '<', $oldestKept->id)
                 ->whereNotIn('status', [BackupFileStatus::CREATING, BackupFileStatus::DELETING, BackupFileStatus::RESTORING])
                 ->get()
