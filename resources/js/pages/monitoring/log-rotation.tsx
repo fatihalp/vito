@@ -4,20 +4,16 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
   ArrowUpDownIcon,
-  CheckIcon,
-  CopyIcon,
   EraserIcon,
   FileTextIcon,
   FilterIcon,
   InfoIcon,
-  LoaderCircleIcon,
   RefreshCwIcon,
   SearchIcon,
   TerminalIcon,
   Trash2Icon,
   XIcon,
 } from 'lucide-react';
-import { toast } from 'sonner';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
@@ -73,14 +69,23 @@ function formatBytes(b: number): string {
 }
 
 function SizeCell({ entry }: { entry: LogEntry }) {
-  if (!entry.exists) return <span className="text-muted-foreground text-xs">File not found</span>;
-  if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">Empty</span>;
+  if (!entry.exists) return <span className="text-muted-foreground text-xs">Missing</span>;
+  if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">0 B</span>;
 
-  const color =
-    entry.size_bytes > 100 * 1024 * 1024 ? 'danger' :
-    entry.size_bytes > 10 * 1024 * 1024 ? 'warning' : 'default';
-
-  return <Badge variant={color as 'default'}>{entry.size_human}</Badge>;
+  return (
+    <span
+      className={cn(
+        'font-mono text-xs tabular-nums',
+        entry.size_bytes > 500 * 1024 * 1024
+          ? 'font-semibold text-destructive'
+          : entry.size_bytes > 50 * 1024 * 1024
+            ? 'font-medium text-foreground'
+            : 'text-muted-foreground',
+      )}
+    >
+      {entry.size_human}
+    </span>
+  );
 }
 
 function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number }) {
@@ -88,18 +93,18 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
 
   if (!entry.exists || !entry.clearable) {
     return (
-      <Button variant="ghost" size="sm" disabled className="text-muted-foreground h-7 px-2">
+      <Button variant="ghost" size="icon" disabled className="size-7 opacity-20">
         <Trash2Icon className="size-3.5" />
-        <span className="text-xs">Clear</span>
       </Button>
     );
   }
 
   return (
     <Button
-      variant="outline"
-      size="sm"
-      className="text-destructive hover:text-destructive h-7 px-2"
+      variant="ghost"
+      size="icon"
+      className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+      title={`Clear ${entry.label}`}
       onClick={() =>
         dialog.confirm.open({
           title: 'Clear Log File',
@@ -112,7 +117,6 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
       }
     >
       <Trash2Icon className="size-3.5" />
-      <span className="text-xs">Clear</span>
     </Button>
   );
 }
@@ -166,18 +170,18 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
   };
 
   return (
-    <div className="overflow-hidden rounded-md border shadow-xs bg-card">
+    <div className="overflow-hidden rounded-md border shadow-xs bg-card min-w-0">
       <div className="bg-muted/40 flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <EraserIcon className="text-muted-foreground size-4" />
+        <div className="flex flex-wrap items-center gap-2 min-w-0">
+          <EraserIcon className="text-muted-foreground size-4 shrink-0" />
           <span className="text-sm font-semibold">Cleanup suggestions</span>
           <span className="text-muted-foreground hidden sm:inline text-xs">
             Scan results from server. Vito never deletes anything itself.
           </span>
           {selectedBytes > 0 && (
-            <Badge variant="secondary" className="font-mono text-xs">
-              {formatBytes(selectedBytes)} selected
-            </Badge>
+            <span className="font-mono text-xs text-muted-foreground">
+              ({formatBytes(selectedBytes)} selected)
+            </span>
           )}
         </div>
         <div className="flex items-center gap-2">
@@ -188,9 +192,10 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
           )}
           <Button variant="outline" size="sm" className="h-8" onClick={() => query.refetch()} disabled={query.isFetching}>
             <RefreshCwIcon className={cn('size-3.5', query.isFetching && 'animate-spin')} />
-            <span className="hidden sm:block">Rescan</span>
+            <span className="hidden sm:inline">Rescan</span>
           </Button>
           <Button
+            variant="outline"
             size="sm"
             className="h-8 gap-1.5"
             onClick={openCommandsModal}
@@ -222,11 +227,13 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                 key={category.key}
                 onClick={() => toggle(category.key, !isChecked)}
                 className={cn(
-                  'flex cursor-pointer flex-col justify-between rounded-lg border p-3 transition-colors',
-                  isChecked ? 'border-primary/50 bg-primary/5' : 'bg-card hover:bg-muted/40',
+                  'flex cursor-pointer flex-col justify-between rounded-lg border p-3 transition-colors min-w-0',
+                  isChecked
+                    ? 'border-border bg-muted/40 shadow-xs'
+                    : 'border-border/60 bg-card hover:bg-muted/20 opacity-70',
                 )}
               >
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex items-center gap-2 min-w-0">
                       <Checkbox
@@ -237,18 +244,15 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                       />
                       <label
                         htmlFor={`cleanup-${category.key}`}
-                        className="truncate text-xs font-semibold cursor-pointer"
+                        className="truncate text-xs font-medium cursor-pointer"
                         title={category.label}
                       >
                         {category.label}
                       </label>
                     </div>
-                    <Badge
-                      variant={category.size_bytes > 100 * 1024 * 1024 ? 'danger' : 'default'}
-                      className="shrink-0 text-[11px]"
-                    >
+                    <span className="shrink-0 font-mono text-xs font-medium tabular-nums text-foreground">
                       {formatBytes(category.size_bytes)}
-                    </Badge>
+                    </span>
                   </div>
                   <p className="text-muted-foreground mt-1 text-[11px] line-clamp-1" title={category.description}>
                     {category.description}
@@ -257,9 +261,13 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
 
                 <div className="mt-2.5 flex items-center justify-between border-t pt-2 text-[11px]">
                   {category.risk === 'caution' ? (
-                    <Badge variant="warning" className="text-[10px] px-1 py-0">Review first</Badge>
+                    <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal border-border">
+                      Review first
+                    </Badge>
                   ) : (
-                    <span className="text-muted-foreground text-[10px]">{category.count} file{category.count !== 1 ? 's' : ''}</span>
+                    <span className="text-muted-foreground text-[10px]">
+                      {category.count} file{category.count !== 1 ? 's' : ''}
+                    </span>
                   )}
 
                   {category.samples.length > 0 && (
@@ -267,7 +275,7 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                       <PopoverTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
-                          className="text-primary hover:underline text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                          className="text-muted-foreground hover:text-foreground text-[11px] font-medium flex items-center gap-1 cursor-pointer"
                         >
                           <InfoIcon className="size-3" />
                           <span>Sample files ({category.samples.length})</span>
@@ -327,24 +335,21 @@ export default function LogRotation() {
     const list = [
       {
         key: 'all',
-        label: 'All Services',
+        label: 'All',
         count: logs.length,
-        size: totalSize,
       },
     ];
 
     Object.entries(grouped).forEach(([label, entries]) => {
-      const size = entries.reduce((sum, l) => sum + (l.exists ? l.size_bytes : 0), 0);
       list.push({
         key: label,
         label,
         count: entries.length,
-        size,
       });
     });
 
     return list;
-  }, [grouped, logs.length, totalSize]);
+  }, [grouped, logs.length]);
 
   const filteredLogs = useMemo(() => {
     let list = activeTab === 'all' ? logs : (grouped[activeTab] || []);
@@ -403,18 +408,22 @@ export default function LogRotation() {
           <div className="flex items-center gap-2">
             {totalSize > 0 && (
               <span className="text-muted-foreground text-sm">
-                Total: <strong>{formatBytes(totalSize)}</strong>
+                Total: <strong className="text-foreground">{formatBytes(totalSize)}</strong>
               </span>
             )}
             {clearable.length > 0 && (
-              <Button variant="destructive" onClick={handleClearAll}>
+              <Button
+                variant="outline"
+                className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                onClick={handleClearAll}
+              >
                 <Trash2Icon className="size-4" />
                 <span>Clear All</span>
               </Button>
             )}
             <Button variant="outline" onClick={() => router.reload()}>
               <RefreshCwIcon className="size-4" />
-              <span className="hidden lg:block">Refresh</span>
+              <span className="hidden sm:inline">Refresh</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -428,7 +437,7 @@ export default function LogRotation() {
             <p className="text-muted-foreground mt-1 text-sm">At least one service must be installed on the server.</p>
           </div>
         ) : (
-          <div className="overflow-hidden rounded-md border shadow-xs bg-card">
+          <div className="overflow-hidden rounded-md border shadow-xs bg-card min-w-0">
             {/* Service Tabs */}
             <div className="border-b px-4 pt-3 pb-0 bg-muted/20">
               <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -438,15 +447,10 @@ export default function LogRotation() {
                       <TabsTrigger
                         key={tab.key}
                         value={tab.key}
-                        className="h-6 gap-1.5 px-2.5 text-xs font-medium"
+                        className="h-6 gap-1 px-2.5 text-xs font-medium"
                       >
                         <span>{tab.label}</span>
                         <span className="text-muted-foreground text-[10px]">({tab.count})</span>
-                        {tab.size > 0 && (
-                          <Badge variant="secondary" className="px-1 py-0 text-[9px] font-mono">
-                            {formatBytes(tab.size)}
-                          </Badge>
-                        )}
                       </TabsTrigger>
                     ))}
                   </TabsList>
@@ -507,15 +511,15 @@ export default function LogRotation() {
             </div>
 
             {/* Compact Table */}
-            <div className="max-h-[540px] overflow-auto">
-              <Table>
+            <div className="max-h-[540px] overflow-auto min-w-0">
+              <Table className="table-fixed w-full">
                 <TableHeader className="sticky top-0 bg-card shadow-xs z-10">
                   <TableRow>
-                    {activeTab === 'all' && <TableHead className="w-32">Service</TableHead>}
-                    <TableHead className="w-64">Log File</TableHead>
+                    {activeTab === 'all' && <TableHead className="w-28">Service</TableHead>}
+                    <TableHead className="w-56 md:w-72">Log File</TableHead>
                     <TableHead>Path</TableHead>
-                    <TableHead className="w-32 text-right">Size</TableHead>
-                    <TableHead className="w-24 text-right">Actions</TableHead>
+                    <TableHead className="w-24 text-right">Size</TableHead>
+                    <TableHead className="w-14 text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -523,17 +527,17 @@ export default function LogRotation() {
                     filteredLogs.map((entry) => (
                       <TableRow key={entry.key} className={cn(!entry.exists && 'opacity-50')}>
                         {activeTab === 'all' && (
-                          <TableCell className="font-medium text-xs">
-                            <Badge variant="outline" className="text-[10px]">
-                              {entry.service_label}
-                            </Badge>
+                          <TableCell className="text-muted-foreground text-xs min-w-0 truncate">
+                            {entry.service_label}
                           </TableCell>
                         )}
-                        <TableCell className="font-medium text-xs">
-                          {entry.label}
+                        <TableCell className="min-w-0">
+                          <div className="truncate font-medium text-xs text-foreground" title={entry.label}>
+                            {entry.label}
+                          </div>
                         </TableCell>
-                        <TableCell>
-                          <code className="text-muted-foreground bg-muted/60 rounded px-1.5 py-0.5 text-xs font-mono select-all">
+                        <TableCell className="min-w-0">
+                          <code className="text-muted-foreground block truncate text-xs font-mono select-all" title={entry.path}>
                             {entry.path}
                           </code>
                         </TableCell>

@@ -329,7 +329,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
         </div>
       )}
 
-      <div>{children}</div>
+      <div className="min-w-0 w-full">{children}</div>
     </Layout>
   );
 }
