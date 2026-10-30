@@ -3,6 +3,7 @@
 namespace App\Traits;
 
 use App\DTOs\SocketEventDTO;
+use App\Enums\WorkerLogType;
 use App\Enums\WorkerStatus;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHError;
@@ -26,6 +27,8 @@ trait HandlesWorkerFailure
         $worker->error = $error;
         $worker->status = $status;
         $worker->save();
+
+        $worker->recordLog(WorkerLogType::FAILED, $error ? "Worker action failed: {$error}" : $logMessage, null);
 
         $this->broadcastWorkerUpdate($worker);
 

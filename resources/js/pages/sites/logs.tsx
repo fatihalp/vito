@@ -28,7 +28,7 @@ export default function ShowSite() {
     <ServerLayout>
       <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Logs" description="Here you can see your site's logs" />
           {page.props.site.php_version && (

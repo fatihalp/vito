@@ -64,7 +64,7 @@ export default function SiteStats() {
   return (
     <ServerLayout>
       <Head title={`Stats - ${site.domain} - ${server.name}`} />
-      <Container className="max-w-5xl">
+      <Container>
         {statsEnabled && hasStatsService ? (
           <StatsView server={server} site={site} />
         ) : (

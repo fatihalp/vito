@@ -31,7 +31,7 @@ export default function NetworkServers() {
     <NetworkLayout>
       <Head title={`Servers - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Servers" description="Servers connected to this network" />
           <div className="flex items-center gap-2">

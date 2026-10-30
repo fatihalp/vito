@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\ServerIp\ManageServerIp;
 use App\Actions\ServerIp\RefreshServerIps;
-use App\Exceptions\SSHError;
 use App\Http\Resources\NetworkServerResource;
 use App\Models\NetworkServer;
 use App\Models\Server;

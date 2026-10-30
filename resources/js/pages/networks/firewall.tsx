@@ -26,7 +26,7 @@ export default function NetworkFirewall() {
     <NetworkLayout>
       <Head title={`Firewall - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title="Firewall"

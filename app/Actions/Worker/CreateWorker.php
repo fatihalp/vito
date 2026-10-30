@@ -3,21 +3,23 @@
 namespace App\Actions\Worker;
 
 use App\Enums\ServerRole;
+use App\Enums\WorkerLogType;
 use App\Enums\WorkerStatus;
 use App\Jobs\Worker\CreateJob;
 use App\Jobs\Worker\SyncSiteBeforeCreateJob;
 use App\Models\Server;
 use App\Models\Site;
+use App\Models\User;
 use App\Models\Worker;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class CreateWorker
 {
-    public function create(Server $server, array $input, ?Site $site = null): Worker
+    public function create(Server $server, array $input, ?Site $site = null, ?User $user = null): Worker
     {
+        $user = $user ?? user();
         $targetServer = $this->resolveTargetServer($server, $site, $input);
 
         $this->validate($server, $targetServer, $input, $site);
@@ -30,6 +32,7 @@ class CreateWorker
         $worker = new Worker([
             'server_id' => $targetServer->id,
             'site_id' => $siteId,
+            'user_id' => $user?->id,
             'name' => $input['name'],
             'command' => $input['command'],
             'directory' => ! empty($input['directory']) ? trim($input['directory']) : null,
@@ -43,6 +46,11 @@ class CreateWorker
             'status' => WorkerStatus::CREATING,
         ]);
         $worker->save();
+        $worker->recordLog(
+            WorkerLogType::CREATED,
+            $user ? "Worker created by {$user->name}" : 'Worker created',
+            $user?->id
+        );
 
         if ($site && $targetServer->id !== $site->server_id) {
             Bus::chain([

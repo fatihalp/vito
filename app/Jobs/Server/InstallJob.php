@@ -12,7 +12,6 @@ use App\Models\Server;
 use App\Models\ServerLog;
 use App\Notifications\ServerInstallationFailed;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 

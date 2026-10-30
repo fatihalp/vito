@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\SiteStats\ResyncGoAccess;
 use App\Models\Server;
-use App\Models\Service;
 use Illuminate\Http\RedirectResponse;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;

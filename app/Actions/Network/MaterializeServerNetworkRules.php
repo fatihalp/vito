@@ -10,7 +10,6 @@ use App\Enums\NetworkType;
 use App\Enums\ServerNetworkRuleKind;
 use App\Events\SocketEvent;
 use App\Models\Network;
-use App\Models\NetworkFirewallRule;
 use App\Models\NetworkServer;
 use App\Models\Server;
 use App\Models\ServerNetworkRule;

@@ -317,7 +317,7 @@ export default function Servers() {
     <Layout>
       <Head title="Servers" />
 
-      <Container className="max-w-7xl">
+      <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <Heading title="Servers" />
           <div className="flex flex-wrap items-center gap-2">

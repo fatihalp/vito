@@ -2,10 +2,8 @@
 
 namespace App\Actions\Site;
 
-use App\Models\CronJob;
 use App\Models\Site;
 use App\Models\Worker;
-use Illuminate\Support\Collection;
 
 class GetSiteOverview
 {

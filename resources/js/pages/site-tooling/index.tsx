@@ -60,7 +60,7 @@ export default function SiteTooling() {
     <ServerLayout>
       <Head title={`Tooling - ${site.domain}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Tooling" description={`Manage developer tooling installed for isolated user ${isolated_user}.`} />
         </HeaderContainer>

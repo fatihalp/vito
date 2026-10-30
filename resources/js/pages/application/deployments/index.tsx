@@ -68,7 +68,7 @@ export default function DeploymentsIndex() {
   return (
     <ServerLayout>
       <Head title={`Deployments - ${site.domain}`} />
-      <Container className="max-w-7xl flex flex-col gap-5">
+      <Container className="flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <Heading title="Deployments" description={`Complete deployment history for ${site.domain}.`} />
           <Deploy site={site} />

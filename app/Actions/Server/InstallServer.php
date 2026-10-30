@@ -7,7 +7,6 @@ use App\Enums\ServerStatus;
 use App\Enums\ServiceStatus;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHConnectionError;
-use App\Exceptions\SSHError;
 use App\Facades\Notifier;
 use App\Http\Resources\ServerResource;
 use App\Jobs\ServerIp\RefreshServerIpsJob;

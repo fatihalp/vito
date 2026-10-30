@@ -4,9 +4,7 @@ namespace App\SiteTypes;
 
 use App\DTOs\SocketEventDTO;
 use App\Events\SocketEvent;
-use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\Helpers\SiteShellEnvironment;
 use App\Http\Resources\SiteResource;
 use App\Models\Deployment;

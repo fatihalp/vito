@@ -45,7 +45,7 @@ export default function DomainShow() {
   return (
     <SettingsLayout>
       <Head title={`DNS Records - ${page.props.domain.domain}`} />
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
             <Heading title={`DNS Records for ${page.props.domain.domain}`} />

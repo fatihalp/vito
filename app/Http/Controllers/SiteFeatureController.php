@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Models\Server;
 use App\Models\Site;
-use App\SiteFeatures\ActionInterface;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

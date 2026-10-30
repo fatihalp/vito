@@ -3,10 +3,8 @@
 namespace App\Policies;
 
 use App\Models\DNSProvider;
-use App\Models\PersonalAccessToken;
 use App\Models\User;
 use App\Traits\ChecksTokenProjectScope;
-use Laravel\Sanctum\TransientToken;
 
 class DNSProviderPolicy
 {

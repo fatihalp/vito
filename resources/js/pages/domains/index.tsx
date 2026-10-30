@@ -20,7 +20,7 @@ export default function Domains() {
   return (
     <SettingsLayout>
       <Head title="Domains" />
-      <Container className="max-w-5xl">
+      <Container>
         <div className="flex items-start justify-between">
           <Heading title="Domains" />
           <div className="flex items-center gap-2">

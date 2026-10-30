@@ -2,11 +2,8 @@
 
 namespace App\Actions\Worker;
 
-use App\Exceptions\SSHError;
 use App\Models\Worker;
-use App\Services\ProcessManager\ProcessManager;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class UpdateWorkerEnvironment
 {

@@ -5,12 +5,10 @@ namespace App\Services\Webserver;
 use App\Actions\Site\EnsureSiteVerificationKey;
 use App\Actions\Webserver\GenerateNginxConfig;
 use App\DTOs\ServiceLog;
-use App\Exceptions\SSHError;
 use App\Exceptions\SSLCreationException;
 use App\Models\Site;
 use App\Models\Ssl;
 use App\Services\HasLogs;
-use Throwable;
 
 class Nginx extends AbstractWebserver implements HasLogs
 {

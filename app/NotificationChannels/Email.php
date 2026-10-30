@@ -2,7 +2,6 @@
 
 namespace App\NotificationChannels;
 
-use App\Models\NotificationChannel;
 use App\NotificationChannels\Email\NotificationMail;
 use App\Notifications\NotificationInterface;
 use Illuminate\Notifications\Messages\MailMessage;

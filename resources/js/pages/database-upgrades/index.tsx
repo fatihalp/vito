@@ -69,7 +69,7 @@ export default function DatabaseUpgrades() {
     <ServerLayout>
       <Head title={`Version upgrade - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title="Version upgrade"

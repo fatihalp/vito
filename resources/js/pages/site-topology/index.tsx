@@ -29,7 +29,7 @@ export default function SiteTopology() {
   return (
     <ServerLayout>
       <Head title={`Topology - ${site.domain}`} />
-      <Container className="max-w-7xl gap-6">
+      <Container className="gap-6">
         <HeaderContainer>
           <Heading
             title="Infrastructure Topology"

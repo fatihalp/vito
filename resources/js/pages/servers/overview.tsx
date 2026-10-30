@@ -55,7 +55,7 @@ export default function ServerOverview({ securityScore }: { securityScore?: Secu
   const recentSites = matchedRecentSites.length > 0 ? matchedRecentSites : sites.slice(0, 5);
 
   return (
-    <Container className="max-w-5xl space-y-5">
+    <Container className="space-y-5">
       <ServerBanners server={server} />
 
       <MetricsCards server={server} />

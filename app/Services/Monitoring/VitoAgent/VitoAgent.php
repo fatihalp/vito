@@ -3,14 +3,11 @@
 namespace App\Services\Monitoring\VitoAgent;
 
 use App\Exceptions\ServiceInstallationFailed;
-use App\Exceptions\SSHError;
 use App\Models\Metric;
 use App\Services\AbstractService;
 use Closure;
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Validation\Rule;
-use JsonException;
 use Ramsey\Uuid\Uuid;
 
 class VitoAgent extends AbstractService

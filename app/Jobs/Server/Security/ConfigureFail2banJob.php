@@ -8,7 +8,6 @@ use App\Events\SocketEvent;
 use App\Http\Resources\ServiceResource;
 use App\Models\ServerLog;
 use App\Models\Service;
-use App\Services\Fail2ban\Fail2ban;
 use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

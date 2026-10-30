@@ -4,10 +4,8 @@ namespace App\Services\ProcessManager;
 
 use App\DTOs\ServiceLog;
 use App\Enums\WorkerStatus;
-use App\Exceptions\SSHError;
 use App\Models\Worker;
 use App\Services\HasLogs;
-use Throwable;
 
 class Supervisor extends AbstractProcessManager implements HasLogs
 {
@@ -93,6 +91,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
                 'id' => $worker->id,
                 'logFile' => $worker->getLogFile(),
                 'user' => $worker->user,
+                'initiatedBy' => $worker->creator?->name ?? user()?->name,
             ]),
             'create-worker',
             $worker->site_id
@@ -113,7 +112,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     }
 
     
-    public function restart(int $id, ?int $siteId = null): void
+    public function restart(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
@@ -122,6 +121,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
                 'user' => $worker?->user,
+                'initiatedBy' => $initiatedBy,
             ]),
             'restart-worker',
             $siteId
@@ -129,7 +129,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     }
 
     
-    public function stop(int $id, ?int $siteId = null): void
+    public function stop(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
@@ -138,6 +138,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
                 'user' => $worker?->user,
+                'initiatedBy' => $initiatedBy,
             ]),
             'stop-worker',
             $siteId
@@ -145,7 +146,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     }
 
     
-    public function start(int $id, ?int $siteId = null): void
+    public function start(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
@@ -154,6 +155,7 @@ class Supervisor extends AbstractProcessManager implements HasLogs
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
                 'user' => $worker?->user,
+                'initiatedBy' => $initiatedBy,
             ]),
             'start-worker',
             $siteId

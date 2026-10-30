@@ -15,7 +15,6 @@ use App\Actions\Site\UpdateVhostGeneration;
 use App\Actions\Site\UpdateWebDirectory;
 use App\Enums\DeploymentTrigger;
 use App\Exceptions\DeploymentScriptIsEmptyException;
-use App\Exceptions\SSHError;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\DeploymentResource;
 use App\Http\Resources\SiteResource;

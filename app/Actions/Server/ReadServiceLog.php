@@ -3,7 +3,6 @@
 namespace App\Actions\Server;
 
 use App\DTOs\ServiceLog;
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\SSH\OS\OS;
 use Illuminate\Support\Facades\Validator;

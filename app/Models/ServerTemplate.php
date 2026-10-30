@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\ServerTemplateFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

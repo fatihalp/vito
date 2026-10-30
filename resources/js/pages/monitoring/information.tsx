@@ -114,7 +114,7 @@ export default function Information() {
     return (
       <ServerLayout>
         <Head title={`Server Information - ${server.name}`} />
-        <Container className="max-w-5xl">
+        <Container>
           <HeaderContainer>
             <Heading title="Server Information" />
           </HeaderContainer>
@@ -132,7 +132,7 @@ export default function Information() {
     <ServerLayout>
       <Head title={`Server Information - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Server Information" />
         </HeaderContainer>

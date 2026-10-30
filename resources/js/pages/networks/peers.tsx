@@ -26,7 +26,7 @@ export default function NetworkPeers() {
     <NetworkLayout>
       <Head title={`Peers - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Peers" description="Devices that connect to this network, such as laptops or CI runners" />
           <div className="flex items-center gap-2">

@@ -2,7 +2,6 @@
 
 namespace App\SSH\Mise;
 
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\Site;
 

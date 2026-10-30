@@ -5,7 +5,6 @@ namespace App\Http\Controllers\API;
 use App\Actions\Monitoring\StoreAgentMetric;
 use App\Http\Controllers\Controller;
 use App\Models\Server;
-use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Post;

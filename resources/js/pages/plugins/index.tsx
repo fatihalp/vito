@@ -23,7 +23,7 @@ export default function Plugins() {
     <SettingsLayout>
       <Head title="Plugins" />
 
-      <Container className="max-w-5xl">
+      <Container>
         <div className="flex items-start justify-between">
           <Heading title="Plugins" />
           <div className="flex items-center gap-2">

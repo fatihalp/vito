@@ -6,7 +6,6 @@ use App\Enums\BackupStatus;
 use App\Enums\BackupType;
 use App\SSH\PgBackRest;
 use Cron\CronExpression;
-use Database\Factories\BackupFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -92,14 +91,6 @@ class Backup extends AbstractModel
             BackupType::DATABASE => $this->database?->name,
             BackupType::PGBACKREST => __('PostgreSQL cluster'),
         };
-    }
-
-    public function isCustomInterval(): bool
-    {
-        $intervals = array_keys(config('core.cronjob_intervals'));
-        $intervals = array_filter($intervals, fn ($interval): bool => $interval !== 'custom');
-
-        return ! in_array($this->interval, $intervals);
     }
 
     

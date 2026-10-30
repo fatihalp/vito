@@ -246,7 +246,7 @@ export default function Security() {
     <ServerLayout>
       <Head title={`Security - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Security" description="Harden this server: automatic updates, firewall, Fail2ban, and SSH access." />
           <Button variant="outline" onClick={check} disabled={checking} aria-label="Check security status">

@@ -58,7 +58,7 @@ export default function SshKeys() {
   return (
     <ServerLayout>
       <Head title={`SSH Keys - ${server.name}`} />
-      <Container className="max-w-5xl space-y-6">
+      <Container className="space-y-6">
         <HeaderContainer>
           <div>
             <Heading title="SSH Keys" />

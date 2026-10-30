@@ -3,7 +3,6 @@
 namespace App\Actions\Database;
 
 use App\Enums\DatabaseUserStatus;
-use App\Models\DatabaseUser;
 use App\Models\Server;
 use App\Models\Service;
 use App\Services\Database\Database;

@@ -14,7 +14,6 @@ use App\Models\NetworkServer;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Models\Service;
-use App\Services\Firewall\Firewall;
 use App\Services\VPN\WireGuard;
 use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;

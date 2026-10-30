@@ -83,7 +83,7 @@ export default function DeploymentShow() {
     <ServerLayout>
       <Head title={`Deployment #${deployment.id} - ${site.domain}`} />
 
-      <Container className="max-w-7xl gap-3 py-4 flex flex-col min-h-[calc(100vh-80px)]">
+      <Container className="gap-3 py-4 flex flex-col min-h-[calc(100vh-80px)]">
         <SiteBanners site={site} />
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">

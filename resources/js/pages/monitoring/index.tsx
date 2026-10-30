@@ -26,7 +26,7 @@ export default function Monitoring() {
     <ServerLayout>
       <Head title={`Monitoring - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Monitoring" description="Here you can see your server's metrics" />
           <div className="flex items-center gap-2">

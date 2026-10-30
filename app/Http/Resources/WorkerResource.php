@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Worker;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -15,6 +14,13 @@ class WorkerResource extends JsonResource
             'id' => $this->id,
             'server_id' => $this->server_id,
             'site_id' => $this->site_id,
+            'user_id' => $this->user_id,
+            'created_by' => $this->creator?->name,
+            'creator' => $this->creator ? [
+                'id' => $this->creator->id,
+                'name' => $this->creator->name,
+                'email' => $this->creator->email,
+            ] : null,
             'name' => $this->name,
             'command' => $this->command,
             'directory' => $this->directory,

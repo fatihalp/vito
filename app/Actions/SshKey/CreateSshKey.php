@@ -6,7 +6,6 @@ use App\Models\SshKey;
 use App\Models\User;
 use App\ValidationRules\SshKeyRule;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class CreateSshKey
 {

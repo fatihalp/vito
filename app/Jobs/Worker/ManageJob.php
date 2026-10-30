@@ -4,9 +4,7 @@ namespace App\Jobs\Worker;
 
 use App\Actions\Site\BroadcastSiteUpdate;
 use App\Enums\WorkerStatus;
-use App\Models\Service;
 use App\Models\Worker;
-use App\Services\ProcessManager\ProcessManager;
 use App\Traits\HandlesWorkerFailure;
 use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -23,6 +21,7 @@ class ManageJob implements ShouldQueue
         protected Worker $worker,
         protected string $action,
         protected WorkerStatus $successStatus,
+        protected ?string $initiatedBy = null,
     ) {}
 
     public function handle(): void
@@ -32,7 +31,7 @@ class ManageJob implements ShouldQueue
             $service = $this->worker->server->processManager();
             
             $handler = $service->handler();
-            $handler->{$this->action}($this->worker->id, $this->worker->site_id);
+            $handler->{$this->action}($this->worker->id, $this->worker->site_id, $this->initiatedBy);
             $this->worker->status = $this->successStatus;
             $this->worker->error = null;
             $this->worker->save();

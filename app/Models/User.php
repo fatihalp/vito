@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\UserRole;
 use App\Traits\HasTimezoneTimestamps;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -12,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Collection;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Sanctum\HasApiTokens;
 
@@ -180,26 +178,9 @@ class User extends Authenticatable
         return $project;
     }
 
-    public function hasRolesInProject(Project $project, array $roles): bool
-    {
-        return $project->hasRoles($this, $roles);
-    }
-
     public function isAdmin(): bool
     {
         return $this->is_admin;
-    }
-
-    public function allServers(): Builder
-    {
-        
-        $query = Server::query();
-
-        return $query->whereHas('project', function (Builder $query): void {
-            $query->whereHas('users', function ($query): void {
-                $query->where('user_id', $this->id);
-            });
-        });
     }
 
     

@@ -56,7 +56,7 @@ export default function ServerNetwork() {
     <ServerLayout>
       <Head title={`Network - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Network" description="Here you can manage the IP addresses configured on the server" />
           <div className="flex items-center gap-2">

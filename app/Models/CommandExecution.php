@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Enums\CommandExecutionStatus;
-use Carbon\Carbon;
-use Database\Factories\CommandExecutionFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

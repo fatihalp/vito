@@ -25,7 +25,7 @@ export default function NotificationChannels() {
   return (
     <SettingsLayout>
       <Head title="Notification Channels" />
-      <Container className="max-w-5xl">
+      <Container>
         <div className="flex items-start justify-between">
           <Heading title="Notification Channels" />
           <div className="flex items-center gap-2">

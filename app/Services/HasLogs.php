@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\DTOs\ServiceLog;
 
 interface HasLogs
 {

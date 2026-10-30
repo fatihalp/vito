@@ -2,7 +2,6 @@
 
 namespace App\Facades;
 
-use App\Notifications\NotificationInterface;
 use Illuminate\Support\Facades\Facade;
 
 class Notifier extends Facade

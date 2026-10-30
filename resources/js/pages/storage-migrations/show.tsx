@@ -51,7 +51,7 @@ export default function ShowStorageMigration() {
     <SettingsLayout>
       <Head title={storageMigration.name ?? 'Storage Migration'} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title={storageMigration.name ?? direction} description={storageMigration.name ? direction : undefined} />
           <div className="flex items-center gap-2">

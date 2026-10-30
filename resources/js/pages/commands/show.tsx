@@ -50,7 +50,7 @@ export default function Show() {
     <ServerLayout>
       <Head title={`${command.name} - ${site.domain} - ${server.name}`} />
 
-      <Container className="max-w-6xl">
+      <Container>
         <div className="flex items-start justify-between gap-4">
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
             <Heading title={command.name} description="Run the command and follow its output here in real time." />

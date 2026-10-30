@@ -3,9 +3,7 @@
 namespace App\Actions\Site;
 
 use App\Actions\Worker\ManageWorker;
-use App\Exceptions\SSHError;
 use App\Models\Site;
-use App\Services\ProcessManager\ProcessManager;
 use App\SiteTypes\AbstractProxiedSiteType;
 use Illuminate\Support\Facades\Validator;
 

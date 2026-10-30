@@ -2,12 +2,10 @@
 
 namespace App\Policies;
 
-use App\Models\PersonalAccessToken;
 use App\Models\StorageProvider;
 use App\Models\User;
 use App\Traits\ChecksTokenProjectScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
-use Laravel\Sanctum\TransientToken;
 
 class StorageProviderPolicy
 {

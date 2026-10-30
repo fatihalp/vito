@@ -2,7 +2,6 @@
 
 namespace App\Http\Resources;
 
-use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
 use App\SSH\OS\Composer;
 use Illuminate\Http\Request;

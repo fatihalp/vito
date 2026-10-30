@@ -5,8 +5,6 @@ namespace App\Models;
 use App\Traits\HasProjectScopedQueries;
 
 use App\Notifications\NotificationInterface;
-use Database\Factories\NotificationChannelFactory;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Notifications\Notifiable;

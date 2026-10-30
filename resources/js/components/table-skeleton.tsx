@@ -6,7 +6,7 @@ export function TableSkeleton({ cells, rows, modal }: { cells: number; rows: num
   const extraClasses = modal && 'border-none shadow-none';
 
   return (
-    <div className={cn('rounded-md border shadow-xs', extraClasses)}>
+    <div className={cn('relative w-full overflow-hidden rounded-md border shadow-xs', extraClasses)}>
       <Table>
         <TableHeader>
           <TableRow>

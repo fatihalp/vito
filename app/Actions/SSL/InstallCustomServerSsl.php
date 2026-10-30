@@ -8,7 +8,6 @@ use App\Models\Server;
 use App\Models\ServerLog;
 use App\Models\Ssl;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\ValidationException;
 
 class InstallCustomServerSsl
 {

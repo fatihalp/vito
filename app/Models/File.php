@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\FileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -126,10 +125,4 @@ class File extends AbstractModel
         return $this->path.'/'.$this->name;
     }
 
-    public function isExtractable(): bool
-    {
-        $extension = pathinfo($this->name, PATHINFO_EXTENSION);
-
-        return in_array($extension, ['zip', 'tar', 'tar.gz', 'bz2', 'tar.bz2']);
-    }
 }

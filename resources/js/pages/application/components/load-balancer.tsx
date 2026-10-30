@@ -76,7 +76,7 @@ export default function LoadBalancer() {
     <ServerLayout>
       <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Load balancer" description="Here you can manage the load balancer configs" />
           <div className="flex items-center gap-2">

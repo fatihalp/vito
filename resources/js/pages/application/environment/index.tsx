@@ -336,7 +336,7 @@ function EnvironmentEditorContent() {
     <>
       <Head title={`.env Editor - ${site.domain}`} />
 
-      <Container className="max-w-7xl gap-4 py-5 flex flex-col min-h-[calc(100vh-80px)]">
+      <Container className="gap-4 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <div style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', zIndex: -1 }} aria-hidden="true">
           <input type="text" name="fake_username_trap" tabIndex={-1} autoComplete="off" />
           <input type="password" name="fake_password_trap" tabIndex={-1} autoComplete="off" />

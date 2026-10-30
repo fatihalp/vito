@@ -2,8 +2,6 @@
 
 namespace App\SiteTypes;
 
-use App\Exceptions\FailedToDeployGitKey;
-use App\Exceptions\SSHError;
 use App\Models\Site;
 
 class Laravel extends PHPSite

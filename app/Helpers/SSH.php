@@ -5,12 +5,9 @@ namespace App\Helpers;
 use App\Exceptions\SSHAuthenticationError;
 use App\Exceptions\SSHCommandError;
 use App\Exceptions\SSHConnectionError;
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\ServerLog;
-use Exception;
 use Illuminate\Contracts\View\View;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -40,13 +37,6 @@ class SSH
 
     protected PrivateKey $privateKey;
 
-    protected ?string $logDisk = null;
-
-    protected ?string $logPath = null;
-
-    
-    protected ?\Closure $logOutputCallback = null;
-
     public function init(Server $server, ?string $asUser = null): self
     {
         $this->connection = null;
@@ -68,7 +58,7 @@ class SSH
     
     private function ensureLog(?string $log, ?int $siteId = null): void
     {
-        if (! $this->log instanceof ServerLog && $log && ! $this->logDisk && ! $this->logPath) {
+        if (! $this->log instanceof ServerLog && $log) {
             $this->log = ServerLog::newLog($this->server, $log);
             if ($siteId !== null && $siteId !== 0) {
                 $this->log->forSite($siteId);
@@ -94,14 +84,7 @@ class SSH
     
     protected function writeOutput(string $chunk): void
     {
-        if ($this->logDisk && $this->logPath) {
-            Storage::disk($this->logDisk)->append($this->logPath, $chunk, '');
-            if ($this->logOutputCallback) {
-                ($this->logOutputCallback)($chunk);
-            }
-        } else {
-            $this->log?->write($chunk);
-        }
+        $this->log?->write($chunk);
     }
 
     public function setLog(?ServerLog $log): self
@@ -111,21 +94,9 @@ class SSH
         return $this;
     }
 
-    
-    public function useLog(string $disk, string $path, ?\Closure $outputCallback = null): self
-    {
-        $this->logDisk = $disk;
-        $this->logPath = $path;
-        $this->logOutputCallback = $outputCallback;
-
-        return $this;
-    }
-
     public function clearLog(): self
     {
-        $this->logDisk = null;
-        $this->logPath = null;
-        $this->logOutputCallback = null;
+        $this->log = null;
 
         return $this;
     }

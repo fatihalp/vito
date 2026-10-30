@@ -49,7 +49,7 @@ export default function SiteSettings() {
     <ServerLayout>
       <Head title={`Settings - ${page.props.site.domain}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Settings" description="Here you can manage your site's settings" />
           <div className="flex items-center gap-2">

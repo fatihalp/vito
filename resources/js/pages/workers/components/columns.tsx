@@ -119,6 +119,26 @@ function getColumns(sites?: Array<{ id: number; domain: string }>): ColumnDef<Wo
       },
     },
     {
+      accessorKey: 'created_by',
+      header: 'Added By',
+      enableColumnFilter: true,
+      enableSorting: false,
+      cell: ({ row }) => {
+        const creator = row.original.creator;
+        const name = creator?.name ?? row.original.created_by ?? (row.original.is_site_bootstrap ? 'System' : null);
+
+        if (!name) {
+          return <span className="text-muted-foreground text-xs">—</span>;
+        }
+
+        return (
+          <div className="flex items-center gap-1.5" title={creator?.email ?? undefined}>
+            <span className="text-xs font-medium text-foreground">{name}</span>
+          </div>
+        );
+      },
+    },
+    {
       accessorKey: 'created_at',
       header: 'Created',
       enableColumnFilter: true,

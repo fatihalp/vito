@@ -2,7 +2,6 @@
 
 namespace App\SSH\OS;
 
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use Illuminate\Support\Facades\Log;
 

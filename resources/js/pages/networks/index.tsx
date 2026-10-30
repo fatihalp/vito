@@ -21,7 +21,7 @@ export default function Networks() {
     <SettingsLayout>
       <Head title="Networks" />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Networks" />
           <div className="flex items-center gap-2">

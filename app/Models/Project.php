@@ -3,14 +3,10 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
-use Carbon\Carbon;
-use Database\Factories\ProjectFactory;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Project extends AbstractModel
@@ -84,11 +80,6 @@ class Project extends AbstractModel
     public function sourceControls(): HasMany
     {
         return $this->hasMany(SourceControl::class);
-    }
-
-    public function registeredUsers(): HasManyThrough
-    {
-        return $this->hasManyThrough(User::class, UserProject::class, 'project_id', 'id', 'id', 'user_id');
     }
 
     public function hasRoles(User $user, array $roles): bool

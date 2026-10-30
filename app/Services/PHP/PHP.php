@@ -4,7 +4,6 @@ namespace App\Services\PHP;
 
 use App\DTOs\ServiceLog;
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\Services\AbstractService;
 use App\Services\HasLogs;
 use Closure;

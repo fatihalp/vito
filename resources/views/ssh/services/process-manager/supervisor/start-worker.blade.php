@@ -6,7 +6,7 @@ if ! sudo supervisorctl update {{ $id }}; then
 fi
 @if (!empty($logFile))
 sudo mkdir -p "$(dirname "{{ $logFile }}")"
-echo -e "\n======================================================\n[$(date '+%Y-%m-%d %H:%M:%S')] >>> WORKER STARTED <<<\n======================================================\n" | sudo tee -a "{{ $logFile }}" > /dev/null 2>&1 || true
+echo -e "\n======================================================\n[$(date '+%Y-%m-%d %H:%M:%S')] >>> WORKER STARTED{{ !empty($initiatedBy) ? ' (by '.$initiatedBy.')' : '' }} <<<\n======================================================\n" | sudo tee -a "{{ $logFile }}" > /dev/null 2>&1 || true
 @if (!empty($user))
 sudo chown -R {{ $user }}:{{ $user }} "$(dirname "{{ $logFile }}")" 2>/dev/null || true
 sudo chmod 664 "{{ $logFile }}" 2>/dev/null || true

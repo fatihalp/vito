@@ -6,12 +6,10 @@ use App\Actions\Site\EnsureSiteVerificationKey;
 use App\Actions\Webserver\GenerateCaddyConfig;
 use App\DTOs\ServiceLog;
 use App\Enums\SslMethod;
-use App\Exceptions\SSHError;
 use App\Exceptions\SSLCreationException;
 use App\Models\Site;
 use App\Models\Ssl;
 use App\Services\HasLogs;
-use Throwable;
 
 class Caddy extends AbstractWebserver implements HasLogs
 {

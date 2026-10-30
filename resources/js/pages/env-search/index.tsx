@@ -91,7 +91,7 @@ export default function EnvSearch() {
     <SettingsLayout>
       <Head title="Env Anahtarı Ara" />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title="Env Anahtarı Ara"

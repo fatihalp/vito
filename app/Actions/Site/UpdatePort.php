@@ -2,7 +2,6 @@
 
 namespace App\Actions\Site;
 
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use Illuminate\Support\Facades\Validator;
 

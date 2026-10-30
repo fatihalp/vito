@@ -325,7 +325,7 @@ export default function Overview() {
   return (
     <Layout>
       <Head title="Overview" />
-      <Container className="max-w-6xl space-y-6">
+      <Container className="space-y-6">
         <div className="flex items-center justify-between gap-4">
           <Heading title="Overview" />
           <DropdownMenu>

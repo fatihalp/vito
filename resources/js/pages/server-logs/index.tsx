@@ -30,7 +30,7 @@ export default function ServerLogs() {
     <ServerLayout>
       <Head title={`${page.props.title} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title={page.props.title}

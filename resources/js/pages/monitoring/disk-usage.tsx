@@ -252,7 +252,7 @@ export default function DiskUsage() {
     <ServerLayout>
       <Head title={`Disk Usage - ${server.name}`} />
 
-      <Container className="max-w-6xl space-y-3">
+      <Container className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <Heading title="Disk Usage" />
 

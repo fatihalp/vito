@@ -5,12 +5,9 @@ namespace App\Models;
 use App\Enums\NetworkAddressingPool;
 use App\Enums\NetworkStatus;
 use App\Enums\NetworkType;
-use Database\Factories\NetworkFactory;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Carbon;
 
 class Network extends AbstractModel
 {

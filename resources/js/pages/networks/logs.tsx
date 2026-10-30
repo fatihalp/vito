@@ -21,7 +21,7 @@ export default function NetworkLogs() {
     <NetworkLayout>
       <Head title={`Logs - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Logs" description="Activity recorded against this network and the servers it runs on" />
         </HeaderContainer>

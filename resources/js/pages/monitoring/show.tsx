@@ -30,7 +30,7 @@ export default function Show() {
     <ServerLayout>
       <Head title={`Monitoring - ${meta.title} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title={meta.title} description={meta.description} />
           <div className="flex items-center gap-2">

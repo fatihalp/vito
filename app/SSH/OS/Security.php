@@ -2,8 +2,6 @@
 
 namespace App\SSH\OS;
 
-use App\Enums\OperatingSystem;
-use App\Exceptions\SSHError;
 use App\Models\Server;
 
 class Security

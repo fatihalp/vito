@@ -3,12 +3,11 @@
 namespace App\Actions\Worker;
 
 use App\Actions\Site\BroadcastSiteUpdate;
+use App\Enums\WorkerLogType;
 use App\Enums\WorkerStatus;
 use App\Models\Server;
-use App\Models\Service;
 use App\Models\Site;
 use App\Models\Worker;
-use App\Services\ProcessManager\ProcessManager;
 use App\Traits\HandlesWorkerFailure;
 
 class SyncWorkerStatuses
@@ -55,8 +54,11 @@ class SyncWorkerStatuses
             return false;
         }
 
+        $oldStatus = $worker->status;
+
         if ($status === WorkerStatus::FAILED) {
             $this->failWorker($worker, $error, self::LOG_TYPE, (string) $error);
+            $worker->recordLog(WorkerLogType::FAILED, $error ? "Worker failed: {$error}" : 'Worker failed', null);
 
             return true;
         }
@@ -64,6 +66,12 @@ class SyncWorkerStatuses
         $worker->status = $status;
         $worker->error = null;
         $worker->save();
+
+        if ($oldStatus === WorkerStatus::RUNNING && $status === WorkerStatus::STOPPED) {
+            $worker->recordLog(WorkerLogType::STOPPED, 'Worker process stopped or exited', null);
+        } elseif (($oldStatus === WorkerStatus::STOPPED || $oldStatus === WorkerStatus::FAILED) && $status === WorkerStatus::RUNNING) {
+            $worker->recordLog(WorkerLogType::STARTED, 'Worker process resumed running', null);
+        }
 
         $this->broadcastWorkerUpdate($worker);
 

@@ -5,7 +5,6 @@ namespace App\Services\LogAnalysis\GoAccess;
 use App\Actions\CronJob\DeleteCronJob;
 use App\Actions\SiteStats\SyncGoAccessServer;
 use App\Enums\CronjobStatus;
-use App\Exceptions\SSHError;
 use App\Models\CronJob;
 use App\Services\AbstractService;
 use Closure;

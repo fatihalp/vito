@@ -5,13 +5,10 @@ namespace App\Actions\Database;
 use App\Enums\DatabaseUserStatus;
 use App\Models\DatabaseUser;
 use App\Models\Server;
-use App\Models\Service;
-use App\Services\Database\Database;
 use Closure;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use App\Enums\DatabaseUserPermission;
-use Illuminate\Validation\ValidationException;
 
 class CreateDatabaseUser
 {

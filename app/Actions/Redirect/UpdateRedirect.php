@@ -7,7 +7,6 @@ use App\Jobs\Redirect\CreateJob;
 use App\Models\Redirect;
 use App\Models\Site;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 
 class UpdateRedirect
 {

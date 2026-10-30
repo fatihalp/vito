@@ -14,6 +14,7 @@ use App\Actions\Worker\WorkerEnvironmentUpdateResult;
 use App\Enums\ServerRole;
 use App\Helpers\EnvParser;
 use App\Helpers\QueryBuilder;
+use App\Http\Resources\WorkerLogResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Server;
 use App\Models\Site;
@@ -42,7 +43,7 @@ class WorkerController extends Controller
     {
         $this->authorize('viewAny', [Worker::class, $server]);
 
-        $query = $server->workers()->with('site:id,server_id,type_data');
+        $query = $server->workers()->with(['site:id,server_id,type_data', 'creator:id,name,email']);
         $workers = QueryBuilder::for($query)
             ->sortable('created_at', 'desc')
             ->simplePaginate();
@@ -61,7 +62,7 @@ class WorkerController extends Controller
         return Inertia::render('workers/index', [
             'workers' => WorkerResource::collection(
                 $site->workers()
-                    ->with('site:id,server_id,type_data')
+                    ->with(['site:id,server_id,type_data', 'creator:id,name,email'])
                     ->latest()
                     ->simplePaginate(config('web.pagination_size'))
             ),
@@ -115,7 +116,7 @@ class WorkerController extends Controller
     {
         $this->authorize('manage', [Worker::class, $server, $site]);
 
-        app(RestartAllWorkers::class)->restart($server, $site);
+        app(RestartAllWorkers::class)->restart($server, $site, user());
 
         return back()
             ->with('info', 'Workers are being restarted.');
@@ -127,7 +128,7 @@ class WorkerController extends Controller
     {
         $this->authorize('create', [Worker::class, $server, $site]);
 
-        app(CreateWorker::class)->create($server, $request->all(), $site);
+        app(CreateWorker::class)->create($server, $request->all(), $site, user());
 
         return back()
             ->with('info', 'Worker is being created.');
@@ -150,7 +151,7 @@ class WorkerController extends Controller
     {
         $this->authorize('update', [$worker, $server]);
 
-        app(ManageWorker::class)->start($worker);
+        app(ManageWorker::class)->start($worker, user());
 
         return redirect()->route('workers.log', [
             'server' => $server->id,
@@ -163,7 +164,7 @@ class WorkerController extends Controller
     {
         $this->authorize('update', [$worker, $server]);
 
-        app(ManageWorker::class)->stop($worker);
+        app(ManageWorker::class)->stop($worker, user());
 
         return back()
             ->with('info', 'Worker is being stopped.');
@@ -174,7 +175,7 @@ class WorkerController extends Controller
     {
         $this->authorize('update', [$worker, $server]);
 
-        app(ManageWorker::class)->restart($worker);
+        app(ManageWorker::class)->restart($worker, user());
 
         return redirect()->route('workers.log', [
             'server' => $server->id,
@@ -217,7 +218,10 @@ class WorkerController extends Controller
         $this->authorize('view', [$worker, $server]);
 
         return Inertia::render('workers/log', [
-            'worker' => new WorkerResource($worker->loadMissing('site')),
+            'worker' => new WorkerResource($worker->loadMissing(['site', 'creator'])),
+            'history' => WorkerLogResource::collection(
+                $worker->logs()->with('user:id,name,email')->latest()->take(100)->get()
+            ),
         ]);
     }
 
@@ -231,6 +235,9 @@ class WorkerController extends Controller
 
         return response()->json([
             'logs' => $logs,
+            'history' => WorkerLogResource::collection(
+                $worker->logs()->with('user:id,name,email')->latest()->take(100)->get()
+            ),
         ]);
     }
 

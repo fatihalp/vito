@@ -2,7 +2,6 @@
 
 namespace App\Tooling;
 
-use App\Exceptions\SSHError;
 use App\Models\Site;
 
 interface ToolingInterface

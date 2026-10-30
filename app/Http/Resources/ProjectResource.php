@@ -3,8 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Actions\Server\ResolveHetznerServerSpecs;
-use App\Models\Project;
-use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

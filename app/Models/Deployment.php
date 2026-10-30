@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Enums\DeploymentStatus;
 use App\Enums\DeploymentTrigger;
-use Database\Factories\DeploymentFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

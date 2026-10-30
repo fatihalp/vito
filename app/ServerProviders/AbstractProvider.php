@@ -5,7 +5,6 @@ namespace App\ServerProviders;
 use App\Exceptions\PrivateNetworkSyncError;
 use App\Models\Server;
 use App\Models\ServerProvider as Provider;
-use Illuminate\Filesystem\FilesystemAdapter;
 use Illuminate\Support\Facades\Storage;
 
 abstract class AbstractProvider implements ServerProvider

@@ -3,8 +3,6 @@
 namespace App\Actions\Monitoring;
 
 use App\Models\Server;
-use App\Models\Service;
-use App\Services\ServiceInterface;
 use Illuminate\Support\Facades\Validator;
 
 class UpdateMetricSettings
