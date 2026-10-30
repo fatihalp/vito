@@ -112,7 +112,7 @@ export default function Layout({
               socketStatus={socketStatus}
               socketReconnect={socketReconnect}
             />
-            <div className="flex flex-1 flex-col">
+            <div className="flex flex-1 flex-col min-w-0">
               {showBootstrapError ? (
                 <div className="flex flex-1 items-center justify-center p-6">
                   <div className="flex max-w-md flex-col items-center gap-4 text-center">

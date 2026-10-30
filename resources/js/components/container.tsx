@@ -7,5 +7,5 @@ export default function Container({ className, children }: { className?: string;
     .filter((c) => !['max-w-4xl', 'max-w-5xl', 'max-w-6xl', 'max-w-7xl'].includes(c))
     .join(' ');
 
-  return <div className={cn('w-full max-w-none space-y-5 px-4 py-5', filteredClassName)}>{children}</div>;
+  return <div className={cn('w-full max-w-none min-w-0 space-y-5 px-4 py-5', filteredClassName)}>{children}</div>;
 }
