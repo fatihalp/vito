@@ -10,7 +10,6 @@ use App\Http\Resources\SiteResourceResource;
 use App\Models\DNSProvider;
 use App\Models\Server;
 use App\Models\Site;
-use App\Models\SiteResource;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Get;

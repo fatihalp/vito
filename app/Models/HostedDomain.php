@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Enums\HostedDomainStatus;
 use App\Enums\HostedDomainType;
 use App\Enums\SslMethod;
-use Database\Factories\HostedDomainFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Validation\ValidationException;

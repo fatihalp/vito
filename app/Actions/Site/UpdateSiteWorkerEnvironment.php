@@ -4,7 +4,6 @@ namespace App\Actions\Site;
 
 use App\Actions\Worker\UpdateWorkerEnvironment;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use App\SiteTypes\AbstractProxiedSiteType;
 use Illuminate\Support\Facades\Validator;

@@ -3,7 +3,6 @@
 namespace App\Actions\SSL;
 
 use App\Actions\Site\BroadcastSiteUpdate;
-use App\Models\HostedDomain;
 use App\Models\Site;
 use App\Models\Ssl;
 use Illuminate\Support\Collection;

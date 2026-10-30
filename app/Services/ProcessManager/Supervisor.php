@@ -4,10 +4,8 @@ namespace App\Services\ProcessManager;
 
 use App\DTOs\ServiceLog;
 use App\Enums\WorkerStatus;
-use App\Exceptions\SSHError;
 use App\Models\Worker;
 use App\Services\HasLogs;
-use Throwable;
 
 class Supervisor extends AbstractProcessManager implements HasLogs
 {

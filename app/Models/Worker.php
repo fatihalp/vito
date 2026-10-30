@@ -4,8 +4,6 @@ namespace App\Models;
 
 use App\Enums\WorkerStatus;
 use App\Helpers\SiteShellEnvironment;
-use App\Services\ProcessManager\ProcessManager;
-use Database\Factories\WorkerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Log;

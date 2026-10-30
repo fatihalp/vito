@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Enums\BackupType;
-use App\Models\Backup;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 

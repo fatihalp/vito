@@ -2,7 +2,6 @@
 
 namespace App\Services\NodeJS;
 
-use App\Exceptions\SSHError;
 use App\Services\AbstractService;
 use Closure;
 use Illuminate\Validation\Rule;

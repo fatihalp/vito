@@ -18,8 +18,6 @@ use App\SSH\OS\Cron;
 use App\SSH\OS\OS;
 use App\SSH\OS\Security;
 use App\SSH\OS\Systemd;
-use Carbon\Carbon;
-use Database\Factories\ServerFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -300,12 +298,6 @@ class Server extends AbstractModel
         return $this->hasMany(Metric::class);
     }
 
-    
-    public function postgresCluster(): ?PostgresCluster
-    {
-        return PostgresCluster::forServer($this);
-    }
-
     public function latestMetric(): HasOne
     {
         return $this->hasOne(Metric::class)->latestOfMany();
@@ -348,18 +340,6 @@ class Server extends AbstractModel
         $users = array_merge($users, $isolatedUsernames, $siteUsernames);
 
         return array_values(array_unique(array_filter($users, fn ($u) => is_string($u) && $u !== '')));
-    }
-
-    
-    public function sshLoginUsers(): array
-    {
-        $users = $this->getSshUsers();
-
-        if (($this->feature_data['security']['root_login']['enabled'] ?? true) === false) {
-            $users = array_values(array_filter($users, fn (string $user): bool => $user !== 'root'));
-        }
-
-        return $users;
     }
 
     /**
@@ -438,11 +418,6 @@ class Server extends AbstractModel
     public function installedPHPVersions(): array
     {
         return $this->installedServiceVersions('php');
-    }
-
-    public function installedNodejsVersions(): array
-    {
-        return $this->installedServiceVersions('nodejs');
     }
 
     public function provider(): \App\ServerProviders\ServerProvider

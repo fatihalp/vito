@@ -5,10 +5,8 @@ namespace App\Actions\Worker;
 use App\Actions\Site\BroadcastSiteUpdate;
 use App\Enums\WorkerStatus;
 use App\Models\Server;
-use App\Models\Service;
 use App\Models\Site;
 use App\Models\Worker;
-use App\Services\ProcessManager\ProcessManager;
 use App\Traits\HandlesWorkerFailure;
 
 class SyncWorkerStatuses

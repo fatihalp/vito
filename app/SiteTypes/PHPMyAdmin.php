@@ -2,7 +2,6 @@
 
 namespace App\SiteTypes;
 
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use Illuminate\Validation\Rule;
 

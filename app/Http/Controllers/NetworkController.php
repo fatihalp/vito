@@ -18,7 +18,6 @@ use App\Models\Project;
 use App\Tables\Networks\NetworkServerTable;
 use App\Tables\NetworkTable;
 use Illuminate\Contracts\Pagination\Paginator;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;

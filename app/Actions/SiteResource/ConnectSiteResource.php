@@ -6,7 +6,6 @@ use App\Actions\Database\CreateDatabase;
 use App\Actions\Database\CreateDatabaseUser;
 use App\Actions\FirewallRule\ManageRule;
 use App\Actions\Service\ToggleNetworking;
-use App\Enums\ServerRole;
 use App\Enums\SiteResourceStatus;
 use App\Enums\SiteResourceType;
 use App\Helpers\EnvParser;

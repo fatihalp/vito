@@ -9,7 +9,6 @@ use App\Actions\Server\ExecuteServerReboot;
 use App\Actions\Server\GetAccessibleServers;
 use App\Actions\Server\GetServers;
 use App\Actions\Server\ProbeServerConnection;
-use App\Actions\Server\RebootServer;
 use App\Actions\Server\Security\CalculateSecurityScore;
 use App\Actions\Server\StartServer;
 use App\Actions\Server\StopServer;

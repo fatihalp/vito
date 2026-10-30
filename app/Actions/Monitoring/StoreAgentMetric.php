@@ -5,7 +5,6 @@ namespace App\Actions\Monitoring;
 use App\Actions\Service\SyncServiceStatus;
 use App\Models\Metric;
 use App\Models\Server;
-use App\Models\Service;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 

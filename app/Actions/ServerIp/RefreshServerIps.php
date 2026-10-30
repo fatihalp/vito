@@ -5,11 +5,9 @@ namespace App\Actions\ServerIp;
 use App\Enums\IpAddressFamily;
 use App\Enums\IpAddressStatus;
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\ServerIpAddress;
 use Illuminate\Support\Facades\DB;
-use Throwable;
 
 class RefreshServerIps
 {

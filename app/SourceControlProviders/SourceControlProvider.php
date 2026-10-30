@@ -2,9 +2,6 @@
 
 namespace App\SourceControlProviders;
 
-use App\Exceptions\FailedToDeployGitHook;
-use App\Exceptions\FailedToDeployGitKey;
-use App\Exceptions\FailedToDestroyGitHook;
 
 interface SourceControlProvider
 {

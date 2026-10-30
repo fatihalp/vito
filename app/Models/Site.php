@@ -7,26 +7,18 @@ use App\Traits\HasFeatures;
 use App\Actions\SiteResource\CleanupSiteResources;
 use App\Enums\CronjobStatus;
 use App\Enums\DeploymentStatus;
-use App\Enums\HostedDomainStatus;
-use App\Enums\HostedDomainType;
 use App\Enums\RedirectStatus;
 use App\Enums\SiteStatus;
-use App\Enums\SslStatus;
-use App\Enums\WorkerStatus;
 use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Helpers\SiteShellEnvironment;
 use App\Helpers\SSH;
 use App\Jobs\SSL\DeleteSslJob;
 use App\Services\Webserver\Webserver;
-use App\SiteTypes\AbstractProxiedSiteType;
 use App\SiteTypes\AbstractSiteType;
-use App\SiteTypes\BunSite;
-use App\SiteTypes\NodeSite;
 use App\SiteTypes\SiteType;
 use App\Tooling\ToolingRegistry;
 use App\Traits\HasProjectThroughServer;
-use Database\Factories\SiteFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -341,12 +333,6 @@ class Site extends AbstractModel
     }
 
     
-    public function primaryHostedDomain(): HasOne
-    {
-        return $this->hasOne(HostedDomain::class)->where('type', HostedDomainType::PRIMARY);
-    }
-
-    
     public function sourceControl(): BelongsTo
     {
         return $this->belongsTo(SourceControl::class)->withTrashed();
@@ -355,15 +341,6 @@ class Site extends AbstractModel
     public function getFullRepositoryUrl(): ?string
     {
         return $this->sourceControl?->provider()?->fullRepoUrl($this->repository, $this->getSshKeyName());
-    }
-
-    public function getAliasesString(): string
-    {
-        if (count($this->aliases) > 0) {
-            return implode(' ', $this->aliases);
-        }
-
-        return '';
     }
 
     public function type(): SiteType

@@ -3,7 +3,6 @@
 namespace App\Actions\Plugins\Github;
 
 use App\Models\Plugin;
-use Exception;
 
 final readonly class UpdateGithubPlugin
 {

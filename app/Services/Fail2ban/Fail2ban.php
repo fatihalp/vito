@@ -3,7 +3,6 @@
 namespace App\Services\Fail2ban;
 
 use App\DTOs\ServiceLog;
-use App\Exceptions\SSHError;
 use App\Services\AbstractService;
 use App\Services\HasLogs;
 use Closure;

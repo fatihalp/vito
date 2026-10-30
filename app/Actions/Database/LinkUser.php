@@ -6,7 +6,6 @@ use App\Actions\SiteResource\GuardProvisionedDatabase;
 use App\Models\Database;
 use App\Models\DatabaseUser;
 use App\Models\Server;
-use App\Models\Service;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;

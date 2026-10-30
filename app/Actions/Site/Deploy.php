@@ -7,7 +7,6 @@ use App\Enums\DeploymentStatus;
 use App\Enums\DeploymentTrigger;
 use App\Events\SocketEvent;
 use App\Exceptions\DeploymentScriptIsEmptyException;
-use App\Exceptions\ReverseProxyNotConfiguredException;
 use App\Http\Resources\DeploymentResource;
 use App\Jobs\Site\DeployJob;
 use App\Models\Deployment;

@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\CronjobStatus;
-use Database\Factories\CronJobFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -106,19 +105,6 @@ class CronJob extends AbstractModel
         }
 
         return str_replace("'\\''", "'", substr($argument, 1, -1));
-    }
-
-    public function frequencyLabel(): string
-    {
-        $labels = [
-            '* * * * *' => 'Every minute',
-            '0 * * * *' => 'Hourly',
-            '0 0 * * *' => 'Daily',
-            '0 0 * * 0' => 'Weekly',
-            '0 0 1 * *' => 'Monthly',
-        ];
-
-        return $labels[$this->frequency] ?? $this->frequency;
     }
 
     public function isEnabled(): bool

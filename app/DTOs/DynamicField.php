@@ -2,7 +2,6 @@
 
 namespace App\DTOs;
 
-use App\Tooling\ToolingInterface;
 
 class DynamicField
 {

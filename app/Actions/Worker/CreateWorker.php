@@ -12,7 +12,6 @@ use App\Models\Worker;
 use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 
 class CreateWorker
 {

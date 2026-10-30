@@ -3,7 +3,6 @@
 namespace App\SSH\OS;
 
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Models\Site;

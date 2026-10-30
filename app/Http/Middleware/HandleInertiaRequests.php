@@ -12,7 +12,6 @@ use App\Http\Resources\UserResource;
 use App\Models\Network;
 use App\Models\Server;
 use App\Models\Site;
-use App\Models\User;
 use App\Models\UserProject;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;

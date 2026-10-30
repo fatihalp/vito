@@ -4,11 +4,9 @@ namespace App\Http\Controllers\API;
 
 use App\Actions\Site\Deploy;
 use App\Enums\DeploymentTrigger;
-use App\Exceptions\FailedToDestroyGitHook;
 use App\Http\Controllers\Controller;
 use App\Models\GitHook;
 use App\Models\ServerLog;
-use App\Models\SourceControl;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;

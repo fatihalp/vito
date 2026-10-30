@@ -4,7 +4,6 @@ namespace App\Actions\Site;
 
 use App\Actions\SiteResource\SyncManagedEnvironment;
 use App\Enums\EnvVersionSource;
-use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
 use App\Jobs\Site\CheckAppDebugJob;
 use App\Models\EnvVersion;

@@ -5,9 +5,7 @@ namespace App\Actions\SSL;
 use App\Enums\SslStatus;
 use App\Jobs\SSL\DeleteSslJob;
 use App\Models\ServerLog;
-use App\Models\Service;
 use App\Models\Ssl;
-use App\Services\Webserver\Webserver;
 use Illuminate\Validation\ValidationException;
 
 class DeleteSsl

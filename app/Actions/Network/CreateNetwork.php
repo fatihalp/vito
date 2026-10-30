@@ -15,7 +15,6 @@ use App\Support\Cidr;
 use App\ValidationRules\CidrRule;
 use App\ValidationRules\PrivateRangeRule;
 use App\ValidationRules\WithinCidrRule;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

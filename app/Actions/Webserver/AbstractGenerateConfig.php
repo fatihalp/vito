@@ -7,7 +7,6 @@ use App\Enums\HostedDomainType;
 use App\Models\HostedDomain;
 use App\Models\Redirect;
 use App\Models\Site;
-use App\Models\Ssl;
 use Illuminate\Support\Collection;
 use Mustache\Engine;
 

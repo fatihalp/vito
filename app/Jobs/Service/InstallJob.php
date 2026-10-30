@@ -9,7 +9,6 @@ use App\Http\Resources\ServiceResource;
 use App\Models\ServerLog;
 use App\Models\Service;
 use App\Traits\UniqueQueue;
-use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;

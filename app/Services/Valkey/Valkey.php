@@ -3,8 +3,6 @@
 namespace App\Services\Valkey;
 
 use App\DTOs\ServiceLog;
-use App\Exceptions\ServiceInstallationFailed;
-use App\Exceptions\SSHError;
 use App\Services\AbstractService;
 use App\Services\HasLogs;
 use App\Services\ManagesMemoryDatabaseNetworking;

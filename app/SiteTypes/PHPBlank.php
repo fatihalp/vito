@@ -2,7 +2,6 @@
 
 namespace App\SiteTypes;
 
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use App\Traits\NormalizesWebDirectory;
 use Illuminate\Validation\Rule;

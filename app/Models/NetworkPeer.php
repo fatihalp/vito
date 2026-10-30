@@ -3,10 +3,8 @@
 namespace App\Models;
 
 use App\Enums\NetworkPeerStatus;
-use Database\Factories\NetworkPeerFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Carbon;
 
 class NetworkPeer extends AbstractModel
 {

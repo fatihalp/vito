@@ -5,7 +5,6 @@ namespace App\ServerProviders;
 use App\DTOs\PrivateNetworkDTO;
 use App\DTOs\PrivateNetworkMemberDTO;
 use App\Exceptions\CouldNotConnectToProvider;
-use App\Exceptions\PrivateNetworkSyncError;
 use App\Exceptions\ServerProviderError;
 use App\Facades\Notifier;
 use App\Notifications\FailedToDeleteServerFromProvider;

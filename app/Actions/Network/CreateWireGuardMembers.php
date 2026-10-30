@@ -4,7 +4,6 @@ namespace App\Actions\Network;
 
 use App\Enums\NetworkServerStatus;
 use App\Models\Network;
-use App\Models\Server;
 use App\Support\Cidr;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;

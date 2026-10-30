@@ -6,7 +6,6 @@ use App\DTOs\ServiceLog;
 use App\Models\Server;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
-use Throwable;
 
 class ClearServiceLog
 {

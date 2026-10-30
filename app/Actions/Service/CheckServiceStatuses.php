@@ -2,7 +2,6 @@
 
 namespace App\Actions\Service;
 
-use App\Exceptions\SSHError;
 use App\Models\Server;
 
 class CheckServiceStatuses

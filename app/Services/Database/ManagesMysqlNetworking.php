@@ -3,7 +3,6 @@
 namespace App\Services\Database;
 
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 
 trait ManagesMysqlNetworking
 {

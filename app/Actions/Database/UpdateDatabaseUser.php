@@ -5,7 +5,6 @@ namespace App\Actions\Database;
 use App\Actions\SiteResource\GuardProvisionedDatabase;
 use App\Enums\DatabaseUserPermission;
 use App\Models\DatabaseUser;
-use App\Models\Service;
 use App\Services\Database\Database;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;

@@ -2,7 +2,6 @@
 
 namespace App\NotificationChannels;
 
-use App\Models\NotificationChannel;
 use App\Notifications\NotificationInterface;
 use Illuminate\Support\Facades\Http;
 

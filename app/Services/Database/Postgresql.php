@@ -5,7 +5,6 @@ namespace App\Services\Database;
 use App\Actions\PostgresCluster\SyncPostgresListenAddresses;
 use App\DTOs\ServiceLog;
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\Models\DatabaseUser;
 use App\Models\Server;
 use App\Services\HasLogs;

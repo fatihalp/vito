@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\StorageMigrationItemStatus;
-use Database\Factories\StorageMigrationItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StorageMigrationItem extends AbstractModel

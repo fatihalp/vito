@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\FirewallRuleStatus;
-use Database\Factories\FirewallRuleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 

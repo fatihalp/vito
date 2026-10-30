@@ -7,17 +7,12 @@ use App\Events\SocketEvent;
 use App\Http\Resources\ServerLogResource;
 use App\SSH\OS\OS;
 use Closure;
-use Database\Factories\ServerLogFactory;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
-use Symfony\Component\HttpFoundation\StreamedResponse;
-use Throwable;
 
 class ServerLog extends AbstractModel
 {
@@ -108,18 +103,6 @@ class ServerLog extends AbstractModel
     public function network(): BelongsTo
     {
         return $this->belongsTo(Network::class);
-    }
-
-    
-    public static function getRemote(Builder $query, bool $active = true, ?Site $site = null): Builder
-    {
-        $query->where('is_remote', $active);
-
-        if ($site instanceof Site) {
-            $query->where('name', 'like', $site->path.'%');
-        }
-
-        return $query;
     }
 
     public function write(string $buf): void

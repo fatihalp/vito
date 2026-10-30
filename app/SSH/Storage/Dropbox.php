@@ -3,7 +3,6 @@
 namespace App\SSH\Storage;
 
 use App\Exceptions\SSHCommandError;
-use App\Exceptions\SSHError;
 use App\StorageProviders\Dropbox as DropboxProvider;
 use Illuminate\Support\Facades\Log;
 use RuntimeException;

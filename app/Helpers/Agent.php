@@ -57,22 +57,6 @@ class Agent extends MobileDetect
     }
 
     
-    public function isDesktop()
-    {
-        return $this->retrieveUsingCacheOrResolve('paymently.desktop', function (): bool {
-            
-            if (
-                $this->getUserAgent() === static::$cloudFrontUA
-                && $this->getHttpHeader('HTTP_CLOUDFRONT_IS_DESKTOP_VIEWER') === 'true'
-            ) {
-                return true;
-            }
-
-            return ! $this->isMobile() && ! $this->isTablet();
-        });
-    }
-
-    
     protected function findDetectionRulesAgainstUserAgent(array $rules)
     {
         $userAgent = $this->getUserAgent();

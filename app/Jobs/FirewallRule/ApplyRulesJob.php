@@ -8,8 +8,6 @@ use App\Events\SocketEvent;
 use App\Http\Resources\FirewallRuleResource;
 use App\Models\FirewallRule;
 use App\Models\ServerLog;
-use App\Models\Service;
-use App\Services\Firewall\Firewall;
 use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;

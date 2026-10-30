@@ -15,7 +15,6 @@ use App\Actions\Server\ClearServiceLog;
 use App\Enums\ServiceStatus;
 use App\Models\Metric;
 use App\Models\Server;
-use App\Models\Service;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;

@@ -2,7 +2,6 @@
 
 namespace App\SSH\Storage;
 
-use App\Exceptions\SSHError;
 
 class SFTP extends AbstractStorage
 {

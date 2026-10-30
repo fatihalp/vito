@@ -2,7 +2,6 @@
 
 namespace App\Tooling;
 
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use App\SSH\Mise\Mise;
 

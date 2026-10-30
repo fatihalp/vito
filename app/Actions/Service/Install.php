@@ -3,7 +3,6 @@
 namespace App\Actions\Service;
 
 use App\Enums\ServiceStatus;
-use App\Exceptions\SSHError;
 use App\Jobs\Service\InstallJob;
 use App\Models\Server;
 use App\Models\Service;

@@ -4,7 +4,6 @@ namespace App\Actions\Service;
 
 use App\DTOs\SocketEventDTO;
 use App\Events\SocketEvent;
-use App\Exceptions\SSHError;
 use App\Http\Resources\ServiceResource;
 use App\Models\Server;
 use App\Models\Service;

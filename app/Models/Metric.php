@@ -3,8 +3,6 @@
 namespace App\Models;
 
 use App\Actions\Server\BroadcastServerUpdate;
-use Carbon\Carbon;
-use Database\Factories\MetricFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;

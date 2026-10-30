@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Exceptions\SSHError;
 
 interface SupportsNetworking
 {

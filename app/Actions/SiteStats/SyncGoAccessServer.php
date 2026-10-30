@@ -3,7 +3,6 @@
 namespace App\Actions\SiteStats;
 
 use App\Enums\CronjobStatus;
-use App\Exceptions\SSHError;
 use App\Models\CronJob;
 use App\Models\Server;
 use App\Models\ServerLog;

@@ -2,7 +2,6 @@
 
 namespace App\Actions\SiteStats;
 
-use App\Exceptions\SSHError;
 use App\Helpers\SSH;
 use App\Models\Site;
 use App\Services\LogAnalysis\GoAccess\GoAccess;

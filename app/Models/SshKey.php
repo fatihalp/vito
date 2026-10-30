@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Database\Factories\SshKeyFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -40,8 +39,4 @@ class SshKey extends AbstractModel
             ->withTimestamps();
     }
 
-    public function existsOnServer(Server $server): bool
-    {
-        return (bool) $this->servers()->where('id', $server->id)->first();
-    }
 }

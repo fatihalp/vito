@@ -3,7 +3,6 @@
 namespace App\SiteTypes;
 
 use App\Enums\LoadBalancerMethod;
-use App\Exceptions\SSHError;
 use App\Models\Site;
 use Illuminate\Validation\Rule;
 

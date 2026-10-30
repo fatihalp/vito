@@ -3,8 +3,6 @@
 namespace App\Services\Database;
 
 use App\Actions\Database\SyncDatabases;
-use App\Exceptions\ServiceInstallationFailed;
-use App\Exceptions\SSHError;
 use App\Models\BackupFile;
 use App\Models\DatabaseUser;
 use App\Models\Server;

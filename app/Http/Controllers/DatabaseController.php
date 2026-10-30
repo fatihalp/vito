@@ -6,7 +6,6 @@ use App\Actions\Database\CreateDatabase;
 use App\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;
-use App\Models\PostgresCluster;
 use App\Models\Server;
 use App\Tables\Servers\DatabaseTable;
 use Illuminate\Http\JsonResponse;
@@ -90,13 +89,5 @@ class DatabaseController extends Controller
         return back()
             ->with('success', 'Databases synced successfully.');
     }
-    /** @return array{server_id: int, name: ?string}|null */
-    private function replicaOf(Server $server): ?array
-    {
-        $cluster = PostgresCluster::forServer($server);
 
-        return $cluster !== null && $cluster->primary_server_id !== $server->id
-            ? ['server_id' => $cluster->primary_server_id, 'name' => $cluster->primary?->name]
-            : null;
-    }
 }

@@ -3,10 +3,8 @@
 namespace App\Actions\Site;
 
 use App\Actions\SiteResource\SyncManagedEnvironment;
-use App\Exceptions\SSHError;
 use App\Helpers\EnvParser;
 use App\Models\Site;
-use Illuminate\Validation\ValidationException;
 
 class GetEnv
 {

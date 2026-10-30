@@ -4,9 +4,7 @@ namespace App\SiteTypes;
 
 use App\Actions\Worker\CreateWorker;
 use App\DTOs\DynamicField;
-use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\ReverseProxyNotConfiguredException;
-use App\Exceptions\SSHError;
 use App\Models\Deployment;
 use App\Models\SourceControl;
 use App\Models\Worker;

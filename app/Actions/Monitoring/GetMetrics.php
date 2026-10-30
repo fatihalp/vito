@@ -2,7 +2,6 @@
 
 namespace App\Actions\Monitoring;
 
-use App\Models\Metric;
 use App\Models\Server;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Expression;

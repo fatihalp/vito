@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Exceptions\SSHError;
 use App\Models\Service;
 
 abstract class AbstractService implements ServiceInterface

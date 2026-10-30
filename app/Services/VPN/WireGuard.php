@@ -5,7 +5,6 @@ namespace App\Services\VPN;
 use App\Enums\NetworkPeerStatus;
 use App\Enums\NetworkServerStatus;
 use App\Enums\NetworkType;
-use App\Exceptions\SSHError;
 use App\Helpers\SSH;
 use App\Models\Network;
 use App\Models\NetworkPeer;
