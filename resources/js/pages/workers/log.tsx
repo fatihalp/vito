@@ -7,15 +7,18 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import LogOutput from '@/components/log-output';
+import DateTime from '@/components/date-time';
 import { useDialog } from '@/hooks/use-dialog';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Server } from '@/types/server';
-import { Worker } from '@/types/worker';
+import { Worker, WorkerLog } from '@/types/worker';
 import {
   ArrowLeftIcon,
   CheckCircle2Icon,
+  HistoryIcon,
   LoaderCircleIcon,
   PauseIcon,
   PlayIcon,
@@ -52,10 +55,12 @@ function WorkerLogContent() {
   const page = usePage<{
     server: Server;
     worker: Worker;
+    history?: WorkerLog[];
   }>();
 
   const { server } = page.props;
   const worker = useRealtimeRecord<Worker>(page.props.worker, 'worker')!;
+  const [activeTab, setActiveTab] = useState<'output' | 'history'>('output');
   const [autoRefresh, setAutoRefresh] = useState(true);
   const [lines, setLines] = useState('100');
   const [isActionProcessing, setIsActionProcessing] = useState<string | null>(null);
@@ -67,7 +72,14 @@ function WorkerLogContent() {
       const response = await axios.get(`/servers/${server.id}/workers/${worker.id}/logs`, {
         params: { lines },
       });
-      return response.data.logs as string;
+      return {
+        logs: (response.data.logs ?? '') as string,
+        history: (response.data.history ?? []) as WorkerLog[],
+      };
+    },
+    initialData: {
+      logs: '',
+      history: page.props.history ?? [],
     },
     refetchInterval: autoRefresh ? 2500 : false,
   });
@@ -118,12 +130,13 @@ function WorkerLogContent() {
   const isStopped = worker.status === 'stopped';
   const isTransitioning = ['starting', 'stopping', 'restarting', 'creating', 'deleting'].includes(worker.status);
   const hasDistinctCommand = worker.name && worker.command && worker.name !== worker.command;
+  const historyList = query.data?.history ?? [];
 
   return (
     <>
       <Head title={`Logs · ${worker.name || worker.command} - ${server.name}`} />
 
-      <Container className="max-w-7xl gap-3 py-5 flex flex-col min-h-[calc(100vh-80px)]">
+      <Container className="gap-3 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3 min-w-0">
             <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 shrink-0 text-muted-foreground hover:text-foreground">
@@ -202,33 +215,55 @@ function WorkerLogContent() {
         </div>
 
         <Card className="flex-1 overflow-hidden border flex flex-col min-h-[550px]">
-          <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/20">
-            <div className="flex items-center gap-2">
-              <Select value={lines} onValueChange={setLines}>
-                <SelectTrigger className="h-7 w-[105px] text-xs">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {LINE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          <div className="flex items-center justify-between px-3 py-1.5 border-b bg-muted/20 gap-2 flex-wrap">
+            <div className="flex items-center gap-3">
+              <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as 'output' | 'history')}>
+                <TabsList className="h-7 bg-muted/60 p-0.5">
+                  <TabsTrigger value="output" className="h-6 text-xs px-2.5 gap-1.5">
+                    <TerminalIcon className="size-3.5" />
+                    <span>Output</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="history" className="h-6 text-xs px-2.5 gap-1.5">
+                    <HistoryIcon className="size-3.5" />
+                    <span>History</span>
+                    {historyList.length > 0 && (
+                      <span className="text-[10px] bg-background text-foreground px-1 py-0.2 rounded-full font-mono">
+                        {historyList.length}
+                      </span>
+                    )}
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
+
+              {activeTab === 'output' && (
+                <Select value={lines} onValueChange={setLines}>
+                  <SelectTrigger className="h-7 w-[105px] text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LINE_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="flex items-center gap-1">
-              <Button
-                variant={autoRefresh ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setAutoRefresh(!autoRefresh)}
-                className="h-7 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
-              >
-                <span className={cn('size-1.5 rounded-full', autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/40')} />
-                <span>Auto-refresh</span>
-              </Button>
+              {activeTab === 'output' && (
+                <Button
+                  variant={autoRefresh ? 'secondary' : 'ghost'}
+                  size="sm"
+                  onClick={() => setAutoRefresh(!autoRefresh)}
+                  className="h-7 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
+                >
+                  <span className={cn('size-1.5 rounded-full', autoRefresh ? 'bg-emerald-500 animate-pulse' : 'bg-muted-foreground/40')} />
+                  <span>Auto-refresh</span>
+                </Button>
+              )}
 
               <Button
                 variant="ghost"
@@ -236,33 +271,69 @@ function WorkerLogContent() {
                 onClick={() => query.refetch()}
                 disabled={query.isFetching}
                 className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                title="Refresh logs"
+                title="Refresh"
               >
                 <RefreshCwIcon className={cn('size-3.5', query.isFetching && 'animate-spin')} />
               </Button>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleClearLogs}
-                className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-destructive cursor-pointer"
-                title="Clear all logs"
-              >
-                <Trash2Icon className="size-3.5" />
-                <span>Clear</span>
-              </Button>
+              {activeTab === 'output' && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearLogs}
+                  className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-destructive cursor-pointer"
+                  title="Clear all logs"
+                >
+                  <Trash2Icon className="size-3.5" />
+                  <span>Clear</span>
+                </Button>
+              )}
             </div>
           </div>
 
-          <LogOutput className="h-[calc(100vh-230px)] min-h-[500px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
-            {query.isLoading && 'Loading worker logs...'}
-            {query.isError && <span className="text-destructive">Failed to load worker logs.</span>}
-            {!query.isLoading && !query.isError && (query.data || (
-              <span className="text-muted-foreground flex items-center gap-2">
-                <TerminalIcon className="size-4" /> No log output available for this worker.
-              </span>
-            ))}
-          </LogOutput>
+          {activeTab === 'output' ? (
+            <LogOutput className="h-[calc(100vh-230px)] min-h-[500px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
+              {query.isLoading && 'Loading worker logs...'}
+              {query.isError && <span className="text-destructive">Failed to load worker logs.</span>}
+              {!query.isLoading && !query.isError && (query.data?.logs || (
+                <span className="text-muted-foreground flex items-center gap-2">
+                  <TerminalIcon className="size-4" /> No log output available for this worker.
+                </span>
+              ))}
+            </LogOutput>
+          ) : (
+            <div className="h-[calc(100vh-230px)] min-h-[500px] w-full flex-1 overflow-y-auto p-4 flex flex-col gap-2">
+              {historyList.length === 0 ? (
+                <div className="text-muted-foreground flex flex-col items-center justify-center h-full py-12 gap-2">
+                  <HistoryIcon className="size-8 stroke-1 text-muted-foreground/60" />
+                  <span className="text-sm">No start/stop history recorded for this worker yet.</span>
+                </div>
+              ) : (
+                <div className="divide-y divide-border border rounded-md overflow-hidden bg-card">
+                  {historyList.map((item) => (
+                    <div key={item.id} className="flex items-center justify-between p-3 hover:bg-muted/30 transition-colors gap-3">
+                      <div className="flex items-center gap-3 min-w-0">
+                        <Badge variant={item.type_color || 'secondary'} className="capitalize shrink-0 text-xs font-medium">
+                          {item.type}
+                        </Badge>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-xs sm:text-sm text-foreground truncate font-medium">
+                            {item.description || `Worker ${item.type}`}
+                          </span>
+                          <span className="text-[11px] text-muted-foreground">
+                            {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : 'by System')}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="shrink-0 text-right">
+                        <DateTime date={item.created_at} className="text-xs text-muted-foreground" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </Card>
       </Container>
     </>

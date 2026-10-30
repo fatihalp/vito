@@ -166,7 +166,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
   const processing = isProcessing || isFetching;
 
   return (
-    <div>
+    <div className="w-full">
       {(orderedTableData.searchable || toolbar) && (
         <div className={cn('mb-4 flex items-center gap-2', toolbar && 'mb-3 flex-wrap')}>
           {orderedTableData.searchable && (
@@ -185,7 +185,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
         </div>
       )}
 
-      <div className={cn('relative overflow-hidden rounded-md border shadow-xs', modal && 'border-none shadow-none')}>
+      <div className={cn('relative w-full overflow-hidden rounded-md border shadow-xs', modal && 'border-none shadow-none')}>
         <Table>
           <TableHeader>
             <TableRow>

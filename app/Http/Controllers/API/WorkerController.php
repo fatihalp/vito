@@ -10,6 +10,7 @@ use App\Actions\Worker\ManageWorker;
 use App\Actions\Worker\RestartAllWorkers;
 use App\Actions\Worker\SyncWorkerStatuses;
 use App\Http\Controllers\Controller;
+use App\Http\Resources\WorkerLogResource;
 use App\Http\Resources\WorkerResource;
 use App\Models\Project;
 use App\Models\Server;
@@ -40,7 +41,7 @@ class WorkerController extends Controller
         $this->authorize('viewAny', [Worker::class, $server]);
 
         $workers = $server->workers()
-            ->with('site:id,server_id,type_data')
+            ->with(['site:id,server_id,type_data', 'creator:id,name,email'])
             ->latest()
             ->simplePaginate(25);
 
@@ -55,7 +56,7 @@ class WorkerController extends Controller
         $this->authorize('viewAny', [Worker::class, $server, $site]);
 
         $workers = $site->workers()
-            ->with('site:id,server_id,type_data')
+            ->with(['site:id,server_id,type_data', 'creator:id,name,email'])
             ->latest()
             ->simplePaginate(25);
 
@@ -69,7 +70,7 @@ class WorkerController extends Controller
 
         $this->authorize('view', [$worker, $server]);
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Get('/sites/{site}/workers/{worker}', name: 'api.projects.servers.sites.workers.show', middleware: 'ability:read')]
@@ -79,7 +80,7 @@ class WorkerController extends Controller
 
         $this->authorize('view', [$worker, $server, $site]);
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Post('/workers/resync/{site?}', name: 'api.projects.servers.workers.resync', middleware: 'ability:write')]
@@ -99,13 +100,13 @@ class WorkerController extends Controller
 
     #[Post('/workers/restart-all/{site?}', name: 'api.projects.servers.workers.restart-all', middleware: 'ability:write')]
     #[WhereNumber('site')]
-    public function restartAll(Project $project, Server $server, ?Site $site = null): JsonResponse
+    public function restartAll(Request $request, Project $project, Server $server, ?Site $site = null): JsonResponse
     {
         $this->validateRoute($project, $server, $site);
 
         $this->authorize('manage', [Worker::class, $server, $site]);
 
-        app(RestartAllWorkers::class)->restart($server, $site);
+        app(RestartAllWorkers::class)->restart($server, $site, $request->user());
 
         return response()->json([
             'message' => 'Workers are being restarted.',
@@ -120,9 +121,9 @@ class WorkerController extends Controller
 
         $this->authorize('create', [Worker::class, $server, $site]);
 
-        $worker = app(CreateWorker::class)->create($server, $request->all(), $site);
+        $worker = app(CreateWorker::class)->create($server, $request->all(), $site, $request->user());
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Put('/workers/{worker}/{site?}', name: 'api.projects.servers.workers.update', middleware: 'ability:write')]
@@ -135,7 +136,7 @@ class WorkerController extends Controller
 
         $worker = app(EditWorker::class)->edit($worker, $request->all());
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Post('/workers/{worker}/start', name: 'api.projects.servers.workers.start', middleware: 'ability:write')]
@@ -145,9 +146,9 @@ class WorkerController extends Controller
 
         $this->authorize('update', [$worker, $server]);
 
-        app(ManageWorker::class)->start($worker);
+        app(ManageWorker::class)->start($worker, $request->user());
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Post('/workers/{worker}/restart', name: 'api.projects.servers.workers.restart', middleware: 'ability:write')]
@@ -157,9 +158,9 @@ class WorkerController extends Controller
 
         $this->authorize('update', [$worker, $server]);
 
-        app(ManageWorker::class)->restart($worker);
+        app(ManageWorker::class)->restart($worker, $request->user());
 
-        return new WorkerResource($worker);
+        return new WorkerResource($worker->loadMissing(['site', 'creator']));
     }
 
     #[Get('/workers/{worker}/logs', name: 'api.projects.servers.workers.logs', middleware: 'ability:read')]
@@ -173,6 +174,9 @@ class WorkerController extends Controller
 
         return response()->json([
             'logs' => $logs,
+            'history' => WorkerLogResource::collection(
+                $worker->logs()->with('user:id,name,email')->latest()->take(100)->get()
+            ),
         ]);
     }
 

@@ -27,7 +27,7 @@ export default function ServerSsls() {
     <ServerLayout>
       <Head title={`SSL - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="SSL" description="Global Server level SSL management for Custom or Wildcard certificates" />
           <div className="flex items-center gap-2">

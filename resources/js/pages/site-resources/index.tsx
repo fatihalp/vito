@@ -261,7 +261,7 @@ export default function SiteResources() {
   return (
     <ServerLayout>
       <Head title={`Resources - ${page.props.site.domain}`} />
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <div className="flex items-center gap-2.5">
             <Heading title="Resources" />

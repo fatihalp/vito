@@ -119,7 +119,7 @@ export default function ServerUpdate() {
     <ServerLayout>
       <Head title={`Update Packages - ${server.name}`} />
 
-      <Container className="max-w-5xl space-y-3.5 py-4">
+      <Container className="space-y-3.5 py-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
             <Link href={`/servers/${server.id}`}>

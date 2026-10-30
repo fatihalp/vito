@@ -224,6 +224,11 @@ export default function CronJobForm({
                 placeholder={site ? `cd ${site.path} && php artisan schedule:run >> /dev/null 2>&1` : 'php artisan schedule:run'}
               />
               <InputError message={form.errors.command} />
+              {form.data.command.includes('artisan') && !form.data.command.includes('cd ') && (
+                <p className="text-amber-500 text-xs">
+                  Artisan commands need to run from the site directory. E.g.: <code className="font-mono">cd {site?.path || '/path/to/site'} &amp;&amp; {form.data.command}</code>
+                </p>
+              )}
             </FormField>
 
             {page.props.sites && !site && (
@@ -265,6 +270,11 @@ export default function CronJobForm({
                 </SelectContent>
               </Select>
               <InputError message={form.errors.frequency} />
+              {form.data.command.includes('schedule:run') && form.data.frequency !== '* * * * *' && (
+                <p className="text-amber-500 text-xs">
+                  Laravel Task Scheduler (<code className="font-mono">schedule:run</code>) should run every minute (<code className="font-mono">* * * * *</code>) to execute scheduled tasks on time.
+                </p>
+              )}
             </FormField>
 
             {form.data.frequency === 'custom' && (

@@ -118,7 +118,7 @@ export default function ServicesIndex() {
     <ServerLayout>
       <Head title={`Services - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Services" description="Here you can manage server's services" />
           <div className="flex items-center gap-2">

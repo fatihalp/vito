@@ -37,7 +37,7 @@ export default function StorageMigrations() {
     <SettingsLayout>
       <Head title="Storage Migrations" />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Storage Migrations" description="Move backup objects between storage providers" />
           <div className="flex items-center gap-2">

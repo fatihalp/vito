@@ -106,7 +106,7 @@ export default function Commands() {
     <ServerLayout>
       <Head title={`Commands - ${site.domain} - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <div className="flex items-start justify-between gap-4">
           <Heading title="Commands" description={`Run a command in ${site.domain}'s working directory and follow its output live.`} />
           <Button variant="outline" size="sm" asChild>

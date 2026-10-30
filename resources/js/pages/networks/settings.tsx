@@ -61,7 +61,7 @@ export default function NetworkSettings() {
     <NetworkLayout>
       <Head title={`Settings - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Settings" description="Manage this network's settings" />
         </HeaderContainer>

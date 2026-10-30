@@ -13,7 +13,7 @@ export default function Users() {
     <Layout>
       <Head title="Users" />
 
-      <Container className="w-full max-w-none space-y-6">
+      <Container className="space-y-6">
         <div className="flex items-start justify-between">
           <Heading title="Users" />
           <Button onClick={() => dialog.userForm.open({})}>Create user</Button>

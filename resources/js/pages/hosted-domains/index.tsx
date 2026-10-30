@@ -107,7 +107,7 @@ export default function HostedDomains() {
     <ServerLayout>
       <Head title={`Domains - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title={`Domains${typeof domainsCount === 'number' && domainsCount > 0 ? ` (${domainsCount})` : ''}`}

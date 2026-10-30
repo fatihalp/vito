@@ -81,7 +81,7 @@ export default function Sites() {
   return (
     <Comp>
       <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
-      <Container className="w-full max-w-none py-3">
+      <Container className="py-3">
         <VitoTable
           tableData={page.props.sites}
           groupBy={page.props.groupBy}

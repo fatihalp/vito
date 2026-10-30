@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\WorkerLogType;
 use App\Enums\WorkerStatus;
 use App\Helpers\SiteShellEnvironment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -17,6 +19,7 @@ class Worker extends AbstractModel
     protected $fillable = [
         'server_id',
         'site_id',
+        'user_id',
         'name',
         'command',
         'directory',
@@ -33,6 +36,7 @@ class Worker extends AbstractModel
     protected $casts = [
         'server_id' => 'integer',
         'site_id' => 'integer',
+        'user_id' => 'integer',
         'auto_start' => 'boolean',
         'auto_restart' => 'boolean',
         'numprocs' => 'integer',
@@ -80,6 +84,27 @@ class Worker extends AbstractModel
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function creator(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
+    public function logs(): HasMany
+    {
+        return $this->hasMany(WorkerLog::class);
+    }
+
+    public function recordLog(string|WorkerLogType $type, ?string $description = null, ?int $userId = null): WorkerLog
+    {
+        $typeEnum = is_string($type) ? WorkerLogType::from($type) : $type;
+
+        return $this->logs()->create([
+            'user_id' => $userId ?? user()?->id,
+            'type' => $typeEnum,
+            'description' => $description,
+        ]);
     }
 
     public function getLogDirectory(): string

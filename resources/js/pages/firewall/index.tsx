@@ -30,7 +30,7 @@ export default function Firewall() {
     <ServerLayout>
       <Head title={`Firewall - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Firewall" />
           <div className="flex items-center gap-2">

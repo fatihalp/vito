@@ -46,7 +46,7 @@ export default function NetworkOverview() {
     <NetworkLayout>
       <Head title={`Overview - ${network.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <div className="space-y-3">
             <Heading title="Overview" description={network.name} />

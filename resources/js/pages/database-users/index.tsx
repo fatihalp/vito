@@ -33,7 +33,7 @@ export default function DatabaseUsers() {
     <ServerLayout>
       <Head title={`Users - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading
             title={

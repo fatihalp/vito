@@ -303,7 +303,7 @@ export function DataTable<TData, TValue>({
   };
 
   return (
-    <div>
+    <div className="w-full">
       <div className="mb-4">
         {searchable && (
           <div className="flex items-center gap-2">
@@ -320,7 +320,7 @@ export function DataTable<TData, TValue>({
           </div>
         )}
       </div>
-      <div className={cn('relative overflow-hidden rounded-md border shadow-xs', className, extraClasses)}>
+      <div className={cn('relative w-full overflow-hidden rounded-md border shadow-xs', className, extraClasses)}>
         {isLoading && (
           <div className="absolute top-0 right-0 left-0 h-[2px] overflow-hidden">
             <div className="animate-loading-bar bg-primary absolute inset-0 w-full" />

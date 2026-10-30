@@ -68,7 +68,7 @@ export default function GithubAppIndex() {
   return (
     <SettingsLayout>
       <Head title="GitHub App" />
-      <Container className="max-w-5xl">
+      <Container>
         <Heading
           title="GitHub App"
           description="Register a GitHub App for this Vito instance. Organizations install it to connect their repositories."

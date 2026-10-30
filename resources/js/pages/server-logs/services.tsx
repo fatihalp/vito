@@ -201,7 +201,7 @@ export default function ServiceLogs() {
     <ServerLayout>
       <Head title={`Service logs - ${server.name}`} />
 
-      <Container className="max-w-7xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Service logs" description="Inspect recent log records, filter by severity and expand errors for full details." />
         </HeaderContainer>

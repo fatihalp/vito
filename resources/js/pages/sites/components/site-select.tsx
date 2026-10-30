@@ -1,11 +1,11 @@
 import { withQuery } from '@/lib/url';
 import { type Site } from '@/types/site';
-import { useState, useEffect, useRef, type ReactNode } from 'react';
+import { Fragment, useState, useEffect, useRef, type ReactNode } from 'react';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon } from 'lucide-react';
-import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Command, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import axios from 'axios';
@@ -174,14 +174,17 @@ export default function SiteSelect({
               </div>
             ) : (
               <CommandGroup>
-                {sites.map((site: Site) => {
+                {sites.map((site: Site, index) => {
                   const siteValue = String(site[valueBy] as Site[keyof Site]);
                   const isOtherServer = Boolean(activeCurrentServerId && site.server_id !== activeCurrentServerId);
                   const showServerName = (isOtherServer || !activeCurrentServerId) && Boolean(site.server?.name);
 
                   return (
+                    <Fragment key={`site-select-${site.id}`}>
+                      {isOtherServer && index > 0 && sites[index - 1].server_id === activeCurrentServerId && (
+                        <CommandSeparator alwaysRender className="h-6 bg-transparent" />
+                      )}
                     <CommandItem
-                      key={`site-select-${site.id}`}
                       value={siteValue}
                       onSelect={() => handleSelect(site, siteValue)}
                       className="flex items-center justify-between gap-2"
@@ -196,6 +199,7 @@ export default function SiteSelect({
                       </div>
                       <CheckIcon className={cn('ml-auto size-4 shrink-0', selected === siteValue ? 'opacity-100' : 'opacity-0')} />
                     </CommandItem>
+                    </Fragment>
                   );
                 })}
                 {hasNextPage && (

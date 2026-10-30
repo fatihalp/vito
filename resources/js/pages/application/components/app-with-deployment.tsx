@@ -141,7 +141,7 @@ export default function AppWithDeployment() {
     <ServerLayout>
       <Head title={`${site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-7xl gap-6">
+      <Container className="gap-6">
         {site.status === 'installation_failed' && <SiteBanners site={site} includeAppDebug />}
 
         <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_19rem]">

@@ -21,7 +21,7 @@ export default function Application() {
       <ServerLayout>
         <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
-        <Container className="flex max-w-5xl flex-col gap-6 space-y-0">
+        <Container className="flex flex-col gap-6 space-y-0">
           <SiteInstallationProgress server={page.props.server} site={page.props.site} />
         </Container>
       </ServerLayout>

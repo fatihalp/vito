@@ -55,6 +55,7 @@ const NetworkServerConfigDialog = lazy(() => import('@/pages/networks/components
 const RevealSiteResourceDialog = lazy(() => import('@/pages/site-resources/components/reveal-site-resource-dialog'));
 const InviteProjectUser = lazy(() => import('@/pages/projects/components/invite'));
 const ProjectUsers = lazy(() => import('@/pages/projects/components/users'));
+const CleanupCommandsDialog = lazy(() => import('@/pages/monitoring/components/cleanup-commands-dialog'));
 
 export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) => void };
 
@@ -62,6 +63,7 @@ export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) 
 const UserForm = lazy(() => import('@/pages/users/components/user-form'));
 
 export const dialogs = {
+  cleanupCommands: CleanupCommandsDialog,
   userForm: UserForm,
   logViewer: LogViewerDialog,
   confirm: ConfirmationDialog,

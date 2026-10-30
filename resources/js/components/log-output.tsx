@@ -40,6 +40,7 @@ function formatLogNode(node: ReactNode): ReactNode {
 }
 
 export default function LogOutput({ className, children }: { className?: string; children: ReactNode }) {
+  const rootRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
 
@@ -71,8 +72,25 @@ export default function LogOutput({ className, children }: { className?: string;
     }
   }, [children, autoScroll]);
 
+  useEffect(() => {
+    const viewport = rootRef.current?.querySelector<HTMLElement>('[data-slot="scroll-area-viewport"]');
+    if (!viewport) return;
+    let previous = viewport.scrollTop;
+    const onScroll = () => {
+      if (viewport.scrollTop < previous) setAutoScroll(false);
+      previous = viewport.scrollTop;
+    };
+    viewport.addEventListener('scroll', onScroll, { passive: true });
+    return () => viewport.removeEventListener('scroll', onScroll);
+  }, []);
+
   return (
-    <div className="relative w-full h-full flex flex-col flex-1 min-h-0">
+    <div
+      ref={rootRef}
+      className="relative w-full h-full flex flex-col flex-1 min-h-0"
+      onWheelCapture={() => setAutoScroll(false)}
+      onTouchMoveCapture={() => setAutoScroll(false)}
+    >
       <ScrollArea
         className={cn(
           'bg-accent/50 text-accent-foreground relative h-[500px] w-full overflow-auto p-4 font-mono text-sm leading-relaxed break-all whitespace-pre-wrap',
@@ -90,6 +108,8 @@ export default function LogOutput({ className, children }: { className?: string;
               variant="outline"
               size="icon"
               className="bg-accent! absolute right-4 bottom-4 z-10"
+              aria-label={autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}
+              aria-pressed={autoScroll}
               onClick={() => setAutoScroll(!autoScroll)}
             >
               <ArrowDown className={cn('h-4 w-4', autoScroll && 'animate-bounce')} />

@@ -103,7 +103,7 @@ export default function ServerLimits() {
     <ServerLayout>
       <Head title={`Limits - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Limits" description="Upload and request body limits for Nginx and PHP." />
         </HeaderContainer>

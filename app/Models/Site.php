@@ -644,7 +644,7 @@ class Site extends AbstractModel
     {
         return $query
             ->with([
-                'server' => fn (Builder $q) => $q->forResource(),
+                'server' => fn (BelongsTo $q) => $q->forResource(),
                 'hostedDomains.ssl',
                 'workers',
                 'gitHook',

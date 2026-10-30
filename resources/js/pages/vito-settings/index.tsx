@@ -12,7 +12,7 @@ export default function VitoSettings() {
     <SettingsLayout>
       <Head title="Vito Settings" />
 
-      <Container className="max-w-5xl">
+      <Container>
         <div className="flex items-start justify-between">
           <Heading title="Vito Settings" description="Here you can manage general Vito settings" />
         </div>

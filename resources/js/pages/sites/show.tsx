@@ -29,7 +29,7 @@ export default function ShowSite() {
     <ServerLayout>
       <Head title={`${site.domain} - ${page.props.server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Application" description="Here you can manage the deployed application" />
           <div className="flex items-center gap-2">

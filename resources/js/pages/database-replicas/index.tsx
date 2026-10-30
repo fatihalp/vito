@@ -44,7 +44,7 @@ export default function DatabaseReplicas() {
     <ServerLayout>
       <Head title={`Replication - ${server.name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Replication" description="PostgreSQL streaming replicas built from pgBackRest backups, checked every minute." />
           <div className="flex items-center gap-2">

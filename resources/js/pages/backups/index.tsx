@@ -34,7 +34,7 @@ export default function Backups() {
     <Comp>
       <Head title={`Backups${page.props.server ? ' - ' + page.props.server.name : ''}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title="Backups" />
           <div className="flex items-center gap-2">

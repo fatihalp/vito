@@ -7,7 +7,7 @@ fi
 sudo supervisorctl stop {{ $id }}:* > /dev/null 2>&1 || true
 @if (!empty($logFile))
 sudo mkdir -p "$(dirname "{{ $logFile }}")"
-echo -e "\n======================================================\n[$(date '+%Y-%m-%d %H:%M:%S')] >>> WORKER RESTARTED <<<\n======================================================\n" | sudo tee -a "{{ $logFile }}" > /dev/null 2>&1 || true
+echo -e "\n======================================================\n[$(date '+%Y-%m-%d %H:%M:%S')] >>> WORKER RESTARTED{{ !empty($initiatedBy) ? ' (by '.$initiatedBy.')' : '' }} <<<\n======================================================\n" | sudo tee -a "{{ $logFile }}" > /dev/null 2>&1 || true
 @if (!empty($user))
 sudo chown -R {{ $user }}:{{ $user }} "$(dirname "{{ $logFile }}")" 2>/dev/null || true
 sudo chmod 664 "{{ $logFile }}" 2>/dev/null || true

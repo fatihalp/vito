@@ -54,7 +54,7 @@ export default function ShowDatabaseReplica() {
     <ServerLayout>
       <Head title={`Replica ${replica.replica_server_name}`} />
 
-      <Container className="max-w-5xl">
+      <Container>
         <HeaderContainer>
           <Heading title={`${replica.primary_server_name} → ${replica.replica_server_name}`} description="PostgreSQL streaming replica" />
           <div className="flex items-center gap-2">

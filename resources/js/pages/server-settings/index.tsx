@@ -138,7 +138,7 @@ export default function ServerSettings() {
     <ServerLayout>
       <Head title={`Settings - ${server.name}`} />
 
-      <Container className="max-w-6xl">
+      <Container>
         <HeaderContainer>
           <div className="flex flex-col gap-1">
             <Heading title="Settings" description="Manage server configuration, network settings, and project assignment." />

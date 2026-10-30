@@ -145,7 +145,7 @@ export default function Processes() {
     <ServerLayout>
       <Head title={`Processes - ${server.name}`} />
 
-      <Container className="max-w-6xl">
+      <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Heading title="Process Manager" description="Running processes on this server, sorted by CPU usage" />
 
