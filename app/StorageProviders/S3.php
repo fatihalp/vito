@@ -14,14 +14,15 @@ use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
-class S3 extends AbstractStorageProvider
+class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
 {
     protected StorageProvider $storageProvider;
 
     protected ?S3Client $client = null;
 
-    
     protected array $clientConfig = [];
+
+    protected ?string $lastConnectionError = null;
 
     public static function id(): string
     {
@@ -39,7 +40,7 @@ class S3 extends AbstractStorageProvider
                 $url = 'https://' . $url;
             }
 
-            return $url;
+            return rtrim($url, '/');
         }
 
         $region = $credentials['region'] ?? 'us-east-1';
@@ -49,14 +50,21 @@ class S3 extends AbstractStorageProvider
 
     public function getClient(): S3Client
     {
-        return new S3Client($this->clientConfig);
+        return $this->client ??= new S3Client($this->clientConfig);
+    }
+
+    public function forgetCachedState(): void
+    {
+        $this->client = null;
+        $this->clientConfig = [];
+        $this->lastConnectionError = null;
     }
 
     public function buildClientConfig(?array $credentials = null): array
     {
         $credentials ??= $this->storageProvider->credentials;
 
-        $this->clientConfig = [
+        $config = [
             'credentials' => [
                 'key' => trim($credentials['key']),
                 'secret' => trim($credentials['secret']),
@@ -66,6 +74,11 @@ class S3 extends AbstractStorageProvider
             'endpoint' => $this->getApiUrl($credentials),
             'use_path_style_endpoint' => true,
         ];
+
+        if ($config !== $this->clientConfig) {
+            $this->client = null;
+            $this->clientConfig = $config;
+        }
 
         return $this->clientConfig;
     }
@@ -136,24 +149,68 @@ class S3 extends AbstractStorageProvider
 
     public function connect(array $credentials): bool
     {
+        $this->lastConnectionError = null;
+
         try {
             $this->buildClientConfig($credentials);
             $this->probe($credentials);
 
             return true;
         } catch (Throwable $e) {
-            $secrets = array_filter([$credentials['key'] ?? null, $credentials['secret'] ?? null], fn (?string $value): bool => (string) $value !== '');
-
-            Log::error('Failed to connect to the provider', [
-                'error' => str_replace([...$secrets, ...array_map(rawurlencode(...), $secrets)], '<redacted>', $e->getMessage()),
-            ]);
+            $this->recordConnectionError($e, $credentials, 'Failed to connect to the provider');
 
             return false;
         }
     }
 
+    public function listBuckets(array $credentials): array
+    {
+        $this->lastConnectionError = null;
+
+        try {
+            $this->buildClientConfig($credentials);
+            $buckets = $this->getClient()->listBuckets()->get('Buckets') ?? [];
+            $names = [];
+
+            foreach ($buckets as $bucket) {
+                $name = $bucket['Name'] ?? null;
+
+                if (is_string($name) && $name !== '') {
+                    $names[] = $name;
+                }
+            }
+
+            sort($names, SORT_NATURAL | SORT_FLAG_CASE);
+
+            return array_values(array_unique($names));
+        } catch (Throwable $e) {
+            $this->recordConnectionError($e, $credentials, 'Failed to list S3 buckets');
+
+            throw new RuntimeException($this->lastConnectionError, previous: $e);
+        }
+    }
+
+    public function connectionError(): ?string
+    {
+        return $this->lastConnectionError;
+    }
+
+    public static function connectionErrorMessage(Throwable $e): string
+    {
+        $code = method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null;
+
+        return match ($code) {
+            'NoSuchBucket' => __('Bucket not found. Check the bucket name.'),
+            'AccessDenied', 'AllAccessDisabled' => __('Access was denied. Check the storage token permissions.'),
+            'InvalidAccessKeyId', 'SignatureDoesNotMatch', 'InvalidToken', 'ExpiredToken' => __('The access key or secret key is invalid.'),
+            default => __('Couldn\'t connect to the provider.'),
+        };
+    }
+
     public function canRead(array $credentials): bool
     {
+        $this->lastConnectionError = null;
+
         try {
             $this->buildClientConfig($credentials);
             $client = $this->getClient();
@@ -168,7 +225,7 @@ class S3 extends AbstractStorageProvider
 
             return true;
         } catch (Throwable $e) {
-            Log::error('Failed to verify read access to the provider', ['exception' => $e]);
+            $this->recordConnectionError($e, $credentials, 'Failed to verify read access to the provider');
 
             return false;
         }
@@ -201,7 +258,6 @@ class S3 extends AbstractStorageProvider
                 'Bucket' => $bucket,
                 'Key' => $key,
                 'Body' => $body,
-                'ContentMD5' => base64_encode(md5($body, true)),
             ]);
 
             try {
@@ -228,6 +284,16 @@ class S3 extends AbstractStorageProvider
 
             }
         }
+    }
+
+    private function recordConnectionError(Throwable $e, array $credentials, string $message): void
+    {
+        $this->lastConnectionError = static::connectionErrorMessage($e);
+        $secrets = array_filter([$credentials['key'] ?? null, $credentials['secret'] ?? null], fn (?string $value): bool => (string) $value !== '');
+
+        Log::error($message, [
+            'error' => str_replace([...$secrets, ...array_map(rawurlencode(...), $secrets)], '<redacted>', $e->getMessage()),
+        ]);
     }
 
     public function ssh(Server $server): Storage

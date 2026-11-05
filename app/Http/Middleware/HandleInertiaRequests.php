@@ -137,6 +137,15 @@ class HandleInertiaRequests extends Middleware
             }
         }
 
+        if ($user && $request->is('overview', 'servers', 'sites')) {
+            $scope = session('project_scope.'.$user->id);
+            if ($scope === 'all') {
+                $data['serverScope'] = 'all';
+            } elseif ($scope !== null) {
+                $currentProject = $user->projects->firstWhere('id', (int) $scope) ?? $currentProject;
+            }
+        }
+
         if ($currentProject && $user) {
             $currentProject = $user->projects->firstWhere('id', $currentProject->id) ?? $currentProject;
             $user->setRelation('currentProject', $currentProject);

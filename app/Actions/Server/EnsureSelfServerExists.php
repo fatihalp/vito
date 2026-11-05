@@ -66,6 +66,7 @@ class EnsureSelfServerExists
 
         if (! $server->exists) {
             $server->fill([
+                'name' => self::SERVER_NAME,
                 'user_id' => $user?->id ?? User::query()->where('is_admin', true)->value('id') ?? User::query()->value('id'),
                 'role' => ServerRole::APP,
                 'stage' => 'prod',
@@ -87,7 +88,6 @@ class EnsureSelfServerExists
 
         $server->fill([
             'project_id' => $project->id,
-            'name' => self::SERVER_NAME,
         ])->save();
 
         $this->ensureKeys($server);

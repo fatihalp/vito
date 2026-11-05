@@ -34,6 +34,7 @@ class Existing extends AbstractProvider
             'ssh_user' => [
                 'nullable',
                 'string',
+                'regex:/^[A-Za-z0-9_-]+$/',
             ],
         ];
     }

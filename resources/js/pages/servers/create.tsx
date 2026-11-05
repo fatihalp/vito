@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ClipboardCheckIcon, ClipboardIcon, LoaderCircle, PlusIcon, ServerIcon, TrashIcon, TriangleAlertIcon } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React, { FormEventHandler, useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
@@ -63,6 +64,7 @@ type CreateServerForm = {
   os: string;
   ip: string;
   port: number;
+  ssh_user: string;
   region: string;
   plan: string;
   services: Service[];
@@ -273,6 +275,7 @@ export default function CreateServerPage({
     os: 'ubuntu_24',
     ip: '',
     port: 22,
+    ssh_user: 'root',
     region: '',
     plan: '',
     services: servicesForRole('app'),
@@ -349,6 +352,7 @@ export default function CreateServerPage({
         server_provider: 0,
         role: 'custom',
         services: servicesForRole('custom'),
+        ssh_user: 'root',
         region: '',
         plan: '',
       }));
@@ -522,6 +526,10 @@ export default function CreateServerPage({
         form.setError('port', 'Valid SSH port required');
         return false;
       }
+      if (isExisting && !form.data.ssh_user.trim()) {
+        form.setError('ssh_user', 'SSH user is required');
+        return false;
+      }
       return true;
     }
     if (!form.data.server_provider) {
@@ -562,7 +570,7 @@ export default function CreateServerPage({
 
   useEffect(() => {
     if (form.hasErrors) {
-      const step0Keys = ['provider', 'server_provider', 'region', 'plan', 'ip', 'port'];
+      const step0Keys = ['provider', 'server_provider', 'region', 'plan', 'ip', 'port', 'ssh_user'];
       const step1Keys = ['name', 'stage'];
       const errors = Object.keys(form.errors);
 
@@ -638,6 +646,14 @@ export default function CreateServerPage({
 
           <Form id="create-server-form" onSubmit={submit} className="p-6 sm:p-8">
             <FormFields className="space-y-6">
+              {form.errors.provider && (
+                <Alert variant="destructive">
+                  <TriangleAlertIcon />
+                  <AlertTitle>Server connection failed</AlertTitle>
+                  <AlertDescription>{form.errors.provider}</AlertDescription>
+                </Alert>
+              )}
+
               {step === 0 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
@@ -967,6 +983,23 @@ export default function CreateServerPage({
                           <InputError message={form.errors.port} />
                         </FormField>
                       </div>
+
+                      {isExisting && (
+                        <FormField>
+                          <Label htmlFor="ssh_user">SSH User</Label>
+                          <Input
+                            id="ssh_user"
+                            placeholder="e.g. deploy"
+                            value={form.data.ssh_user}
+                            onChange={(e) => form.setData('ssh_user', e.target.value)}
+                            autoComplete="username"
+                          />
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            Use the account where you added Vito&apos;s public SSH key. Root is not required.
+                          </p>
+                          <InputError message={form.errors.ssh_user} />
+                        </FormField>
+                      )}
 
                       {publicKey && (
                         <div className="space-y-1.5 rounded-xl border bg-muted/40 p-4">

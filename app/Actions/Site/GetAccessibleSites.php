@@ -45,7 +45,14 @@ class GetAccessibleSites
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? 'all');
+        $scopeKey = 'project_scope.'.$user->id;
+        $scope = (string) ($validated['project'] ?? session($scopeKey, 'all'));
+        if ($scope !== 'all' && ! $accessibleProjectIds->contains((int) $scope)) {
+            $scope = 'all';
+        }
+        if (! request()->headers->has('X-Inertia-Prefetch') && request()->header('Purpose') !== 'prefetch') {
+            session([$scopeKey => $scope]);
+        }
         $serverScope = (string) ($validated['server'] ?? 'all');
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 

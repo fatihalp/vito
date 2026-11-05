@@ -30,7 +30,14 @@ class GetAccessibleServers
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? $user->current_project_id ?? 'all');
+        $scopeKey = 'project_scope.'.$user->id;
+        $scope = (string) ($validated['project'] ?? session($scopeKey, $user->current_project_id ?? 'all'));
+        if ($scope !== 'all' && ! $accessibleProjectIds->contains((int) $scope)) {
+            $scope = 'all';
+        }
+        if (! request()->headers->has('X-Inertia-Prefetch') && request()->header('Purpose') !== 'prefetch') {
+            session([$scopeKey => $scope]);
+        }
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 
         $query = Server::query()
