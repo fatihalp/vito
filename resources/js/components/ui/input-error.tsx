@@ -3,7 +3,7 @@ import { type HTMLAttributes } from 'react';
 
 export default function InputError({ message, className = '', ...props }: HTMLAttributes<HTMLParagraphElement> & { message?: string }) {
   return message ? (
-    <p {...props} className={cn('whitespace-pre-line text-sm text-neutral-600 dark:text-neutral-400', className)}>
+    <p role="alert" {...props} className={cn('whitespace-pre-line text-sm text-destructive', className)}>
       {message}
     </p>
   ) : null;

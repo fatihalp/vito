@@ -20,6 +20,9 @@ class RefreshServerResourceConnections
             ->with('site.server')
             ->get()
             ->each(function (SiteResource $resource) use ($server): void {
+                if (($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
+                    return;
+                }
                 $key = match ($resource->type) {
                     SiteResourceType::DATABASE => 'DB_HOST',
                     SiteResourceType::CACHE => 'REDIS_HOST',
@@ -46,6 +49,9 @@ class RefreshServerResourceConnections
             ->get()
             ->flatMap(fn ($site) => $site->resources)
             ->each(function (SiteResource $resource) use ($server): void {
+                if (($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
+                    return;
+                }
                 if ($resource->server_id === $resource->site?->server_id) {
                     return;
                 }

@@ -21,6 +21,11 @@ trait HasRolePolicies
         return $this->hasWriteAccess($user, $server->project) && (! $server->is_self || $user->isAdmin());
     }
 
+    protected function hasServerOwnerAccess(User $user, Server $server): bool
+    {
+        return $this->hasOwnerAccess($user, $server->project) && (! $server->is_self || $user->isAdmin());
+    }
+
     protected function hasReadAccess(User $user, ?Project $project): bool
     {
         if (! $project || ! $user->tokenAllowsProject($project->id)) {

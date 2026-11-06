@@ -43,7 +43,7 @@ interface SiteResourceDiagramProps {
   dnsProviders?: DNSProvider[];
   workersCount?: number;
   cronJobsCount?: number;
-  domainProxyStatus?: Record<string, boolean>;
+  domainProxyStatus?: Record<string, boolean | null>;
   defaultOpen?: boolean;
   collapsible?: boolean;
 }
@@ -109,7 +109,9 @@ export default function SiteResourceDiagram({
   const hasCloudflare = Boolean(connectedCloudflare);
   const anyConnectedDns = dnsProviders.some((p) => p.connected);
 
-  const isPrimaryProxied = Boolean(domainProxyStatus[site.domain]);
+  const primaryProxyStatus = domainProxyStatus[site.domain];
+  const isPrimaryProxied = primaryProxyStatus === true;
+  const primaryProxyKnown = typeof primaryProxyStatus === 'boolean';
 
   const customDomains = hostedDomains.filter(
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
@@ -132,7 +134,7 @@ export default function SiteResourceDiagram({
               : 'bg-muted-foreground/40',
           )}
         />
-        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare') : anyConnectedDns ? 'DNS' : 'Direct'}
+        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare') : anyConnectedDns ? 'DNS' : 'Provider not linked'}
       </span>
 
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40 font-mono">
@@ -270,7 +272,7 @@ export default function SiteResourceDiagram({
                               : 'bg-muted-foreground/40',
                           )}
                         />
-                        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare (DNS Only)') : anyConnectedDns ? 'DNS' : 'Direct'}
+                        {hasCloudflare ? (!primaryProxyKnown ? 'Cloudflare (Not checked)' : isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare (DNS Only)') : anyConnectedDns ? 'DNS' : 'Provider not linked'}
                         <SettingsIcon className="size-2.5 opacity-60 ml-0.5" />
                       </button>
                     </div>
@@ -296,11 +298,13 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
+                          {!primaryProxyKnown
+                            ? 'Not checked'
+                            : isPrimaryProxied
                             ? 'Active (Cloudflare)'
                             : hasCloudflare
                             ? 'DNS Only'
-                            : 'Origin Shield'}
+                            : 'Not verified'}
                         </span>
                       </div>
 
@@ -322,11 +326,13 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
+                          {!primaryProxyKnown
+                            ? 'Not checked'
+                            : isPrimaryProxied
                             ? 'Edge Proxied'
                             : hasCloudflare
                             ? 'DNS Only'
-                            : 'Direct (80/443)'}
+                            : 'Proxy not verified'}
                         </span>
                       </div>
 
@@ -348,7 +354,9 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied || site.ssl_enabled ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
+                          {!primaryProxyKnown
+                            ? 'Not checked'
+                            : isPrimaryProxied
                             ? 'Edge SSL + Origin'
                             : site.ssl_enabled
                             ? 'Origin HTTPS'
@@ -393,7 +401,7 @@ export default function SiteResourceDiagram({
                         {hasCloudflare ? (
                           <button
                             type="button"
-                            disabled={togglingDomain === site.domain}
+                            disabled={togglingDomain === site.domain || !primaryProxyKnown}
                             onClick={(e) => handleToggleProxy(e, site.domain, isPrimaryProxied)}
                             className={cn(
                               'flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors border cursor-pointer',
@@ -402,7 +410,7 @@ export default function SiteResourceDiagram({
                                 : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
                               togglingDomain === site.domain && 'opacity-60 pointer-events-none',
                             )}
-                            title={isPrimaryProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                            title={!primaryProxyKnown ? 'Sync DNS records to verify proxy status' : isPrimaryProxied ? 'Cloudflare Proxy & Security Active' : 'Cloudflare proxy disabled'}
                           >
                             {togglingDomain === site.domain ? (
                               <LoaderCircleIcon className="size-2.5 animate-spin" />
@@ -411,17 +419,19 @@ export default function SiteResourceDiagram({
                             ) : (
                               <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                             )}
-                            <span>{isPrimaryProxied ? 'Protected' : 'DNS only'}</span>
+                            <span>{!primaryProxyKnown ? 'Not checked' : isPrimaryProxied ? 'Protected' : 'DNS only'}</span>
                           </button>
                         ) : (
-                          <span className="text-[10px] font-mono text-muted-foreground">Direct</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">Not checked</span>
                         )}
                       </div>
 
                       {customDomains.length > 0 ? (
                         <div className="space-y-1 pt-1 border-t border-border/30">
                           {customDomains.map((hd) => {
-                            const isProxied = Boolean(domainProxyStatus[hd.domain]);
+                            const proxyStatus = domainProxyStatus[hd.domain];
+                            const isProxied = proxyStatus === true;
+                            const isKnown = typeof proxyStatus === 'boolean';
                             const isUpdating = togglingDomain === hd.domain;
 
                             return (
@@ -433,7 +443,7 @@ export default function SiteResourceDiagram({
                                 {hasCloudflare ? (
                                   <button
                                     type="button"
-                                    disabled={isUpdating}
+                                    disabled={isUpdating || !isKnown}
                                     onClick={(e) => handleToggleProxy(e, hd.domain, isProxied)}
                                     className={cn(
                                       'flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors border cursor-pointer',
@@ -442,7 +452,7 @@ export default function SiteResourceDiagram({
                                         : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
                                       isUpdating && 'opacity-60 pointer-events-none',
                                     )}
-                                    title={isProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                                    title={!isKnown ? 'Sync DNS records to verify proxy status' : isProxied ? 'Cloudflare Proxy & Security Active' : 'Cloudflare proxy disabled'}
                                   >
                                     {isUpdating ? (
                                       <LoaderCircleIcon className="size-2.5 animate-spin" />
@@ -451,7 +461,7 @@ export default function SiteResourceDiagram({
                                     ) : (
                                       <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                                     )}
-                                    <span>{isProxied ? 'Protected' : 'DNS only'}</span>
+                                    <span>{!isKnown ? 'Not checked' : isProxied ? 'Protected' : 'DNS only'}</span>
                                   </button>
                                 ) : (
                                   <span

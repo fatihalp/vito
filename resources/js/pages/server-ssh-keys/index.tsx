@@ -20,6 +20,7 @@ type DeployedKeyRow = {
   owner?: string;
   owner_email?: string;
   deployment_user?: string;
+  deployment_status?: string;
   created_at?: string;
 };
 
@@ -81,7 +82,7 @@ export default function SshKeys() {
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-semibold text-foreground">Authorized SSH Keys</h3>
             <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-              {deployedKeys.length} deployed
+              {deployedKeys.length} registered
             </Badge>
           </div>
 
@@ -101,6 +102,9 @@ export default function SshKeys() {
                         <div className="min-w-0 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm text-foreground truncate">{key.name}</span>
+                            <Badge variant={key.deployment_status === 'added' ? 'outline' : 'destructive'}>
+                              {key.deployment_status === 'added' ? 'Confirmed' : key.deployment_status === 'failed' ? 'Could not confirm' : 'Pending verification'}
+                            </Badge>
                             <Badge variant="outline" className="font-mono text-xs gap-1 font-normal">
                               <UserIcon className="size-3" />
                               {targetUser}
@@ -113,6 +117,9 @@ export default function SshKeys() {
                               </span>
                             )}
                             {key.created_at && <span>Added {key.created_at}</span>}
+                            {key.deployment_status && key.deployment_status !== 'added' && (
+                              <span>Check the SSH user and connection, then retry the operation. Access may still be active.</span>
+                            )}
                           </div>
                         </div>
                       </div>

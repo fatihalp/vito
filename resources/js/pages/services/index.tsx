@@ -1,3 +1,4 @@
+import RuntimeProcesses from '@/components/runtime-processes';
 import { useCallback, useEffect, useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { CircleIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
@@ -119,6 +120,7 @@ export default function ServicesIndex() {
       <Head title={`Services - ${server.name}`} />
 
       <Container>
+        <RuntimeProcesses kind="service" />
         <HeaderContainer>
           <Heading title="Services" description="Here you can manage server's services" />
           <div className="flex items-center gap-2">

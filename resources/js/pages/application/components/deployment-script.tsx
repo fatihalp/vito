@@ -1,6 +1,6 @@
 import React, { FormEvent, Fragment, ReactNode, useState } from 'react';
 import { Link, useForm } from '@inertiajs/react';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -65,7 +65,6 @@ export default function DeploymentScript({
             <Editor
               defaultLanguage="bash"
               value={form.data.script}
-              theme="vs-dark"
               className="h-full"
               onChange={(value) => form.setData('script', value ?? '')}
               options={{

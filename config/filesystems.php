@@ -40,6 +40,8 @@ return [
         'key-pairs' => [
             'driver' => 'local',
             'root' => storage_path('app/key-pairs'),
+            'visibility' => 'private',
+            'directory_visibility' => 'private',
         ],
 
         'tmp' => [

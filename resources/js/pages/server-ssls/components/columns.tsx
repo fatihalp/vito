@@ -9,6 +9,8 @@ import moment from 'moment';
 import { View } from '@/pages/server-logs/components/columns';
 import ActivateServerSsl from '@/pages/server-ssls/components/activate-server-ssl';
 import { useDialog } from '@/hooks/use-dialog';
+import { Link } from '@inertiajs/react';
+import { Button } from '@/components/ui/button';
 
 function Delete({ ssl }: { ssl: SSL }) {
   const dialog = useDialog();
@@ -33,6 +35,11 @@ function Delete({ ssl }: { ssl: SSL }) {
 }
 
 export const columns: ColumnDef<SSL>[] = [
+  {
+    id: 'application',
+    header: 'Application',
+    cell: ({ row }) => row.original.site_id ? <Link className="text-primary hover:underline" href={`/servers/${row.original.server_id}/sites/${row.original.site_id}/domains`}>{row.original.site_domain || 'Open application'}</Link> : 'Server certificate',
+  },
   {
     accessorKey: 'type',
     header: 'Type',
@@ -93,19 +100,20 @@ export const columns: ColumnDef<SSL>[] = [
     enableSorting: true,
     cell: ({ row }) => {
       if (!row.original.expires_at) {
-        return <span>-</span>;
+        return <span className="text-muted-foreground">Expiry not tracked</span>;
       }
 
       const targetDate = moment(row.original.expires_at);
       const today = moment();
-      const daysRemaining = targetDate.diff(today, 'days');
+      const expired = targetDate.isSameOrBefore(today);
+      const daysRemaining = Math.ceil(targetDate.diff(today, 'days', true));
 
       return (
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Badge variant="outline" className="cursor-default">
-                {daysRemaining} {daysRemaining === 1 ? 'day' : 'days'}
+              <Badge variant={expired || daysRemaining <= 7 ? 'danger' : daysRemaining <= 30 ? 'warning' : 'outline'} className="cursor-default">
+                {expired ? 'Expired' : `${daysRemaining} ${daysRemaining === 1 ? 'day' : 'days'}`}
               </Badge>
             </TooltipTrigger>
             <TooltipContent>{targetDate.format('MMMM D, YYYY')}</TooltipContent>
@@ -113,6 +121,11 @@ export const columns: ColumnDef<SSL>[] = [
         </TooltipProvider>
       );
     },
+  },
+  {
+    id: 'renewal',
+    header: 'Renewal',
+    cell: ({ row }) => row.original.type === 'letsencrypt' ? 'Let’s Encrypt' : row.original.type === 'csr' ? 'Awaiting certificate' : 'Managed externally',
   },
   {
     accessorKey: 'status',
@@ -134,6 +147,9 @@ export const columns: ColumnDef<SSL>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
+      if (row.original.site_id) {
+        return <Button variant="outline" size="sm" asChild><Link href={`/servers/${row.original.server_id}/sites/${row.original.site_id}/domains`}>Manage SSL</Link></Button>;
+      }
       return (
         <div className="flex items-center gap-2">
           <DropdownMenu modal={false}>

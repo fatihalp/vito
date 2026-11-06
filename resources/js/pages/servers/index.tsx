@@ -17,7 +17,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useEffect } from 'react';
 import type { PhpVersions } from '@/types/php-versions';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 type Page = {
@@ -102,7 +101,7 @@ const metricCell = (threshold: number) =>
     const numeric = typeof value === 'number' ? value : null;
 
     if (numeric === null) {
-      return <span className="text-muted-foreground text-xs">—</span>;
+      return <span className="text-muted-foreground text-xs" title="Cloud pricing is not linked or could not be verified.">—</span>;
     }
 
     return (
@@ -143,7 +142,7 @@ const costCell = ({ value }: CellRenderProps) => {
 
   return (
     <div className="flex flex-col">
-      <span className="font-mono text-sm font-medium">{cost.formatted}</span>
+      <span className="font-mono text-sm font-medium" title="Monthly server plan before VAT. IPv4, backups and other extras are not included.">{cost.formatted}</span>
       {cost.plan && (
         <span className="text-muted-foreground text-[11px]">
           {cost.plan}{cost.region ? ` · ${cost.region}` : ''}
@@ -235,26 +234,31 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
           className="h-6 shrink-0 gap-1 px-1.5 text-warning/80 hover:text-warning"
           aria-label={`${count} server ${count === 1 ? 'warning' : 'warnings'}`}
-          onClick={(event) => event.stopPropagation()}
+          onClick={(event) => {
+            event.stopPropagation();
+            router.visit(warnings.some((warning) => warning.key === 'updates_available' || warning.key === 'kernel_update_available')
+              ? `/servers/${row.id}/update`
+              : warnings.some((warning) => warning.key === 'reboot_required') ? `/servers/${row.id}/restart` : `/servers/${row.id}`);
+          }}
         >
           <TriangleAlertIcon className="size-3.5" />
           <span className="text-xs tabular-nums">{count}</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-3" onClick={(event) => event.stopPropagation()}>
+      </TooltipTrigger>
+      <TooltipContent align="start" className="w-72 p-3">
         <p className="mb-2 text-xs font-medium">Server warnings</p>
         <ul className="text-muted-foreground flex flex-col gap-2 text-xs">
           {warnings.map((warning) => <li key={warning.key}>{formatWarningLabel(warning)}</li>)}
         </ul>
-      </PopoverContent>
-    </Popover>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 

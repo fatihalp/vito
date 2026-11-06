@@ -19,16 +19,13 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    
     protected $rootView = 'app';
 
-    
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    
     public function share(Request $request): array
     {
         $user = $request->user();
@@ -134,6 +131,17 @@ class HandleInertiaRequests extends Middleware
                         $network->load('serverProvider')->loadCount('servers')
                     );
                 }
+            }
+        }
+
+        if ($user && $request->is('overview', 'servers', 'sites')) {
+            $scope = session('project_scope.'.$user->id, 'all');
+            if ($scope === 'all') {
+                $data['serverScope'] = 'all';
+            } elseif ($scope !== null) {
+                $currentProject = $user->projects->firstWhere('id', (int) $scope)
+                    ?? $user->allProjects()->whereKey((int) $scope)->first()
+                    ?? $currentProject;
             }
         }
 

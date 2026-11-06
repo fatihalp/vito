@@ -4,7 +4,6 @@ namespace App\Actions\Server;
 
 use App\Models\Server;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -30,7 +29,14 @@ class GetAccessibleServers
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? $user->current_project_id ?? 'all');
+        $scopeKey = 'project_scope.'.$user->id;
+        $scope = (string) ($validated['project'] ?? session($scopeKey, 'all'));
+        if ($scope !== 'all' && ! $accessibleProjectIds->contains((int) $scope)) {
+            $scope = 'all';
+        }
+        if (! request()->headers->has('X-Inertia-Prefetch') && request()->header('Purpose') !== 'prefetch') {
+            session([$scopeKey => $scope]);
+        }
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 
         $query = Server::query()

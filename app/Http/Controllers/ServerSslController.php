@@ -13,6 +13,7 @@ use App\Models\Server;
 use App\Models\Ssl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -37,7 +38,9 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
-        $ssls = QueryBuilder::for($server->ssls()->whereNull('site_id')->with('log'))
+        $ssls = QueryBuilder::for(Ssl::query()
+            ->where(fn (Builder $query) => $query->where('server_id', $server->id)->orWhereHas('site', fn (Builder $sites) => $sites->where('server_id', $server->id)))
+            ->with(['log', 'site:id,domain,server_id']))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 

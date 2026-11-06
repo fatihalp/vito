@@ -30,7 +30,14 @@ class VitoSettingController extends Controller
     {
         $exportName = 'vito-backup-'.date('Y-m-d').'.zip';
 
-        return response()->download(app(ExportVitoSettings::class)->export($exportName), $exportName)->deleteFileAfterSend();
+        $path = app(ExportVitoSettings::class)->export($exportName);
+        app()->terminating(function () use ($path): void {
+            if (is_dir(dirname($path)) && count(scandir(dirname($path))) === 2) {
+                rmdir(dirname($path));
+            }
+        });
+
+        return response()->download($path, $exportName, ['Cache-Control' => 'no-store, private'])->deleteFileAfterSend();
     }
 
     #[Post('/import', name: 'vito-settings.import')]

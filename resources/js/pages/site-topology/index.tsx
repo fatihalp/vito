@@ -19,7 +19,7 @@ export default function SiteTopology() {
     resources: SiteResource[];
     hostedDomains: HostedDomain[];
     dnsProviders: DNSProvider[];
-    domainProxyStatus: Record<string, boolean>;
+    domainProxyStatus: Record<string, boolean | null>;
     overviewWorkersCount: number;
     overviewCronJobsCount: number;
   }>();

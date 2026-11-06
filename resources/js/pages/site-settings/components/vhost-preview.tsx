@@ -1,7 +1,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,6 @@ export default function VHostPreview({ site, children }: { site: Site; children:
             <Editor
               defaultLanguage={site.webserver}
               value={query.data.vhost}
-              theme="vs-dark"
               className="h-full"
               options={{
                 fontSize: 15,

@@ -34,8 +34,8 @@ export default function ServerHeader({ server: initialServer }: { server: Server
   const { copied: ipCopied, copy: copyIp } = useClipboard();
 
   return (
-    <div className="flex items-center justify-between border-b px-4 py-2">
-      <div className="flex items-center space-x-2 text-xs">
+    <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-b px-4 py-2">
+      <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2 text-xs">
         <Tooltip>
           <TooltipTrigger asChild>
             <div className="flex items-center space-x-1">
@@ -51,7 +51,7 @@ export default function ServerHeader({ server: initialServer }: { server: Server
           </TooltipContent>
         </Tooltip>
         <SlashIcon className="size-3" />
-        <span className="text-muted-foreground">{server.role}</span>
+        <span className="text-muted-foreground whitespace-nowrap">{server.role}</span>
 
         <SlashIcon className="size-3" />
         <Tooltip>
@@ -123,11 +123,11 @@ export default function ServerHeader({ server: initialServer }: { server: Server
         )}
       </div>
 
-      <div className="flex items-center gap-1.5">
+      <div className="flex shrink-0 items-center gap-1.5">
         <ConnectSshDialog server={server}>
-          <Button variant="ghost" size="sm" className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground cursor-pointer">
+          <Button aria-label="Connect via SSH" variant="ghost" size="sm" className="h-6 text-[11px] gap-1 px-2 text-muted-foreground hover:text-foreground cursor-pointer">
             <KeyRoundIcon className="size-3" />
-            <span>Connect</span>
+            <span className="hidden sm:inline">Connect</span>
           </Button>
         </ConnectSshDialog>
       </div>

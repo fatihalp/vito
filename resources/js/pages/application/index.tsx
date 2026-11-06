@@ -7,6 +7,7 @@ import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import SiteInstallationProgress from '@/pages/application/components/site-installation-progress';
 import { Server } from '@/types/server';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function Application() {
   const page = usePage<{
@@ -22,7 +23,16 @@ export default function Application() {
         <Head title={`${page.props.site.domain} - ${page.props.server.name}`} />
 
         <Container className="flex flex-col gap-6 space-y-0">
-          <SiteInstallationProgress server={page.props.server} site={page.props.site} />
+          {page.props.site.status === 'planned' ? (
+            <Alert>
+              <AlertTitle>Planned site — not installed yet</AlertTitle>
+              <AlertDescription>
+                No installation is running. Complete the runtime and deployment configuration before publishing DNS or starting a deploy.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <SiteInstallationProgress server={page.props.server} site={page.props.site} />
+          )}
         </Container>
       </ServerLayout>
     );

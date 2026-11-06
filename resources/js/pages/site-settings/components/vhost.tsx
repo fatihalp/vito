@@ -2,7 +2,7 @@ import React, { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
@@ -112,7 +112,6 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
             <Editor
               defaultLanguage={site.webserver}
               value={form.data.template}
-              theme="vs-dark"
               className="h-full"
               onChange={(value) => form.setData('template', value ?? '')}
               options={{
@@ -182,7 +181,6 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
             <Editor
               defaultLanguage={site.webserver}
               value={previewContent}
-              theme="vs-dark"
               className="h-full"
               options={{
                 fontSize: 15,

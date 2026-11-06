@@ -60,16 +60,19 @@ class ConnectSiteResource
                 'exclude_unless:type,storage',
                 'required',
                 'integer',
-                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId, $isAdmin): void {
+                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId, $isAdmin, $user): void {
                     if (! $isAdmin) {
-                        $query->where('project_id', $projectId)
-                            ->orWhereNull('project_id');
+                        $query->where('user_id', $user?->id)
+                            ->where(fn (Builder $scope) => $scope->where('project_id', $projectId)->orWhereNull('project_id'));
                     }
                 }),
             ],
             'database_id' => ['nullable', 'integer'],
             'database_name' => ['nullable', 'string', 'max:64'],
             'confirm_overwrite' => ['nullable', 'boolean'],
+            'management_mode' => ['nullable', Rule::in(['managed', 'observed'])],
+            'runtime_driver' => ['nullable', Rule::in(['native', 'docker'])],
+            'container' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/'],
         ]);
 
         $data = $validator->validate();
@@ -78,6 +81,10 @@ class ConnectSiteResource
 
         if ($site->resources()->where('type', $type->value)->exists()) {
             throw ValidationException::withMessages(['type' => __('This resource type is already connected to the site.')]);
+        }
+
+        if (($data['management_mode'] ?? 'managed') === 'observed') {
+            return app(RegisterExistingSiteResource::class)->register($site, $data);
         }
 
         if ($type === SiteResourceType::STORAGE) {
@@ -270,8 +277,8 @@ class ConnectSiteResource
         $storageProvider = StorageProvider::query()
             ->where(function ($query) use ($site, $isAdmin): void {
                 if (! $isAdmin) {
-                    $query->where('project_id', $site->server->project_id)
-                        ->orWhereNull('project_id');
+                    $query->where('user_id', auth()->id())
+                        ->where(fn ($scope) => $scope->where('project_id', $site->server->project_id)->orWhereNull('project_id'));
                 }
             })
             ->findOrFail($storageProviderId);

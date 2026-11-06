@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { httpErrorMessage } from '@/lib/request-error';
+import { toast } from 'sonner';
 
 type PageProps = {
   server: Server;
@@ -67,6 +69,12 @@ export default function ServerRestart() {
       if (!response.ok) return false;
 
       const data = await response.json();
+      if (data.stage === 'unconfirmed') {
+        addMilestone(data.message);
+        toast.error('The restart could not be confirmed. Review the server logs before retrying.');
+        setPhase('idle');
+        return true;
+      }
 
       if (data.online) {
         setUptime(data.uptime ?? null);
@@ -87,7 +95,7 @@ export default function ServerRestart() {
     setMilestones([{ id: `${Date.now()}`, time: new Date().toLocaleTimeString('en-US'), text: 'Reboot signal sent ($ sudo reboot)' }]);
 
     try {
-      await fetch(`/servers/${server.id}/restart/trigger`, {
+      const response = await fetch(`/servers/${server.id}/restart/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,19 +104,17 @@ export default function ServerRestart() {
           Accept: 'application/json',
         },
       });
+      if (!response.ok) {
+        toast.error(httpErrorMessage(response.status, 'The restart request failed. Please try again.'));
+        setPhase('idle');
+        return;
+      }
     } catch {
+      addMilestone('The response was interrupted. Checking whether the server is reconnecting.');
     }
 
     setPhase('probing');
-  }, [csrf_token, server.id]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerReboot();
-    }
-  }, [triggerReboot]);
+  }, [addMilestone, csrf_token, server.id]);
 
   useEffect(() => {
     if (phase !== 'probing') return;

@@ -1,4 +1,3 @@
-import { withQuery } from '@/lib/url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -98,15 +97,6 @@ export default function ServerUpdate() {
     [csrf_token, isTriggering, server.id, server.status]
   );
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      const type = params.get('type') === 'kernel' ? 'kernel' : 'os';
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerUpdate(type);
-    }
-  }, [triggerUpdate]);
-
   const copyAllLogs = () => {
     copy(content || '');
   };
@@ -154,7 +144,7 @@ export default function ServerUpdate() {
               <span className="truncate">A restart is required to apply kernel or core system updates.</span>
             </div>
             <Button size="sm" asChild className="h-7 text-xs shrink-0 cursor-pointer" variant="outline">
-              <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
+              <Link href={`/servers/${server.id}/restart`}>
                 Restart server
               </Link>
             </Button>

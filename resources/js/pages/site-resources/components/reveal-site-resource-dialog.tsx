@@ -35,6 +35,7 @@ export default function RevealSiteResourceDialog({
     },
     enabled: open && !!resource?.id,
     retry: false,
+    gcTime: 0,
     refetchOnWindowFocus: false,
   });
 

@@ -32,7 +32,7 @@ interface EdgeNetworkDialogProps {
   server: Server;
   dnsProviders: DNSProvider[];
   hostedDomains?: HostedDomain[];
-  domainProxyStatus?: Record<string, boolean>;
+  domainProxyStatus?: Record<string, boolean | null>;
 }
 
 type DomainRow = { domain: string; type: HostedDomain['type'] };
@@ -62,7 +62,8 @@ export default function EdgeNetworkDialog({
     }, {}),
   ).sort((a, b) => (a.type === 'primary' ? -1 : b.type === 'primary' ? 1 : a.domain.localeCompare(b.domain)));
 
-  const protectedCount = domains.filter((d) => domainProxyStatus[d.domain] ?? hasCloudflare).length;
+  const protectedCount = domains.filter((d) => domainProxyStatus[d.domain] === true).length;
+  const unknownCount = domains.filter((d) => typeof domainProxyStatus[d.domain] !== 'boolean').length;
 
   const handleToggleProxy = (domainName: string, currentStatus: boolean) => {
     setTogglingDomain(domainName);
@@ -178,7 +179,7 @@ export default function EdgeNetworkDialog({
               <div className="flex items-center gap-2">
                 <span className="text-xs font-semibold">Domains</span>
                 <Badge variant="gray" className="text-[10px] font-mono font-normal">
-                  {hasCloudflare ? `${protectedCount} of ${domains.length} protected` : `${domains.length} total`}
+                  {hasCloudflare ? `${protectedCount} confirmed protected${unknownCount ? ` · ${unknownCount} not checked` : ''}` : `${domains.length} total`}
                 </Badge>
               </div>
               <Button variant="outline" size="sm" onClick={openAddDomain} className="h-7 text-xs px-2.5 gap-1">
@@ -187,9 +188,12 @@ export default function EdgeNetworkDialog({
               </Button>
             </div>
 
+            <p className="text-muted-foreground px-4 pb-3 text-xs">Unknown status is not a protection verdict. <Link href="/domains" className="underline">Sync DNS records</Link> to check it.</p>
             <div className="divide-y divide-border/50">
               {domains.map((item) => {
-                const isProxied = domainProxyStatus[item.domain] ?? hasCloudflare;
+                const proxyStatus = domainProxyStatus[item.domain];
+                const isProxied = proxyStatus === true;
+                const isKnown = typeof proxyStatus === 'boolean';
                 const isUpdating = togglingDomain === item.domain;
 
                 return (
@@ -210,18 +214,18 @@ export default function EdgeNetworkDialog({
                         <div className="flex items-center gap-2.5">
                           {isUpdating && <LoaderCircleIcon className="size-3.5 animate-spin text-muted-foreground" />}
                           <span className={isProxied ? 'text-xs font-medium text-foreground' : 'text-xs text-muted-foreground'}>
-                            {isProxied ? 'Protected' : 'DNS only'}
+                            {!isKnown ? 'Not checked' : isProxied ? 'Protected' : 'DNS only'}
                           </span>
                           <Switch
                             checked={isProxied}
-                            disabled={isUpdating}
+                            disabled={isUpdating || !isKnown}
                             onCheckedChange={() => handleToggleProxy(item.domain, isProxied)}
                             aria-label={`Toggle protection for ${item.domain}`}
                           />
                         </div>
                       ) : (
                         <Badge variant="outline" className="text-xs text-muted-foreground font-normal">
-                          Direct
+                          Proxy not verified
                         </Badge>
                       )}
                     </div>

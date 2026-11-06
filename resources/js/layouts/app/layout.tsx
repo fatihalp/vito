@@ -4,7 +4,6 @@ import { NavGroup, NavItem, SharedData } from '@/types';
 import { type CSSProperties, type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { getStoredSidebarOpen, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
-import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -139,7 +138,6 @@ export default function Layout({
                 </>
               ) : null}
             </div>
-            <Toaster richColors position="bottom-center" />
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>

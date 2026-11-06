@@ -1,9 +1,10 @@
-import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types/user';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings, ShieldCheckIcon } from 'lucide-react';
+import { LogOut, PaletteIcon, Settings, ShieldCheckIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
 import { clearQueryClient } from '@/lib/query-client';
 import serverHelper from '@/lib/server-helper';
@@ -15,6 +16,7 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
   const cleanup = useMobileNavigation();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     cleanup();
@@ -34,8 +36,21 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <PaletteIcon className="mr-2 size-4" />
+            Appearance
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuItem asChild>
-          <Link className="block w-full" href={"/settings"} as="button" prefetch onClick={cleanup}>
+          <Link className="block w-full" href={"/settings/profile"} as="button" prefetch onClick={cleanup}>
             <Settings className="mr-2" />
             Settings
           </Link>

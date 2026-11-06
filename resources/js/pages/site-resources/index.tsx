@@ -6,6 +6,9 @@ import SiteBanners from '@/components/site-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDialog } from '@/hooks/use-dialog';
 import ServerLayout from '@/layouts/server/layout';
@@ -53,6 +56,10 @@ export default function SiteResources() {
     page.props.storageProviders[0]?.id?.toString() ?? '',
   );
   const [isConnecting, setIsConnecting] = useState(false);
+  const [managementMode, setManagementMode] = useState('observed');
+  const [runtimeDriver, setRuntimeDriver] = useState('native');
+  const [databaseName, setDatabaseName] = useState('');
+  const [container, setContainer] = useState('');
   const [isInstalling, setIsInstalling] = useState(false);
   const [pendingConnect, setPendingConnect] = useState<PendingConnect | null>(null);
 
@@ -74,12 +81,12 @@ export default function SiteResources() {
     page.props.servers.find((s) => s.id.toString() === selectedCacheServerId) ??
     page.props.servers.find((s) => s.id === page.props.server.id);
 
-  const isDbReady = !!selectedDbServer?.has_database;
+  const isDbReady = managementMode === 'observed' || !!selectedDbServer?.has_database;
   const isDbInstalling =
     (selectedDbServer?.database_status != null && selectedDbServer.database_status !== 'ready') ||
     (pendingConnect?.type === 'database' && pendingConnect.serverId === selectedDbServerId);
 
-  const isCacheReady = !!selectedCacheServer?.has_cache;
+  const isCacheReady = managementMode === 'observed' || !!selectedCacheServer?.has_cache;
   const isCacheInstalling =
     (selectedCacheServer?.cache_status != null && selectedCacheServer.cache_status !== 'ready') ||
     (pendingConnect?.type === 'cache' && pendingConnect.serverId === selectedCacheServerId);
@@ -111,6 +118,10 @@ export default function SiteResources() {
     const data: Record<string, string | boolean | undefined> = {
       type,
       confirm_overwrite: confirmOverwrite,
+      management_mode: managementMode,
+      runtime_driver: runtimeDriver,
+      database_name: databaseName || undefined,
+      container: container || undefined,
     };
     if (type === 'storage') {
       data.storage_provider_id = storageProviderId;
@@ -227,6 +238,10 @@ export default function SiteResources() {
   };
 
   const copyEnv = (resource: SiteResource) => {
+    if (resource.secrets_redacted) {
+      dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource });
+      return;
+    }
     if (!resource.environment || Object.keys(resource.environment).length === 0) {
       toast.error('No environment variables to copy');
       return;
@@ -244,7 +259,9 @@ export default function SiteResources() {
     dialog.confirm.open({
       title: `Disconnect ${resource.type}?`,
       description:
-        resource.type_value === 'database'
+        resource.management_mode === 'observed'
+          ? 'Remove this inventory link from Pure. The running application, environment file, database, service and data will not change.'
+          : resource.type_value === 'database'
           ? 'This site will be disconnected from the database and its DB_* environment variables will be removed. Your database and data will NOT be deleted and remain completely intact on your server.'
           : resource.type_value === 'cache'
             ? 'This site will be disconnected from Redis and its cache environment variables will be restored. Your Redis service remains running on the server.'
@@ -266,13 +283,29 @@ export default function SiteResources() {
           <div className="flex items-center gap-2.5">
             <Heading title="Resources" />
             <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-              {connectedCount} of 3 connected
+              {connectedCount} resources registered
             </Badge>
           </div>
           {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
         </HeaderContainer>
 
         {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}
+
+        <div className="grid gap-3 rounded-lg border bg-card p-4">
+          <Label htmlFor="resource-management-mode">Connection mode</Label>
+          <Select value={managementMode} onValueChange={setManagementMode}>
+            <SelectTrigger id="resource-management-mode"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="observed">Register an existing connection</SelectItem><SelectItem value="managed">Create and manage a connection</SelectItem></SelectContent>
+          </Select>
+          <Alert><AlertDescription>{managementMode === 'observed' ? 'Register what the application already uses. No environment files, users, services or firewall rules are changed. A missing link here does not mean the application is disconnected.' : 'Pure can create database users, change environment values and configure networking. Use this for new applications or a planned connection change.'}</AlertDescription></Alert>
+          {managementMode === 'observed' && !dbResource && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2"><Label htmlFor="existing-database">Existing database name</Label><Input id="existing-database" value={databaseName} onChange={(event) => setDatabaseName(event.target.value)} placeholder="Use the application's DB_DATABASE" /></div>
+              <div className="grid gap-2"><Label htmlFor="database-runtime">PostgreSQL runtime</Label><Select value={runtimeDriver} onValueChange={setRuntimeDriver}><SelectTrigger id="database-runtime"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="native">Installed on the server</SelectItem><SelectItem value="docker">Docker container</SelectItem></SelectContent></Select></div>
+              {runtimeDriver === 'docker' && <div className="grid gap-2"><Label htmlFor="database-container">Existing container name</Label><Input id="database-container" value={container} onChange={(event) => setContainer(event.target.value)} placeholder="project-db-1" /></div>}
+            </div>
+          )}
+        </div>
 
         <div className="flex w-full flex-col gap-3">
           <Card className="w-full transition-shadow">
@@ -287,7 +320,7 @@ export default function SiteResources() {
                     {dbResource ? (
                       <Badge variant={dbResource.status_color}>
                         {dbResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
+                        {dbResource.management_mode === 'observed' ? 'Existing connection' : dbResource.status === 'ready' ? 'Connected' : dbResource.status}
                       </Badge>
                     ) : isDbInstalling ? (
                       <Badge variant="warning" className="text-xs">
@@ -296,7 +329,7 @@ export default function SiteResources() {
                       </Badge>
                     ) : isDbReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {managementMode === 'observed' ? 'Not registered in Pure' : 'Ready'}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -321,7 +354,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(dbResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -341,6 +374,7 @@ export default function SiteResources() {
                       </>
                     )}
                   </Button>
+                  <Button variant="outline" size="sm" asChild><Link href={`/servers/${page.props.server.id}/sites/${page.props.site.id}/resources/${dbResource.id}/browse`}>Browse tables</Link></Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -385,7 +419,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Database
+                      {managementMode === 'observed' ? 'Register database' : 'Connect database'}
                     </Button>
                   ) : (
                     <Button
@@ -414,6 +448,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={dbResource.environment}
+                    redacted={dbResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: dbResource })}
                     type="database"
                     title={null}
                   />
@@ -433,7 +469,7 @@ export default function SiteResources() {
                     {cacheResource ? (
                       <Badge variant={cacheResource.status_color}>
                         {cacheResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
+                        {cacheResource.management_mode === 'observed' ? 'Existing connection' : cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
                       </Badge>
                     ) : isCacheInstalling ? (
                       <Badge variant="warning" className="text-xs">
@@ -442,7 +478,7 @@ export default function SiteResources() {
                       </Badge>
                     ) : isCacheReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {managementMode === 'observed' ? 'Not registered in Pure' : 'Ready'}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -467,7 +503,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(cacheResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -531,7 +567,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Redis
+                      {managementMode === 'observed' ? 'Register Redis' : 'Connect Redis'}
                     </Button>
                   ) : (
                     <Button
@@ -560,6 +596,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={cacheResource.environment}
+                    redacted={cacheResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: cacheResource })}
                     type="cache"
                     title={null}
                   />
@@ -579,7 +617,7 @@ export default function SiteResources() {
                     {storageResource ? (
                       <Badge variant={storageResource.status_color}>
                         {storageResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {storageResource.status === 'ready' ? 'Connected' : storageResource.status}
+                        {storageResource.management_mode === 'observed' ? 'Existing connection' : storageResource.status === 'ready' ? 'Connected' : storageResource.status}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -604,7 +642,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(storageResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -671,7 +709,7 @@ export default function SiteResources() {
                         ) : (
                           <PlusIcon className="size-3.5" />
                         )}
-                        Connect Storage
+                        {managementMode === 'observed' ? 'Register storage' : 'Connect storage'}
                       </Button>
                     </>
                   ) : (
@@ -693,6 +731,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={storageResource.environment}
+                    redacted={storageResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: storageResource })}
                     type="storage"
                     title={null}
                   />

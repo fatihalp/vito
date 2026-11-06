@@ -15,7 +15,7 @@ class ResolveDomainProxyStatuses
             ->values();
 
         $dnsRecords = DNSRecord::query()
-            ->where('type', 'A')
+            ->whereIn('type', ['A', 'AAAA', 'CNAME'])
             ->whereHas('domain', fn ($query) => $query
                 ->where('project_id', $site->server->project_id)
                 ->whereHas('dnsProvider', fn ($provider) => $provider->where('connected', true)))
@@ -26,11 +26,15 @@ class ResolveDomainProxyStatuses
         foreach ($allDomainNames as $dName) {
             $matched = $dnsRecords->first(function ($r) use ($dName) {
                 $rootDomain = strtolower($r->domain->domain ?? '');
-                $sub = $dName === $rootDomain ? '@' : str_replace('.'.$rootDomain, '', $dName);
+                $name = strtolower(rtrim($dName, '.'));
+                if ($name !== $rootDomain && ! str_ends_with($name, '.'.$rootDomain)) {
+                    return false;
+                }
+                $sub = $name === $rootDomain ? '@' : substr($name, 0, -strlen('.'.$rootDomain));
 
                 return strtolower($r->name) === strtolower($dName) || strtolower($r->name) === strtolower($sub);
             });
-            $domainProxyStatus[$dName] = $matched ? (bool) $matched->proxied : false;
+            $domainProxyStatus[$dName] = $matched?->proxied;
         }
 
         return $domainProxyStatus;

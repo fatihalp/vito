@@ -15,6 +15,7 @@ import { useDialog } from '@/hooks/use-dialog';
 type Page = {
   server: Server;
   databases: InertiaTableData;
+  registeredDatabases: Array<{ name: string; container: string; applications: Array<{ domain: string; browse_url: string; resources_url: string; can_browse: boolean }> }>;
   replicaOf?: { server_id: number; name: string | null } | null;
 };
 
@@ -23,6 +24,8 @@ export default function Databases() {
   const dialog = useDialog();
 
   const dbType = page.props.server.services['database'];
+  const registeredDatabases = page.props.registeredDatabases ?? [];
+  const databaseCount = (page.props.server.counts?.databases ?? 0) + registeredDatabases.length;
   const defaultCharset = dbType === 'postgresql' ? 'UTF8' : 'utf8mb4';
   const defaultCollation = dbType === 'postgresql' ? 'C.utf8' : 'utf8mb4_0900_ai_ci';
 
@@ -33,13 +36,9 @@ export default function Databases() {
       <Container>
         <HeaderContainer>
           <Heading
-            title={
-              page.props.server.counts?.databases !== undefined
-                ? `Databases (${page.props.server.counts.databases})`
-                : 'Databases'
-            }
+            title={`Databases (${databaseCount})`}
           />
-          <div className="flex items-center gap-2">
+          {dbType && <div className="flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() =>
@@ -63,7 +62,7 @@ export default function Databases() {
                 </Button>
               </CreateDatabase>
             )}
-          </div>
+          </div>}
         </HeaderContainer>
 
         {page.props.replicaOf && (
@@ -84,7 +83,17 @@ export default function Databases() {
           </Alert>
         )}
 
-        <VitoTable tableData={page.props.databases} />
+        {registeredDatabases.length > 0 && <section className="space-y-3" aria-label="Registered container databases">
+          <Heading title="Existing container databases" description="These connections preserve the running database. Table browsing is read only; server-level Sync and Create do not change container databases." />
+          <div className="grid gap-3 lg:grid-cols-2">{registeredDatabases.map((database) => <article key={`${database.container}|${database.name}`} className="space-y-3 rounded-lg border p-4">
+            <div><h2 className="font-semibold break-all">{database.name}</h2><p className="text-muted-foreground break-all text-sm">Docker · PostgreSQL · {database.container}</p></div>
+            {database.applications.map((application) => <div key={application.resources_url} className="flex flex-wrap items-center justify-between gap-2">
+              <Link className="text-sm underline" href={application.resources_url}>{application.domain}</Link>
+              {application.can_browse && <Button variant="outline" size="sm" asChild><Link href={application.browse_url}>Browse tables</Link></Button>}
+            </div>)}
+          </article>)}</div>
+        </section>}
+        {dbType ? <VitoTable tableData={page.props.databases} /> : registeredDatabases.length === 0 && <Alert><InfoIcon /><AlertTitle>No database connections registered</AlertTitle><AlertDescription>Link an existing application database from its Resources page. This screen lists registered connections and does not automatically discover or install database services.</AlertDescription></Alert>}
       </Container>
     </ServerLayout>
   );

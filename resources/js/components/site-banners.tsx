@@ -228,31 +228,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   if (vhostWarning) {
     items.push({
       key: 'vhost-disabled',
-      title: 'VHost generation is disabled',
-      description: (
-        <>
-          Automatic VHost generation has been disabled. Changes to SSL, domains, or redirects will not update the VHost config. Review your template
-          on the{' '}
-          <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`} className="underline">
-            Settings page
-          </Link>{' '}
-          before re-enabling.
-        </>
-      ),
+      severity: 'info',
+      title: 'Existing webserver configuration is preserved',
+      description: 'Vito is not generating this site’s webserver configuration. This does not mean the site or HTTPS is offline. Review the existing configuration before enabling automatic management.',
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            router.patch(
-              `/servers/${site.server_id}/sites/${site.id}/settings/vhost-generation`,
-              { vhost_generation_enabled: true },
-              { preserveScroll: true },
-            );
-          }}
-        >
-          Re-enable
-        </Button>
+        <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`}>
+          <Button variant="outline" size="sm">Review settings</Button>
+        </Link>
       ),
     });
   }

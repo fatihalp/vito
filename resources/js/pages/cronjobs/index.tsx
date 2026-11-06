@@ -1,3 +1,4 @@
+import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { PaginatedData } from '@/types';
@@ -133,6 +134,8 @@ export default function CronJobIndex() {
             </Button>
           </div>
         )}
+
+        <RuntimeProcesses kind="scheduler" />
 
         <DataTable columns={columns(page.props.site, page.props.sites)} paginatedData={page.props.cronjobs} />
       </Container>

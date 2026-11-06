@@ -12,5 +12,6 @@ class SwitchProject
         $user->update([
             'current_project_id' => $project->id,
         ]);
+        session(['project_scope.'.$user->id => (string) $project->id]);
     }
 }

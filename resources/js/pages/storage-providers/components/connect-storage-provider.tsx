@@ -1,4 +1,4 @@
-import { ChevronDownIcon, InfoIcon, LoaderCircle } from 'lucide-react';
+import { AlertCircleIcon, ChevronDownIcon, InfoIcon, LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -11,19 +11,21 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { useForm, usePage } from '@inertiajs/react';
-import { FormEventHandler, ReactNode, useEffect, useState } from 'react';
+import { router, useForm, usePage } from '@inertiajs/react';
+import { FormEventHandler, ReactNode, useEffect, useRef, useState } from 'react';
+import axios from 'axios';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import InputError from '@/components/ui/input-error';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import DynamicField from '@/components/ui/dynamic-field';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { SharedData } from '@/types';
 import { cn } from '@/lib/utils';
+import { requestErrorMessage } from '@/lib/request-error';
 
 type StorageProviderForm = {
   provider: string;
@@ -31,7 +33,7 @@ type StorageProviderForm = {
   global: boolean;
   app_key: string;
   app_secret: string;
-  [key: string]: any;
+  [key: string]: DynamicFieldValue;
 };
 
 const S3_PRESETS = [
@@ -91,6 +93,12 @@ export default function ConnectStorageProvider({
   const [open, setOpen] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
+  const [r2Buckets, setR2Buckets] = useState<string[]>([]);
+  const [selectedR2Buckets, setSelectedR2Buckets] = useState<string[]>([]);
+  const [loadingR2Buckets, setLoadingR2Buckets] = useState(false);
+  const [importingR2Buckets, setImportingR2Buckets] = useState(false);
+  const [r2Error, setR2Error] = useState<string | null>(null);
+  const bucketRequest = useRef(0);
 
   const configs = useConfigs()!;
   const csrfToken = usePage<SharedData>().props.csrf_token;
@@ -111,6 +119,9 @@ export default function ConnectStorageProvider({
 
   const selectPreset = (preset: (typeof S3_PRESETS)[number]) => {
     setActivePreset(preset.id);
+    setR2Buckets([]);
+    setSelectedR2Buckets([]);
+    setR2Error(null);
     form.setData((prev) => {
       const isNameEmptyOrDefault =
         prev.name === '' || S3_PRESETS.some((p) => p.defaultName === prev.name);
@@ -121,6 +132,63 @@ export default function ConnectStorageProvider({
         region: preset.id !== 'custom' ? preset.region : prev.region,
       };
     });
+  };
+
+  useEffect(() => {
+    bucketRequest.current += 1;
+    setR2Buckets([]);
+    setSelectedR2Buckets([]);
+    setR2Error(null);
+    setLoadingR2Buckets(false);
+  }, [form.data.provider, form.data.api_url, form.data.key, form.data.secret, form.data.region, form.data.path, open]);
+
+  const listR2Buckets = async () => {
+    const request = ++bucketRequest.current;
+    setLoadingR2Buckets(true);
+    setR2Error(null);
+
+    try {
+      const { data } = await axios.post<{ buckets: string[] }>('/settings/storage-providers/s3/buckets', {
+        name: form.data.name,
+        api_url: form.data.api_url,
+        key: form.data.key,
+        secret: form.data.secret,
+        region: form.data.region,
+        path: form.data.path,
+      });
+      if (request !== bucketRequest.current) return;
+      setR2Buckets(data.buckets);
+      setSelectedR2Buckets(data.buckets);
+    } catch (error) {
+      if (request === bucketRequest.current) setR2Error(requestErrorMessage(error));
+    } finally {
+      if (request === bucketRequest.current) setLoadingR2Buckets(false);
+    }
+  };
+
+  const importR2Buckets = async () => {
+    setImportingR2Buckets(true);
+    setR2Error(null);
+
+    try {
+      await axios.post('/settings/storage-providers/s3/buckets/import', {
+        name: form.data.name,
+        global: form.data.global,
+        api_url: form.data.api_url,
+        key: form.data.key,
+        secret: form.data.secret,
+        region: form.data.region,
+        path: form.data.path,
+        buckets: selectedR2Buckets,
+      });
+      setOpen(false);
+      onProviderAdded?.();
+      router.reload({ only: ['storageProviders'] });
+    } catch (error) {
+      setR2Error(requestErrorMessage(error));
+    } finally {
+      setImportingR2Buckets(false);
+    }
   };
 
   const submit: FormEventHandler = (e) => {
@@ -207,6 +275,8 @@ export default function ConnectStorageProvider({
   const optionalFields = rawFields.filter((f) => OPTIONAL_FIELD_NAMES.includes(f.name));
 
   const currentPresetObj = S3_PRESETS.find((p) => p.id === activePreset);
+  const isCloudflareR2 = form.data.provider === 's3' && activePreset === 'cloudflare';
+  const providerError = form.errors.provider || r2Error;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -226,6 +296,13 @@ export default function ConnectStorageProvider({
           data-bwignore="true"
         >
           <FormFields>
+            {providerError && (
+              <Alert variant="destructive">
+                <AlertCircleIcon className="size-4" />
+                <AlertTitle>Connection failed</AlertTitle>
+                <AlertDescription>{providerError}</AlertDescription>
+              </Alert>
+            )}
             <FormField>
               <Label htmlFor="provider">Provider</Label>
               <Select
@@ -322,6 +399,63 @@ export default function ConnectStorageProvider({
                 error={form.errors[field.name]}
               />
             ))}
+
+            {isCloudflareR2 && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
+                <div>
+                  <Label className="text-sm font-semibold">R2 account buckets</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">List your account once, then import selected buckets as manageable Vito storage providers.</p>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={loadingR2Buckets || !form.data.name || !form.data.key || !form.data.secret || !form.data.region}
+                  onClick={() => void listR2Buckets()}
+                >
+                  {loadingR2Buckets && <LoaderCircle className="animate-spin" />}
+                  List R2 buckets
+                </Button>
+
+                {r2Buckets.length > 0 && (
+                  <div className="space-y-2 rounded-md border bg-background p-2.5">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs text-muted-foreground">{r2Buckets.length} bucket found</span>
+                      <button
+                        type="button"
+                        className="text-xs font-medium text-primary hover:underline"
+                        onClick={() => setSelectedR2Buckets(selectedR2Buckets.length === r2Buckets.length ? [] : r2Buckets)}
+                      >
+                        {selectedR2Buckets.length === r2Buckets.length ? 'Clear selection' : 'Select all'}
+                      </button>
+                    </div>
+                    <div className="max-h-40 space-y-2 overflow-y-auto">
+                      {r2Buckets.map((bucket) => (
+                        <label key={bucket} className="flex items-center gap-2 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={selectedR2Buckets.includes(bucket)}
+                            onCheckedChange={(checked) => {
+                              setSelectedR2Buckets((selected) => checked ? [...selected, bucket] : selected.filter((item) => item !== bucket));
+                            }}
+                          />
+                          <span className="font-mono text-xs">{bucket}</span>
+                        </label>
+                      ))}
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      className="w-full"
+                      disabled={importingR2Buckets || selectedR2Buckets.length === 0}
+                      onClick={() => void importR2Buckets()}
+                    >
+                      {importingR2Buckets && <LoaderCircle className="animate-spin" />}
+                      Import selected buckets to Vito
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="pt-1">
               <button

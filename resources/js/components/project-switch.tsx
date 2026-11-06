@@ -12,7 +12,7 @@ import { CommandGroup, CommandItem } from '@/components/ui/command';
 export function ProjectSwitch() {
   const page = usePage<SharedData & { siteScope?: string; serverScope?: string }>();
   const { auth } = page.props;
-  const isAllProjects = page.props.siteScope === 'all' || page.props.serverScope === 'all';
+  const isAllProjects = (page.props.siteScope ?? page.props.serverScope) === 'all';
   const [open, setOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
   const form = useForm();
@@ -47,7 +47,9 @@ export function ProjectSwitch() {
   const handleAllProjects = () => {
     setSelected('all');
     setOpen(false);
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/servers')) {
+    if (page.url.split('?')[0] === '/overview') {
+      router.get(withQuery('/overview', { project: 'all' }));
+    } else if (page.url.startsWith('/servers')) {
       router.get(withQuery("/servers", { project: 'all' }));
     } else {
       router.get(withQuery("/sites", { project: 'all' }));

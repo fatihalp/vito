@@ -2,7 +2,7 @@ import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
@@ -512,7 +512,6 @@ function EnvironmentEditorContent() {
                       setRawContent(value ?? '');
                       setRawDirty(true);
                     }}
-                    theme="vs-dark"
                     options={{
                       fontSize: 14,
                       lineNumbers: 'on',

@@ -1,3 +1,4 @@
+import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { PaginatedData } from '@/types';
@@ -44,7 +45,7 @@ export default function WorkerIndex() {
             title="Workers"
             description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : "Here you can manage server's workers"}
           />
-          <div className="flex items-center gap-2">
+          {page.props.server.services?.process_manager && <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
@@ -87,10 +88,12 @@ export default function WorkerIndex() {
               <PlusIcon />
               <span className="hidden lg:block">Create</span>
             </Button>
-          </div>
+          </div>}
         </HeaderContainer>
 
         {page.props.site && <SiteBanners site={page.props.site} />}
+
+        <RuntimeProcesses kind="worker" />
 
         <DataTable columns={columns(page.props.sites)} paginatedData={workers} />
       </Container>

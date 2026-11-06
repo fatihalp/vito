@@ -11,6 +11,7 @@ enum SiteStatus: string implements HasTableDisplay, VitoEnum
     use TextIsValue;
 
     case READY = 'ready';
+    case PLANNED = 'planned';
     case INSTALLING = 'installing';
     case INSTALLATION_FAILED = 'installation_failed';
     case DELETING = 'deleting';
@@ -19,6 +20,7 @@ enum SiteStatus: string implements HasTableDisplay, VitoEnum
     {
         return match ($this) {
             self::READY => 'success',
+            self::PLANNED => 'gray',
             self::INSTALLING => 'warning',
             self::INSTALLATION_FAILED,
             self::DELETING => 'danger',
