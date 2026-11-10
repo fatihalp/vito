@@ -7,7 +7,7 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { CalendarClockIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, XIcon, type LucideIcon } from 'lucide-react';
+import { CalendarClockIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, XIcon, type LucideIcon } from 'lucide-react';
 import Deploy from '@/pages/application/components/deploy';
 import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-script';
 import { useRealtimeRecord, useSocketListener } from '@/hooks/use-socket-events';
@@ -27,16 +27,11 @@ import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-
 import DateTime from '@/components/date-time';
 import { usePanelView } from '@/hooks/use-panel-view';
 
-function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label: string; children: React.ReactNode }) {
+function Detail({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
   return (
-    <div className="flex items-center gap-3">
-      <div className="text-muted-foreground flex size-5 shrink-0 items-center justify-center">
-        <Icon className="size-4" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="text-muted-foreground text-xs">{label}</p>
-        <p className="break-words text-sm font-medium">{children}</p>
-      </div>
+    <div className="flex items-center gap-3 text-sm font-medium">
+      <Icon className="text-muted-foreground size-4 shrink-0" />
+      <div className="min-w-0 flex-1 break-words">{children}</div>
     </div>
   );
 }
@@ -130,8 +125,7 @@ export default function AppWithDeployment() {
       <Container className="gap-4">
         {site.status === 'installation_failed' && <SiteBanners site={site} includeAppDebug />}
 
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-lg font-semibold">{site.domain}</h1>
+        <div className="flex justify-end">
           <div className="bg-muted/40 flex gap-1 rounded-md border p-1" role="group" aria-label="View">
             <Button size="sm" variant={advanced ? 'ghost' : 'secondary'} aria-pressed={!advanced} onClick={() => setView('basic')}>Basic</Button>
             <Button size="sm" variant={advanced ? 'secondary' : 'ghost'} aria-pressed={advanced} onClick={() => setView('advanced')}>Advanced</Button>
@@ -145,28 +139,20 @@ export default function AppWithDeployment() {
             )}
 
             <Deferred data={['deployments', 'deploymentScript']} fallback={<DeploymentsSkeleton />}>
-              <section aria-labelledby="deployments-heading">
+              <section aria-label="Deployments">
                 <Card>
                   <CardHeader className="gap-3 p-4">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <div className="min-w-0">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <CardTitle id="deployments-heading">Deployments</CardTitle>
-                            <Badge variant={site.status_color}>{site.status}</Badge>
-                          </div>
-                          <div className="text-muted-foreground mt-1 flex min-w-0 items-center gap-2 text-sm">
-                            {site.repository ? (
-                              <>
-                                <GitBranchIcon className="size-4 shrink-0" />
-                                <span className="truncate">{site.repository}</span>
-                                {site.branch && <span className="shrink-0">· {site.branch}</span>}
-                              </>
-                            ) : (
-                              <span>{formatSiteType(site.type)} site</span>
-                            )}
-                          </div>
-                        </div>
+                      <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
+                        {site.repository ? (
+                          <>
+                            <GitBranchIcon className="size-4 shrink-0" />
+                            <span className="truncate">{site.repository}</span>
+                            {site.branch && <span className="shrink-0">· {site.branch}</span>}
+                          </>
+                        ) : (
+                          <span>{formatSiteType(site.type)} site</span>
+                        )}
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {site.status !== 'installation_failed' && <SiteBanners site={site} compact includeAppDebug />}
@@ -293,8 +279,10 @@ export default function AppWithDeployment() {
                       </div>
                       <CardTitle>Services ({page.props.overviewWorkersCount ?? 0})</CardTitle>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`}>Manage</Link>
+                    <Button variant="ghost" size="icon" className="size-8" asChild>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`} aria-label="Manage services">
+                        <SettingsIcon className="size-4" />
+                      </Link>
                     </Button>
                   </CardHeader>
                   <CardContent className="divide-y p-0">
@@ -325,8 +313,10 @@ export default function AppWithDeployment() {
                       </div>
                       <CardTitle>Jobs ({page.props.overviewCronJobsCount ?? 0})</CardTitle>
                     </div>
-                    <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`}>Manage</Link>
+                    <Button variant="ghost" size="icon" className="size-8" asChild>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`} aria-label="Manage jobs">
+                        <SettingsIcon className="size-4" />
+                      </Link>
                     </Button>
                   </CardHeader>
                   <CardContent className="divide-y p-0">
@@ -370,22 +360,27 @@ export default function AppWithDeployment() {
               </CardHeader>
               <CardContent className="p-0">
                 <div className="flex flex-col gap-3 p-4">
-                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">Connection</p>
-                  <Detail icon={ServerIcon} label="Server">
+                  <Detail icon={ServerIcon}>
                     {page.props.server.name}
                   </Detail>
-                  <Detail icon={NetworkIcon} label="Public IP">
+                  <Detail icon={NetworkIcon}>
                     <span className="font-mono">{page.props.server.ip}</span>
                   </Detail>
                   {site.php_version && (
-                    <Detail icon={CodeXmlIcon} label="PHP">
+                    <Detail icon={CodeXmlIcon}>
                       {site.php_version}
                     </Detail>
                   )}
-                  <Detail icon={LockKeyholeIcon} label="SSL">
-                    <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>
-                      {site.ssl_enabled ? 'Enabled' : 'Disabled'}
-                    </Badge>
+                  <Detail icon={LockKeyholeIcon}>
+                    <Link
+                      href={`/servers/${site.server_id}/sites/${site.id}/domains`}
+                      className="inline-flex items-center gap-2 hover:opacity-80"
+                    >
+                      <span>SSL</span>
+                      <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>
+                        {site.ssl_enabled ? 'Enabled' : 'Disabled'}
+                      </Badge>
+                    </Link>
                   </Detail>
                 </div>
               </CardContent>

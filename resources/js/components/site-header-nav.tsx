@@ -160,10 +160,9 @@ export function SiteHeaderNav() {
 
       <div className="ml-auto flex shrink-0 items-center gap-2 pl-2">
         {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
-        <Button variant="outline" size="sm" className="h-8" asChild>
-          <a href={site.url} target="_blank" rel="noopener noreferrer">
+        <Button variant="outline" size="icon" className="size-8" asChild>
+          <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label="Open site">
             <ExternalLinkIcon className="size-3.5" />
-            <span className="hidden sm:inline">Open site</span>
           </a>
         </Button>
       </div>
