@@ -14,27 +14,27 @@ import DateTime from '@/components/date-time';
 const commitCell = ({ row }: CellRenderProps) => {
   const commit = (row.commit_data ?? {}) as Deployment['commit_data'];
   if (!commit?.message) {
-    return <span className="text-muted-foreground">No message</span>;
+    return <span className="text-muted-foreground text-xs">No message</span>;
   }
 
-  const content = <span className="block whitespace-normal break-words">{commit.message}</span>;
+  const content = <span className="line-clamp-2 text-xs font-medium" title={commit.message}>{commit.message}</span>;
   const href = commit.url && /^https?:\/\//.test(commit.url) ? commit.url : undefined;
 
   return href ? (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-info inline-flex text-xs font-medium hover:underline">
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-foreground hover:text-info inline-flex hover:underline">
       {content}
     </a>
   ) : (
-    <span className="inline-flex text-xs font-medium">{content}</span>
+    content
   );
 };
 
 const deployedAtCell = ({ row, value }: CellRenderProps) => {
   const dateStr = String(row.created_at || value || '');
-  if (!dateStr) return <span className="text-muted-foreground">—</span>;
+  if (!dateStr) return <span className="text-muted-foreground whitespace-nowrap">—</span>;
 
   return (
-    <span className="text-xs font-medium text-foreground cursor-default">
+    <span className="text-xs font-medium text-muted-foreground cursor-default whitespace-nowrap">
       <DateTime date={dateStr} relative />
     </span>
   );
@@ -44,9 +44,13 @@ const deployedByCell = ({ row }: CellRenderProps) => {
   const deployment = row as unknown as Deployment;
 
   return (
-    <div className="inline-flex items-center gap-2">
+    <div className="flex items-center gap-1.5 whitespace-nowrap text-xs text-muted-foreground">
       <span>{deployment.deployed_by ?? (deployment.trigger ? 'System' : '—')}</span>
-      {deployment.trigger && deployment.trigger_color && <Badge variant={deployment.trigger_color}>{deployment.trigger}</Badge>}
+      {deployment.trigger && deployment.trigger_color && (
+        <Badge variant={deployment.trigger_color} className="text-[10px] px-1.5 py-0 h-4 font-normal">
+          {deployment.trigger}
+        </Badge>
+      )}
     </div>
   );
 };
@@ -56,9 +60,11 @@ const statusCell = ({ row, value }: CellRenderProps) => {
   const statusColor = (row.status_color as 'warning' | 'success' | 'danger' | 'gray') || 'default';
 
   return (
-    <div className="inline-flex items-center gap-1.5">
+    <div className="inline-flex items-center gap-1.5 whitespace-nowrap">
       {status === 'deploying' && <LoaderCircleIcon className="size-3.5 animate-spin text-warning shrink-0" />}
-      <Badge variant={statusColor}>{status}</Badge>
+      <Badge variant={statusColor} className="capitalize">
+        {status}
+      </Badge>
     </div>
   );
 };
@@ -73,21 +79,21 @@ const formatSeconds = (seconds: number): string => {
 const durationCell = ({ row, value }: CellRenderProps) => {
   const deployment = row as unknown as Deployment;
   if (deployment.status === 'deploying') {
-    return <span className="text-warning text-xs font-mono">Running</span>;
+    return <span className="text-warning text-xs font-mono font-medium whitespace-nowrap">Running</span>;
   }
 
   const formatted = (value as string) || deployment.formatted_duration;
   if (formatted) {
-    return <span className="text-xs font-mono text-muted-foreground font-medium">{formatted}</span>;
+    return <span className="text-xs font-mono text-muted-foreground font-medium whitespace-nowrap">{formatted}</span>;
   }
 
   if (deployment.finished_at && deployment.created_at) {
     const diff = Math.max(0, Math.floor((new Date(deployment.finished_at).getTime() - new Date(deployment.created_at).getTime()) / 1000));
 
-    return <span className="text-xs font-mono text-muted-foreground font-medium">{formatSeconds(diff)}</span>;
+    return <span className="text-xs font-mono text-muted-foreground font-medium whitespace-nowrap">{formatSeconds(diff)}</span>;
   }
 
-  return <span className="text-muted-foreground">—</span>;
+  return <span className="text-muted-foreground whitespace-nowrap">—</span>;
 };
 
 function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
@@ -143,8 +149,7 @@ export default function DeploymentsTable({ deployments, showPagination = true }:
 
   return (
     <VitoTable
-      fitContent
-      columnWidths={{ actions: '3.25rem', id: '4.5rem', deployed_by: '12%', status: '10%', duration: '8%', created_at: '15%' }}
+      columnWidths={{ actions: '3rem', id: '4rem', status: '7.5rem', duration: '5rem', created_at: '8rem' }}
       tableData={deployments}
       showPagination={showPagination}
       reloadOnly={['deployments']}

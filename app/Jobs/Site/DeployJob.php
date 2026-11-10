@@ -95,7 +95,7 @@ class DeployJob implements ShouldQueue
 
     private function broadcastDeploymentUpdate(): void
     {
-        $this->deployment->refresh()->load(['site.server', 'log', 'user', 'rolledBackBy', 'deploymentScript']);
+        $this->deployment->refresh()->load(['site.server', 'log', 'user', 'deploymentScript']);
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $this->deployment->site->server->project_id,

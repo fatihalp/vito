@@ -31,7 +31,7 @@ class DeploymentController extends Controller
         $this->validateRoute($project, $server, $site);
 
         $deployments = $site->deployments()
-            ->with(['log', 'user', 'rolledBackBy', 'deploymentScript'])
+            ->with(['log', 'user', 'deploymentScript'])
             ->latest()
             ->simplePaginate(25);
 
@@ -69,7 +69,7 @@ class DeploymentController extends Controller
 
         $deployment->setRelation('site', $site);
 
-        return new DeploymentResource($deployment->load('log', 'user', 'rolledBackBy', 'deploymentScript'));
+        return new DeploymentResource($deployment->load('log', 'user', 'deploymentScript'));
     }
 
     private function validateRoute(Project $project, Server $server, ?Site $site = null): void

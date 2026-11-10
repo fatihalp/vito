@@ -138,7 +138,7 @@ class ApplicationController extends Controller
             abort(404);
         }
 
-        $deployment->load('log', 'user', 'rolledBackBy', 'deploymentScript');
+        $deployment->load('log', 'user', 'deploymentScript');
         $deployment->setRelation('site', $site);
 
         return Inertia::render('application/deployments/show', [
