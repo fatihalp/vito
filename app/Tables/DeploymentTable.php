@@ -52,21 +52,7 @@ class DeploymentTable extends Table
 
     protected function columns(): array
     {
-        return [
-            Column::make('commit', 'Commit'),
-            Column::make('deployed_by', 'Deployed By')
-                ->value(fn (Deployment $deployment): ?string => $deployment->user?->name),
-            EnumColumn::make('status', 'Status')->sortable(! $this->overview),
-            Column::make('duration', 'Duration')
-                ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
-            DateTimeColumn::make('created_at', 'Deployed At')->sortable(! $this->overview)->toLocal(),
-            TextColumn::make('id', 'ID')
-                ->sortable(! $this->overview)
-                ->link('application.deployments.show', [
-                    'server' => ':site.server_id',
-                    'site' => ':site_id',
-                    'deployment' => ':id',
-                ]),
+        $baseData = [
             Column::data('site_id'),
             Column::data('server_id', fn (Deployment $deployment): int => $deployment->site->server_id),
             Column::data('active'),
@@ -81,6 +67,37 @@ class DeploymentTable extends Table
             Column::data('formatted_duration', fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
             Column::data('log', fn (Deployment $deployment) => $deployment->log ? ServerLogResource::make($deployment->log) : null),
             ActionsColumn::make(),
+        ];
+
+        if ($this->overview) {
+            return [
+                Column::make('commit', 'Commit'),
+                EnumColumn::make('status', 'Status'),
+                Column::make('duration', 'Duration')
+                    ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
+                DateTimeColumn::make('created_at', 'Deployed At')->toLocal(),
+                Column::data('id'),
+                Column::data('deployed_by', fn (Deployment $deployment): ?string => $deployment->user?->name),
+                ...$baseData,
+            ];
+        }
+
+        return [
+            Column::make('commit', 'Commit'),
+            Column::make('deployed_by', 'Deployed By')
+                ->value(fn (Deployment $deployment): ?string => $deployment->user?->name),
+            EnumColumn::make('status', 'Status')->sortable(),
+            Column::make('duration', 'Duration')
+                ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
+            DateTimeColumn::make('created_at', 'Deployed At')->sortable()->toLocal(),
+            TextColumn::make('id', 'ID')
+                ->sortable()
+                ->link('application.deployments.show', [
+                    'server' => ':site.server_id',
+                    'site' => ':site_id',
+                    'deployment' => ':id',
+                ]),
+            ...$baseData,
         ];
     }
 }

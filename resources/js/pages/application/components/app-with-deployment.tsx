@@ -7,7 +7,7 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { CalendarClockIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, XIcon, type LucideIcon } from 'lucide-react';
+import { CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, XIcon, type LucideIcon } from 'lucide-react';
 import Deploy from '@/pages/application/components/deploy';
 import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-script';
 import { useRealtimeRecord, useSocketListener } from '@/hooks/use-socket-events';
@@ -21,6 +21,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/componen
 import DeploymentsTable from '@/pages/application/deployments/table';
 import DeploymentProgress from '@/pages/application/deployments/progress';
 import { useLogContent } from '@/hooks/use-log-content';
+import { useClipboard } from '@/hooks/use-clipboard';
 import LogOutput from '@/components/log-output';
 import { Deployment } from '@/types/deployment';
 import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
@@ -66,6 +67,7 @@ export default function AppWithDeployment() {
   const [showLog, setShowLog] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [togglingAutoDeploy, setTogglingAutoDeploy] = useState(false);
+  const { copied: copiedIp, copy: copyIp } = useClipboard();
 
   const handleToggleAutoDeploy = () => {
     if (!site.source_control_id || togglingAutoDeploy) return;
@@ -226,26 +228,28 @@ export default function AppWithDeployment() {
                       )}
                     </div>
                   )}
-                  <CardContent className="p-4">
+                  <CardContent className="p-0 border-t">
                     {advanced ? (
-                      <DeploymentsTable deployments={page.props.deployments} showPagination={false} />
+                      <DeploymentsTable deployments={page.props.deployments} showPagination={false} modal />
                     ) : latestDeployment ? (
-                      <Link
-                        href={`/servers/${site.server_id}/sites/${site.id}/deployments/${latestDeployment.id}`}
-                        className="hover:bg-muted/30 flex flex-wrap items-center justify-between gap-3 rounded-md p-2 text-sm"
-                      >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-muted-foreground text-xs">Latest deployment · #{latestDeployment.id}</p>
-                          <p className="break-words font-medium">{latestDeployment.commit_data?.message || latestDeployment.commit_id_short || 'Deployment'}</p>
-                        </div>
-                        <Badge variant={latestDeployment.status_color}>{latestDeployment.status}</Badge>
-                        <DateTime date={latestDeployment.created_at} relative className="text-muted-foreground text-xs" />
-                      </Link>
+                      <div className="p-4">
+                        <Link
+                          href={`/servers/${site.server_id}/sites/${site.id}/deployments/${latestDeployment.id}`}
+                          className="hover:bg-muted/30 flex flex-wrap items-center justify-between gap-3 rounded-md p-2 text-sm"
+                        >
+                          <div className="min-w-0 flex-1">
+                            <p className="text-muted-foreground text-xs">Latest deployment · #{latestDeployment.id}</p>
+                            <p className="break-words font-medium">{latestDeployment.commit_data?.message || latestDeployment.commit_id_short || 'Deployment'}</p>
+                          </div>
+                          <Badge variant={latestDeployment.status_color}>{latestDeployment.status}</Badge>
+                          <DateTime date={latestDeployment.created_at} relative className="text-muted-foreground text-xs" />
+                        </Link>
+                      </div>
                     ) : (
-                      <p className="text-muted-foreground text-sm">No deployments yet.</p>
+                      <p className="text-muted-foreground p-6 text-center text-sm">No deployments yet.</p>
                     )}
                   </CardContent>
-                  <CardFooter className="justify-end p-3">
+                  <CardFooter className="justify-end border-t p-2">
                     <Button variant="ghost" size="sm" asChild>
                       <Link href={`/servers/${site.server_id}/sites/${site.id}/deployments`}>All</Link>
                     </Button>
@@ -364,7 +368,20 @@ export default function AppWithDeployment() {
                     {page.props.server.name}
                   </Detail>
                   <Detail icon={NetworkIcon}>
-                    <span className="font-mono">{page.props.server.ip}</span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono">{page.props.server.ip}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="size-6 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                        onClick={() => copyIp(page.props.server.ip)}
+                        aria-label="Copy IP address"
+                        title="Copy IP address"
+                      >
+                        {copiedIp ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
+                      </Button>
+                    </div>
                   </Detail>
                   {site.php_version && (
                     <Detail icon={CodeXmlIcon}>

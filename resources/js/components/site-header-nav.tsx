@@ -28,9 +28,6 @@ function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
 
   return [
     { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Topology', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/topology` },
-    { title: 'Resources', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/resources`, count: site.counts?.resources ?? 0 },
-    { title: 'Domains', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/domains`, count: site.counts?.domains ?? 0 },
     { title: 'Commands', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/commands`, count: site.counts?.commands ?? 0 },
     { title: 'Workers', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/workers`, count: site.counts?.workers ?? 0 },
     { title: 'Settings', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/settings` },
@@ -82,11 +79,14 @@ export function SiteHeaderNav() {
   const routeParams = { server: server.id, site: site.id };
   const primaryItems: SiteNavItem[] = buildPrimaryItems(server, site);
   const otherItems: SiteNavItem[] = [
+    { title: 'Domains', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/domains`, count: site.counts?.domains ?? 0 },
+    { title: 'Topology', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/topology` },
+    { title: 'Resources', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/resources`, count: site.counts?.resources ?? 0 },
+    { title: 'CronJobs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/cronjobs` },
+    { title: 'Logs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/logs` },
+    { title: 'Redirects', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/redirects` },
     { title: 'Features', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/features` },
     { title: 'Tooling', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/tooling` },
-    { title: 'CronJobs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/cronjobs` },
-    { title: 'Redirects', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/redirects` },
-    { title: 'Logs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/logs` },
   ];
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
 

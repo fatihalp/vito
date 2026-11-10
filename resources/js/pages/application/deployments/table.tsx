@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { Link } from '@inertiajs/react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { Badge } from '@/components/ui/badge';
@@ -142,19 +143,85 @@ function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
   );
 }
 
-export default function DeploymentsTable({ deployments, showPagination = true }: { deployments: InertiaTableData; showPagination?: boolean }) {
+export default function DeploymentsTable({
+  deployments,
+  showPagination = true,
+  modal = false,
+}: {
+  deployments: InertiaTableData;
+  showPagination?: boolean;
+  modal?: boolean;
+}) {
   if (!deployments?.columns) {
     return null;
   }
 
+  const isOverview = !showPagination;
+
+  const renderCommit = useCallback(
+    ({ row }: CellRenderProps) => {
+      const deployment = row as unknown as Deployment;
+      const commit = (row.commit_data ?? {}) as Deployment['commit_data'];
+      const message = commit?.message || deployment.commit_id_short || (deployment.id ? `Deployment #${deployment.id}` : 'Deployment');
+      const href = commit?.url && /^https?:\/\//.test(commit.url) ? commit.url : undefined;
+      const user = deployment.deployed_by ?? (deployment.trigger ? 'System' : null);
+
+      return (
+        <div className="flex min-w-0 flex-col gap-0.5">
+          <div className="flex items-center gap-1.5 min-w-0">
+            {isOverview && deployment.id && (
+              <Link
+                href={`/servers/${encodeURIComponent(String(deployment.server_id))}/sites/${deployment.site_id}/deployments/${deployment.id}`}
+                className="text-xs font-mono text-muted-foreground hover:text-foreground shrink-0 font-medium"
+              >
+                #{deployment.id}
+              </Link>
+            )}
+            {href ? (
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-foreground hover:text-info text-xs font-medium truncate hover:underline"
+                title={message}
+              >
+                {message}
+              </a>
+            ) : (
+              <span className="text-foreground text-xs font-medium truncate" title={message}>
+                {message}
+              </span>
+            )}
+          </div>
+          {isOverview && user && (
+            <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
+              <span>{user}</span>
+              {deployment.trigger && deployment.trigger_color && (
+                <Badge variant={deployment.trigger_color} className="text-[9px] px-1 py-0 h-3.5 font-normal">
+                  {deployment.trigger}
+                </Badge>
+              )}
+            </div>
+          )}
+        </div>
+      );
+    },
+    [isOverview],
+  );
+
   return (
     <VitoTable
-      columnWidths={{ actions: '3rem', id: '4rem', status: '7.5rem', duration: '5rem', created_at: '8rem' }}
+      modal={modal}
+      columnWidths={
+        isOverview
+          ? { actions: '2.5rem', status: '6rem', duration: '4rem', created_at: '7rem' }
+          : { actions: '3rem', id: '4rem', status: '7.5rem', duration: '5rem', created_at: '8rem' }
+      }
       tableData={deployments}
       showPagination={showPagination}
       reloadOnly={['deployments']}
       cellRenderers={{
-        commit: commitCell,
+        commit: renderCommit,
         created_at: deployedAtCell,
         deployed_by: deployedByCell,
         status: statusCell,
