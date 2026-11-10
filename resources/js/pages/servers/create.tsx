@@ -547,34 +547,35 @@ export default function CreateServerPage({
     return true;
   };
 
-  const submit: FormEventHandler = (e) => {
-    e.preventDefault();
+  const goNext = () => {
+    form.clearErrors();
     if (step === 0 && canGoNextFromStep0()) setStep(1);
     if (step === 1 && canGoNextFromStep1()) setStep(2);
+  };
+
+  const submit: FormEventHandler = (e) => {
+    e.preventDefault();
+    goNext();
   };
 
   const createServer = () => {
     if (!roleConfirmed) {
       return;
     }
-    form.post("/servers");
+    form.post('/servers', {
+      onError: (errors) => {
+        const keys = Object.keys(errors);
+        if (keys.some((k) => ['server_provider', 'region', 'plan', 'ip', 'port'].includes(k))) {
+          setStep(0);
+        } else if (keys.some((k) => ['name', 'stage'].includes(k))) {
+          setStep(1);
+        }
+        if (errors.provider) {
+          toast.error(errors.provider);
+        }
+      },
+    });
   };
-
-  useEffect(() => {
-    if (form.hasErrors) {
-      const step0Keys = ['provider', 'server_provider', 'region', 'plan', 'ip', 'port'];
-      const step1Keys = ['name', 'stage'];
-      const errors = Object.keys(form.errors);
-
-      if (errors.some((k) => step0Keys.includes(k))) {
-        setStep(0);
-      } else if (errors.some((k) => step1Keys.includes(k))) {
-        setStep(1);
-      } else {
-        setStep(2);
-      }
-    }
-  }, [form.errors]);
 
   return (
     <Layout>
@@ -1125,6 +1126,8 @@ export default function CreateServerPage({
                         <InputError key={key} message={value} />
                       ))}
                   </div>
+
+                  <InputError message={form.errors.provider} />
                 </div>
               )}
             </FormFields>
@@ -1149,15 +1152,7 @@ export default function CreateServerPage({
 
               <div className="flex items-center gap-2">
                 {step < 2 ? (
-                  <Button
-                    type="button"
-                    onClick={() => {
-                      form.clearErrors();
-                      if (step === 0 && !canGoNextFromStep0()) return;
-                      if (step === 1 && !canGoNextFromStep1()) return;
-                      setStep((s) => s + 1);
-                    }}
-                  >
+                  <Button type="button" onClick={goNext}>
                     Next <ArrowRightIcon className="ml-1.5 size-4" />
                   </Button>
                 ) : (
