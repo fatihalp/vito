@@ -7,8 +7,10 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, XIcon, type LucideIcon } from 'lucide-react';
+import { CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, TerminalIcon, XIcon, type LucideIcon } from 'lucide-react';
 import Deploy from '@/pages/application/components/deploy';
+import DeploymentScript from '@/pages/application/components/deployment-script';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-script';
 import { useRealtimeRecord, useSocketListener } from '@/hooks/use-socket-events';
 import type { InertiaTableData } from '@forjedio/inertia-table-react';
@@ -170,6 +172,58 @@ export default function AppWithDeployment() {
                           </div>
                         )}
                         <Deploy site={site} />
+                        {site.modern_deployment ? (
+                          (page.props.buildScript || page.props.preFlightScript) && (
+                            <DropdownMenu modal={false}>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="outline" className="gap-1.5 cursor-pointer">
+                                  <TerminalIcon className="size-4" />
+                                  <span className="hidden sm:inline">Deployment </span>
+                                  <span>Scripts</span>
+                                  <ChevronDownIcon className="size-3.5" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                {page.props.buildScript && (
+                                  <DeploymentScript
+                                    site={site}
+                                    script={page.props.buildScript}
+                                    description="This script will build resources like composer and npm before release"
+                                  >
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                      Build Script
+                                    </DropdownMenuItem>
+                                  </DeploymentScript>
+                                )}
+                                {page.props.preFlightScript && (
+                                  <DeploymentScript
+                                    site={site}
+                                    script={page.props.preFlightScript}
+                                    description="This script will be executed before release like migrations and optimizations"
+                                  >
+                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                      Pre Flight Script
+                                    </DropdownMenuItem>
+                                  </DeploymentScript>
+                                )}
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          )
+                        ) : (
+                          page.props.deploymentScript && (
+                            <DeploymentScript
+                              site={site}
+                              script={page.props.deploymentScript}
+                              description="This script will be executed on every deployment."
+                            >
+                              <Button variant="outline" className="gap-1.5 cursor-pointer">
+                                <TerminalIcon className="size-4" />
+                                <span className="hidden sm:inline">Deployment </span>
+                                <span>Script</span>
+                              </Button>
+                            </DeploymentScript>
+                          )
+                        )}
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
                           <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>
                             <FileCode2Icon className="size-4" />
