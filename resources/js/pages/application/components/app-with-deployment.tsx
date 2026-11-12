@@ -231,7 +231,7 @@ export default function AppWithDeployment() {
                       </div>
                     </div>
                   </CardHeader>
-                  <Deferred data="latestCommit" fallback={null}>
+                  <Deferred data="latestCommit" fallback={<></>}>
                     <LatestCommitBanner site={site} latestCommit={page.props.latestCommit} activeDeployment={activeDeployment} />
                   </Deferred>
                   {activeDeployment && !dismissed && (
