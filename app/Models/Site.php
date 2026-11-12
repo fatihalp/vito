@@ -226,7 +226,8 @@ class Site extends AbstractModel
     
     public function deploymentScript(): HasOne
     {
-        return $this->hasOne(DeploymentScript::class, 'site_id')->where('name', 'default');
+        return $this->hasOne(DeploymentScript::class, 'site_id')
+            ->where(fn ($query) => $query->where('name', 'default')->orWhereNull('name'));
     }
 
     
@@ -245,13 +246,15 @@ class Site extends AbstractModel
     {
         $this->loadMissing('deploymentScripts');
 
-        $default = $this->deploymentScripts->firstWhere('name', 'default');
+        $default = $this->deploymentScripts->first(fn ($script) => in_array($script->name, ['default', null], true));
         if (! $default) {
             $default = $this->deploymentScripts()->create([
                 'name' => 'default',
                 'content' => '',
             ]);
             $this->deploymentScripts->push($default);
+        } elseif (! $default->name) {
+            $default->update(['name' => 'default']);
         }
         $this->setRelation('deploymentScript', $default);
 

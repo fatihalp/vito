@@ -84,11 +84,11 @@ class SitePolicy
 
     public function viewTooling(User $user, Site $site, Server $server): bool
     {
-        return $this->view($user, $site, $server) && $site->isReady() && $site->isIsolated();
+        return $this->view($user, $site, $server);
     }
 
     public function manageTooling(User $user, Site $site, Server $server): bool
     {
-        return $this->update($user, $site, $server) && $site->isReady() && $site->isIsolated();
+        return $this->update($user, $site, $server);
     }
 }

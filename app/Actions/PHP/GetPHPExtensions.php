@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Validator;
 
 class GetPHPExtensions
 {
-    /** @return list<string> */
     public function handle(Service $service): array
     {
         Validator::make(['type' => $service->type], ['type' => ['required', 'in:php']])->validate();

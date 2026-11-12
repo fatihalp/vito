@@ -2,10 +2,15 @@
 
 ## Core Rules (High Priority)
 
-- Write LESS code. Reuse existing code. No redundant code.
-- Analyse codebase before adding new code. Check sibling files for conventions.
-- Never run `npm build/dev` or `artisan serve` — user runs them.
-- Don't run formatters (pint/prettier) — user runs them later.
+- **Architectural Principles**: Strictly adhere to **MVC, SOLID, KISS, DRY, and YAGNI** across both backend and frontend.
+- **Zero Dead Code & Zero Tests**: Delete dead, unused, or obsolete code immediately. Do not build speculative abstractions or unused features (YAGNI). Zero tests are maintained in this project — never create `tests/` directories or test files.
+- **Self-Documenting Code & Zero Comments**: Write self-documenting code with descriptive names and single-responsibility functions. No inline comments and no docblocks. Code must explain itself.
+- **English-Only Localization**: All UI strings, flash messages, validation texts, and keys must strictly be in English. No non-English localization files or translations (`lang/en.json` only).
+- **Simplicity Over Defensive Over-Engineering**: Avoid convoluted type-check chains, multi-step fallback ladders, and speculative branches. Keep logic linear, predictable, and clear.
+- **Write LESS code**: Reuse existing code. No redundant code or duplications.
+- **Analyse codebase first**: Check sibling files and established conventions before adding new code.
+- **Never run `npm build/dev` or `artisan serve`** — the user runs them.
+- **Don't run formatters (pint/prettier)** — the user runs them later.
 
 ## Stack
 
@@ -23,8 +28,8 @@ Laravel 13 (L10 structure), PHP 8.4, Inertia v2, React 19, Tailwind v4
 ## PHP
 
 - Curly braces always. Constructor property promotion. Explicit return types on all methods.
-- Avoid commenting unless it is necessary and only on Doc Blocks. no inline commenting.
-- Use array shapes in PHPDoc where appropriate.
+- Self-documenting code only — zero comments, zero inline comments, zero unnecessary docblocks.
+- Use array shapes in PHPDoc only when strictly necessary for static analysis.
 - Avoid `DB::`, prefer `Model::query()`. Eager load to prevent N+1.
 - Use `config()` not `env()` outside config files.
 
@@ -68,6 +73,7 @@ Vito has a specific architecture. Match these patterns exactly:
 - **Dialogs**: all modals/sheets use the centralized registry (`resources/js/components/dialogs/registry.ts`) opened via `useDialog()` — `dialog.<key>.open(props)`, or `dialog.confirm.open({...})` for simple confirms. Never nest `<Dialog>`/`<DialogTrigger>` inside a `DropdownMenuItem`. **Read the "Dialogs" section of `.github/instructions/frontend.instructions.md` before adding or changing any dialog.**
 - Tailwind v4: `@import "tailwindcss"`, `@theme` for config, **`gap-*` over margins** for sibling spacing.
 - Use Shadcn components and semantic tokens (`text-foreground`, `bg-background`, `text-muted-foreground`). Avoid hard-coded colors and custom CSS.
+- **Compact UI / UX**: avoid unnecessary horizontal scrollbars on tables and cards. Constrain flexible content columns (`max-w-0`, `truncate`, `min-w-0`), specify widths on fixed columns, and use `table-fixed` layouts when column widths are defined.
 - **React hooks**: include ALL dependencies in `useEffect` / `useMemo` / `useCallback` arrays. Return cleanup for timers/subscriptions. Stale closures from missing deps are a recurring bug here.
 - **Dynamic forms**: backend ships `DynamicField` / `DynamicForm` DTOs (types: text, password, password-with-toggle, textarea, select, checkbox, alert, component). Render based on `field.type`. Don't hardcode provider-specific fields. Respect the field's value type — don't force everything to string.
 - **Accessibility**: `<button>` for clickable elements, not `<span onClick>`. Add ARIA attributes when semantic HTML isn't enough.

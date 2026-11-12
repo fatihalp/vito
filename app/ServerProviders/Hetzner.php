@@ -378,7 +378,10 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
                 'server_type' => $this->server->provider_data['plan'],
             ]);
         if ($create->status() != 201) {
-            $this->providerError($create);
+            $this->providerError($create, __('location :location, server type :plan', [
+                'location' => $this->server->provider_data['region'],
+                'plan' => $this->server->provider_data['plan'],
+            ]));
         }
         $this->server->jsonUpdate('provider_data', 'hetzner_id', $create->json()['server']['id'], false);
         $this->server->ip = $create->json()['server']['public_net']['ipv4']['ip'];
@@ -447,9 +450,26 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
         }
     }
 
-    private function providerError(Response $response): never
+    private function providerError(Response $response, ?string $context = null): never
     {
-        throw new ServerProviderError($response->json('error.message') ?? __('Hetzner request failed with status :status', ['status' => $response->status()]));
+        $code = $response->json('error.code');
+        $details = $response->json('error.details');
+
+        $hint = match ($code) {
+            'placement_error', 'resource_unavailable' => __('This server type is currently unavailable in the selected location. Try another location or plan.'),
+            'uniqueness_error' => __('A resource with this name already exists in your Hetzner project.'),
+            'resource_limit_exceeded' => __('Your Hetzner project resource limit is reached.'),
+            'unauthorized', 'forbidden' => __('The Hetzner API token is invalid or lacks read & write permission.'),
+            default => null,
+        };
+
+        throw new ServerProviderError(collect([
+            __('Hetzner: :message', ['message' => $response->json('error.message') ?? __('request failed')]),
+            '('.collect([$code, 'HTTP '.$response->status()])->filter()->implode(', ').')',
+            $context ? '— '.$context : null,
+            $details ? '— '.json_encode($details, JSON_UNESCAPED_SLASHES) : null,
+            $hint ? '— '.$hint : null,
+        ])->filter()->implode(' '));
     }
 
     private function getOrCreateSshKeyId(string $token, string $publicKey): int

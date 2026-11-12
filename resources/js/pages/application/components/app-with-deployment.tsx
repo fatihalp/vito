@@ -71,6 +71,16 @@ export default function AppWithDeployment() {
   const [togglingAutoDeploy, setTogglingAutoDeploy] = useState(false);
   const { copied: copiedIp, copy: copyIp } = useClipboard();
 
+  const fallbackScript = (name: string): DeploymentScriptType => ({
+    id: 0,
+    site_id: site.id,
+    name,
+    content: '',
+    configs: { restart_workers: false },
+    created_at: '',
+    updated_at: '',
+  });
+
   const handleToggleAutoDeploy = () => {
     if (!site.source_control_id || togglingAutoDeploy) return;
     setTogglingAutoDeploy(true);
@@ -142,7 +152,7 @@ export default function AppWithDeployment() {
               <ProxiedAppCard site={site} initialWorker={page.props.worker} />
             )}
 
-            <Deferred data={['deployments', 'deploymentScript']} fallback={<DeploymentsSkeleton />}>
+            <Deferred data="deployments" fallback={<DeploymentsSkeleton />}>
               <section aria-label="Deployments">
                 <Card>
                   <CardHeader className="gap-3 p-4">
@@ -173,56 +183,46 @@ export default function AppWithDeployment() {
                         )}
                         <Deploy site={site} />
                         {site.modern_deployment ? (
-                          (page.props.buildScript || page.props.preFlightScript) && (
-                            <DropdownMenu modal={false}>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="gap-1.5 cursor-pointer">
-                                  <TerminalIcon className="size-4" />
-                                  <span className="hidden sm:inline">Deployment </span>
-                                  <span>Scripts</span>
-                                  <ChevronDownIcon className="size-3.5" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                {page.props.buildScript && (
-                                  <DeploymentScript
-                                    site={site}
-                                    script={page.props.buildScript}
-                                    description="This script will build resources like composer and npm before release"
-                                  >
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                      Build Script
-                                    </DropdownMenuItem>
-                                  </DeploymentScript>
-                                )}
-                                {page.props.preFlightScript && (
-                                  <DeploymentScript
-                                    site={site}
-                                    script={page.props.preFlightScript}
-                                    description="This script will be executed before release like migrations and optimizations"
-                                  >
-                                    <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                      Pre Flight Script
-                                    </DropdownMenuItem>
-                                  </DeploymentScript>
-                                )}
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          )
-                        ) : (
-                          page.props.deploymentScript && (
-                            <DeploymentScript
-                              site={site}
-                              script={page.props.deploymentScript}
-                              description="This script will be executed on every deployment."
-                            >
+                          <DropdownMenu modal={false}>
+                            <DropdownMenuTrigger asChild>
                               <Button variant="outline" className="gap-1.5 cursor-pointer">
                                 <TerminalIcon className="size-4" />
-                                <span className="hidden sm:inline">Deployment </span>
-                                <span>Script</span>
+                                <span>Deploy Scripts</span>
+                                <ChevronDownIcon className="size-3.5" />
                               </Button>
-                            </DeploymentScript>
-                          )
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DeploymentScript
+                                site={site}
+                                script={page.props.buildScript ?? fallbackScript('build')}
+                                description="This script will build resources like composer and npm before release"
+                              >
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  Build Script
+                                </DropdownMenuItem>
+                              </DeploymentScript>
+                              <DeploymentScript
+                                site={site}
+                                script={page.props.preFlightScript ?? fallbackScript('pre-flight')}
+                                description="This script will be executed before release like migrations and optimizations"
+                              >
+                                <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
+                                  Pre Flight Script
+                                </DropdownMenuItem>
+                              </DeploymentScript>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        ) : (
+                          <DeploymentScript
+                            site={site}
+                            script={page.props.deploymentScript ?? fallbackScript('default')}
+                            description="This script will be executed on every deployment."
+                          >
+                            <Button variant="outline" className="gap-1.5 cursor-pointer">
+                              <TerminalIcon className="size-4" />
+                              <span>Deploy Script</span>
+                            </Button>
+                          </DeploymentScript>
                         )}
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
                           <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>

@@ -31,7 +31,7 @@ class InstallSiteTooling
         ])->validate();
 
         $iuser = $site->isolatedUser;
-        if (! $iuser instanceof IsolatedUser) {
+        if (! $iuser) {
             throw ValidationException::withMessages([
                 'tool' => 'Tooling can only be installed on isolated sites.',
             ]);

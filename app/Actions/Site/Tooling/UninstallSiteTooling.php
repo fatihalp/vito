@@ -21,7 +21,7 @@ class UninstallSiteTooling
         }
 
         $iuser = $site->isolatedUser;
-        if (! $iuser instanceof IsolatedUser) {
+        if (! $iuser) {
             throw ValidationException::withMessages([
                 'tool' => 'Tooling can only be uninstalled on isolated sites.',
             ]);

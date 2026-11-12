@@ -52,13 +52,7 @@ class ApplicationController extends Controller
     {
         $this->authorize('view', [$site, $server]);
 
-        $scriptsEnsured = false;
-        $ensureScripts = function () use ($server, $site, &$scriptsEnsured): void {
-            if (! $scriptsEnsured && $server->isReady()) {
-                $site->ensureDeploymentScriptsExist();
-                $scriptsEnsured = true;
-            }
-        };
+        $site->ensureDeploymentScriptsExist();
 
         $overview = null;
         $getOverview = function () use ($site, &$overview): array {
@@ -66,23 +60,11 @@ class ApplicationController extends Controller
         };
 
         return Inertia::render('application/index', [
-            'activeDeployment' => fn (): ?DeploymentResource => $this->resolveActiveDeployment($site, $ensureScripts),
+            'activeDeployment' => fn (): ?DeploymentResource => $this->resolveActiveDeployment($site),
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
-            'deploymentScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
-                $ensureScripts();
-
-                return $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null;
-            }, 'deployments'),
-            'buildScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
-                $ensureScripts();
-
-                return $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null;
-            }, 'deployments'),
-            'preFlightScript' => Inertia::defer(function () use ($site, $ensureScripts): ?DeploymentScriptResource {
-                $ensureScripts();
-
-                return $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null;
-            }, 'deployments'),
+            'deploymentScript' => fn (): ?DeploymentScriptResource => $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null,
+            'buildScript' => fn (): ?DeploymentScriptResource => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null,
+            'preFlightScript' => fn (): ?DeploymentScriptResource => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null,
             'loadBalancerServers' => fn () => $site->type === 'load-balancer'
                 ? LoadBalancerServerResource::collection($site->loadBalancerServers)
                 : [],
@@ -345,7 +327,7 @@ class ApplicationController extends Controller
         return back()->with('success', 'Load balancer updated successfully.');
     }
 
-    private function resolveActiveDeployment(Site $site, ?callable $beforeReturn = null): ?DeploymentResource
+    private function resolveActiveDeployment(Site $site): ?DeploymentResource
     {
         $activeDeployment = $site->deployments()
             ->where('status', DeploymentStatus::DEPLOYING)
@@ -355,10 +337,6 @@ class ApplicationController extends Controller
 
         if (! $activeDeployment) {
             return null;
-        }
-
-        if ($beforeReturn) {
-            $beforeReturn();
         }
 
         $activeDeployment->setRelation('site', $site);
