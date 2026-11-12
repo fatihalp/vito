@@ -8,9 +8,11 @@ use App\SSH\PostgresReplication;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DatabaseReplica extends AbstractModel
 {
+    use SoftDeletes;
     protected $fillable = [
         'postgres_cluster_id',
         'replica_server_id',

@@ -8,12 +8,15 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 
 class Ssl extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'site_id',
@@ -64,7 +67,7 @@ class Ssl extends AbstractModel
     
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     

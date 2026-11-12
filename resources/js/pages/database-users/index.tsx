@@ -12,7 +12,7 @@ import { InfoIcon, PlusIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import CreateDatabaseUser from '@/pages/database-users/components/create-database-user';
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useDialog } from '@/hooks/use-dialog';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { asRow } from '@/lib/inertia-table';
@@ -100,22 +100,6 @@ export default function DatabaseUsers() {
                   <DropdownMenuContent align="start">
                     <DropdownMenuItem onSelect={() => dialog.databaseUserEdit.open({ databaseUser, usesHost })}>Edit</DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => dialog.databaseUserLink.open({ databaseUser })}>Link</DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      variant="destructive"
-                      onSelect={() =>
-                        dialog.confirm.open({
-                          title: `Delete database user [${databaseUser.username}]`,
-                          description: `Are you sure you want to delete database user ${databaseUser.username}? This action cannot be undone.`,
-                          variant: 'destructive',
-                          confirmLabel: 'Delete',
-                          method: 'delete',
-                          url: `/servers/${databaseUser.server_id}/database/users/${databaseUser.id}`,
-                        })
-                      }
-                    >
-                      Delete
-                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

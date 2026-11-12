@@ -6,11 +6,14 @@ use App\Enums\DatabaseUserPermission;
 use App\Enums\DatabaseUserStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DatabaseUser extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'server_id',
@@ -37,6 +40,6 @@ class DatabaseUser extends AbstractModel
     
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 }

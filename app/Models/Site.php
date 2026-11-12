@@ -160,7 +160,7 @@ class Site extends AbstractModel
     
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     

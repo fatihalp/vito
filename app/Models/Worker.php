@@ -8,6 +8,7 @@ use App\Helpers\SiteShellEnvironment;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
@@ -15,6 +16,8 @@ class Worker extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'server_id',
@@ -77,7 +80,7 @@ class Worker extends AbstractModel
     
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     

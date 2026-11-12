@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Database extends AbstractModel
 {
-    
     use HasFactory;
 
     use SoftDeletes;
@@ -28,30 +27,11 @@ class Database extends AbstractModel
         'status' => DatabaseStatus::class,
     ];
 
-    public static function boot(): void
-    {
-        parent::boot();
-
-        static::deleting(function (Database $database): void {
-            $database->server->databaseUsers()->each(function ($user) use ($database): void {
-                
-                $databases = $user->databases;
-                if ($databases && in_array($database->name, $databases)) {
-                    unset($databases[array_search($database->name, $databases)]);
-                    $user->databases = array_values($databases);
-                    $user->save();
-                }
-            });
-        });
-    }
-
-    
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
-    
     public function backups(): HasMany
     {
         return $this->hasMany(Backup::class)->where('type', 'database');

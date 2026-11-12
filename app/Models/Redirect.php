@@ -5,11 +5,14 @@ namespace App\Models;
 use App\Enums\RedirectStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Redirect extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     public const int MODE_PROXY = 1000;
 

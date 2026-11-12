@@ -4,11 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DNSRecord extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $table = 'dns_records';
 

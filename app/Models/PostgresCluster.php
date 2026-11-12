@@ -8,10 +8,12 @@ use App\Enums\NetworkServerStatus;
 use App\Enums\PostgresClusterStatus;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Collection;
 
 class PostgresCluster extends AbstractModel
 {
+    use SoftDeletes;
     protected $fillable = [
         'project_id',
         'primary_server_id',

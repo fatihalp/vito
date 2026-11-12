@@ -7,6 +7,7 @@ use App\Traits\HasProjectScopedQueries;
 use App\Notifications\NotificationInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Notifications\Notifiable;
 
 class NotificationChannel extends AbstractModel
@@ -16,6 +17,8 @@ class NotificationChannel extends AbstractModel
     use HasFactory;
 
     use Notifiable;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'provider',

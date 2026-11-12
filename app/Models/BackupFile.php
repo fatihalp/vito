@@ -16,6 +16,7 @@ use App\StorageProviders\S3;
 use App\StorageProviders\SFTP;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -23,6 +24,8 @@ class BackupFile extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'backup_id',
@@ -155,12 +158,12 @@ class BackupFile extends AbstractModel
 
     public function backup(): BelongsTo
     {
-        return $this->belongsTo(Backup::class);
+        return $this->belongsTo(Backup::class)->withTrashed();
     }
 
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     public function activeMigrationItem(): ?StorageMigrationItem

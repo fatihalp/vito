@@ -13,6 +13,7 @@ use App\Services\ServiceInterface;
 use App\Services\Webserver\Webserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 
@@ -20,6 +21,8 @@ class Service extends AbstractModel
 {
     
     use HasFactory;
+
+    use SoftDeletes;
 
     protected $fillable = [
         'server_id',
@@ -51,7 +54,7 @@ class Service extends AbstractModel
     
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     

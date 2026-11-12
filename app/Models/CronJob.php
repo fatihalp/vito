@@ -9,10 +9,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class CronJob extends AbstractModel
 {
     use HasFactory;
+
+    use SoftDeletes;
 
     public static function boot(): void
     {
@@ -42,7 +45,7 @@ class CronJob extends AbstractModel
 
     public function server(): BelongsTo
     {
-        return $this->belongsTo(Server::class);
+        return $this->belongsTo(Server::class)->withTrashed();
     }
 
     public function site(): BelongsTo
