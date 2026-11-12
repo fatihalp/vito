@@ -10,6 +10,7 @@ import {
   TimerIcon,
   XCircleIcon,
 } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -218,6 +219,12 @@ export default function DeploymentProgress({
           )}
 
           <span className="text-sm font-medium shrink-0">{title}</span>
+
+          {deployment.is_duplicate && (
+            <Badge variant="warning" className="text-[10px] px-1.5 py-0 h-4 font-normal shrink-0">
+              Duplicate commit
+            </Badge>
+          )}
 
           {stepLabel && (
             <span className="text-xs text-muted-foreground font-mono shrink-0">{stepLabel}</span>

@@ -188,7 +188,10 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
       )}
 
       <div className={cn('relative w-full overflow-hidden rounded-md border shadow-xs', modal && 'border-none shadow-none')}>
-        <Table className={cn((fitContent || columnWidths) && 'table-fixed', fitContent && '[&_td]:whitespace-normal [&_td]:break-words [&_th]:whitespace-normal [&_svg]:shrink-0')}>
+        <Table
+          containerClassName={cn(modal && 'overflow-x-hidden', (fitContent || columnWidths) && 'overflow-x-hidden')}
+          className={cn((fitContent || columnWidths) && 'table-fixed', fitContent && '[&_td]:whitespace-normal [&_td]:break-words [&_th]:whitespace-normal [&_svg]:shrink-0')}
+        >
           <TableHeader>
             <TableRow>
               {(orderedTableData.columns ?? [])
@@ -202,7 +205,6 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                       key={colDef.name}
                       className={cn(
                         colDef.fit ? (fitContent ? 'w-20' : 'w-0') : undefined,
-                        columnWidths && !columnWidths[colDef.name] && 'w-full',
                       )}
                     >
                       {colDef.sortable ? (

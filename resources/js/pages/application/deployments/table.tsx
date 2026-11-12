@@ -177,6 +177,15 @@ export default function DeploymentsTable({
                 #{deployment.id}
               </Link>
             )}
+            {Boolean(row.is_duplicate ?? deployment.is_duplicate) && (
+              <Badge
+                variant="warning"
+                className="text-[9px] px-1 py-0 h-3.5 font-normal shrink-0"
+                title="This commit was already deployed previously"
+              >
+                Duplicate
+              </Badge>
+            )}
             {href ? (
               <a
                 href={href}
@@ -214,7 +223,7 @@ export default function DeploymentsTable({
       modal={modal}
       columnWidths={
         isOverview
-          ? { actions: '2.5rem', status: '5.5rem', duration: '3.75rem', created_at: '6.5rem' }
+          ? { actions: '2.75rem', status: '5.5rem', duration: '3.5rem', created_at: '7.5rem' }
           : { actions: '3rem', id: '3.5rem', status: '6.5rem', duration: '4.5rem', created_at: '7.5rem', deployed_by: '7rem' }
       }
       tableData={deployments}

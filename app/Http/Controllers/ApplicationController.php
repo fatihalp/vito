@@ -149,11 +149,16 @@ class ApplicationController extends Controller
 
         $deployment = app(Deploy::class)->run($site, user: $request->user());
 
+        $isDuplicate = $deployment->isDuplicate();
+        $message = $isDuplicate
+            ? "Deployment #{$deployment->id} started. Note: commit {$deployment->commit_id_short} was already deployed previously."
+            : 'Deployment started, please wait...';
+
         return redirect()->route('application.deployments.show', [
             'server' => $server,
             'site' => $site,
             'deployment' => $deployment,
-        ])->with('info', 'Deployment started, please wait...');
+        ])->with($isDuplicate ? 'warning' : 'info', $message);
     }
 
     #[Delete('/deployments/{deployment}', name: 'application.deployments.destroy')]

@@ -7,7 +7,7 @@ import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, TerminalIcon, XIcon, type LucideIcon } from 'lucide-react';
+import { AlertTriangleIcon, CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, TerminalIcon, XIcon, type LucideIcon } from 'lucide-react';
 import Deploy from '@/pages/application/components/deploy';
 import DeploymentScript from '@/pages/application/components/deployment-script';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -27,8 +27,6 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import LogOutput from '@/components/log-output';
 import { Deployment } from '@/types/deployment';
 import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
-import DateTime from '@/components/date-time';
-import { usePanelView } from '@/hooks/use-panel-view';
 
 function Detail({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
   return (
@@ -63,8 +61,6 @@ export default function AppWithDeployment() {
     overviewCronJobsCount: number;
   }>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
-  const { advanced, setView } = usePanelView();
-  const latestDeployment = page.props.deployments?.data[0] as unknown as Deployment | undefined;
   const [activeDeployment, setActiveDeployment] = useState<Deployment | null>(page.props.activeDeployment ?? null);
   const [showLog, setShowLog] = useState(false);
   const [dismissed, setDismissed] = useState(false);
@@ -139,14 +135,7 @@ export default function AppWithDeployment() {
       <Container className="gap-4">
         {site.status === 'installation_failed' && <SiteBanners site={site} includeAppDebug />}
 
-        <div className="flex justify-end">
-          <div className="bg-muted/40 flex gap-1 rounded-md border p-1" role="group" aria-label="View">
-            <Button size="sm" variant={advanced ? 'ghost' : 'secondary'} aria-pressed={!advanced} onClick={() => setView('basic')}>Basic</Button>
-            <Button size="sm" variant={advanced ? 'secondary' : 'ghost'} aria-pressed={advanced} onClick={() => setView('advanced')}>Advanced</Button>
-          </div>
-        </div>
-
-        <div className={advanced ? 'grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]' : 'grid gap-3'}>
+        <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_17rem]">
           <div className="flex min-w-0 flex-col gap-4">
             {site.is_proxied_site_type && (
               <ProxiedAppCard site={site} initialWorker={page.props.worker} />
@@ -170,17 +159,6 @@ export default function AppWithDeployment() {
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {site.status !== 'installation_failed' && <SiteBanners site={site} compact includeAppDebug />}
-                        {!advanced && site.source_control_id && (
-                          <div className="flex items-center gap-2 rounded-md border px-2.5 py-1 text-xs">
-                            <span className="text-muted-foreground">Auto deploy</span>
-                            <Switch
-                              checked={site.auto_deploy}
-                              disabled={togglingAutoDeploy}
-                              onCheckedChange={handleToggleAutoDeploy}
-                              aria-label="Toggle auto deploy"
-                            />
-                          </div>
-                        )}
                         <Deploy site={site} />
                         {site.modern_deployment ? (
                           <DropdownMenu modal={false}>
@@ -235,6 +213,14 @@ export default function AppWithDeployment() {
                   </CardHeader>
                   {activeDeployment && !dismissed && (
                     <div className="border-t p-4 flex flex-col gap-3">
+                      {activeDeployment.is_duplicate && (
+                        <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
+                          <AlertTriangleIcon className="size-4 shrink-0" />
+                          <span>
+                            This commit ({activeDeployment.commit_id_short || activeDeployment.commit_id}) has already been deployed in a previous release.
+                          </span>
+                        </div>
+                      )}
                       <DeploymentProgress
                         deployment={activeDeployment}
                         step={step}
@@ -283,25 +269,7 @@ export default function AppWithDeployment() {
                     </div>
                   )}
                   <CardContent className="p-0 border-t">
-                    {advanced ? (
-                      <DeploymentsTable deployments={page.props.deployments} showPagination={false} modal />
-                    ) : latestDeployment ? (
-                      <div className="p-4">
-                        <Link
-                          href={`/servers/${site.server_id}/sites/${site.id}/deployments/${latestDeployment.id}`}
-                          className="hover:bg-muted/30 flex flex-wrap items-center justify-between gap-3 rounded-md p-2 text-sm"
-                        >
-                          <div className="min-w-0 flex-1">
-                            <p className="text-muted-foreground text-xs">Latest deployment · #{latestDeployment.id}</p>
-                            <p className="break-words font-medium">{latestDeployment.commit_data?.message || latestDeployment.commit_id_short || 'Deployment'}</p>
-                          </div>
-                          <Badge variant={latestDeployment.status_color}>{latestDeployment.status}</Badge>
-                          <DateTime date={latestDeployment.created_at} relative className="text-muted-foreground text-xs" />
-                        </Link>
-                      </div>
-                    ) : (
-                      <p className="text-muted-foreground p-6 text-center text-sm">No deployments yet.</p>
-                    )}
+                    <DeploymentsTable deployments={page.props.deployments} showPagination={false} modal />
                   </CardContent>
                   <CardFooter className="justify-end border-t p-2">
                     <Button variant="ghost" size="sm" asChild>
@@ -312,22 +280,7 @@ export default function AppWithDeployment() {
               </section>
             </Deferred>
 
-            {!advanced && (
-              <div className="flex flex-wrap gap-2" aria-label="Site shortcuts">
-                {[
-                  ['workers', 'Workers'],
-                  ['cronjobs', 'Cron jobs'],
-                  ['logs', 'Logs'],
-                  ['resources', 'Resources'],
-                ].map(([path, label]) => (
-                  <Button key={path} variant="outline" size="sm" asChild>
-                    <Link href={`/servers/${site.server_id}/sites/${site.id}/${path}`}>{label}</Link>
-                  </Button>
-                ))}
-              </div>
-            )}
-
-            {advanced && <Deferred data={['overviewWorkers', 'overviewCronJobs']} fallback={<WorkersCronJobsSkeleton />}>
+            <Deferred data={['overviewWorkers', 'overviewCronJobs']} fallback={<WorkersCronJobsSkeleton />}>
               <section className="grid gap-4 md:grid-cols-2" aria-label="Site automation">
                 <Card>
                   <CardHeader className="flex-row items-center justify-between gap-3">
@@ -397,66 +350,64 @@ export default function AppWithDeployment() {
                   </CardContent>
                 </Card>
               </section>
-            </Deferred>}
+            </Deferred>
           </div>
 
-          {advanced && (
-            <Card className="overflow-hidden lg:sticky lg:top-4">
-              <CardHeader className="flex-row items-center justify-between gap-3 p-4">
-                <CardTitle>Site details</CardTitle>
-                {site.source_control_id && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">Auto deploy</span>
-                    <Switch
-                      checked={site.auto_deploy}
-                      disabled={togglingAutoDeploy}
-                      onCheckedChange={handleToggleAutoDeploy}
-                      aria-label="Toggle auto deploy"
-                    />
-                  </div>
-                )}
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="flex flex-col gap-3 p-4">
-                  <Detail icon={ServerIcon}>
-                    {page.props.server.name}
-                  </Detail>
-                  <Detail icon={NetworkIcon}>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono">{page.props.server.ip}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="size-6 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
-                        onClick={() => copyIp(page.props.server.ip)}
-                        aria-label="Copy IP address"
-                        title="Copy IP address"
-                      >
-                        {copiedIp ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
-                      </Button>
-                    </div>
-                  </Detail>
-                  {site.php_version && (
-                    <Detail icon={CodeXmlIcon}>
-                      {site.php_version}
-                    </Detail>
-                  )}
-                  <Detail icon={LockKeyholeIcon}>
-                    <Link
-                      href={`/servers/${site.server_id}/sites/${site.id}/domains`}
-                      className="inline-flex items-center gap-2 hover:opacity-80"
-                    >
-                      <span>SSL</span>
-                      <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>
-                        {site.ssl_enabled ? 'Enabled' : 'Disabled'}
-                      </Badge>
-                    </Link>
-                  </Detail>
+          <Card className="overflow-hidden lg:sticky lg:top-4">
+            <CardHeader className="flex-row items-center justify-between gap-3 p-4">
+              <CardTitle>Site details</CardTitle>
+              {site.source_control_id && (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Auto deploy</span>
+                  <Switch
+                    checked={site.auto_deploy}
+                    disabled={togglingAutoDeploy}
+                    onCheckedChange={handleToggleAutoDeploy}
+                    aria-label="Toggle auto deploy"
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          )}
+              )}
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="flex flex-col gap-3 p-4">
+                <Detail icon={ServerIcon}>
+                  {page.props.server.name}
+                </Detail>
+                <Detail icon={NetworkIcon}>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono">{page.props.server.ip}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="size-6 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
+                      onClick={() => copyIp(page.props.server.ip)}
+                      aria-label="Copy IP address"
+                      title="Copy IP address"
+                    >
+                      {copiedIp ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
+                    </Button>
+                  </div>
+                </Detail>
+                {site.php_version && (
+                  <Detail icon={CodeXmlIcon}>
+                    {site.php_version}
+                  </Detail>
+                )}
+                <Detail icon={LockKeyholeIcon}>
+                  <Link
+                    href={`/servers/${site.server_id}/sites/${site.id}/domains`}
+                    className="inline-flex items-center gap-2 hover:opacity-80"
+                  >
+                    <span>SSL</span>
+                    <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>
+                      {site.ssl_enabled ? 'Enabled' : 'Disabled'}
+                    </Badge>
+                  </Link>
+                </Detail>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </Container>
     </ServerLayout>
