@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Site\Deploy;
 use App\Actions\Site\GenerateAppKey;
 use App\Actions\Site\GetEnv;
+use App\Actions\Site\GetLatestCommit;
 use App\Actions\Site\GetSiteOverview;
 use App\Actions\Site\ParseEnv;
 use App\Actions\Site\StringifyEnv;
@@ -62,6 +63,8 @@ class ApplicationController extends Controller
         return Inertia::render('application/index', [
             'activeDeployment' => fn (): ?DeploymentResource => $this->resolveActiveDeployment($site),
             'deployments' => Inertia::defer(fn () => DeploymentTable::make($site->deployments())->overview(), 'deployments'),
+            'repositoryUrl' => fn (): ?string => $site->getRepositoryWebUrl(),
+            'latestCommit' => Inertia::defer(fn (): ?array => app(GetLatestCommit::class)->get($site), 'latest-commit'),
             'deploymentScript' => fn (): ?DeploymentScriptResource => $site->deploymentScript ? new DeploymentScriptResource($site->deploymentScript) : null,
             'buildScript' => fn (): ?DeploymentScriptResource => $site->buildScript ? new DeploymentScriptResource($site->buildScript) : null,
             'preFlightScript' => fn (): ?DeploymentScriptResource => $site->preFlightScript ? new DeploymentScriptResource($site->preFlightScript) : null,
@@ -107,6 +110,7 @@ class ApplicationController extends Controller
 
         return Inertia::render('application/deployments/index', [
             'deployments' => DeploymentTable::make($site->deployments())->paginate(),
+            'repositoryUrl' => fn (): ?string => $site->getRepositoryWebUrl(),
             'activeDeployment' => fn (): ?DeploymentResource => $this->resolveActiveDeployment($site),
         ]);
     }
@@ -125,6 +129,7 @@ class ApplicationController extends Controller
 
         return Inertia::render('application/deployments/show', [
             'deployment' => new DeploymentResource($deployment),
+            'repositoryUrl' => fn (): ?string => $site->getRepositoryWebUrl(),
         ]);
     }
 

@@ -26,6 +26,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use RuntimeException;
+use Throwable;
 
 class Site extends AbstractModel
 {
@@ -336,6 +337,11 @@ class Site extends AbstractModel
         return $this->sourceControl?->provider()?->fullRepoUrl($this->repository, $this->getSshKeyName());
     }
 
+    public function getRepositoryWebUrl(): ?string
+    {
+        return $this->repository ? $this->sourceControl?->provider()?->repositoryWebUrl($this->repository) : null;
+    }
+
     public function type(): SiteType
     {
         $handlerClass = config('site.types.'.$this->type.'.handler');
@@ -447,7 +453,7 @@ class Site extends AbstractModel
         }
 
         if (! $this->sourceControl?->getRepo($this->repository)) {
-            throw new SourceControlIsNotConnected($this->source_control);
+            throw new SourceControlIsNotConnected('Source control is not connected.');
         }
 
         $gitHook = new GitHook([
@@ -465,7 +471,7 @@ class Site extends AbstractModel
     public function disableAutoDeployment(): void
     {
         if (! $this->sourceControl?->getRepo($this->repository)) {
-            throw new SourceControlIsNotConnected($this->source_control);
+            throw new SourceControlIsNotConnected('Source control is not connected.');
         }
 
         $this->gitHook?->destroyHook();

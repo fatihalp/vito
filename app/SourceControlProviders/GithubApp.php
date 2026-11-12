@@ -82,6 +82,11 @@ class GithubApp extends AbstractSourceControlProvider
         return sprintf('https://github.com/%s.git', $repo);
     }
 
+    public function repositoryWebUrl(string $repo): string
+    {
+        return 'https://github.com/'.$repo;
+    }
+
     public function deployHook(string $repo, array $events, string $secret): array
     {
         return [

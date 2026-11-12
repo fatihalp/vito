@@ -25,7 +25,8 @@ import DeploymentProgress from '@/pages/application/deployments/progress';
 import { useLogContent } from '@/hooks/use-log-content';
 import { useClipboard } from '@/hooks/use-clipboard';
 import LogOutput from '@/components/log-output';
-import { Deployment } from '@/types/deployment';
+import { Deployment, LatestCommit } from '@/types/deployment';
+import LatestCommitBanner from '@/pages/application/components/latest-commit-banner';
 import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
 
 function Detail({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
@@ -51,6 +52,8 @@ export default function AppWithDeployment() {
     site: Site;
     deployments: InertiaTableData;
     activeDeployment?: Deployment | null;
+    repositoryUrl: string | null;
+    latestCommit?: LatestCommit | null;
     deploymentScript: DeploymentScriptType;
     buildScript?: DeploymentScriptType;
     preFlightScript?: DeploymentScriptType;
@@ -149,9 +152,26 @@ export default function AppWithDeployment() {
                       <div className="text-muted-foreground flex min-w-0 items-center gap-2 text-sm">
                         {site.repository ? (
                           <>
-                            <GitBranchIcon className="size-4 shrink-0" />
-                            <span className="truncate">{site.repository}</span>
-                            {site.branch && <span className="shrink-0">· {site.branch}</span>}
+                            {page.props.repositoryUrl ? (
+                              <a
+                                href={page.props.repositoryUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-foreground inline-flex min-w-0 items-center gap-1.5 font-medium hover:underline"
+                                title="Open repository"
+                              >
+                                <span className="truncate">{site.repository}</span>
+                                <ExternalLinkIcon className="size-3.5 shrink-0" />
+                              </a>
+                            ) : (
+                              <span className="text-foreground truncate font-medium">{site.repository}</span>
+                            )}
+                            {site.branch && (
+                              <Badge variant="outline" className="shrink-0 gap-1 font-mono font-normal">
+                                <GitBranchIcon className="size-3" />
+                                {site.branch}
+                              </Badge>
+                            )}
                           </>
                         ) : (
                           <span>{formatSiteType(site.type)} site</span>
@@ -211,6 +231,9 @@ export default function AppWithDeployment() {
                       </div>
                     </div>
                   </CardHeader>
+                  <Deferred data="latestCommit" fallback={null}>
+                    <LatestCommitBanner site={site} latestCommit={page.props.latestCommit} activeDeployment={activeDeployment} />
+                  </Deferred>
                   {activeDeployment && !dismissed && (
                     <div className="border-t p-4 flex flex-col gap-3">
                       {activeDeployment.is_duplicate && (

@@ -22,6 +22,8 @@ interface SourceControlProvider
 
     public function fullRepoUrl(string $repo, string $key): string;
 
+    public function repositoryWebUrl(string $repo): string;
+
     public function getSshPort(): int;
 
     

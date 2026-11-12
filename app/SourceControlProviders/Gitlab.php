@@ -119,6 +119,11 @@ class Gitlab extends AbstractSourceControlProvider
         return sprintf('git@%s-%s:%s.git', $host, $key, $repo);
     }
 
+    public function repositoryWebUrl(string $repo): string
+    {
+        return rtrim($this->sourceControl->url ?? $this->defaultApiHost, '/').'/'.$repo;
+    }
+
     public function deployHook(string $repo, array $events, string $secret): array
     {
         $repository = urlencode($repo);

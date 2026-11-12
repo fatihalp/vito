@@ -52,15 +52,15 @@ abstract class AbstractSourceControlProvider implements SourceControlProvider
     protected function handleResponseErrors(Response $res, string $repo): void
     {
         if ($res->status() == 401) {
-            throw new SourceControlIsNotConnected($this->sourceControl);
+            throw new SourceControlIsNotConnected('Source control is not connected: the access token was rejected.');
         }
 
         if ($res->status() == 404) {
-            throw new RepositoryNotFound($repo);
+            throw new RepositoryNotFound("Repository {$repo} was not found.");
         }
 
         if ($res->status() == 403) {
-            throw new RepositoryPermissionDenied($repo);
+            throw new RepositoryPermissionDenied("Access to repository {$repo} was denied.");
         }
     }
 

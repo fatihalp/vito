@@ -8,7 +8,6 @@ use Forjed\InertiaTable\Column;
 use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
-use Forjed\InertiaTable\Columns\TextColumn;
 use App\Tables\AbstractTable as Table;
 
 class DeploymentTable extends Table
@@ -70,34 +69,12 @@ class DeploymentTable extends Table
             ActionsColumn::make(),
         ];
 
-        if ($this->overview) {
-            return [
-                Column::make('commit', 'Commit'),
-                EnumColumn::make('status', 'Status'),
-                Column::make('duration', 'Duration')
-                    ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
-                DateTimeColumn::make('created_at', 'Deployed At')->toLocal(),
-                Column::data('id'),
-                Column::data('deployed_by', fn (Deployment $deployment): ?string => $deployment->user?->name),
-                ...$baseData,
-            ];
-        }
-
         return [
             Column::make('commit', 'Commit'),
-            Column::make('deployed_by', 'Deployed By')
-                ->value(fn (Deployment $deployment): ?string => $deployment->user?->name),
-            EnumColumn::make('status', 'Status')->sortable(),
-            Column::make('duration', 'Duration')
-                ->value(fn (Deployment $deployment): ?string => $deployment->formattedDuration()),
-            DateTimeColumn::make('created_at', 'Deployed At')->sortable()->toLocal(),
-            TextColumn::make('id', 'ID')
-                ->sortable()
-                ->link('application.deployments.show', [
-                    'server' => ':site.server_id',
-                    'site' => ':site_id',
-                    'deployment' => ':id',
-                ]),
+            EnumColumn::make('status', 'Status')->sortable(! $this->overview),
+            DateTimeColumn::make('created_at', 'Deployed')->sortable(! $this->overview)->toLocal(),
+            Column::data('id'),
+            Column::data('deployed_by', fn (Deployment $deployment): ?string => $deployment->user?->name),
             ...$baseData,
         ];
     }

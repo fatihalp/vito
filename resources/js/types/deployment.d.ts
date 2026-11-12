@@ -45,3 +45,10 @@ export interface Deployment {
 
   [key: string]: unknown;
 }
+
+export interface LatestCommit {
+  commit_id?: string;
+  commit_data?: Deployment['commit_data'];
+  deployed?: boolean;
+  error?: string;
+}

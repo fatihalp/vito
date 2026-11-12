@@ -145,7 +145,7 @@ function StepRow({ stepItem, state, duration, selected, onSelect }: {
       disabled={state === 'pending' || !onSelect}
       aria-pressed={selected}
       className={cn(
-        'flex w-full items-center gap-3 px-3 py-3 text-left text-sm disabled:opacity-50',
+        'flex w-full items-center gap-3 px-3 py-2 text-left text-sm disabled:opacity-50',
         onSelect && 'cursor-pointer hover:bg-muted/50',
         selected && 'bg-muted/50',
       )}
