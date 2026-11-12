@@ -6,8 +6,6 @@ use App\Traits\HasFeatures;
 
 use App\Actions\Network\ResyncNetworkSiblings;
 use App\Actions\Server\CheckConnection;
-use App\Actions\SiteResource\CleanupSiteResources;
-use App\Actions\SiteResource\DisconnectSiteResource;
 use App\Enums\OperatingSystem;
 use App\Enums\SecurityControlStatus;
 use App\Enums\ServerRole;
@@ -111,31 +109,31 @@ class Server extends AbstractModel
         static::deleting(function (Server $server): void {
             DB::beginTransaction();
             try {
-                $server->siteResources()
-                    ->with('site.server')
-                    ->get()
-                    ->each(function (SiteResource $resource): void {
-                        app(DisconnectSiteResource::class)->disconnect(
-                            $resource,
-                            removeFirewall: false,
-                        );
-                    });
-                $server->sites()->each(function ($site): void {
-                    app(CleanupSiteResources::class)->cleanup($site);
+                $server->siteResources()->delete();
+                $server->sites()->each(function (Site $site): void {
+                    $site->resources()->delete();
                     $site->workers()->delete();
+                    $site->cronJobs()->each(fn (CronJob $cronJob) => $cronJob->executions()->delete());
+                    $site->cronJobs()->delete();
                     $site->ssls()->delete();
                     $site->deployments()->delete();
                     $site->deploymentScripts()->delete();
                     $site->redirects()->delete();
                     $site->commands()->delete();
-                    $site->gitHook?->destroyHook();
+                    try {
+                        $site->gitHook?->destroyHook();
+                    } catch (Throwable) {
+                    }
                 });
                 $server->sites()->delete();
+                $server->isolatedUsers()->delete();
                 $server->logs()->where('is_remote', false)->delete();
                 $server->logs()->where('is_remote', true)->each(function ($log): void {
                     $log->delete();
                 });
                 $server->backups()->each(function ($backup): void {
+                    $backup->files()->delete();
+                    $backup->restores()->delete();
                     $backup->delete();
                 });
                 $server->metrics()->delete();

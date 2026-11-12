@@ -4,7 +4,6 @@ namespace App\Models;
 
 use App\Traits\HasFeatures;
 
-use App\Actions\SiteResource\CleanupSiteResources;
 use App\Enums\CronjobStatus;
 use App\Enums\DeploymentStatus;
 use App\Enums\RedirectStatus;
@@ -13,7 +12,6 @@ use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHError;
 use App\Helpers\SiteShellEnvironment;
 use App\Helpers\SSH;
-use App\Jobs\SSL\DeleteSslJob;
 use App\Services\Webserver\Webserver;
 use App\SiteTypes\AbstractSiteType;
 use App\SiteTypes\SiteType;
@@ -91,31 +89,23 @@ class Site extends AbstractModel
                 throw new RuntimeException('The Vito application site cannot be deleted.');
             }
 
-            app(CleanupSiteResources::class)->cleanup($site);
-            $site->workers()->each(function ($worker): void {
-                $worker->delete();
-            });
-            $site->cronJobs()->each(function (CronJob $cronJob) use ($site): void {
-                try {
-                    $cronJob->status = CronjobStatus::DELETING;
-                    $cronJob->save();
-                    $site->server->cron()->update($cronJob->user, CronJob::crontab($site->server, $cronJob->user));
-                } catch (\Throwable $e) {
-                    Log::warning('Failed to update crontab on site delete', ['error' => $e->getMessage()]);
-                } finally {
-                    $cronJob->delete();
-                }
+            $site->resources()->delete();
+            $site->workers()->delete();
+            $site->cronJobs()->each(function (CronJob $cronJob): void {
+                $cronJob->executions()->delete();
+                $cronJob->delete();
             });
             $site->redirects()->delete();
             $site->commands()->delete();
-            $site->ssls()->each(function (Ssl $ssl) use ($site): void {
-                dispatch(new DeleteSslJob($site->server, $ssl))->onQueue('ssh');
-            });
+            $site->ssls()->delete();
             $site->deployments()->delete();
             $site->envVersions()->delete();
             $site->deploymentScripts()->delete();
             $site->logs()->update(['site_id' => null]);
-            $site->gitHook?->destroyHook();
+            try {
+                $site->gitHook?->destroyHook();
+            } catch (Throwable) {
+            }
         });
 
         static::created(function (Site $site): void {

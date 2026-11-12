@@ -39,7 +39,7 @@ class GitHook extends AbstractModel
     
     public function sourceControl(): BelongsTo
     {
-        return $this->belongsTo(SourceControl::class);
+        return $this->belongsTo(SourceControl::class)->withTrashed();
     }
 
     public function deployHook(): void

@@ -15,12 +15,6 @@ class DeleteSourceControl
             ]);
         }
 
-        if ($sourceControl->sites()->exists()) {
-            throw ValidationException::withMessages([
-                'source_control' => __('This source control is being used by a site.'),
-            ]);
-        }
-
         $sourceControl->delete();
     }
 }
