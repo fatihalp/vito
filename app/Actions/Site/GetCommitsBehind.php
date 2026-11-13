@@ -34,11 +34,11 @@ class GetCommitsBehind
                 'branch' => $site->branch,
                 'behind' => $site->sourceControl->provider()->countCommitsBehind($site->repository, $commitId, $site->branch),
             ];
-            Cache::put($this->key($site, $commitId), $result, now()->addMinutes(5));
         } catch (Throwable $e) {
             $result = ['branch' => $site->branch, 'error' => $e->getMessage()];
-            Cache::put($this->key($site, $commitId), $result, now()->addMinute());
         }
+
+        Cache::put($this->key($site, $commitId), $result, now()->addDay());
 
         return $result;
     }
