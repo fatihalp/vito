@@ -71,7 +71,7 @@ export default function DeploymentShow() {
     <ServerLayout>
       <Head title={`Deployment #${deployment.id} - ${site.domain}`} />
 
-      <Container className="flex min-h-[calc(100vh-80px)] flex-col gap-3 py-4">
+      <Container className="flex flex-col gap-3 py-4 lg:h-[calc(100vh-80px)] lg:min-h-[36rem]">
         <SiteBanners site={site} />
 
         <div className="flex items-start gap-3">
@@ -83,7 +83,14 @@ export default function DeploymentShow() {
 
           <div className="flex min-w-0 flex-1 flex-col gap-1.5">
             <h1 className="min-w-0">
-              <CommitSummary commit={commit} className="text-lg font-semibold" />
+              {commit.message ? (
+                <CommitSummary commit={commit} className="text-lg font-semibold" />
+              ) : (
+                <span className="flex min-w-0 items-center gap-2 text-lg font-semibold">
+                  Deployment #{deployment.id}
+                  {site.branch && <span className="text-muted-foreground truncate font-mono text-sm font-normal">{site.branch}</span>}
+                </span>
+              )}
             </h1>
             <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px]">
               <span className={cn('inline-flex items-center gap-1.5 font-medium', DEPLOYMENT_STATES[state].className)}>
@@ -120,17 +127,18 @@ export default function DeploymentShow() {
           {!deploying && <Deploy site={site} variant="outline" />}
         </div>
 
-        <div className="grid min-h-0 flex-1 items-start gap-3 2xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)]">
+        <div className="grid min-h-0 flex-1 content-start gap-3 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">
           <DeploymentProgress
             deployment={deployment}
             step={step}
             defaultShowSteps
+            className="lg:max-h-full lg:self-start lg:overflow-y-auto"
             stepDurations={stepDurations}
             selectedStep={displayedIndex}
             onStepSelect={(index) => setSelectedStep(index === activeIndex ? null : index)}
           />
 
-          <Card className="flex h-[560px] flex-col overflow-hidden border shadow-none 2xl:h-[calc(100vh-18rem)] 2xl:min-h-[560px]">
+          <Card className="flex h-[70vh] min-h-80 flex-col overflow-hidden border shadow-none lg:h-auto lg:min-h-0">
             <div className="bg-muted/20 flex items-center justify-between gap-2 border-b px-3.5 py-2">
               <div className="flex min-w-0 items-center gap-2">
                 <TerminalIcon className="text-muted-foreground size-3.5 shrink-0" />
