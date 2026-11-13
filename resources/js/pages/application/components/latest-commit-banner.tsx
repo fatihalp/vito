@@ -2,7 +2,6 @@ import { useState } from 'react';
 import moment from 'moment';
 import { AlertTriangleIcon, GitCommitHorizontalIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import Deploy from '@/pages/application/components/deploy';
 import CommitSummary from '@/pages/application/components/commit-summary';
 import { parseCommitMessage } from '@/lib/commit-message';
 import { Deployment, LatestCommit } from '@/types/deployment';
@@ -21,8 +20,8 @@ export default function LatestCommitBanner({
 
   if (latestCommit?.error) {
     return (
-      <div className="text-muted-foreground flex items-center gap-2 border-t px-4 py-2 text-xs">
-        <AlertTriangleIcon className="text-warning size-3.5 shrink-0" />
+      <div className="text-muted-foreground flex items-center gap-3 border-t py-2 pr-3 pl-16 text-xs">
+        <AlertTriangleIcon className="text-warning size-4 shrink-0" />
         <span className="truncate" title={latestCommit.error}>
           Could not check {site.branch} for new commits: {latestCommit.error}
         </span>
@@ -39,8 +38,8 @@ export default function LatestCommitBanner({
   const merged = commit.message ? Boolean(parseCommitMessage(commit.message).branch) : false;
 
   return (
-    <div className="bg-info/5 flex flex-col gap-3 border-t px-4 py-3 sm:flex-row sm:items-center">
-      <GitCommitHorizontalIcon className="text-info hidden size-5 shrink-0 sm:block" />
+    <div className="bg-info/5 flex items-center gap-3 border-t py-2.5 pr-3 pl-16">
+      <GitCommitHorizontalIcon className="text-info size-4 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2 text-sm">
           <span className="text-info shrink-0 font-medium">New commit on {site.branch}</span>
@@ -58,12 +57,9 @@ export default function LatestCommitBanner({
           </div>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-1">
-        <Deploy site={site} variant="outline" />
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label="Dismiss new commit notice" title="Not now">
-          <XIcon className="size-4" />
-        </Button>
-      </div>
+      <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label="Dismiss new commit notice" title="Not now">
+        <XIcon className="size-4" />
+      </Button>
     </div>
   );
 }

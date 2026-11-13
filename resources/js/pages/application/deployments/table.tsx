@@ -31,10 +31,8 @@ const commitCell = ({ row }: CellRenderProps) => {
   ].filter(Boolean);
 
   return (
-    <div className="flex min-w-0 items-start gap-3">
-      <div className="flex h-5 items-center">
-        <DeploymentStateGlyph state={state} />
-      </div>
+    <div className="flex min-w-0 items-center gap-3">
+      <DeploymentStateGlyph state={state} />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <CommitSummary commit={deployment.commit_data} showScope={false} className="text-sm" />
         <div className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-[13px]">
