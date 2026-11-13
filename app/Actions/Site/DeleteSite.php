@@ -21,6 +21,7 @@ class DeleteSite
         }
 
         $this->validate($site, $input);
+        $this->ensureSafeBasePath($site);
 
         if ($site->sourceControl && isset($site->type_data['deploy_key_id'])) {
             try {
@@ -57,6 +58,15 @@ class DeleteSite
         $site->delete();
 
         SiteDeletedEvent::dispatch($server, $siteId, $domain);
+    }
+
+    private function ensureSafeBasePath(Site $site): void
+    {
+        if ($site->basePath() !== '/home/'.$site->user.'/'.$site->domain) {
+            throw ValidationException::withMessages([
+                'domain' => __('The site path does not match its expected location, so its files were not deleted.'),
+            ]);
+        }
     }
 
     private function validate(Site $site, array $input): void
