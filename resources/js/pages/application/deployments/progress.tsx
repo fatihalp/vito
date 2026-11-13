@@ -5,12 +5,10 @@ import {
   ChevronDownIcon,
   ChevronUpIcon,
   CircleIcon,
-  Clock3Icon,
   LoaderCircleIcon,
   TimerIcon,
   XCircleIcon,
 } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -106,19 +104,7 @@ function getStepState(index: number, current: number, status: string): StepState
   return status === 'failed' ? 'failed' : 'running';
 }
 
-function calculateProgressPercent(
-  status: string,
-  stepsCount: number,
-  current: number,
-  elapsed: number,
-  estimate: number | null,
-): number {
-  if (status === 'finished') return 100;
-
-  if (status === 'failed') {
-    return stepsCount > 0 && current >= 0 ? Math.round(((current + 1) / stepsCount) * 100) : 0;
-  }
-
+function calculateProgressPercent(stepsCount: number, current: number, elapsed: number, estimate: number | null): number {
   if (stepsCount > 0 && current >= 0) {
     return Math.min(95, Math.max(5, Math.round(((current + 0.5) / stepsCount) * 100)));
   }
@@ -150,12 +136,12 @@ function StepRow({ stepItem, state, duration, selected, onSelect }: {
         selected && 'bg-muted/50',
       )}
     >
-      {state === 'completed' ? <CheckCircle2Icon className="size-4 shrink-0 text-primary" />
+      {state === 'completed' ? <CheckCircle2Icon className="size-4 shrink-0 text-muted-foreground" />
         : state === 'running' ? <LoaderCircleIcon className="size-4 shrink-0 animate-spin text-primary" />
         : state === 'failed' ? <XCircleIcon className="size-4 shrink-0 text-destructive" />
         : <CircleIcon className="size-4 shrink-0 text-muted-foreground" />}
       <code className="min-w-0 flex-1 whitespace-pre-wrap break-all">{stepItem.command}</code>
-      <span className="shrink-0 font-mono tabular-nums text-muted-foreground">
+      <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">
         {duration != null ? formatDuration(duration) : '—'}
       </span>
     </button>
@@ -194,17 +180,12 @@ export default function DeploymentProgress({
   const endedAt = deploying ? now : moment(deployment.finished_at ?? deployment.updated_at).valueOf();
   const elapsed = Math.max(0, (endedAt - moment(deployment.created_at).valueOf()) / 1000);
   const remainingSeconds = deploying ? calculateRemainingSeconds(steps, current, elapsed, estimate) : 0;
-  const percent = calculateProgressPercent(deployment.status, steps.length, current, elapsed, estimate);
+  const percent = calculateProgressPercent(steps.length, current, elapsed, estimate);
 
-  const title = deploying ? 'Deploying...' : failed ? 'Deployment failed' : 'Deployment completed';
+  const title = deploying ? 'Deploying…' : failed ? 'Failed' : 'Completed';
   const activeStep = finished ? null : current >= 0 && steps[current] ? steps[current] : deploying ? (steps[0] ?? null) : null;
 
-  const stepLabel =
-    steps.length > 0
-      ? finished
-        ? `${steps.length}/${steps.length}`
-        : `${Math.max(1, current + 1)}/${steps.length}`
-      : null;
+  const stepLabel = deploying && steps.length > 0 ? `${Math.max(1, current + 1)}/${steps.length}` : null;
 
   return (
     <Card className={cn('p-3.5 flex flex-col gap-2.5 shadow-none', className)}>
@@ -215,19 +196,13 @@ export default function DeploymentProgress({
           ) : failed ? (
             <XCircleIcon className="size-4 text-destructive shrink-0" />
           ) : (
-            <CheckCircle2Icon className="size-4 text-success shrink-0" />
+            <CheckCircle2Icon className="size-4 text-muted-foreground shrink-0" />
           )}
 
           <span className="text-sm font-medium shrink-0">{title}</span>
 
-          {deployment.is_duplicate && (
-            <Badge variant="warning" className="text-[10px] px-1.5 py-0 h-4 font-normal shrink-0">
-              Duplicate commit
-            </Badge>
-          )}
-
           {stepLabel && (
-            <span className="text-xs text-muted-foreground font-mono shrink-0">{stepLabel}</span>
+            <span className="text-[13px] text-muted-foreground tabular-nums shrink-0">{stepLabel}</span>
           )}
 
           {!showSteps && activeStep && (
@@ -246,10 +221,7 @@ export default function DeploymentProgress({
               </span>
             </div>
           ) : (
-            <div className="inline-flex items-center gap-1.5 rounded-md border bg-muted/20 px-2 py-1 text-muted-foreground tabular-nums">
-              <Clock3Icon className="size-3.5 shrink-0" />
-              <span className="font-mono font-medium text-foreground">{formatDuration(elapsed)}</span>
-            </div>
+            <span className="text-[13px] text-muted-foreground tabular-nums">{formatDuration(elapsed)}</span>
           )}
 
           {steps.length > 0 && (
@@ -268,14 +240,7 @@ export default function DeploymentProgress({
         </div>
       </div>
 
-      <Progress
-        value={percent}
-        aria-label="Deployment progress"
-        className={cn(
-          'h-1.5',
-          failed && '[&>[data-slot=progress-indicator]]:bg-destructive',
-        )}
-      />
+      {deploying && <Progress value={percent} aria-label="Deployment progress" className="h-1.5" />}
 
       {steps.length > 0 && showSteps && (
         <div className="divide-y divide-border/60 overflow-hidden">

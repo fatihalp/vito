@@ -13,7 +13,15 @@ const TYPE_VARIANTS: Record<string, 'success' | 'warning' | 'info' | 'danger'> =
   refactor: 'info',
 };
 
-export default function CommitSummary({ commit, className }: { commit: Deployment['commit_data'] | null | undefined; className?: string }) {
+export default function CommitSummary({
+  commit,
+  showScope = true,
+  className,
+}: {
+  commit: Deployment['commit_data'] | null | undefined;
+  showScope?: boolean;
+  className?: string;
+}) {
   if (!commit?.message) {
     return <span className={cn('text-muted-foreground', className)}>No commit message</span>;
   }
@@ -30,7 +38,7 @@ export default function CommitSummary({ commit, className }: { commit: Deploymen
           {parsed.breaking && '!'}
         </Badge>
       )}
-      {parsed.scope && <span className="text-muted-foreground shrink-0">{parsed.scope}</span>}
+      {showScope && parsed.scope && <span className="text-muted-foreground shrink-0">{parsed.scope}</span>}
       {url ? (
         <a href={url} target="_blank" rel="noopener noreferrer" className="text-foreground truncate font-medium hover:underline">
           {parsed.title}

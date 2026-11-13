@@ -110,7 +110,6 @@ class ApplicationController extends Controller
 
         return Inertia::render('application/deployments/index', [
             'deployments' => DeploymentTable::make($site->deployments())->paginate(),
-            'repositoryUrl' => fn (): ?string => $site->getRepositoryWebUrl(),
             'activeDeployment' => fn (): ?DeploymentResource => $this->resolveActiveDeployment($site),
         ]);
     }
@@ -129,7 +128,6 @@ class ApplicationController extends Controller
 
         return Inertia::render('application/deployments/show', [
             'deployment' => new DeploymentResource($deployment),
-            'repositoryUrl' => fn (): ?string => $site->getRepositoryWebUrl(),
         ]);
     }
 
