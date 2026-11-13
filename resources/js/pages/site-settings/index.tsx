@@ -85,6 +85,7 @@ export default function SiteSettings() {
           <Section title="General">
             <Field label="Status">
               <Badge variant={site.status_color}>{site.status}</Badge>
+              {site.suspended && <Badge variant="warning">suspended</Badge>}
             </Field>
             <Field label="Type">
               <Value>{site.type}</Value>
@@ -194,6 +195,37 @@ export default function SiteSettings() {
             </Field>
           </Section>
         </div>
+
+        {!site.type_data?.is_self && (
+          <Card className="flex-row flex-wrap items-center justify-between gap-3 px-4 py-3">
+            <div className="flex flex-col gap-0.5">
+              <span className="text-sm font-medium">{site.suspended ? 'Resume site' : 'Suspend site'}</span>
+              <span className="text-muted-foreground text-sm">
+                {site.suspended
+                  ? 'This site is suspended and visitors receive a 503 response. Resume it to serve the site again.'
+                  : 'Takes the site offline for visitors with a 503 response. Workers, cron jobs, databases and deployments keep running.'}
+              </span>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                dialog.confirm.open({
+                  title: site.suspended ? `Resume ${site.domain}?` : `Suspend ${site.domain}?`,
+                  description: site.suspended
+                    ? 'The site will be served to visitors again on all of its domains.'
+                    : 'Visitors will receive a 503 response on all domains of this site until you resume it. Nothing is deleted and background services keep running.',
+                  confirmLabel: site.suspended ? 'Resume site' : 'Suspend site',
+                  method: 'post',
+                  url: `/servers/${site.server_id}/sites/${site.id}/settings/toggle-suspension`,
+                  data: { suspended: !site.suspended },
+                })
+              }
+            >
+              {site.suspended ? 'Resume site' : 'Suspend site'}
+            </Button>
+          </Card>
+        )}
 
         {!site.type_data?.is_self && (
           <Card className="border-destructive/50 flex-row flex-wrap items-center justify-between gap-3 px-4 py-3">

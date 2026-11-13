@@ -13,6 +13,11 @@ class GenerateCaddyConfig extends AbstractGenerateConfig
         return file_get_contents(resource_path('views/ssh/services/webserver/caddy/vhost.mustache'));
     }
 
+    protected function suspendedTemplate(): string
+    {
+        return file_get_contents(resource_path('views/ssh/services/webserver/caddy/suspended-vhost.mustache'));
+    }
+
     protected function buildServerBlockKeys(bool $hasSsl, string $sslCertPath, string $sslKeyPath, Site $site): array
     {
         return [

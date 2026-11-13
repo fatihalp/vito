@@ -34,6 +34,8 @@ abstract class AbstractGenerateConfig
     
     abstract public function defaultTemplate(): string;
 
+    abstract protected function suspendedTemplate(): string;
+
     
     abstract protected function buildServerBlockKeys(bool $hasSsl, string $sslCertPath, string $sslKeyPath, Site $site): array;
 
@@ -63,6 +65,10 @@ abstract class AbstractGenerateConfig
 
     protected function getTemplate(Site $site): string
     {
+        if ($site->isSuspended()) {
+            return $this->suspendedTemplate();
+        }
+
         if ($site->vhost_template) {
             return $site->vhost_template;
         }

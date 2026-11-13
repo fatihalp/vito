@@ -59,6 +59,7 @@ class SiteResource extends JsonResource
             'has_custom_vhost_template' => $this->vhost_template !== null,
             'modern_deployment' => $this->modernDeploymentEnabled(),
             'stats_enabled' => $this->statsEnabled(),
+            'suspended' => $this->isSuspended(),
             'is_proxied_site_type' => $this->typeOrNull() instanceof AbstractProxiedSiteType,
             'available_tooling_commands' => $this->availableToolingCommands(),
             'start_command' => $this->type_data['start_command'] ?? null,

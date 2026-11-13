@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { humanizeStep } from '@/lib/utils';
 import { Site, SiteWarning } from '@/types/site';
 import { useState } from 'react';
+import { toast } from 'sonner';
 import { BannerItem, WarningsBlock, WarningsPopover } from '@/components/banners';
 
 function GenerateAppKeyButton({ site }: { site: Site }) {
@@ -164,6 +165,29 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   const workerWarnings = warnings.filter((w): w is Extract<SiteWarning, { key: 'worker_not_running' }> => w.key === 'worker_not_running');
 
   const items: BannerItem[] = [];
+
+  if (warnings.some((w) => w.key === 'suspended')) {
+    items.push({
+      key: 'suspended',
+      title: 'Site is suspended',
+      description: 'Visitors receive a 503 response on every domain. Workers, cron jobs, databases and deployments keep running.',
+      action: (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            router.post(
+              `/servers/${site.server_id}/sites/${site.id}/settings/toggle-suspension`,
+              { suspended: false },
+              { preserveScroll: true, onError: (errors) => toast.error(Object.values(errors)[0]) },
+            );
+          }}
+        >
+          Resume site
+        </Button>
+      ),
+    });
+  }
 
   if (sslDisabledWarning) {
     items.push({
