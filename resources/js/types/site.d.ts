@@ -66,7 +66,6 @@ export interface Site {
     domains: number | null;
     workers: number | null;
     resources: number | null;
-    commands: number | null;
   };
   basic_auth: {
     enabled: boolean;

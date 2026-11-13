@@ -70,7 +70,6 @@ class SiteResource extends JsonResource
                 'domains' => (int) ($this->hosted_domains_count ?? $this->hostedDomains_count ?? ($this->relationLoaded('hostedDomains') ? $this->hostedDomains->count() : $this->hostedDomains()->count())),
                 'workers' => (int) ($this->workers_count ?? ($this->relationLoaded('workers') ? $this->workers->count() : $this->workers()->count())),
                 'resources' => (int) ($this->resources_count ?? ($this->relationLoaded('resources') ? $this->resources->count() : $this->resources()->count())),
-                'commands' => (int) ($this->commands_count ?? ($this->relationLoaded('commands') ? $this->commands->count() : $this->commands()->count())),
             ],
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,
