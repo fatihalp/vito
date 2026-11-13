@@ -1,7 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle2Icon, LoaderCircleIcon, RotateCcwIcon, TimerIcon, XCircleIcon, type LucideIcon } from 'lucide-react';
+import { CheckCircle2Icon, LoaderCircleIcon, RotateCcwIcon, XCircleIcon, type LucideIcon } from 'lucide-react';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { VitoTable } from '@/components/vito-table';
@@ -20,54 +19,63 @@ const deploymentUrl = (deployment: Deployment) =>
 const deploymentActor = (deployment: Deployment): string | null =>
   deployment.trigger === 'manual' || !deployment.trigger ? deployment.deployed_by : deployment.trigger;
 
+type DeploymentState = 'live' | 'deploying' | 'finished' | 'failed';
+
+const deploymentState = (deployment: Deployment): DeploymentState =>
+  deployment.active ? 'live' : (['deploying', 'failed'].includes(deployment.status) ? deployment.status : 'finished') as DeploymentState;
+
+const STATE_LABELS: Record<DeploymentState, { label: string; className: string }> = {
+  live: { label: 'Live', className: 'text-success' },
+  deploying: { label: 'Deploying', className: 'text-info' },
+  finished: { label: 'Finished', className: 'text-muted-foreground' },
+  failed: { label: 'Failed', className: 'text-destructive' },
+};
+
+function StateGlyph({ state }: { state: DeploymentState }) {
+  if (state === 'live') {
+    return (
+      <span className="relative flex size-4 shrink-0 items-center justify-center" aria-hidden="true">
+        <span className="bg-success/25 absolute size-4 animate-pulse rounded-full" />
+        <span className="bg-success size-2 rounded-full" />
+      </span>
+    );
+  }
+
+  const Icon: LucideIcon = { deploying: LoaderCircleIcon, finished: CheckCircle2Icon, failed: XCircleIcon }[state];
+
+  return <Icon className={cn('size-4 shrink-0', STATE_LABELS[state].className, state === 'deploying' && 'animate-spin')} aria-hidden="true" />;
+}
+
 const commitCell = ({ row }: CellRenderProps) => {
   const deployment = row as unknown as Deployment;
+  const state = deploymentState(deployment);
   const actor = deploymentActor(deployment);
+  const duration = state !== 'deploying' && deployment.duration != null ? formatDuration(deployment.duration) : null;
+  const details = [duration, actor].filter(Boolean);
 
   return (
-    <div className="flex min-w-0 flex-col gap-1">
-      <CommitSummary commit={deployment.commit_data} className="text-sm" />
-      {(actor || deployment.is_duplicate) && (
+    <div className="flex min-w-0 items-start gap-3">
+      <div className="flex h-5 items-center">
+        <StateGlyph state={state} />
+      </div>
+      <div className="flex min-w-0 flex-1 flex-col gap-1">
+        <CommitSummary commit={deployment.commit_data} className="text-sm" />
         <div className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-[13px]">
-          {actor && <span className="truncate">{actor}</span>}
-          {actor && deployment.is_duplicate && <span aria-hidden="true">·</span>}
+          <span className={cn('shrink-0 font-medium', STATE_LABELS[state].className)}>{STATE_LABELS[state].label}</span>
+          {details.map((detail) => (
+            <span key={detail} className="truncate">
+              · {detail}
+            </span>
+          ))}
           {deployment.is_duplicate && (
             <span className="text-warning inline-flex shrink-0 items-center gap-1" title="This commit was already deployed previously">
-              <RotateCcwIcon className="size-3.5" />
+              · <RotateCcwIcon className="size-3.5" />
               Redeploy
             </span>
           )}
         </div>
-      )}
+      </div>
     </div>
-  );
-};
-
-const STATUS_STYLES: Record<string, { icon: LucideIcon; className: string }> = {
-  deploying: { icon: LoaderCircleIcon, className: 'text-info [&>svg]:animate-spin' },
-  finished: { icon: CheckCircle2Icon, className: 'text-muted-foreground' },
-  failed: { icon: XCircleIcon, className: 'text-destructive' },
-};
-
-const statusCell = ({ row }: CellRenderProps) => {
-  const deployment = row as unknown as Deployment;
-
-  if (deployment.active) {
-    return (
-      <Badge variant="success" className="gap-1.5 px-2.5 py-1 text-[13px]">
-        <span className="bg-success size-1.5 rounded-full" aria-hidden="true" />
-        Live
-      </Badge>
-    );
-  }
-
-  const { icon: Icon, className } = STATUS_STYLES[deployment.status] ?? STATUS_STYLES.finished;
-
-  return (
-    <span className={cn('inline-flex items-center gap-1.5 text-[13px] font-medium capitalize', className)}>
-      <Icon className="size-3.5" />
-      {deployment.status}
-    </span>
   );
 };
 
@@ -77,10 +85,7 @@ const deployedAtCell = ({ row }: CellRenderProps) => {
   return (
     <div className="flex flex-col gap-1 whitespace-nowrap">
       <DateTime date={deployment.created_at} relative className="text-foreground text-sm" />
-      <span className="text-muted-foreground inline-flex items-center gap-1 text-[13px] tabular-nums">
-        <TimerIcon className="size-3.5" />
-        {deployment.status === 'deploying' ? 'Running' : deployment.duration != null ? formatDuration(deployment.duration) : '—'}
-      </span>
+      <DateTime date={deployment.created_at} format="MMM D, HH:mm" className="text-muted-foreground text-[13px] tabular-nums" />
     </div>
   );
 };
@@ -92,7 +97,7 @@ function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
     <div className="flex items-center gap-2">
       <DropdownMenu modal={false}>
         <DropdownMenuTrigger asChild>
-          <TableActionTrigger />
+          <TableActionTrigger variant="ghost" className="shadow-none" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem asChild>
@@ -145,7 +150,7 @@ export default function DeploymentsTable({
   return (
     <VitoTable
       modal={modal}
-      columnWidths={{ actions: '3.25rem', status: '7.5rem', created_at: '9.5rem' }}
+      columnWidths={{ actions: '3.25rem', created_at: '8.5rem' }}
       tableData={deployments}
       showPagination={showPagination}
       reloadOnly={['deployments']}
@@ -153,7 +158,6 @@ export default function DeploymentsTable({
       cellRenderers={{
         commit: commitCell,
         created_at: deployedAtCell,
-        status: statusCell,
       }}
       actions={(row: Row) => <DeploymentRowActions deployment={asRow<Deployment>(row, ['id', 'site_id', 'server_id'])} />}
     />

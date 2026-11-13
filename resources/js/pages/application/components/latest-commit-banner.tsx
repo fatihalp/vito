@@ -46,19 +46,20 @@ export default function LatestCommitBanner({
           <span className="text-info shrink-0 font-medium">New commit on {site.branch}</span>
           <CommitSummary commit={commit} />
         </div>
-        <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-xs">
-          <span className="font-mono">{commitId.slice(0, 7)}</span>
-          {commit.name && <span>· {commit.name}</span>}
-          {commit.date && (
-            <span title={moment(commit.date).format('YYYY-MM-DD HH:mm:ss')}>
-              · {merged ? 'merged' : 'committed'} {moment(commit.date).fromNow()}
-            </span>
-          )}
-          <span>· not deployed yet. Deploy now?</span>
-        </div>
+        {(commit.name || commit.date) && (
+          <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 text-[13px]">
+            {commit.name && <span>{commit.name}</span>}
+            {commit.name && commit.date && <span aria-hidden="true">·</span>}
+            {commit.date && (
+              <span title={moment(commit.date).format('YYYY-MM-DD HH:mm:ss')}>
+                {merged ? 'Merged' : 'Committed'} {moment(commit.date).fromNow()}
+              </span>
+            )}
+          </div>
+        )}
       </div>
       <div className="flex shrink-0 items-center gap-1">
-        <Deploy site={site} />
+        <Deploy site={site} variant="outline" />
         <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label="Dismiss new commit notice" title="Not now">
           <XIcon className="size-4" />
         </Button>

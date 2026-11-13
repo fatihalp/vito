@@ -7,7 +7,6 @@ use App\Models\Deployment;
 use Forjed\InertiaTable\Column;
 use Forjed\InertiaTable\Columns\ActionsColumn;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
-use Forjed\InertiaTable\Columns\EnumColumn;
 use App\Tables\AbstractTable as Table;
 
 class DeploymentTable extends Table
@@ -68,8 +67,8 @@ class DeploymentTable extends Table
         ];
 
         return [
-            Column::make('commit', 'Commit'),
-            EnumColumn::make('status', 'Status')->sortable(! $this->overview),
+            Column::make('commit', 'Deployment'),
+            Column::data('status', fn (Deployment $deployment): string => $deployment->status->value),
             DateTimeColumn::make('created_at', 'Deployed')->sortable(! $this->overview)->toLocal(),
             Column::data('id'),
             Column::data('deployed_by', fn (Deployment $deployment): ?string => $deployment->user?->name),
