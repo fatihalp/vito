@@ -22,7 +22,13 @@ const commitCell = ({ row }: CellRenderProps) => {
   const state = deploymentState(deployment);
   const actor = deploymentActor(deployment);
   const duration = state !== 'deploying' && deployment.duration != null ? formatDuration(deployment.duration) : null;
-  const details = [duration, actor].filter(Boolean);
+  const showsLabel = state === 'deploying' || state === 'failed';
+  const details = [
+    showsLabel && <span className={cn('font-medium', DEPLOYMENT_STATES[state].className)}>{DEPLOYMENT_STATES[state].label}</span>,
+    deployment.commit_id && <span className="font-mono text-xs">{deployment.commit_id.slice(0, 7)}</span>,
+    duration,
+    actor,
+  ].filter(Boolean);
 
   return (
     <div className="flex min-w-0 items-start gap-3">
@@ -32,10 +38,10 @@ const commitCell = ({ row }: CellRenderProps) => {
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <CommitSummary commit={deployment.commit_data} showScope={false} className="text-sm" />
         <div className="text-muted-foreground flex min-w-0 items-center gap-1.5 text-[13px]">
-          <span className={cn('shrink-0 font-medium', DEPLOYMENT_STATES[state].className)}>{DEPLOYMENT_STATES[state].label}</span>
-          {details.map((detail) => (
-            <span key={detail} className="truncate">
-              · {detail}
+          {details.map((detail, index) => (
+            <span key={index} className="truncate">
+              {index > 0 && '· '}
+              {detail}
             </span>
           ))}
           {deployment.is_duplicate && (
@@ -123,6 +129,11 @@ export default function DeploymentsTable({
       showPagination={showPagination}
       reloadOnly={['deployments']}
       onRowClick={(row: Row) => router.visit(deploymentUrl(row as unknown as Deployment))}
+      rowClassName={(row: Row) =>
+        row.active
+          ? 'bg-success/5 hover:bg-success/10 dark:bg-success/10 dark:hover:bg-success/15 [&>td:first-child]:shadow-[inset_3px_0_0_var(--color-success)]'
+          : ''
+      }
       cellRenderers={{
         commit: commitCell,
         created_at: deployedAtCell,
