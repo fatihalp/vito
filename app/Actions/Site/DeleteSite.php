@@ -39,14 +39,24 @@ class DeleteSite
 
         $site->webserver()->deleteSite($site);
 
-        $iuser = $site->isolatedUser;
-        $isLastSibling = ! $site->userSharedWithSiblings();
+        $lastIsolatedUser = $site->userSharedWithSiblings() ? null : $site->isolatedUser;
+
+        if ($lastIsolatedUser && ! in_array($lastIsolatedUser->username, [$site->server->getSshUser(), 'root'], true)) {
+            $this->deleteIsolatedUserFromServer($site);
+        }
 
         $this->deleteRow($site);
 
-        if ($isLastSibling) {
-            $iuser?->delete();
+        $lastIsolatedUser?->delete();
+    }
+
+    private function deleteIsolatedUserFromServer(Site $site): void
+    {
+        if ($site->type()->language() === 'php') {
+            $site->server->php($site->php_version)?->handler()->removeFpmPool($site->user, $site->php_version, $site->id);
         }
+
+        $site->server->os()->deleteIsolatedUser($site->user);
     }
 
     private function deleteRow(Site $site): void

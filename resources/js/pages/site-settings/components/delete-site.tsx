@@ -49,7 +49,8 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
 
         <p className="p-4 text-sm text-muted-foreground">
           Are you sure you want to delete <strong className="text-foreground">{site.domain}</strong>? The site, its files and its web server
-          configuration will be deleted from the server. Databases, database users and other server resources are kept.
+          configuration will be deleted from the server. If this is the last site of its isolated user, that user and its home folder are
+          deleted too. Databases and database users are kept.
         </p>
 
         <Form id="delete-site-form" onSubmit={submit} className="p-4">
