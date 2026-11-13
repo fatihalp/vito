@@ -35,7 +35,6 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\RouteAttributes\Attributes\Delete;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
@@ -171,20 +170,6 @@ class ApplicationController extends Controller
             'site' => $site,
             'deployment' => $deployment,
         ])->with($isDuplicate ? 'warning' : 'info', $message);
-    }
-
-    #[Delete('/deployments/{deployment}', name: 'application.deployments.destroy')]
-    public function destroyDeployment(Server $server, Site $site, Deployment $deployment): RedirectResponse
-    {
-        $this->authorize('update', [$site, $server]);
-
-        if ($deployment->site_id !== $site->id) {
-            abort(404);
-        }
-
-        $deployment->remove();
-
-        return back()->with('success', 'Deployment removed successfully.');
     }
 
     

@@ -58,7 +58,7 @@ class Deployment extends AbstractModel
                         ->get();
 
                     foreach ($deployments as $oldDeployment) {
-                        $oldDeployment->remove(true);
+                        $oldDeployment->removeRelease();
                     }
                 }
             }
@@ -108,7 +108,7 @@ class Deployment extends AbstractModel
         return $this->site->basePath().($this->release ? '/releases/'.$this->release : '');
     }
 
-    public function remove(bool $onlyRelease = false): void
+    public function removeRelease(): void
     {
         if ($this->release !== null && $this->release !== '') {
             $site = $this->site;
@@ -116,13 +116,7 @@ class Deployment extends AbstractModel
             $this->release = null;
         }
 
-        if ($onlyRelease) {
-            $this->save();
-
-            return;
-        }
-
-        $this->delete();
+        $this->save();
     }
 
     public function activate(): void
