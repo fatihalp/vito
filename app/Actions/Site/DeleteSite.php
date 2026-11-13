@@ -62,7 +62,7 @@ class DeleteSite
 
     private function ensureSafeBasePath(Site $site): void
     {
-        if ($site->basePath() !== '/home/'.$site->user.'/'.$site->domain) {
+        if (! preg_match('#^/home/[A-Za-z0-9_][A-Za-z0-9_.-]*/'.preg_quote($site->domain, '#').'$#', $site->basePath())) {
             throw ValidationException::withMessages([
                 'domain' => __('The site path does not match its expected location, so its files were not deleted.'),
             ]);
