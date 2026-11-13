@@ -45,12 +45,9 @@ class SiteController extends Controller
 
         return Inertia::render('sites/index', [
             'sites' => $sites,
-            'siteScope' => $result['scope'],
-            'serverScope' => $result['serverScope'],
             'groupBy' => $result['groupBy'],
             'gitStatus' => $request->input('git_status', 'all'),
             'gitStatusChecking' => $gitFilter['checking'],
-            'servers' => $result['servers'],
         ]);
     }
 
