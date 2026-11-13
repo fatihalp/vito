@@ -41,6 +41,11 @@ class Server extends AbstractModel
         'role' => ServerRole::APP->value,
     ];
 
+    public function runtimeProcesses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(RuntimeProcess::class);
+    }
+
     protected $fillable = [
         'project_id',
         'user_id',
@@ -472,9 +477,11 @@ class Server extends AbstractModel
             $masterPrivate = storage_path(config('core.ssh_private_key_name'));
             $masterPublic = storage_path(config('core.ssh_public_key_name'));
             if (File::exists($masterPrivate) && File::exists($masterPublic)) {
-                File::ensureDirectoryExists($storageDisk->path(''));
+                File::ensureDirectoryExists($storageDisk->path(''), 0700);
                 File::copy($masterPrivate, $privateKeyPath);
                 File::copy($masterPublic, $publicKeyPath);
+                File::chmod($privateKeyPath, 0600);
+                File::chmod($publicKeyPath, 0644);
             }
         }
 

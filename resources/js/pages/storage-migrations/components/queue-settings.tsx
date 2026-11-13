@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -22,6 +23,7 @@ type Setting = {
 };
 
 export default function QueueSettings({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const translateText = useTranslate();
   const [setting, setSetting] = useState<Setting | null>(null);
   const [applying, setApplying] = useState(false);
 
@@ -56,7 +58,7 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
   const apply = async () => {
     setApplying(true);
     try {
-      await axios.post("/storage-migrations/queue-settings/apply");
+      await axios.post('/storage-migrations/queue-settings/apply');
       toast.warning('Applied. The Horizon master process was restarted — your process supervisor must bring it back up.');
       await load();
     } catch {
@@ -70,14 +72,14 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Storage migration queue settings</DialogTitle>
-          <DialogDescription>Worker process count for the scan and copy queues.</DialogDescription>
+          <DialogTitle>{translateText("Storage migration queue settings")}</DialogTitle>
+          <DialogDescription>{translateText("Worker process count for the scan and copy queues.")}</DialogDescription>
         </DialogHeader>
 
         <Form id="queue-settings-form" onSubmit={submit} className="flex flex-col gap-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="max_processes">Copy workers</Label>
+              <Label htmlFor="max_processes">{translateText("Copy workers")}</Label>
               <Input
                 id="max_processes"
                 type="number"
@@ -90,7 +92,7 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
             </FormField>
 
             <FormField>
-              <Label htmlFor="scan_max_processes">Scan workers</Label>
+              <Label htmlFor="scan_max_processes">{translateText("Scan workers")}</Label>
               <Input
                 id="scan_max_processes"
                 type="number"
@@ -109,20 +111,19 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
             <div className="flex items-start gap-2">
               <TriangleAlertIcon className="text-destructive mt-0.5 size-4 shrink-0" />
               <div className="text-muted-foreground">
-                Saving only stores the numbers above. Applying restarts the entire Horizon master process — every queue app-wide (backups, SSH,
-                certbot, not just storage migration) stops until your process supervisor restarts it.
+                {translateText("Saving only stores the numbers above. Applying restarts the entire Horizon master process — every queue app-wide (backups, SSH, certbot, not just storage migration) stops until your process supervisor restarts it.")}
               </div>
             </div>
             <div className="mt-2">
               {setting.applied_at ? (
                 <span>
-                  Currently applied: {setting.applied_max_processes} copy / {setting.applied_scan_max_processes} scan, as of{' '}
+                  {translateText("Currently applied:")} {setting.applied_max_processes} {translateText("copy /")} {setting.applied_scan_max_processes} {translateText("scan, as of")}{' '}
                   <DateTime date={setting.applied_at} relative />
                 </span>
               ) : (
-                <span>Never applied — workers are still running on whatever was last set in .env directly.</span>
+                <span>{translateText("Never applied — workers are still running on whatever was last set in .env directly.")}</span>
               )}
-              {setting.needs_apply && <span className="text-warning-foreground"> · saved changes are not applied yet</span>}
+              {setting.needs_apply && <span className="text-warning-foreground"> {translateText("· saved changes are not applied yet")}</span>}
             </div>
           </div>
         )}
@@ -130,11 +131,11 @@ export default function QueueSettings({ open, onOpenChange }: { open: boolean; o
         <DialogFooter className="gap-2 sm:gap-2">
           <Button type="submit" form="queue-settings-form" disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
           <Button type="button" variant="destructive" onClick={() => void apply()} disabled={applying || !setting?.needs_apply}>
             {applying && <LoaderCircle className="animate-spin" />}
-            Apply to workers
+            {translateText("Apply to workers")}
           </Button>
         </DialogFooter>
       </DialogContent>

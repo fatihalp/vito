@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table): void {
             $table->string('role')->default(UserRole::USER);
         });
-        User::query()->update(['role' => UserRole::ADMIN]);
+        User::withoutGlobalScopes()->update(['role' => UserRole::ADMIN]);
     }
 
     

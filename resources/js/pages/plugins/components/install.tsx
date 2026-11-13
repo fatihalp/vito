@@ -1,8 +1,10 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Plugin } from '@/types/plugin';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function InstallPlugin({ plugin }: { plugin: Plugin }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -10,7 +12,7 @@ export default function InstallPlugin({ plugin }: { plugin: Plugin }) {
       onSelect={() =>
         dialog.confirm.open({
           title: 'Install plugin',
-          description: `Are you sure you want to install the plugin located at ${plugin.folder}?`,
+          description: translateText("Are you sure you want to install the plugin located at :value?", { value: plugin.folder }),
           confirmLabel: 'Install',
           method: 'patch',
           url: "/admin/plugins/install",
@@ -18,7 +20,7 @@ export default function InstallPlugin({ plugin }: { plugin: Plugin }) {
         })
       }
     >
-      Install
+      {translateText('Install')}
     </DropdownMenuItem>
   );
 }

@@ -19,7 +19,7 @@ return new class extends Migration
         Schema::table('source_controls', function (Blueprint $table) {
             $table->unsignedBigInteger('user_id')->after('id')->nullable();
         });
-        $owner = User::query()->where('is_admin', true)->orderBy('id')->first();
+        $owner = User::withoutGlobalScopes()->where('is_admin', true)->orderBy('id')->first();
         if ($owner) {
             SourceControl::query()->update(['user_id' => $owner->id]);
         }

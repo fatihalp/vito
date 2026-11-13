@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +21,7 @@ export default function ServiceVersionSelect({
   
   autoSelectSingle?: boolean;
 } & SelectTriggerProps) {
+  const translateText = useTranslate();
   const query = useQuery<string[]>({
     queryKey: ['service', serverId, service],
     queryFn: async () => {
@@ -39,14 +41,14 @@ export default function ServiceVersionSelect({
   return (
     <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
       <SelectTrigger {...props}>
-        <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a version'} />
+        <SelectValue placeholder={query.isFetching ? translateText("Loading...") : translateText("Select a version")} />
       </SelectTrigger>
       <SelectContent>
         {isEmpty ? (
           <div className="text-muted-foreground px-3 py-4 text-center text-sm">
-            <p>No {service} is installed on this server.</p>
+            <p>{translateText('No')} {service} {translateText("is installed on this server.")}</p>
             <Link href={`/servers/${serverId}/services`} className="text-primary mt-1 inline-block hover:underline">
-              Go to Services to install {service}
+              {translateText("Go to Services to install")} {service}
             </Link>
           </div>
         ) : (

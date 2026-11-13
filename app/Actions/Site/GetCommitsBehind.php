@@ -4,6 +4,7 @@ namespace App\Actions\Site;
 
 use App\Enums\DeploymentStatus;
 use App\Jobs\Site\CheckCommitsBehindJob;
+use App\Models\Deployment;
 use App\Models\Site;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -56,17 +57,30 @@ class GetCommitsBehind
         }
 
         $sites = (clone $query)
+            ->select('sites.*')
+            ->addSelect(['deployed_commit_id' => Deployment::select('commit_id')
+                ->whereColumn('site_id', 'sites.id')
+                ->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING])
+                ->latest('id')
+                ->limit(1),
+            ])
             ->whereNotNull('repository')
             ->whereNotNull('branch')
             ->whereNotNull('source_control_id')
             ->whereHas('deployments', fn (Builder $deployments) => $deployments->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING]))
-            ->get();
+            ->lazyById(200, 'sites.id', 'id');
 
         $behindBySite = [];
         $checking = 0;
 
         foreach ($sites as $site) {
-            $result = Cache::get($this->key($site, (string) $site->deployedCommitId()));
+            $commitId = (string) $site->getAttribute('deployed_commit_id');
+
+            if ($commitId === '') {
+                continue;
+            }
+
+            $result = Cache::get($this->key($site, $commitId));
 
             if ($result === null) {
                 $checking++;

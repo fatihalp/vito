@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import LogOutput from '@/components/log-output';
 import SiteBanners from '@/components/site-banners';
 import { Button } from '@/components/ui/button';
@@ -20,10 +21,12 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { ArrowLeftIcon, CheckIcon, CopyIcon, DownloadIcon, RotateCcwIcon, TerminalIcon } from 'lucide-react';
 import moment from 'moment';
+import DateTime from '@/components/date-time';
 
 const FULL_LOG = -1;
 
 export default function DeploymentShow() {
+  const translateText = useTranslate();
   const page = usePage<{ server: Server; site: Site; deployment: Deployment }>();
   const { server, site } = page.props;
   const deployment = useRealtimeRecord<Deployment>(page.props.deployment, 'deployment')!;
@@ -69,14 +72,14 @@ export default function DeploymentShow() {
 
   return (
     <ServerLayout>
-      <Head title={`Deployment #${deployment.id} - ${site.domain}`} />
+      <Head title={`${translateText("Deployment")} #${deployment.id} - ${site.domain}`} />
 
       <Container className="flex flex-col gap-3 py-4 lg:h-[calc(100vh-80px)] lg:min-h-[36rem]">
         <SiteBanners site={site} />
 
         <div className="flex items-start gap-3">
           <Button variant="ghost" size="icon" asChild className="size-8 shrink-0">
-            <Link href={`/servers/${server.id}/sites/${site.id}`} title="Back to site" aria-label="Back to site">
+            <Link href={`/servers/${server.id}/sites/${site.id}`} title={translateText("Back to site")} aria-label={translateText("Back to site")}>
               <ArrowLeftIcon className="size-4" />
             </Link>
           </Button>
@@ -95,11 +98,11 @@ export default function DeploymentShow() {
             <div className="text-muted-foreground flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[13px]">
               <span className={cn('inline-flex items-center gap-1.5 font-medium', DEPLOYMENT_STATES[state].className)}>
                 <DeploymentStateGlyph state={state} />
-                {DEPLOYMENT_STATES[state].label}
+                {translateText(DEPLOYMENT_STATES[state].label)}
               </span>
               {elapsedSeconds != null && <span className="tabular-nums">· {formatDuration(elapsedSeconds)}</span>}
               {actor && <span>· {actor}</span>}
-              <span title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>· {moment(deployment.created_at).fromNow()}</span>
+              <span title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>· <DateTime date={deployment.created_at} relative /></span>
               {deployment.commit_id && (
                 <span className="inline-flex items-center gap-0.5">
                   ·
@@ -110,15 +113,15 @@ export default function DeploymentShow() {
                   ) : (
                     <span className="ml-1 font-mono">{deployment.commit_id_short}</span>
                   )}
-                  <Button variant="ghost" size="icon" className="size-6" onClick={() => copySha(deployment.commit_id)} aria-label="Copy commit SHA" title="Copy commit SHA">
+                  <Button variant="ghost" size="icon" className="size-6" onClick={() => copySha(deployment.commit_id)} aria-label={translateText("Copy commit SHA")} title={translateText("Copy commit SHA")}>
                     {copiedSha ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
                   </Button>
                 </span>
               )}
               {deployment.is_duplicate && (
-                <span className="text-warning inline-flex items-center gap-1" title="This commit was already deployed previously">
+                <span className="text-warning inline-flex items-center gap-1" title={translateText("This commit was already deployed previously")}>
                   · <RotateCcwIcon className="size-3.5" />
-                  Redeploy
+                  {translateText('Redeploy')}
                 </span>
               )}
             </div>
@@ -147,29 +150,29 @@ export default function DeploymentShow() {
                     $ {displayedCommand}
                   </code>
                 ) : (
-                  <span className="text-sm font-medium">Full output</span>
+                  <span className="text-sm font-medium">{translateText('Full output')}</span>
                 )}
               </div>
 
               <div className="flex shrink-0 items-center gap-1">
                 {steps.length > 0 && displayedIndex !== FULL_LOG && (
                   <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setSelectedStep(FULL_LOG)}>
-                    Full output
+                    {translateText('Full output')}
                   </Button>
                 )}
                 {selectedStep !== null && (
                   <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => setSelectedStep(null)}>
-                    {deploying ? 'Follow current' : 'Last step'}
+                    {translateText(deploying ? 'Follow current' : 'Last step')}
                   </Button>
                 )}
                 {content && (
-                  <Button variant="ghost" size="icon" className="size-8" onClick={() => copyLog(selectedOutput)} aria-label="Copy output" title="Copy output">
+                  <Button variant="ghost" size="icon" className="size-8" onClick={() => copyLog(selectedOutput)} aria-label={translateText("Copy output")} title={translateText("Copy output")}>
                     {copiedLog ? <CheckIcon className="text-success size-3.5" /> : <CopyIcon className="size-3.5" />}
                   </Button>
                 )}
                 {deployment.log && (
                   <Button variant="ghost" size="icon" className="size-8" asChild>
-                    <a href={`/servers/${server.id}/logs/${deployment.log.id}/download`} target="_blank" rel="noopener noreferrer" aria-label="Download output" title="Download output">
+                    <a href={`/servers/${server.id}/logs/${deployment.log.id}/download`} target="_blank" rel="noopener noreferrer" aria-label={translateText("Download output")} title={translateText("Download output")}>
                       <DownloadIcon className="size-3.5" />
                     </a>
                   </Button>
@@ -178,14 +181,14 @@ export default function DeploymentShow() {
             </div>
 
             <LogOutput key={`${deployment.id}-${displayedIndex}`} className="h-full min-h-0 w-full flex-1 rounded-none border-0 p-4">
-              {isLoading && 'Loading deployment output...'}
+              {isLoading && translateText('Loading deployment output...')}
               {error && <span className="text-destructive">{error}</span>}
               {!deployment.log && (
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <TerminalIcon className="size-4" /> No deployment output was recorded.
+                  <TerminalIcon className="size-4" /> {translateText("No deployment output was recorded.")}
                 </span>
               )}
-              {!isLoading && !error && deployment.log && (selectedOutput || (deploying ? 'Waiting for output...' : 'No output was recorded.'))}
+              {!isLoading && !error && deployment.log && (selectedOutput || translateText(deploying ? 'Waiting for output...' : 'No output was recorded.'))}
             </LogOutput>
           </Card>
         </div>

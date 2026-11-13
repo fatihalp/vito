@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { usePanelView } from '@/hooks/use-panel-view';
 import PanelViewToggle from '@/components/panel-view-toggle';
 import { useSocketStore } from '@/stores/socket-store';
@@ -18,7 +19,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useEffect } from 'react';
 import type { PhpVersions } from '@/types/php-versions';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 type Page = {
@@ -31,14 +31,15 @@ type Page = {
   groupBy?: 'none' | 'project';
 };
 
-const nameCell = ({ row, value }: CellRenderProps) => {
+const NameCell = ({ row, value }: CellRenderProps) => {
+  const translateText = useTranslate();
   const status = String(row.status || '');
   const isUnreachable = status === 'disconnected' || row.is_disconnected === true;
   const isInstalling = status === 'installing';
   const isFailed = status === 'installation_failed';
   const isSelf = Boolean(row.is_self);
   const id = row.id as number;
-  const name = isSelf ? 'Pure server' : String(value || row.name || '');
+  const name = String(value || row.name || '');
   const sitesCount = typeof row.sites_count === 'number' ? row.sites_count : 0;
 
   return (
@@ -58,22 +59,22 @@ const nameCell = ({ row, value }: CellRenderProps) => {
             <TooltipTrigger asChild>
               <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
                 <WifiOffIcon className="size-3 shrink-0" />
-                Unreachable
+                {translateText("Unreachable")}
               </span>
             </TooltipTrigger>
-            <TooltipContent>Server connection lost / unreachable</TooltipContent>
+            <TooltipContent>{translateText("Server connection lost / unreachable")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       )}
       {isInstalling && (
         <span className="inline-flex items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
           <LoaderCircleIcon className="size-3 animate-spin shrink-0" />
-          Installing
+          {translateText("Installing")}
         </span>
       )}
       {isFailed && (
         <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
-          Failed
+          {translateText("Failed")}
         </span>
       )}
     </div>
@@ -82,6 +83,7 @@ const nameCell = ({ row, value }: CellRenderProps) => {
 
 const metricCell = (threshold: number) =>
   function MetricCell({ value, row }: CellRenderProps) {
+    const translateText = useTranslate();
     const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
 
     if (isUnreachable) {
@@ -94,7 +96,7 @@ const metricCell = (threshold: number) =>
                 <span>—</span>
               </span>
             </TooltipTrigger>
-            <TooltipContent>Server unreachable</TooltipContent>
+            <TooltipContent>{translateText("Server unreachable")}</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
@@ -103,7 +105,7 @@ const metricCell = (threshold: number) =>
     const numeric = typeof value === 'number' ? value : null;
 
     if (numeric === null) {
-      return <span className="text-muted-foreground text-xs">—</span>;
+      return <span className="text-muted-foreground text-xs" title={translateText("Cloud pricing is not linked or could not be verified.")}>—</span>;
     }
 
     return (
@@ -113,9 +115,9 @@ const metricCell = (threshold: number) =>
     );
   };
 
-const cpuCell = metricCell(80);
-const ramCell = metricCell(85);
-const diskCell = metricCell(90);
+const CpuCell = metricCell(80);
+const RamCell = metricCell(85);
+const DiskCell = metricCell(90);
 
 const coresCell = ({ value }: CellRenderProps) => {
   const cores = typeof value === 'number' && value > 0 ? value : null;
@@ -135,7 +137,8 @@ type ServerCost = {
   region: string | null;
 };
 
-const costCell = ({ value }: CellRenderProps) => {
+const CostCell = ({ value }: CellRenderProps) => {
+  const translateText = useTranslate();
   const cost = (value as ServerCost | null) ?? null;
 
   if (!cost || !cost.formatted) {
@@ -144,7 +147,7 @@ const costCell = ({ value }: CellRenderProps) => {
 
   return (
     <div className="flex flex-col">
-      <span className="font-mono text-sm font-medium">{cost.formatted}</span>
+      <span className="font-mono text-sm font-medium" title={translateText("Monthly server plan before VAT. IPv4, backups and other extras are not included.")}>{cost.formatted}</span>
       {cost.plan && (
         <span className="text-muted-foreground text-[11px]">
           {cost.plan}{cost.region ? ` · ${cost.region}` : ''}
@@ -176,14 +179,15 @@ const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
   return GlobeIcon;
 };
 
-const roleCell = ({ row, value }: CellRenderProps) => {
+const RoleCell = ({ row, value }: CellRenderProps) => {
+  const translateText = useTranslate();
   const Icon = getRoleIcon(row.role_value, value ?? row.role);
   const displayText = String(value || row.role || 'App server');
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Icon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="text-sm font-medium">{displayText}</span>
+      <span className="text-sm font-medium">{translateText(displayText)}</span>
     </div>
   );
 };
@@ -213,7 +217,8 @@ const stageCell = ({ value }: CellRenderProps) => {
   );
 };
 
-const warningsCell = ({ row, value }: CellRenderProps) => {
+const WarningsCell = ({ row, value }: CellRenderProps) => {
+  const translateText = useTranslate();
   const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
 
   if (isUnreachable) {
@@ -228,42 +233,49 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
   }
 
   const formatWarningLabel = (w: { key: string; count?: number }) => {
-    if (w.key === 'reboot_required') return 'Restart required';
-    if (w.key === 'updates_available') return `${w.count ?? ''} package ${w.count === 1 ? 'update' : 'updates'} available`;
-    if (w.key === 'kernel_update_available') return 'Kernel update available';
-    if (w.key === 'backups_need_attention') return `${w.count} ${w.count === 1 ? 'backup needs' : 'backups need'} attention`;
+    if (w.key === 'reboot_required') return translateText('Restart required');
+    if (w.key === 'updates_available') return translateText(w.count === 1 ? ':count package update available' : ':count package updates available', { count: w.count ?? 0 });
+    if (w.key === 'kernel_update_available') return translateText('Kernel update available');
+    if (w.key === 'backups_need_attention') return translateText(w.count === 1 ? ':count backup needs attention' : ':count backups need attention', { count: w.count ?? 0 });
     return w.key;
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
           className="h-6 shrink-0 gap-1 px-1.5 text-warning/80 hover:text-warning"
-          aria-label={`${count} server ${count === 1 ? 'warning' : 'warnings'}`}
-          onClick={(event) => event.stopPropagation()}
+          aria-label={translateText(count === 1 ? ':count server warning' : ':count server warnings', { count })}
+          onClick={(event) => {
+            event.stopPropagation();
+            router.visit(warnings.some((warning) => warning.key === 'updates_available' || warning.key === 'kernel_update_available')
+              ? `/servers/${row.id}/update`
+              : warnings.some((warning) => warning.key === 'reboot_required') ? `/servers/${row.id}/restart` : `/servers/${row.id}`);
+          }}
         >
           <TriangleAlertIcon className="size-3.5" />
           <span className="text-xs tabular-nums">{count}</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-3" onClick={(event) => event.stopPropagation()}>
-        <p className="mb-2 text-xs font-medium">Server warnings</p>
+      </TooltipTrigger>
+      <TooltipContent align="start" className="w-72 p-3">
+        <p className="mb-2 text-xs font-medium">{translateText("Server warnings")}</p>
         <ul className="text-muted-foreground flex flex-col gap-2 text-xs">
           {warnings.map((warning) => <li key={warning.key}>{formatWarningLabel(warning)}</li>)}
         </ul>
-      </PopoverContent>
-    </Popover>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
-const phpVersionsCell = ({ value, row }: CellRenderProps) => {
+const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
+  const translateText = useTranslate();
+  const { locale } = usePage<SharedData>().props;
   const result = value as PhpVersions | null;
 
   if (!result) {
-    return <span className="text-muted-foreground text-xs">Not checked</span>;
+    return <span className="text-muted-foreground text-xs">{translateText("Not checked")}</span>;
   }
 
   const labels = {
@@ -281,26 +293,27 @@ const phpVersionsCell = ({ value, row }: CellRenderProps) => {
         <Link href={`/servers/${row.id}/services`} className="inline-flex flex-col items-start gap-1">
           <Badge variant={result.status === 'outdated' ? 'warning' : result.status === 'current' ? 'success' : 'gray'}>
             {result.checking && <LoaderCircleIcon className="size-3 animate-spin" />}
-            {result.checking ? 'Checking' : labels[result.status]}
+            {translateText(result.checking ? 'Checking' : labels[result.status])}
           </Badge>
           {result.versions.map((version) => (
             <span key={version.installed} className="text-muted-foreground whitespace-nowrap text-xs">
-              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ' · End of support' : ''}
+              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ` · ${translateText('End of support')}` : ''}
             </span>
           ))}
-          {stale && <span className="text-muted-foreground text-xs">Cached result</span>}
+          {stale && <span className="text-muted-foreground text-xs">{translateText("Cached result")}</span>}
         </Link>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
-        <p>Compared with the latest patch release for each PHP branch.</p>
-        <p>{result.checked_at ? `Last successful check: ${new Date(result.checked_at).toLocaleString('en-US')}` : 'No successful checks yet.'}</p>
-        {result.status === 'error' && <p>Unable to reach the server or PHP version source. Previous results are preserved.</p>}
+        <p>{translateText("Compared with the latest patch release for each PHP branch.")}</p>
+        <p>{result.checked_at ? translateText('Last successful check: :date', { date: new Date(result.checked_at).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-US') }) : translateText('No successful checks yet.')}</p>
+        {result.status === 'error' && <p>{translateText("Unable to reach the server or PHP version source. Previous results are preserved.")}</p>}
       </TooltipContent>
     </Tooltip>
   );
 };
 
 export default function Servers() {
+  const translateText = useTranslate();
   const page = usePage<Page & SharedData>();
   const versionForm = useForm({ project: page.props.serverScope ?? 'all' });
   const { advanced } = usePanelView();
@@ -321,11 +334,11 @@ export default function Servers() {
 
   return (
     <Layout>
-      <Head title="Servers" />
+      <Head title={translateText('Servers')} />
 
       <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <Heading title="Servers" />
+          <Heading title={translateText('Servers')} />
           <div className="flex flex-wrap items-center gap-2">
             {advanced && <Button
               variant="outline"
@@ -336,12 +349,12 @@ export default function Servers() {
               }}
             >
               <RefreshCwIcon className={cn(checkingVersions && 'animate-spin')} />
-              Check versions
+              {translateText("Check versions")}
             </Button>}
             <Button asChild>
               <Link href={"/servers/create"}>
                 <PlusIcon />
-                Create server
+                {translateText('Create server')}
               </Link>
             </Button>
           </div>
@@ -376,16 +389,16 @@ export default function Servers() {
                   router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                 }}
               >
-                <SelectTrigger className="h-8 w-44" aria-label="PHP version status filter">
+                <SelectTrigger className="h-8 w-44" aria-label={translateText("PHP version status filter")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All PHP statuses</SelectItem>
-                  <SelectItem value="outdated">Outdated PHP</SelectItem>
+                  <SelectItem value="all">{translateText("All PHP statuses")}</SelectItem>
+                  <SelectItem value="outdated">{translateText("Outdated PHP")}</SelectItem>
                 </SelectContent>
               </Select>}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground text-sm">Group by</span>
+                <span className="text-muted-foreground text-sm">{translateText("Group by")}</span>
                 <Select
                   value={page.props.groupBy ?? 'none'}
                   onValueChange={(groupBy) => {
@@ -399,12 +412,12 @@ export default function Servers() {
                     router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                   }}
                 >
-                  <SelectTrigger className="h-8 w-40" aria-label="Group servers by">
-                    <SelectValue placeholder="No grouping" />
+                  <SelectTrigger className="h-8 w-40" aria-label={translateText("Group servers by")}>
+                    <SelectValue placeholder={translateText('No grouping')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No grouping</SelectItem>
-                    <SelectItem value="project">Group by Project</SelectItem>
+                    <SelectItem value="none">{translateText('No grouping')}</SelectItem>
+                    <SelectItem value="project">{translateText("Group by Project")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -414,25 +427,25 @@ export default function Servers() {
             name: (props: CellRenderProps) => (
               <div className="flex min-w-0 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  {nameCell(props)}
-                  {Array.isArray(props.row.warnings) && props.row.warnings.length > 0 && warningsCell({ ...props, value: props.row.warnings })}
+                  <NameCell {...props} />
+                  {Array.isArray(props.row.warnings) && props.row.warnings.length > 0 && <WarningsCell {...props} value={props.row.warnings} />}
                 </div>
                 {advanced && <span className="font-mono text-xs text-muted-foreground">{String(props.row.ip ?? '')}</span>}
                 {advanced && <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {roleCell({ ...props, value: props.row.role })}
+                  <RoleCell {...props} value={props.row.role} />
                   {stageCell({ ...props, value: props.row.stage })}
                 </div>}
               </div>
             ),
             cpu_cores: coresCell,
-            monthly_cost: (props: CellRenderProps) => <div className="flex flex-col gap-1">{costCell(props)}{coresCell({ ...props, value: props.row.cpu_cores })}</div>,
-            php_versions: phpVersionsCell,
-            cpu_usage_percent: cpuCell,
-            memory_used_percent: ramCell,
-            disk_used_percent: diskCell,
-            role: roleCell,
+            monthly_cost: (props: CellRenderProps) => <div className="flex flex-col gap-1"><CostCell {...props} />{coresCell({ ...props, value: props.row.cpu_cores })}</div>,
+            php_versions: (props: CellRenderProps) => <PhpVersionsCell {...props} />,
+            cpu_usage_percent: (props: CellRenderProps) => <CpuCell {...props} />,
+            memory_used_percent: (props: CellRenderProps) => <RamCell {...props} />,
+            disk_used_percent: (props: CellRenderProps) => <DiskCell {...props} />,
+            role: (props: CellRenderProps) => <RoleCell {...props} />,
             stage: stageCell,
-            warnings: warningsCell,
+            warnings: (props: CellRenderProps) => <WarningsCell {...props} />,
           }}
           onRowClick={(row: Row) => {
             const server = asRow<{ id: number }>(row, ['id']);

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useState } from 'react';
 import { Deferred, Head, Link, router, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
@@ -29,11 +30,14 @@ import { Deployment, LatestCommit } from '@/types/deployment';
 import LatestCommitBanner from '@/pages/application/components/latest-commit-banner';
 import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
 
-function Detail({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm font-medium">
       <Icon className="text-muted-foreground size-4 shrink-0" />
-      <div className="min-w-0 flex-1 break-words">{children}</div>
+      <div className="min-w-0 flex-1 break-words">
+        {label && <p className="text-muted-foreground text-xs">{label}</p>}
+        {children}
+      </div>
     </div>
   );
 }
@@ -47,6 +51,7 @@ function formatSiteType(type?: string): string {
 }
 
 export default function AppWithDeployment() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -145,7 +150,7 @@ export default function AppWithDeployment() {
             )}
 
             <Deferred data="deployments" fallback={<DeploymentsSkeleton />}>
-              <section aria-label="Deployments">
+              <section aria-label={translateText('Deployments')}>
                 <Card>
                   <CardHeader className="gap-3 p-4">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -158,7 +163,7 @@ export default function AppWithDeployment() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-foreground inline-flex min-w-0 items-center gap-1.5 font-medium hover:underline"
-                                title="Open repository"
+                                title={translateText('Open repository')}
                               >
                                 <span className="truncate">{site.repository}</span>
                                 <ExternalLinkIcon className="size-3.5 shrink-0" />
@@ -185,7 +190,7 @@ export default function AppWithDeployment() {
                             <DropdownMenuTrigger asChild>
                               <Button variant="outline" className="gap-1.5 cursor-pointer">
                                 <TerminalIcon className="size-4" />
-                                <span>Scripts</span>
+                                <span>{translateText('Scripts')}</span>
                                 <ChevronDownIcon className="size-3.5" />
                               </Button>
                             </DropdownMenuTrigger>
@@ -193,19 +198,19 @@ export default function AppWithDeployment() {
                               <DeploymentScript
                                 site={site}
                                 script={page.props.buildScript ?? fallbackScript('build')}
-                                description="This script will build resources like composer and npm before release"
+                                description={translateText('This script will build resources like composer and npm before release')}
                               >
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  Build Script
+                                  {translateText('Build Script')}
                                 </DropdownMenuItem>
                               </DeploymentScript>
                               <DeploymentScript
                                 site={site}
                                 script={page.props.preFlightScript ?? fallbackScript('pre-flight')}
-                                description="This script will be executed before release like migrations and optimizations"
+                                description={translateText('This script will be executed before release like migrations and optimizations')}
                               >
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  Pre Flight Script
+                                  {translateText('Pre Flight Script')}
                                 </DropdownMenuItem>
                               </DeploymentScript>
                             </DropdownMenuContent>
@@ -214,18 +219,18 @@ export default function AppWithDeployment() {
                           <DeploymentScript
                             site={site}
                             script={page.props.deploymentScript ?? fallbackScript('default')}
-                            description="This script will be executed on every deployment."
+                            description={translateText('This script will be executed on every deployment.')}
                           >
                             <Button variant="outline" className="gap-1.5 cursor-pointer">
                               <TerminalIcon className="size-4" />
-                              <span>Script</span>
+                              <span>{translateText('Script')}</span>
                             </Button>
                           </DeploymentScript>
                         )}
                         <Button variant="outline" asChild className="gap-1.5 cursor-pointer">
                           <Link href={`/servers/${page.props.server.id}/sites/${site.id}/environment`}>
                             <FileCode2Icon className="size-4" />
-                            <span>Env</span>
+                            <span>{translateText('Env')}</span>
                           </Link>
                         </Button>
                       </div>
@@ -240,7 +245,7 @@ export default function AppWithDeployment() {
                         <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
                           <AlertTriangleIcon className="size-4 shrink-0" />
                           <span>
-                            This commit ({activeDeployment.commit_id_short || activeDeployment.commit_id}) has already been deployed in a previous release.
+                            {translateText('This commit (:commit) has already been deployed in a previous release.', { commit: activeDeployment.commit_id_short || activeDeployment.commit_id || '' })}
                           </span>
                         </div>
                       )}
@@ -256,12 +261,12 @@ export default function AppWithDeployment() {
                               onClick={() => setShowLog((prev) => !prev)}
                             >
                               {showLog ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
-                              <span>{showLog ? 'Hide log' : 'Show log'}</span>
+                              <span>{showLog ? translateText("Hide log") : translateText("Show log")}</span>
                             </Button>
 
                             <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs cursor-pointer">
                               <Link href={`/servers/${page.props.server.id}/sites/${site.id}/deployments/${activeDeployment.id}`}>
-                                <span>Details</span>
+                                <span>{translateText('Details')}</span>
                                 <ExternalLinkIcon className="size-3.5" />
                               </Link>
                             </Button>
@@ -272,7 +277,7 @@ export default function AppWithDeployment() {
                                 size="icon"
                                 className="size-8 cursor-pointer"
                                 onClick={() => setDismissed(true)}
-                                title="Dismiss"
+                                title={translateText('Dismiss')}
                               >
                                 <XIcon className="size-3.5" />
                               </Button>
@@ -284,8 +289,8 @@ export default function AppWithDeployment() {
                       {showLog && (
                         <Card className="overflow-hidden border">
                           <LogOutput className="h-64 w-full rounded-none border-0 p-4 font-mono text-xs">
-                            {isLoading && 'Loading deployment output...'}
-                            {!isLoading && (content || (activeDeployment.status === 'deploying' ? 'Waiting for output...' : 'No output was recorded.'))}
+                            {isLoading && translateText("Loading deployment output...")}
+                            {!isLoading && (content || (activeDeployment.status === 'deploying' ? translateText("Waiting for output...") : translateText("No output was recorded.")))}
                           </LogOutput>
                         </Card>
                       )}
@@ -296,7 +301,7 @@ export default function AppWithDeployment() {
                   </CardContent>
                   <CardFooter className="justify-end border-t p-2">
                     <Button variant="ghost" size="sm" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/deployments`}>All</Link>
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/deployments`}>{translateText("All")}</Link>
                     </Button>
                   </CardFooter>
                 </Card>
@@ -304,17 +309,20 @@ export default function AppWithDeployment() {
             </Deferred>
 
             <Deferred data={['overviewWorkers', 'overviewCronJobs']} fallback={<WorkersCronJobsSkeleton />}>
-              <section className="grid gap-4 md:grid-cols-2" aria-label="Site automation">
+              <section className="grid gap-4 md:grid-cols-2" aria-label={translateText('Site automation')}>
                 <Card>
                   <CardHeader className="flex-row items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
                         <ListEndIcon className="size-4" />
                       </div>
-                      <CardTitle>Services ({page.props.overviewWorkersCount ?? 0})</CardTitle>
+                      <div>
+                        <CardTitle>{translateText("Background processes")}</CardTitle>
+                        <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewWorkersCount ?? 0} {translateText('configured')}</p>
+                      </div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-8" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`} aria-label="Manage services">
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`} aria-label={translateText('Manage services')}>
                         <SettingsIcon className="size-4" />
                       </Link>
                     </Button>
@@ -331,10 +339,10 @@ export default function AppWithDeployment() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">No services yet.</p>
+                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">{(page.props.overviewWorkersCount ?? 0) > 0 ? <Link className="underline" href={`/servers/${site.server_id}/sites/${site.id}/resources`}>{translateText('Linked background processes are listed under Resources.')}</Link> : translateText('No background processes yet.')}</p>
                     )}
                     {(page.props.overviewWorkersCount ?? 0) > (page.props.overviewWorkers?.length ?? 0) && (
-                      <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewWorkersCount}</p>
+                      <p className="text-muted-foreground px-4 py-2 text-xs">{translateText('Showing :shown of :total', { shown: page.props.overviewWorkers?.length ?? 0, total: page.props.overviewWorkersCount })}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -345,10 +353,13 @@ export default function AppWithDeployment() {
                       <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
                         <CalendarClockIcon className="size-4" />
                       </div>
-                      <CardTitle>Jobs ({page.props.overviewCronJobsCount ?? 0})</CardTitle>
+                      <div>
+                        <CardTitle>{translateText("Scheduled jobs")}</CardTitle>
+                        <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewCronJobsCount ?? 0} {translateText('configured')}</p>
+                      </div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-8" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`} aria-label="Manage jobs">
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`} aria-label={translateText('Manage jobs')}>
                         <SettingsIcon className="size-4" />
                       </Link>
                     </Button>
@@ -365,10 +376,10 @@ export default function AppWithDeployment() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">No jobs yet.</p>
+                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">{(page.props.overviewCronJobsCount ?? 0) > 0 ? <Link className="underline" href={`/servers/${site.server_id}/sites/${site.id}/resources`}>{translateText('Linked scheduled jobs are listed under Resources.')}</Link> : translateText('No scheduled jobs yet.')}</p>
                     )}
                     {(page.props.overviewCronJobsCount ?? 0) > (page.props.overviewCronJobs?.length ?? 0) && (
-                      <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewCronJobsCount}</p>
+                      <p className="text-muted-foreground px-4 py-2 text-xs">{translateText('Showing :shown of :total', { shown: page.props.overviewCronJobs?.length ?? 0, total: page.props.overviewCronJobsCount })}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -378,15 +389,15 @@ export default function AppWithDeployment() {
 
           <Card className="overflow-hidden lg:sticky lg:top-4">
             <CardHeader className="flex-row items-center justify-between gap-3 p-4">
-              <CardTitle>Site details</CardTitle>
+              <CardTitle>{translateText('Site details')}</CardTitle>
               {site.source_control_id && (
                 <div className="flex items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Auto deploy</span>
+                  <span className="text-xs text-muted-foreground">{translateText('Auto deploy')}</span>
                   <Switch
                     checked={site.auto_deploy}
                     disabled={togglingAutoDeploy}
                     onCheckedChange={handleToggleAutoDeploy}
-                    aria-label="Toggle auto deploy"
+                    aria-label={translateText('Toggle auto deploy')}
                   />
                 </div>
               )}
@@ -405,8 +416,8 @@ export default function AppWithDeployment() {
                       size="icon"
                       className="size-6 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
                       onClick={() => copyIp(page.props.server.ip)}
-                      aria-label="Copy IP address"
-                      title="Copy IP address"
+                      aria-label={translateText('Copy IP address')}
+                      title={translateText('Copy IP address')}
                     >
                       {copiedIp ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
                     </Button>
@@ -424,7 +435,7 @@ export default function AppWithDeployment() {
                   >
                     <span>SSL</span>
                     <Badge variant={site.ssl_enabled ? 'success' : 'outline'}>
-                      {site.ssl_enabled ? 'Enabled' : 'Disabled'}
+                      {translateText(site.ssl_enabled ? 'Enabled' : 'Disabled')}
                     </Badge>
                   </Link>
                 </Detail>

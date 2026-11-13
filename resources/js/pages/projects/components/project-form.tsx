@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import {
   Dialog,
   DialogClose,
@@ -31,6 +32,7 @@ export default function ProjectForm({
   onOpenChange?: (open: boolean) => void;
   children?: ReactNode;
 }) {
+  const translateText = useTranslate();
   const [localOpen, setOpen] = useState(defaultOpen || false);
   const open = controlledOpen ?? localOpen;
   useEffect(() => {
@@ -72,13 +74,13 @@ export default function ProjectForm({
       {children && <DialogTrigger asChild>{children}</DialogTrigger>}
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{project ? 'Edit Project' : 'Create Project'}</DialogTitle>
-          <DialogDescription className="sr-only">{project ? 'Edit the project details.' : 'Here you can create a new project.'}</DialogDescription>
+          <DialogTitle>{project ? translateText("Edit Project") : translateText("Create Project")}</DialogTitle>
+          <DialogDescription className="sr-only">{project ? translateText("Edit the project details.") : translateText("Here you can create a new project.")}</DialogDescription>
         </DialogHeader>
         <Form id="project-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -87,12 +89,12 @@ export default function ProjectForm({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              Cancel
+              {translateText('Cancel')}
             </Button>
           </DialogClose>
           <Button form="project-form" type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

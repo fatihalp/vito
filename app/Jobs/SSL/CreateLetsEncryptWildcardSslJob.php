@@ -56,6 +56,7 @@ class CreateLetsEncryptWildcardSslJob implements ShouldQueue
             $pid = $this->startCertbot($ssh, $basePath, $certName, $domain->domain);
             $this->processChallenges($ssh, $basePath, $domain, $pid);
             $this->readAndStoreCertificate($ssh, $certName);
+            $ssh->exec('if sudo -n systemctl is-active --quiet nginx.service; then sudo -n nginx -t && sudo -n systemctl reload nginx.service; fi');
 
             
             $ssh->exec(view('ssh.ssl.wildcard-cleanup-artifacts', ['basePath' => $basePath]));

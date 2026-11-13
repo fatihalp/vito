@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -33,6 +34,7 @@ export default function CreateNetwork({
   onOpenChange: (open: boolean) => void;
   servers: NetworkServerOption[];
 }) {
+  const translateText = useTranslate();
   const form = useForm<CreateNetworkForm>({
     name: '',
     type: 'wireguard',
@@ -71,30 +73,30 @@ export default function CreateNetwork({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Create network</DialogTitle>
-          <DialogDescription className="sr-only">Create a new private network</DialogDescription>
+          <DialogTitle>{translateText("Create network")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Create a new private network")}</DialogDescription>
         </DialogHeader>
         <Form id="create-network-form" onSubmit={submit} className="max-h-[70vh] overflow-y-auto p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="type">Type</Label>
+              <Label htmlFor="type">{translateText('Type')}</Label>
               <Select
                 value={form.data.type}
                 onValueChange={(value) => form.setData((prev) => ({ ...prev, type: value, servers: [], ip_addresses: {} }))}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={translateText('Select type')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="wireguard">WireGuard</SelectItem>
-                    <SelectItem value="custom">Custom</SelectItem>
+                    <SelectItem value="custom">{translateText("Custom")}</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -104,15 +106,15 @@ export default function CreateNetwork({
             {!isCustom && (
               <>
                 <FormField>
-                  <Label htmlFor="addressing_pool">Address pool</Label>
+                  <Label htmlFor="addressing_pool">{translateText("Address pool")}</Label>
                   <Select value={form.data.addressing_pool} onValueChange={(value) => form.setData('addressing_pool', value)}>
                     <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select pool" />
+                      <SelectValue placeholder={translateText("Select pool")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
                         <SelectItem value="cgnat">CGNAT (100.64.0.0/10)</SelectItem>
-                        <SelectItem value="rfc1918">Private (RFC1918)</SelectItem>
+                        <SelectItem value="rfc1918">{translateText("Private (RFC1918)")}</SelectItem>
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -120,17 +122,16 @@ export default function CreateNetwork({
                 </FormField>
 
                 <FormField>
-                  <Label htmlFor="prefix">Block size (/prefix)</Label>
+                  <Label htmlFor="prefix">{translateText("Block size (/prefix)")}</Label>
                   <Input id="prefix" value={form.data.prefix} onChange={(e) => form.setData('prefix', e.target.value)} />
                   <InputError message={form.errors.prefix} />
                 </FormField>
 
                 <FormField>
-                  <Label htmlFor="port">Listen port</Label>
+                  <Label htmlFor="port">{translateText("Listen port")}</Label>
                   <Input id="port" value={form.data.port} onChange={(e) => form.setData('port', e.target.value)} />
                   <p className="text-muted-foreground text-xs">
-                    The UDP port the tunnel listens on. Pure moves to the next free port if a selected server already uses this one for another
-                    network.
+                    {translateText("The UDP port the tunnel listens on. Pure moves to the next free port if a selected server already uses this one for another network.")}
                   </p>
                   <InputError message={form.errors.port} />
                 </FormField>
@@ -139,7 +140,7 @@ export default function CreateNetwork({
 
             {isCustom && (
               <FormField>
-                <Label htmlFor="cidr">CIDR (optional)</Label>
+                <Label htmlFor="cidr">{translateText("CIDR (optional)")}</Label>
                 <Input
                   id="cidr"
                   placeholder="e.g. 10.0.0.0/24 or fd00:1::/64"
@@ -151,7 +152,7 @@ export default function CreateNetwork({
             )}
 
             <FormField>
-              <Label htmlFor="primary-server">Primary server</Label>
+              <Label htmlFor="primary-server">{translateText("Primary server")}</Label>
               <Combobox
                 id="primary-server"
                 items={servers.map((server) => ({
@@ -160,7 +161,7 @@ export default function CreateNetwork({
                   keywords: [server.name],
                 }))}
                 value={primaryServerId ? String(primaryServerId) : ''}
-                placeholder="Select a server"
+                placeholder={translateText('Select a server')}
                 searchText="Filter servers..."
                 noneFoundText="No servers found."
                 onValueChange={(value) => selectPrimaryServer(Number(value))}
@@ -170,7 +171,7 @@ export default function CreateNetwork({
 
             {isCustom && (
               <FormField>
-                <Label htmlFor="primary-server-ip">Private IP</Label>
+                <Label htmlFor="primary-server-ip">{translateText('Private IP')}</Label>
                 <PrivateIpSelect
                   serverId={primaryServerId}
                   ips={primaryServer?.private_ips ?? []}
@@ -185,11 +186,11 @@ export default function CreateNetwork({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           <Button form="create-network-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Create
+            {translateText('Create')}
           </Button>
         </DialogFooter>
       </DialogContent>

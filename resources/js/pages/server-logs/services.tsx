@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -30,6 +31,7 @@ const LINE_OPTIONS = ['100', '200', '500', '1000', '2000'] as const;
 type LineOption = (typeof LINE_OPTIONS)[number];
 
 export default function ServiceLogs() {
+  const translateText = useTranslate();
   const page = usePage<{
     title: string;
     server: Server;
@@ -199,19 +201,19 @@ export default function ServiceLogs() {
 
   return (
     <ServerLayout>
-      <Head title={`Service logs - ${server.name}`} />
+      <Head title={translateText("Service logs - :value", { value: server.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Service logs" description="Inspect recent log records, filter by severity and expand errors for full details." />
+          <Heading title={translateText("Service logs")} description={translateText("Inspect recent log records, filter by severity and expand errors for full details.")} />
         </HeaderContainer>
 
         {catalogue.length === 0 ? (
           <Card>
             <CardContent className="text-muted-foreground p-10 text-center text-sm">
-              No services with logs are installed on this server yet.{' '}
+              {translateText("No services with logs are installed on this server yet.")}{' '}
               <Link href={`/servers/${server.id}/services`} className="text-foreground underline underline-offset-4">
-                Manage services
+                {translateText("Manage services")}
               </Link>
               .
             </CardContent>
@@ -221,12 +223,12 @@ export default function ServiceLogs() {
             <CardHeader className="gap-3">
               <div className="grid min-w-0 gap-4 md:grid-cols-2">
                 <div className="flex min-w-0 flex-col gap-2 [&_[role=combobox]]:min-w-0 [&_[role=combobox]>span]:truncate">
-                  <Label htmlFor="log-service">Service</Label>
+                  <Label htmlFor="log-service">{translateText('Service')}</Label>
                   <Combobox
                     id="log-service"
                     items={serviceItems}
                     value={selectedService}
-                    placeholder="Select a service..."
+                    placeholder={translateText("Select a service...")}
                     searchText="Search services..."
                     noneFoundText="No matching service"
                     onValueChange={(service) => {
@@ -242,14 +244,14 @@ export default function ServiceLogs() {
                       id="service-log"
                       items={comboItems}
                       value={selectedKey}
-                      placeholder="Select a log..."
+                      placeholder={translateText("Select a log...")}
                       searchText="Search logs..."
                       noneFoundText="No matching log"
                       onValueChange={setSelectedKey}
                     />
                   ) : (
                     <Button id="service-log" variant="outline" className="justify-start" disabled>
-                      Select a service first
+                      {translateText("Select a service first")}
                     </Button>
                   )}
                 </div>
@@ -257,21 +259,21 @@ export default function ServiceLogs() {
               <div className="flex flex-wrap items-center justify-end gap-2">
                 <div className="flex flex-1 items-center gap-2">
                   <Checkbox id="auto-refresh-logs" checked={autoRefresh} onCheckedChange={(checked) => setAutoRefresh(checked === true)} disabled={!selectedKey} />
-                  <Label htmlFor="auto-refresh-logs" className="text-sm">Auto-refresh every 10s</Label>
+                  <Label htmlFor="auto-refresh-logs" className="text-sm">{translateText("Auto-refresh every 10s")}</Label>
                 </div>
                 <Select value={lines} onValueChange={(v) => setLines(v as LineOption)} disabled={!selectedKey}>
-                  <SelectTrigger className="w-32" aria-label="Line count">
-                    <SelectValue placeholder="Lines" />
+                  <SelectTrigger className="w-32" aria-label={translateText("Line count")}>
+                    <SelectValue placeholder={translateText("Lines")} />
                   </SelectTrigger>
                   <SelectContent>
                     {LINE_OPTIONS.map((n) => (
                       <SelectItem key={n} value={n}>
-                        {n} lines
+                        {n} {translateText("lines")}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" onClick={fetchLog} disabled={!selectedKey || isLoading} title="Refresh" aria-label="Refresh">
+                <Button variant="outline" size="icon" onClick={fetchLog} disabled={!selectedKey || isLoading} title={translateText('Refresh')} aria-label={translateText('Refresh')}>
                   {isLoading ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCwIcon />}
                 </Button>
                 <Button
@@ -279,8 +281,8 @@ export default function ServiceLogs() {
                   size="icon"
                   onClick={downloadLog}
                   disabled={!selectedKey || isDownloading}
-                  title="Download"
-                  aria-label="Download log"
+                  title={translateText('Download')}
+                  aria-label={translateText('Download log')}
                 >
                   {isDownloading ? <LoaderCircleIcon className="animate-spin" /> : <DownloadIcon />}
                 </Button>
@@ -288,11 +290,11 @@ export default function ServiceLogs() {
                   <Button
                     variant="outline"
                     size="icon"
-                    title="Clear log"
-                    aria-label="Clear log"
+                    title={translateText('Clear log')}
+                    aria-label={translateText('Clear log')}
                     onClick={() => dialog.confirm.open({
                       title: 'Clear log',
-                      description: `Clear all contents of ${selected.display_target}? This cannot be undone. The file and its permissions are preserved.`,
+                      description: translateText("Clear all contents of :value? This cannot be undone. The file and its permissions are preserved.", { value: selected.display_target }),
                       confirmLabel: 'Clear log',
                       variant: 'destructive',
                       method: 'post',
@@ -304,7 +306,7 @@ export default function ServiceLogs() {
                     <EraserIcon />
                   </Button>
                 ) : (
-                  <Button variant="outline" size="icon" disabled title="Journal logs cannot be cleared" aria-label="Clear log">
+                  <Button variant="outline" size="icon" disabled title={translateText("Journal logs cannot be cleared")} aria-label={translateText('Clear log')}>
                     <EraserIcon />
                   </Button>
                 )}
@@ -313,8 +315,8 @@ export default function ServiceLogs() {
 
             <CardContent className="p-0">
               <div className="bg-muted/40 text-muted-foreground flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 text-xs">
-                <span className="min-w-0 font-mono break-all">{displayTarget || selected?.display_target || 'No log selected'}</span>
-                {updatedAt && <span className="shrink-0">Updated <DateTime date={updatedAt} /></span>}
+                <span className="min-w-0 font-mono break-all">{displayTarget || selected?.display_target || translateText("No log selected")}</span>
+                {updatedAt && <span className="shrink-0">{translateText("Updated")} <DateTime date={updatedAt} /></span>}
               </div>
               <ServiceLogViewer key={selectedKey} isLoading={isLoading} error={error} hasSelection={!!selectedKey} content={content} />
             </CardContent>

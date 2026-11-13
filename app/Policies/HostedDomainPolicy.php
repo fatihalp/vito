@@ -17,8 +17,7 @@ class HostedDomainPolicy
     public function viewAny(User $user, Site $site, Server $server): bool
     {
         return $this->hasServerReadAccess($user, $server) &&
-            $site->server_id === $server->id &&
-            $site->isReady();
+            $site->server_id === $server->id;
     }
 
     public function create(User $user, Site $site, Server $server): bool

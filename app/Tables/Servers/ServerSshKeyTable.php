@@ -29,6 +29,7 @@ class ServerSshKeyTable extends Table
                 ->fallback('-'),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),
             Column::data('id'),
+            Column::data('deployment_status', fn (SshKey $k) => $k->pivot->status),
             Column::data('owner_email', fn (SshKey $k) => $k->user->email),
             ActionsColumn::make(),
         ];

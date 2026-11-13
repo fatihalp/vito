@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
@@ -15,6 +16,7 @@ import Actions from '@/pages/monitoring/components/actions';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Monitoring() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     hasMonitoringService: boolean;
@@ -24,11 +26,11 @@ export default function Monitoring() {
 
   return (
     <ServerLayout>
-      <Head title={`Monitoring - ${page.props.server.name}`} />
+      <Head title={translateText("Monitoring - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Monitoring" description="Here you can see your server's metrics" />
+          <Heading title={translateText('Monitoring')} description={translateText("Here you can see your server's metrics")} />
           <div className="flex items-center gap-2">
             <Filter onValueChange={setFilter} />
             <Actions server={page.props.server} />
@@ -40,9 +42,9 @@ export default function Monitoring() {
             <TriangleAlertIcon />
             <AlertDescription>
               <p>
-                To monitor your server, you need to first install a{' '}
+                {translateText("To monitor your server, you need to first install a")}{' '}
                 <Link href={`/servers/${page.props.server.id}/services`} className="font-bold underline">
-                  monitoring service
+                  {translateText("monitoring service")}
                 </Link>
                 .
               </p>

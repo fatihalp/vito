@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { type ReactNode, useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
@@ -56,6 +57,7 @@ function SecretField({
   onRegenerate: () => void;
   onRemove: (() => void) | null;
 }) {
+  const translateText = useTranslate();
   const copy = () => {
     if (!navigator.clipboard) {
       toast.error('The clipboard is not available in this browser');
@@ -70,31 +72,31 @@ function SecretField({
 
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor="networking-secret">Password</Label>
+      <Label htmlFor="networking-secret">{translateText('Password')}</Label>
       <div className="flex items-center gap-2">
         <div className="flex-1">
           <PasswordInput id="networking-secret" readOnly value={secret} className="font-mono" />
         </div>
-        <Button type="button" variant="outline" size="icon" onClick={copy} aria-label="Copy password">
+        <Button type="button" variant="outline" size="icon" onClick={copy} aria-label={translateText("Copy password")}>
           <CopyIcon />
         </Button>
       </div>
       <div className="flex items-center gap-2">
         <Button type="button" variant="outline" size="sm" disabled={busy} onClick={onRegenerate}>
           <RefreshCwIcon />
-          Regenerate
+          {translateText('Regenerate')}
         </Button>
         {onRemove && (
           <Button type="button" variant="outline" size="sm" disabled={busy} onClick={onRemove}>
             <Trash2Icon />
-            Remove
+            {translateText('Remove')}
           </Button>
         )}
       </div>
       <p className="text-muted-foreground text-xs">
         {onRemove
-          ? 'Both restart the service. Every client must be updated to the new password, or to no password at all.'
-          : 'Regenerating restarts the service - every client must be updated to the new password. The password can only be removed while the service is local only.'}
+          ? translateText("Both restart the service. Every client must be updated to the new password, or to no password at all.")
+          : translateText("Regenerating restarts the service - every client must be updated to the new password. The password can only be removed while the service is local only.")}
       </p>
     </div>
   );
@@ -109,6 +111,7 @@ export default function ServiceNetworkingDialog({
   onOpenChange: (open: boolean) => void;
   service: Service;
 }) {
+  const translateText = useTranslate();
   const queryClient = useQueryClient();
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -182,11 +185,10 @@ export default function ServiceNetworkingDialog({
       <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>
-            Networking for <span className="capitalize">{service.name}</span>
+            {translateText("Networking for")} <span className="capitalize">{service.name}</span>
           </DialogTitle>
           <DialogDescription>
-            Networking opens this service on all IPv4 interfaces (0.0.0.0) so other servers can reach it. Access is only gated by authentication and
-            your firewall.
+            {translateText("Networking opens this service on all IPv4 interfaces (0.0.0.0) so other servers can reach it. Access is only gated by authentication and your firewall.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -202,9 +204,9 @@ export default function ServiceNetworkingDialog({
           {query.isError && (
             <Alert variant="destructive">
               <AlertCircleIcon />
-              <AlertTitle>Could not load networking state</AlertTitle>
+              <AlertTitle>{translateText("Could not load networking state")}</AlertTitle>
               <AlertDescription>
-                {(axios.isAxiosError(query.error) ? query.error.response?.data?.message : null) ?? 'Please try again in a moment.'}
+                {(axios.isAxiosError(query.error) ? query.error.response?.data?.message : null) ?? translateText("Please try again in a moment.")}
               </AlertDescription>
             </Alert>
           )}
@@ -212,24 +214,24 @@ export default function ServiceNetworkingDialog({
           {data && !data.supported && (
             <Alert>
               <AlertCircleIcon />
-              <AlertTitle>Not supported</AlertTitle>
-              <AlertDescription>This service does not support the networking toggle.</AlertDescription>
+              <AlertTitle>{translateText("Not supported")}</AlertTitle>
+              <AlertDescription>{translateText("This service does not support the networking toggle.")}</AlertDescription>
             </Alert>
           )}
 
           {details && (
             <>
               <div className="flex flex-col gap-2">
-                <StateRow label="Networking">
+                <StateRow label={translateText('Networking')}>
                   {pending ? (
-                    <Badge variant="gray">Applying…</Badge>
+                    <Badge variant="gray">{translateText("Applying…")}</Badge>
                   ) : unknown ? (
-                    <Badge variant="gray">Unknown</Badge>
+                    <Badge variant="gray">{translateText("Unknown")}</Badge>
                   ) : (
-                    <Badge variant={networked ? 'success' : 'gray'}>{networked ? 'Listening on all interfaces' : 'Local only'}</Badge>
+                    <Badge variant={networked ? 'success' : 'gray'}>{networked ? translateText("Listening on all interfaces") : translateText("Local only")}</Badge>
                   )}
                 </StateRow>
-                <StateRow label="Default port">
+                <StateRow label={translateText("Default port")}>
                   <span className="font-mono text-sm">{details.port}</span>
                 </StateRow>
               </div>
@@ -237,9 +239,9 @@ export default function ServiceNetworkingDialog({
               {pending && (
                 <Alert>
                   <LoaderCircleIcon className="animate-spin" />
-                  <AlertTitle>Applying the change</AlertTitle>
+                  <AlertTitle>{translateText("Applying the change")}</AlertTitle>
                   <AlertDescription>
-                    Pure is updating the configuration and restarting the service. This dialog updates automatically.
+                    {translateText("Pure is updating the configuration and restarting the service. This dialog updates automatically.")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -247,9 +249,9 @@ export default function ServiceNetworkingDialog({
               {details.failed && !pending && (
                 <Alert variant="destructive">
                   <TriangleAlertIcon />
-                  <AlertTitle>The last change failed</AlertTitle>
+                  <AlertTitle>{translateText("The last change failed")}</AlertTitle>
                   <AlertDescription>
-                    Pure could not apply the last networking change and reverted the configuration. Check the server logs for details, then try again.
+                    {translateText("Pure could not apply the last networking change and reverted the configuration. Check the server logs for details, then try again.")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -257,18 +259,18 @@ export default function ServiceNetworkingDialog({
               {unknown && (
                 <Alert>
                   <TriangleAlertIcon />
-                  <AlertTitle>Refresh the services first</AlertTitle>
+                  <AlertTitle>{translateText("Refresh the services first")}</AlertTitle>
                   <AlertDescription>
                     <p>
                       {neverChecked ? (
-                        <>Pure hasn&apos;t checked this service&apos;s live state yet.</>
+                        <>{translateText("Pure hasn't checked this service's live state yet.")}</>
                       ) : (
                         <>
-                          Pure couldn&apos;t read this service&apos;s live state on the last check (<DateTime date={details.checked_at as string} />
-                          ). Check that the service is healthy first.
+                          {translateText("Pure couldn't read this service's live state on the last check (")}<DateTime date={details.checked_at as string} />
+                          {translateText("). Check that the service is healthy first.")}
                         </>
                       )}{' '}
-                      Close this dialog and use Refresh on the Services page - networking can&apos;t be changed until Pure knows the current state.
+                      {translateText("Close this dialog and use Refresh on the Services page - networking can't be changed until Pure knows the current state.")}
                     </p>
                   </AlertDescription>
                 </Alert>
@@ -277,10 +279,9 @@ export default function ServiceNetworkingDialog({
               {usesPassword && !pending && !networked && !details.secret && (
                 <Alert variant="destructive">
                   <TriangleAlertIcon />
-                  <AlertTitle>A password will be set</AlertTitle>
+                  <AlertTitle>{translateText("A password will be set")}</AlertTitle>
                   <AlertDescription>
-                    Pure generates a password when networking is enabled. Every existing client on this server (apps, workers, queues) must be updated
-                    to authenticate with it, or it will fail with NOAUTH.
+                    {translateText("Pure generates a password when networking is enabled. Every existing client on this server (apps, workers, queues) must be updated to authenticate with it, or it will fail with NOAUTH.")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -288,10 +289,9 @@ export default function ServiceNetworkingDialog({
               {usesPassword && !pending && !details.failed && !networked && details.secret && (
                 <Alert variant="destructive">
                   <TriangleAlertIcon />
-                  <AlertTitle>A password has been generated</AlertTitle>
+                  <AlertTitle>{translateText("A password has been generated")}</AlertTitle>
                   <AlertDescription>
-                    Networking is off. If it was ever enabled, this password is still in effect on the server and every client must keep
-                    authenticating with it. Enabling networking applies it again.
+                    {translateText("Networking is off. If it was ever enabled, this password is still in effect on the server and every client must keep authenticating with it. Enabling networking applies it again.")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -299,9 +299,9 @@ export default function ServiceNetworkingDialog({
               {usesPassword && !pending && networked && (
                 <Alert>
                   <AlertCircleIcon />
-                  <AlertTitle>Disabling keeps the password</AlertTitle>
+                  <AlertTitle>{translateText("Disabling keeps the password")}</AlertTitle>
                   <AlertDescription>
-                    The service goes back to local only, but the password remains set - local clients keep authenticating with it.
+                    {translateText("The service goes back to local only, but the password remains set - local clients keep authenticating with it.")}
                   </AlertDescription>
                 </Alert>
               )}
@@ -318,16 +318,16 @@ export default function ServiceNetworkingDialog({
               {details.requires_remote_users === true && (
                 <Alert>
                   <AlertCircleIcon />
-                  <AlertTitle>Remote database users are required</AlertTitle>
-                  <AlertDescription>Remote servers need a database user with remote host (%) to connect.</AlertDescription>
+                  <AlertTitle>{translateText("Remote database users are required")}</AlertTitle>
+                  <AlertDescription>{translateText("Remote servers need a database user with remote host (%) to connect.")}</AlertDescription>
                 </Alert>
               )}
 
               {details.requires_remote_users === false && (
                 <Alert>
                   <AlertCircleIcon />
-                  <AlertTitle>Authentication</AlertTitle>
-                  <AlertDescription>Remote connections authenticate with database user passwords.</AlertDescription>
+                  <AlertTitle>{translateText("Authentication")}</AlertTitle>
+                  <AlertDescription>{translateText("Remote connections authenticate with database user passwords.")}</AlertDescription>
                 </Alert>
               )}
             </>
@@ -343,7 +343,7 @@ export default function ServiceNetworkingDialog({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           {details && (
             <Button
@@ -352,7 +352,7 @@ export default function ServiceNetworkingDialog({
               onClick={() => toggle(networked ? 'disable' : 'enable')}
             >
               {(submitting || pending) && <LoaderCircleIcon className="animate-spin" />}
-              {networked ? 'Close Remote Access (Disable)' : 'Open to Remote (Enable)'}
+              {networked ? translateText("Close Remote Access (Disable)") : translateText("Open to Remote (Enable)")}
             </Button>
           )}
         </DialogFooter>

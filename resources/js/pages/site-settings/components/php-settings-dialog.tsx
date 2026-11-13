@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent } from 'react';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -46,6 +47,7 @@ function SettingField({
 }
 
 export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: boolean; onOpenChange: (open: boolean) => void; site: Site }) {
+  const translateText = useTranslate();
   const form = useForm<PhpSettingsForm>({
     max_upload_size: site.php_settings.max_upload_size?.toString() ?? '',
     max_execution_time: site.php_settings.max_execution_time?.toString() ?? '',
@@ -71,15 +73,15 @@ export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Configure PHP settings</DialogTitle>
-          <DialogDescription>Per-site PHP runtime limits. Leave a field empty to use the server default.</DialogDescription>
+          <DialogTitle>{translateText("Configure PHP settings")}</DialogTitle>
+          <DialogDescription>{translateText("Per-site PHP runtime limits. Leave a field empty to use the server default.")}</DialogDescription>
         </DialogHeader>
 
         <Form id="php-settings-form" onSubmit={submit} className="p-4">
           <FormFields>
             <SettingField
               id="max_upload_size"
-              label="Max upload size (MB)"
+              label={translateText("Max upload size (MB)")}
               placeholder="e.g. 1024"
               hint="Default: 2 MB (nginx caps at 1 MB)"
               min={1}
@@ -89,7 +91,7 @@ export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: 
             />
             <SettingField
               id="max_execution_time"
-              label="Max execution time (seconds)"
+              label={translateText("Max execution time (seconds)")}
               placeholder="e.g. 120"
               hint="Default: 30s (nginx caps at 60s)"
               min={1}
@@ -99,7 +101,7 @@ export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: 
             />
             <SettingField
               id="memory_limit"
-              label="Memory limit (MB)"
+              label={translateText("Memory limit (MB)")}
               placeholder="e.g. 256"
               hint="Default: 128 MB"
               min={16}
@@ -109,7 +111,7 @@ export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: 
             />
             <SettingField
               id="max_input_vars"
-              label="Max input vars"
+              label={translateText("Max input vars")}
               placeholder="e.g. 5000"
               hint="Default: 1000"
               min={100}
@@ -122,11 +124,11 @@ export default function PhpSettingsDialog({ open, onOpenChange, site }: { open: 
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="php-settings-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

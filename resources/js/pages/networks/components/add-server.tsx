@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -29,6 +30,7 @@ export default function AddServer({
   isCustom: boolean;
   servers: NetworkServerOption[];
 }) {
+  const translateText = useTranslate();
   const form = useForm<AddServerForm>({
     servers: [],
     ip_addresses: {},
@@ -53,13 +55,13 @@ export default function AddServer({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Add server</DialogTitle>
-          <DialogDescription className="sr-only">Add a server to the network</DialogDescription>
+          <DialogTitle>{translateText("Add server")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Add a server to the network")}</DialogDescription>
         </DialogHeader>
         <Form id="add-server-form" onSubmit={submit} className="max-h-[70vh] overflow-y-auto p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="add-server">Server</Label>
+              <Label htmlFor="add-server">{translateText('Server')}</Label>
               <Combobox
                 id="add-server"
                 items={servers.map((server) => ({
@@ -68,7 +70,7 @@ export default function AddServer({
                   keywords: [server.name],
                 }))}
                 value={selectedServerId ? String(selectedServerId) : ''}
-                placeholder="Select a server"
+                placeholder={translateText('Select a server')}
                 searchText="Filter servers..."
                 noneFoundText="No eligible servers available."
                 onValueChange={(value) => selectServer(Number(value))}
@@ -78,7 +80,7 @@ export default function AddServer({
 
             {isCustom && (
               <FormField>
-                <Label htmlFor="add-server-ip">Private IP</Label>
+                <Label htmlFor="add-server-ip">{translateText('Private IP')}</Label>
                 <PrivateIpSelect
                   serverId={selectedServerId}
                   ips={selectedServer?.private_ips ?? []}
@@ -93,11 +95,11 @@ export default function AddServer({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           <Button form="add-server-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Add
+            {translateText('Add')}
           </Button>
         </DialogFooter>
       </DialogContent>

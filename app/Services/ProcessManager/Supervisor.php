@@ -24,7 +24,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         return 'supervisor';
     }
 
-    
     public function install(): void
     {
         $this->service->server->ssh()
@@ -37,7 +36,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    
     public function uninstall(): void
     {
         $this->service->server->ssh()->exec(
@@ -48,7 +46,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         $this->service->server->os()->cleanup();
     }
 
-    
     public static function formatEnvironment(array $environment): string
     {
         return collect($environment)
@@ -61,7 +58,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
             ->implode(',');
     }
 
-    
     public function writeConfig(Worker $worker): void
     {
         $this->service->server->ssh()->write(
@@ -81,7 +77,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function create(Worker $worker): void
     {
         $this->writeConfig($worker);
@@ -98,7 +93,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function delete(int $id, ?int $siteId = null): void
     {
         $this->service->server->ssh()->exec(
@@ -111,7 +105,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function restart(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
@@ -128,7 +121,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function stop(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
@@ -145,7 +137,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function start(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
@@ -162,10 +153,9 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function restartMany(array $ids, ?int $siteId = null): string
     {
-        
+
         if ($ids === []) {
             return '';
         }
@@ -179,7 +169,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         );
     }
 
-    
     public function restartAll(?int $siteId = null): void
     {
         $ids = $this->service->server->workers()
@@ -191,7 +180,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         $this->restartMany($ids, $siteId);
     }
 
-    
     public function statuses(): array
     {
         $output = $this->service->server->ssh()->exec(
@@ -223,7 +211,6 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         return $statuses;
     }
 
-    
     public function getLogs(string $user, string $logPath, int $lines = 100): string
     {
         $lines = max(1, min($lines, 10000));

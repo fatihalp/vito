@@ -16,22 +16,22 @@ return new class extends Migration
             DB::statement('DROP INDEX IF EXISTS plugins_is_enabled_priority_index');
         }
 
-        $admins = User::query()->where('role', UserRole::ADMIN)->get('id');
+        $admins = User::withoutGlobalScopes()->where('role', UserRole::ADMIN)->pluck('id');
         Schema::table('users', function (Blueprint $table) {
             $table->boolean('is_admin')->default(false)->after('password');
             $table->dropColumn('role');
         });
-        User::query()->whereIn('id', $admins)->update(['is_admin' => true]);
+        User::withoutGlobalScopes()->whereIn('id', $admins)->update(['is_admin' => true]);
     }
 
     
     public function down(): void
     {
-        $admins = User::query()->where('is_admin', true)->get('id');
+        $admins = User::withoutGlobalScopes()->where('is_admin', true)->pluck('id');
         Schema::table('users', function (Blueprint $table) {
             $table->dropColumn('is_admin');
             $table->string('role')->default(UserRole::USER)->after('password');
         });
-        User::query()->whereIn('id', $admins)->update(['role' => UserRole::ADMIN]);
+        User::withoutGlobalScopes()->whereIn('id', $admins)->update(['role' => UserRole::ADMIN]);
     }
 };

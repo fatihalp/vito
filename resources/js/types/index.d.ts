@@ -136,6 +136,7 @@ export interface ToolingDescriptor {
 }
 
 export interface SharedData {
+  locale: 'en' | 'tr';
   name: string;
   version: string;
   env: string;

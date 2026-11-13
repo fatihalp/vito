@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        $wasabiProviders = StorageProvider::query()
+        $wasabiProviders = StorageProvider::withoutGlobalScopes()
             ->where('provider', 'wasabi')
             ->get();
 

@@ -33,7 +33,7 @@ class GetSiteWarnings
             ];
         }
 
-        if (! $site->isSelf() && ! $site->ssl_enabled) {
+        if (! $site->isSelf() && $site->vhost_generation_enabled && ! $site->ssl_enabled) {
             $warnings[] = ['key' => 'ssl_disabled'];
         }
 

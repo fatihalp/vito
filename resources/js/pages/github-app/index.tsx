@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -62,6 +63,7 @@ type PageProps = {
 };
 
 export default function GithubAppIndex() {
+  const translateText = useTranslate();
   const page = usePage<PageProps>();
   const { githubApp, manifest, manualSetup, installPath, installations, localUrlWarning } = page.props;
 
@@ -71,16 +73,15 @@ export default function GithubAppIndex() {
       <Container>
         <Heading
           title="GitHub App"
-          description="Register a GitHub App for this Pure instance. Organizations install it to connect their repositories."
+          description={translateText("Register a GitHub App for this Pure instance. Organizations install it to connect their repositories.")}
         />
 
         {localUrlWarning && (
           <Alert>
             <AlertTriangleIcon />
-            <AlertTitle>Pure is not publicly reachable</AlertTitle>
+            <AlertTitle>{translateText("Pure is not publicly reachable")}</AlertTitle>
             <AlertDescription>
-              Webhook events from GitHub cannot reach this instance. Installs and uninstalls will be detected on the 4-hour sync (or by clicking the
-              Sync button below).
+              {translateText("Webhook events from GitHub cannot reach this instance. Installs and uninstalls will be detected on the 4-hour sync (or by clicking the Sync button below).")}
             </AlertDescription>
           </Alert>
         )}
@@ -90,12 +91,12 @@ export default function GithubAppIndex() {
         {githubApp && (
           <Card className="overflow-hidden">
             <CardHeader>
-              <CardTitle>Connected installations</CardTitle>
-              <CardDescription>Organizations that have installed this GitHub App.</CardDescription>
+              <CardTitle>{translateText("Connected installations")}</CardTitle>
+              <CardDescription>{translateText("Organizations that have installed this GitHub App.")}</CardDescription>
             </CardHeader>
             <CardContent className="bg-background">
               {installations.length === 0 ? (
-                <div className="text-muted-foreground p-4 text-sm">No installations yet. Install the app on a GitHub organization to begin.</div>
+                <div className="text-muted-foreground p-4 text-sm">{translateText("No installations yet. Install the app on a GitHub organization to begin.")}</div>
               ) : (
                 installations.map((sc, index) => (
                   <div key={sc.id}>
@@ -103,14 +104,14 @@ export default function GithubAppIndex() {
                       <div className="flex items-center gap-3">
                         <GithubIcon className="h-4 w-4" />
                         <span className="font-medium">{sc.github_app?.account_login || sc.name}</span>
-                        <Badge variant="outline">{sc.github_app?.account_type || 'Account'}</Badge>
-                        {sc.global ? <Badge variant="success">global</Badge> : <Badge variant="danger">project</Badge>}
+                        <Badge variant="outline">{sc.github_app?.account_type || translateText("Account")}</Badge>
+                        {sc.global ? <Badge variant="success">global</Badge> : <Badge variant="danger">{translateText("project")}</Badge>}
                       </div>
                       {sc.github_app?.html_url && (
                         <a href={sc.github_app.html_url} target="_blank" rel="noopener noreferrer">
                           <Button variant="outline" size="sm">
                             <ExternalLinkIcon />
-                            Manage on GitHub
+                            {translateText("Manage on GitHub")}
                           </Button>
                         </a>
                       )}
@@ -128,35 +129,34 @@ export default function GithubAppIndex() {
 }
 
 function CreateAppCard({ manifest, manualSetup }: { manifest: Manifest; manualSetup: ManualSetup }) {
+  const translateText = useTranslate();
   return (
     <Card>
       <CardContent>
         <div className="space-y-4 p-4">
           <div>
-            <h3 className="text-sm font-medium">No GitHub App configured</h3>
+            <h3 className="text-sm font-medium">{translateText("No GitHub App configured")}</h3>
             <p className="text-muted-foreground text-sm">
-              Create a GitHub App for this Pure instance. The automatic flow works when Pure is reachable on a real public domain; for local
-              development use the manual flow.
+              {translateText("Create a GitHub App for this Pure instance. The automatic flow works when Pure is reachable on a real public domain; for local development use the manual flow.")}
             </p>
           </div>
 
           <Tabs defaultValue="automatic">
             <TabsList>
-              <TabsTrigger value="automatic">Automatic</TabsTrigger>
-              <TabsTrigger value="manual">Manual</TabsTrigger>
+              <TabsTrigger value="automatic">{translateText("Automatic")}</TabsTrigger>
+              <TabsTrigger value="manual">{translateText("Manual")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="automatic" className="space-y-4 pt-4">
               <p className="text-muted-foreground text-sm">
-                We&apos;ll send a pre-filled manifest to GitHub. GitHub creates the app, generates credentials, and redirects you back here. Requires
-                a publicly reachable hostname (not <code>.test</code> / <code>.localhost</code>).
+                {translateText("We'll send a pre-filled manifest to GitHub. GitHub creates the app, generates credentials, and redirects you back here. Requires a publicly reachable hostname (not")} <code>.test</code> / <code>.localhost</code>).
               </p>
               <form method="post" action={manifest.submit_url}>
                 <input type="hidden" name="manifest" value={manifest.manifest} />
                 <input type="hidden" name="state" value={manifest.state} />
                 <Button type="submit">
                   <GithubIcon />
-                  Create GitHub App
+                  {translateText("Create GitHub App")}
                 </Button>
               </form>
             </TabsContent>
@@ -172,9 +172,10 @@ function CreateAppCard({ manifest, manualSetup }: { manifest: Manifest; manualSe
 }
 
 function StepHeader({ number, title, description }: { number: number; title: string; description: string }) {
+  const translateText = useTranslate();
   return (
     <div className="space-y-0.5">
-      <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">Step {number}</div>
+      <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">{translateText("Step")} {number}</div>
       <h4 className="font-semibold">{title}</h4>
       <p className="text-muted-foreground text-sm">{description}</p>
     </div>
@@ -192,6 +193,7 @@ function ManualField({ label, value, hint }: { label: string; value: string; hin
 }
 
 function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
+  const translateText = useTranslate();
   const form = useForm({
     app_id: '',
     name: '',
@@ -216,26 +218,26 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
       <section className="space-y-4">
         <StepHeader
           number={1}
-          title="Create the app on GitHub"
-          description="Open the link below and copy these values into the matching fields on GitHub."
+          title={translateText("Create the app on GitHub")}
+          description={translateText("Open the link below and copy these values into the matching fields on GitHub.")}
         />
 
         <div className="space-y-6">
           <a href={manualSetup.create_url} target="_blank" rel="noopener noreferrer" className="inline-block">
             <Button variant="outline" size="sm">
               <ExternalLinkIcon />
-              Open GitHub App creation page
+              {translateText("Open GitHub App creation page")}
             </Button>
           </a>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <ManualField label="Homepage URL" value={manualSetup.homepage_url} />
+            <ManualField label={translateText("Homepage URL")} value={manualSetup.homepage_url} />
             <ManualField label="Callback URL" value={manualSetup.callback_url} />
-            <ManualField label="Setup URL (post installation)" value={manualSetup.setup_url} hint='Tick "Redirect on update"' />
+            <ManualField label={translateText("Setup URL (post installation)")} value={manualSetup.setup_url} hint='Tick "Redirect on update"' />
             <ManualField label="Webhook URL" value={manualSetup.webhook_url} hint='Leave "Active" checked' />
             <div className="sm:col-span-2">
               <ManualField
-                label="Webhook secret"
+                label={translateText("Webhook secret")}
                 value={manualSetup.webhook_secret ?? ''}
                 hint="Generated for you — paste this into GitHub. The same value is pre-filled in Step 2 below."
               />
@@ -243,31 +245,29 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
           </div>
 
           <div className="bg-muted/40 space-y-2 rounded-md border p-3 text-sm">
-            <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">Permissions &amp; events</div>
+            <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">{translateText("Permissions & events")}</div>
             <ul className="ml-5 list-disc space-y-1">
               <li>
-                Repository → Contents: <strong>Read-only</strong>
+                Repository → Contents: <strong>{translateText('Read-only')}</strong>
               </li>
               <li>
-                Repository → Metadata: <strong>Read-only</strong> (auto-selected)
+                Repository → Metadata: <strong>{translateText('Read-only')}</strong> {translateText("(auto-selected)")}
               </li>
               <li>
-                Subscribe to events: <strong>Push</strong>
+                {translateText("Subscribe to events:")} <strong>Push</strong>
               </li>
               <li>
-                Where can this GitHub App be installed?: <strong>Any account</strong> (required for installing on orgs)
+                {translateText("Where can this GitHub App be installed?:")} <strong>{translateText("Any account")}</strong> {translateText("(required for installing on orgs)")}
               </li>
             </ul>
             <p className="text-muted-foreground pt-1 text-xs">
-              <strong>Installation</strong> and <strong>installation repositories</strong> events are delivered automatically to every GitHub App with
-              a webhook URL — they aren&apos;t in the &ldquo;Subscribe to events&rdquo; list and don&apos;t need to be selected. Pure uses these to
-              keep installed accounts and repositories in sync.
+              <strong>{translateText("Installation")}</strong> {translateText('and')} <strong>{translateText("installation repositories")}</strong> {translateText("events are delivered automatically to every GitHub App with a webhook URL — they aren't in the “Subscribe to events” list and don't need to be selected. Pure uses these to keep installed accounts and repositories in sync.")}
             </p>
           </div>
 
           <p className="text-muted-foreground text-sm">
-            After saving, on the new app&apos;s settings page generate a <strong>Client secret</strong>, then scroll to <strong>Private keys</strong>{' '}
-            and <strong>Generate a private key</strong> (downloads as a .pem file). Note the <strong>App ID</strong> from the top of the page.
+            {translateText("After saving, on the new app's settings page generate a")} <strong>{translateText("Client secret")}</strong>{translateText(", then scroll to")} <strong>Private keys</strong>{' '}
+            {translateText('and')} <strong>Generate a private key</strong> {translateText("(downloads as a .pem file). Note the")} <strong>App ID</strong> {translateText("from the top of the page.")}
           </p>
         </div>
       </section>
@@ -276,7 +276,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
 
       {}
       <section className="space-y-4">
-        <StepHeader number={2} title="Paste the credentials below" description="Fill in the values GitHub gave you in Step 1, then save." />
+        <StepHeader number={2} title={translateText("Paste the credentials below")} description={translateText("Fill in the values GitHub gave you in Step 1, then save.")} />
 
         <Form id="github-app-manual" onSubmit={submit}>
           <FormFields>
@@ -293,13 +293,13 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 <InputError message={form.errors.app_id} />
               </FormField>
               <FormField>
-                <Label htmlFor="name">Display name (optional)</Label>
+                <Label htmlFor="name">{translateText("Display name (optional)")}</Label>
                 <Input id="name" type="text" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                 <InputError message={form.errors.name} />
               </FormField>
             </div>
             <FormField>
-              <Label htmlFor="html_url">App page URL</Label>
+              <Label htmlFor="html_url">{translateText("App page URL")}</Label>
               <Input
                 id="html_url"
                 type="text"
@@ -308,7 +308,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 onChange={(e) => form.setData('html_url', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                From the address bar on the app&apos;s settings page — e.g. https://github.com/apps/vito-yourhost.
+                {translateText("From the address bar on the app's settings page — e.g. https://github.com/apps/vito-yourhost.")}
               </p>
               <InputError message={form.errors.html_url} />
             </FormField>
@@ -319,7 +319,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 <InputError message={form.errors.client_id} />
               </FormField>
               <FormField>
-                <Label htmlFor="client_secret">Client secret</Label>
+                <Label htmlFor="client_secret">{translateText("Client secret")}</Label>
                 <Input
                   id="client_secret"
                   type="password"
@@ -330,7 +330,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
               </FormField>
             </div>
             <FormField>
-              <Label htmlFor="webhook_secret">Webhook secret</Label>
+              <Label htmlFor="webhook_secret">{translateText("Webhook secret")}</Label>
               <Input
                 id="webhook_secret"
                 type="password"
@@ -338,7 +338,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 onChange={(e) => form.setData('webhook_secret', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                Pre-filled with the value from Step 1. Leave as-is unless you used something different on GitHub.
+                {translateText("Pre-filled with the value from Step 1. Leave as-is unless you used something different on GitHub.")}
               </p>
               <InputError message={form.errors.webhook_secret} />
             </FormField>
@@ -352,12 +352,12 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 value={form.data.private_key}
                 onChange={(e) => form.setData('private_key', e.target.value)}
               />
-              <p className="text-muted-foreground text-xs">Paste the entire contents of the .pem file downloaded from GitHub.</p>
+              <p className="text-muted-foreground text-xs">{translateText("Paste the entire contents of the .pem file downloaded from GitHub.")}</p>
               <InputError message={form.errors.private_key} />
             </FormField>
             <Button type="submit" disabled={form.processing}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
-              Save GitHub App
+              {translateText("Save GitHub App")}
             </Button>
           </FormFields>
         </Form>
@@ -367,6 +367,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
 }
 
 function ConfiguredCard({ app, installPath }: { app: GithubAppData; installPath: string | null }) {
+  const translateText = useTranslate();
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -378,31 +379,31 @@ function ConfiguredCard({ app, installPath }: { app: GithubAppData; installPath:
           <a href={app.html_url} target="_blank" rel="noopener noreferrer">
             <Button variant="outline" size="sm">
               <ExternalLinkIcon />
-              Open on GitHub
+              {translateText("Open on GitHub")}
             </Button>
           </a>
         )}
       </CardHeader>
       <CardContent className="bg-background">
         <CardRow>
-          <span>Install on a GitHub organization</span>
+          <span>{translateText("Install on a GitHub organization")}</span>
           {installPath && (
             <a href={"/admin/github-app/install"}>
               <Button>
                 <GithubIcon />
-                Install
+                {translateText('Install')}
               </Button>
             </a>
           )}
         </CardRow>
         <Separator />
         <CardRow>
-          <span>Sync installations from GitHub</span>
+          <span>{translateText("Sync installations from GitHub")}</span>
           <SyncButton />
         </CardRow>
         <Separator />
         <CardRow>
-          <span className="text-destructive">Remove GitHub App from this instance</span>
+          <span className="text-destructive">{translateText("Remove GitHub App from this instance")}</span>
           <RemoveButton />
         </CardRow>
       </CardContent>
@@ -411,6 +412,7 @@ function ConfiguredCard({ app, installPath }: { app: GithubAppData; installPath:
 }
 
 function SyncButton() {
+  const translateText = useTranslate();
   const form = useForm();
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -421,12 +423,13 @@ function SyncButton() {
   return (
     <Button type="button" variant="outline" disabled={form.processing} onClick={submit}>
       {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCcwIcon />}
-      Sync now
+      {translateText("Sync now")}
     </Button>
   );
 }
 
 function RemoveButton() {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const submit = () => {
     router.delete("/admin/github-app", {
@@ -439,23 +442,22 @@ function RemoveButton() {
       <DialogTrigger asChild>
         <Button variant="destructive">
           <Trash2Icon />
-          Remove
+          {translateText('Remove')}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Remove GitHub App</DialogTitle>
+          <DialogTitle>{translateText("Remove GitHub App")}</DialogTitle>
           <DialogDescription>
-            This clears the local app config. You should also delete the app on GitHub if you don&apos;t plan to reuse it. Installations with attached
-            sites cannot be removed.
+            {translateText("This clears the local app config. You should also delete the app on GitHub if you don't plan to reuse it. Installations with attached sites cannot be removed.")}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button variant="destructive" onClick={submit}>
-            Remove
+            {translateText('Remove')}
           </Button>
         </DialogFooter>
       </DialogContent>

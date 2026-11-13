@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -16,6 +17,7 @@ export default function HetznerRegionSelect({
   onChange: (value: string) => void;
   loading?: boolean;
 }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [testing, setTesting] = useState(false);
   const [latencies, setLatencies] = useState<Latencies>(() => getCachedLatencies() || {});
@@ -70,7 +72,7 @@ export default function HetznerRegionSelect({
           {loading ? (
             <span className="flex items-center gap-2 text-muted-foreground text-sm">
               <LoaderCircleIcon className="size-4 animate-spin" />
-              Detecting nearest region...
+              {translateText("Detecting nearest region...")}
             </span>
           ) : selectedRegion ? (
             <span className="grid min-w-0 gap-1">
@@ -82,31 +84,31 @@ export default function HetznerRegionSelect({
               </span>
             </span>
           ) : (
-            <span className="text-muted-foreground">Select Hetzner region</span>
+            <span className="text-muted-foreground">{translateText("Select Hetzner region")}</span>
           )}
           {loading ? <LoaderCircleIcon className="size-4 shrink-0 animate-spin opacity-50" /> : <MapPinIcon className="size-4 shrink-0" />}
         </Button>
       </DialogTrigger>
       <DialogContent className="gap-0 p-0 sm:max-w-4xl">
         <DialogHeader className="border-b px-6 py-4">
-          <DialogTitle>Hetzner Region</DialogTitle>
-          <DialogDescription>Latency is measured from this Pure server with small HTTP requests to Hetzner speedtest endpoints.</DialogDescription>
+          <DialogTitle>{translateText("Hetzner Region")}</DialogTitle>
+          <DialogDescription>{translateText("Latency is measured from this Pure server with small HTTP requests to Hetzner speedtest endpoints.")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-4 p-6">
           <div className="flex items-center justify-between gap-3">
-            <div className="text-muted-foreground text-sm">Only Hetzner Cloud locations are listed.</div>
+            <div className="text-muted-foreground text-sm">{translateText("Only Hetzner Cloud locations are listed.")}</div>
             <Button type="button" variant="outline" onClick={() => measureAll(true)} disabled={testing}>
               {testing ? <LoaderCircleIcon className="animate-spin" /> : <GaugeIcon />}
-              Test latency
+              {translateText("Test latency")}
             </Button>
           </div>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Region</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Network Zone</TableHead>
-                <TableHead>Latency</TableHead>
+                <TableHead>{translateText('Region')}</TableHead>
+                <TableHead>{translateText("Location")}</TableHead>
+                <TableHead>{translateText("Network Zone")}</TableHead>
+                <TableHead>{translateText("Latency")}</TableHead>
                 <TableHead className="w-24"></TableHead>
               </TableRow>
             </TableHeader>
@@ -137,14 +139,14 @@ export default function HetznerRegionSelect({
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span>{latencyText(region.value)}</span>
-                        {best && <Badge variant="success">Best</Badge>}
+                        {best && <Badge variant="success">{translateText("Best")}</Badge>}
                       </div>
                     </TableCell>
                     <TableCell>
                       {selected && (
                         <Badge variant="success">
                           <CheckIcon className="size-3" />
-                          Selected
+                          {translateText("Selected")}
                         </Badge>
                       )}
                     </TableCell>
@@ -156,7 +158,7 @@ export default function HetznerRegionSelect({
         </div>
         <DialogFooter className="border-t px-6 py-4">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-            Close
+            {translateText('Close')}
           </Button>
         </DialogFooter>
       </DialogContent>

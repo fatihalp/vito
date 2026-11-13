@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import Layout from '@/layouts/app/layout';
 import { Head } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -8,15 +9,16 @@ import { useDialog } from '@/hooks/use-dialog';
 import RolePermissionsTable from '@/pages/users/components/role-permissions-table';
 
 export default function Users() {
+  const translateText = useTranslate();
   const dialog = useDialog();
   return (
     <Layout>
-      <Head title="Users" />
+      <Head title={translateText('Users')} />
 
       <Container className="space-y-6">
         <div className="flex items-start justify-between">
-          <Heading title="Users" />
-          <Button onClick={() => dialog.userForm.open({})}>Create user</Button>
+          <Heading title={translateText('Users')} />
+          <Button onClick={() => dialog.userForm.open({})}>{translateText('Create user')}</Button>
         </div>
         <UsersList />
         <RolePermissionsTable />

@@ -1,5 +1,6 @@
-import { ServerFeature } from '@/types/server';
-import { SiteFeature } from '@/types/site';
+import { useTranslate } from '@/hooks/use-translate';
+import { ServerFeature, ServerFeatureAction } from '@/types/server';
+import { SiteFeature, SiteFeatureAction } from '@/types/site';
 import { Button } from '@/components/ui/button';
 import { MoreVerticalIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardRow, CardTitle } from '@/components/ui/card';
@@ -13,7 +14,7 @@ interface FeaturesCardProps {
   features: {
     [key: string]: ServerFeature | SiteFeature;
   };
-  onActionSelect: (featureId: string, actionId: string, action: any) => void;
+  onActionSelect: (featureId: string, actionId: string, action: ServerFeatureAction | SiteFeatureAction) => void;
 }
 
 export default function FeaturesCard({ 
@@ -22,6 +23,7 @@ export default function FeaturesCard({
   features, 
   onActionSelect 
 }: FeaturesCardProps) {
+  const translateText = useTranslate();
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -42,7 +44,7 @@ export default function FeaturesCard({
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline">
-                      Actions
+                      {translateText('Actions')}
                       <MoreVerticalIcon />
                     </Button>
                   </DropdownMenuTrigger>
@@ -64,9 +66,9 @@ export default function FeaturesCard({
           ))
         ) : (
           <CardRow className="flex-col items-center justify-center space-y-2">
-            <span className="text-muted-foreground">No available features</span>
+            <span className="text-muted-foreground">{translateText("No available features")}</span>
             <Link href={"/admin/plugins"} prefetch>
-              <Button variant="outline">Explore Plugins</Button>
+              <Button variant="outline">{translateText("Explore Plugins")}</Button>
             </Link>
           </CardRow>
         )}

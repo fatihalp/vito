@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -16,6 +17,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { httpErrorMessage } from '@/lib/request-error';
+import { toast } from 'sonner';
 
 type PageProps = {
   server: Server;
@@ -30,6 +33,7 @@ type Milestone = {
 };
 
 export default function ServerRestart() {
+  const translateText = useTranslate();
   const { server: initialServer, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
@@ -67,6 +71,12 @@ export default function ServerRestart() {
       if (!response.ok) return false;
 
       const data = await response.json();
+      if (data.stage === 'unconfirmed') {
+        addMilestone(data.message);
+        toast.error('The restart could not be confirmed. Review the server logs before retrying.');
+        setPhase('idle');
+        return true;
+      }
 
       if (data.online) {
         setUptime(data.uptime ?? null);
@@ -87,7 +97,7 @@ export default function ServerRestart() {
     setMilestones([{ id: `${Date.now()}`, time: new Date().toLocaleTimeString('en-US'), text: 'Reboot signal sent ($ sudo reboot)' }]);
 
     try {
-      await fetch(`/servers/${server.id}/restart/trigger`, {
+      const response = await fetch(`/servers/${server.id}/restart/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,19 +106,17 @@ export default function ServerRestart() {
           Accept: 'application/json',
         },
       });
+      if (!response.ok) {
+        toast.error(httpErrorMessage(response.status, 'The restart request failed. Please try again.'));
+        setPhase('idle');
+        return;
+      }
     } catch {
+      addMilestone('The response was interrupted. Checking whether the server is reconnecting.');
     }
 
     setPhase('probing');
-  }, [csrf_token, server.id]);
-
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerReboot();
-    }
-  }, [triggerReboot]);
+  }, [addMilestone, csrf_token, server.id]);
 
   useEffect(() => {
     if (phase !== 'probing') return;
@@ -133,14 +141,14 @@ export default function ServerRestart() {
 
   return (
     <ServerLayout>
-      <Head title={`Restart Server - ${server.name}`} />
+      <Head title={translateText("Restart Server - :value", { value: server.name })} />
 
       <Container className="max-w-md space-y-4 py-8">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
             <Link href={`/servers/${server.id}`}>
               <ArrowLeftIcon className="size-3.5" />
-              <span>Overview</span>
+              <span>{translateText('Overview')}</span>
             </Link>
           </Button>
 
@@ -148,12 +156,12 @@ export default function ServerRestart() {
             {phase === 'online' ? (
               <Badge variant="outline" className="gap-1 text-xs text-neutral-600 border-neutral-500/30 dark:text-neutral-400">
                 <CheckCircle2Icon className="size-3 text-neutral-500" />
-                <span>Online</span>
+                <span>{translateText("Online")}</span>
               </Badge>
             ) : phase === 'probing' || phase === 'rebooting' ? (
               <Badge variant="warning" className="gap-1.5 text-xs">
                 <LoaderCircleIcon className="size-3 animate-spin" />
-                <span>Restarting...</span>
+                <span>{translateText("Restarting...")}</span>
               </Badge>
             ) : (
               <Badge variant="outline" className="text-xs">
@@ -182,21 +190,21 @@ export default function ServerRestart() {
             <div className="space-y-1">
               <h2 className="text-sm font-semibold text-foreground">
                 {phase === 'online'
-                  ? 'Server is back online'
+                  ? translateText("Server is back online")
                   : phase === 'probing' || phase === 'rebooting'
-                  ? 'Restarting server...'
-                  : 'Restart server'}
+                  ? translateText("Restarting server...")
+                  : translateText("Restart server")}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {phase === 'online'
                   ? uptime
                     ? `System is responsive (${uptime}).`
-                    : 'SSH connection re-established.'
+                    : translateText("SSH connection re-established.")
                   : phase === 'probing' || phase === 'rebooting'
                   ? probeAttempt > 0
                     ? `Reconnecting (attempt #${probeAttempt})...`
-                    : 'Waiting for server to reconnect...'
-                  : 'Reboot the system and reload all running services.'}
+                    : translateText("Waiting for server to reconnect...")
+                  : translateText("Reboot the system and reload all running services.")}
               </p>
             </div>
 
@@ -204,17 +212,17 @@ export default function ServerRestart() {
               <div className="flex items-center gap-2 pt-1">
                 <Button asChild size="sm" className="h-7.5 text-xs cursor-pointer">
                   <Link href={`/servers/${server.id}`}>
-                    Return to overview
+                    {translateText("Return to overview")}
                   </Link>
                 </Button>
                 <Button variant="outline" size="sm" onClick={triggerReboot} className="h-7.5 text-xs cursor-pointer">
-                  Restart again
+                  {translateText("Restart again")}
                 </Button>
               </div>
             ) : phase === 'idle' ? (
               <Button size="sm" onClick={triggerReboot} className="gap-1.5 cursor-pointer h-7.5 text-xs">
                 <PowerIcon className="size-3.5" />
-                <span>Restart server</span>
+                <span>{translateText("Restart server")}</span>
               </Button>
             ) : null}
           </CardContent>
@@ -228,7 +236,7 @@ export default function ServerRestart() {
               className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors cursor-pointer py-1"
             >
               <TerminalIcon className="size-3" />
-              <span>{showDetails ? 'Hide details' : 'Show details'}</span>
+              <span>{showDetails ? translateText("Hide details") : translateText("Show details")}</span>
             </button>
 
             {showDetails && (

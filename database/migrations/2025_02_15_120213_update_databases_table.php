@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('charset')->nullable();
         });
 
-        $servers = Server::query()->where('status', ServerStatus::READY)->get();
+        $servers = Server::withoutGlobalScopes()->where('status', ServerStatus::READY)->get();
 
         
         foreach ($servers as $server) {

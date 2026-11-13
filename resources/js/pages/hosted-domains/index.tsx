@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import ServerLayout from '@/layouts/server/layout';
 import SiteBanners from '@/components/site-banners';
 import { Head, usePage } from '@inertiajs/react';
@@ -20,6 +21,7 @@ import { useDialog } from '@/hooks/use-dialog';
 import type { InertiaTableData, CellRenderProps, Row } from '@forjedio/inertia-table-react';
 
 function CertificateCell({ row }: { row: HostedDomain }) {
+  const translateText = useTranslate();
   const ssl = row.ssl as { id: number; type: string; domains: string[]; expires_at: string } | null;
   const { ssl_method } = row;
   const { site } = usePage<{ site: Site }>().props;
@@ -27,7 +29,7 @@ function CertificateCell({ row }: { row: HostedDomain }) {
   const webserverName = site.webserver.charAt(0).toUpperCase() + site.webserver.slice(1);
 
   if (ssl_method === 'letsencrypt' && !createsSiteSSLs) {
-    return <Badge variant="outline">{webserverName} Managed SSL</Badge>;
+    return <Badge variant="outline">{webserverName} {translateText("Managed SSL")}</Badge>;
   }
 
   if (ssl_method === 'letsencrypt' && createsSiteSSLs && ssl?.id) {
@@ -36,7 +38,7 @@ function CertificateCell({ row }: { row: HostedDomain }) {
         <Tooltip>
           <TooltipTrigger asChild>
             <Badge variant="outline" className="cursor-default">
-              Site Certificate
+              {translateText("Site Certificate")}
             </Badge>
           </TooltipTrigger>
           <TooltipContent>ID: {ssl.id}</TooltipContent>
@@ -80,6 +82,7 @@ function CertificateCell({ row }: { row: HostedDomain }) {
 }
 
 export default function HostedDomains() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -93,13 +96,13 @@ export default function HostedDomains() {
 
   return (
     <ServerLayout>
-      <Head title={`Domains - ${page.props.server.name}`} />
+      <Head title={translateText("Domains - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
           <Heading
-            title={`Domains${typeof domainsCount === 'number' && domainsCount > 0 ? ` (${domainsCount})` : ''}`}
-            description="Manage domains and SSL assignments for this site"
+            title={translateText("Domains:value", { value: typeof domainsCount === 'number' && domainsCount > 0 ? ` (${domainsCount})` : '' })}
+            description={translateText("Manage domains and SSL assignments for this site")}
           />
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -116,7 +119,7 @@ export default function HostedDomains() {
                     onClick={() => !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/disable-ssl`)}
                   >
                     <LockOpenIcon />
-                    Disable SSL
+                    {translateText("Disable SSL")}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
@@ -124,7 +127,7 @@ export default function HostedDomains() {
                     onClick={() => !sslLocked && router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/enable-ssl`)}
                   >
                     <LockIcon />
-                    Enable SSL
+                    {translateText('Enable SSL')}
                   </DropdownMenuItem>
                 )}
                 {page.props.site.force_ssl ? (
@@ -135,7 +138,7 @@ export default function HostedDomains() {
                     }
                   >
                     <ShieldOffIcon />
-                    Disable Force SSL
+                    {translateText("Disable Force SSL")}
                   </DropdownMenuItem>
                 ) : (
                   <DropdownMenuItem
@@ -145,7 +148,7 @@ export default function HostedDomains() {
                     }
                   >
                     <ShieldCheckIcon />
-                    Force SSL
+                    {translateText("Force SSL")}
                   </DropdownMenuItem>
                 )}
                 {page.props.site.webserver_creates_site_ssls && (
@@ -157,7 +160,7 @@ export default function HostedDomains() {
                     }
                   >
                     <RefreshCwIcon />
-                    Force Renew SSL
+                    {translateText("Force Renew SSL")}
                   </DropdownMenuItem>
                 )}
                 <DropdownMenuSeparator />
@@ -165,13 +168,13 @@ export default function HostedDomains() {
                   onClick={() => router.post(`/servers/${page.props.server.id}/sites/${page.props.site.id}/domains/check-expiry`)}
                 >
                   <CalendarClockIcon />
-                  Check SSL Expiry (all)
+                  {translateText("Check SSL Expiry (all)")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button onClick={() => dialog.createHostedDomain.open({ site: page.props.site })}>
               <PlusIcon />
-              <span className="hidden lg:block">Add Domain</span>
+              <span className="hidden lg:block">{translateText('Add Domain')}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -210,7 +213,7 @@ export default function HostedDomains() {
                 {canInstallSsl && (
                   <Button variant="outline" size="sm" onClick={() => dialog.editHostedDomain.open({ hostedDomain: hd, installSsl: true })}>
                     <LockIcon />
-                    Install SSL
+                    {translateText("Install SSL")}
                   </Button>
                 )}
                 <ErrorIndicator error={hd.error} label={`Domain "${hd.domain}" error`} />
@@ -219,7 +222,7 @@ export default function HostedDomains() {
                     <TableActionTrigger />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onSelect={() => dialog.editHostedDomain.open({ hostedDomain: hd })}>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => dialog.editHostedDomain.open({ hostedDomain: hd })}>{translateText('Edit')}</DropdownMenuItem>
                     {hd.ssl_can_check_expiry && (
                       <>
                         <DropdownMenuSeparator />
@@ -231,7 +234,7 @@ export default function HostedDomains() {
                           }
                         >
                           <CalendarClockIcon />
-                          Check SSL Expiry
+                          {translateText("Check SSL Expiry")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -245,13 +248,13 @@ export default function HostedDomains() {
                             )
                           }
                         >
-                          Validate
+                          {translateText("Validate")}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onSelect={() =>
                             dialog.confirm.open({
                               title: 'Force Validate Domain',
-                              description: `The domain ${hd.domain} is currently pending because we could not confirm that it resolves to this server. If you force validate this domain, the server configuration will be updated regardless. This may impact your ability to generate an SSL certificate if the domain does not actually point to this server. Are you sure you want to continue?`,
+                              description: translateText("The domain :value is currently pending because we could not confirm that it resolves to this server. If you force validate this domain, the server configuration will be updated regardless. This may impact your ability to generate an SSL certificate if the domain does not actually point to this server. Are you sure you want to continue?", { value: hd.domain }),
                               variant: 'destructive',
                               confirmLabel: 'Force Validate',
                               method: 'post',
@@ -259,7 +262,7 @@ export default function HostedDomains() {
                             })
                           }
                         >
-                          Force Validate
+                          {translateText("Force Validate")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -273,7 +276,7 @@ export default function HostedDomains() {
                             )
                           }
                         >
-                          Deactivate
+                          {translateText("Deactivate")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -287,7 +290,7 @@ export default function HostedDomains() {
                             )
                           }
                         >
-                          Reactivate
+                          {translateText("Reactivate")}
                         </DropdownMenuItem>
                       </>
                     )}
@@ -299,7 +302,7 @@ export default function HostedDomains() {
                           onSelect={() =>
                             dialog.confirm.open({
                               title: 'Delete Domain',
-                              description: `Are you sure you want to delete ${hd.domain}?`,
+                              description: translateText("Are you sure you want to delete :value?", { value: hd.domain }),
                               variant: 'destructive',
                               confirmLabel: 'Delete',
                               method: 'delete',
@@ -307,7 +310,7 @@ export default function HostedDomains() {
                             })
                           }
                         >
-                          Delete
+                          {translateText('Delete')}
                         </DropdownMenuItem>
                       </>
                     )}

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
@@ -18,6 +19,7 @@ export default function RenameStorageMigration({
   onOpenChange: (open: boolean) => void;
   storageMigration: StorageMigration;
 }) {
+  const translateText = useTranslate();
   const form = useForm({ name: storageMigration.name ?? '' });
 
   const submit = (e: FormEvent) => {
@@ -31,13 +33,13 @@ export default function RenameStorageMigration({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Rename storage migration</DialogTitle>
-          <DialogDescription className="sr-only">Rename storage migration</DialogDescription>
+          <DialogTitle>{translateText("Rename storage migration")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Rename storage migration")}</DialogDescription>
         </DialogHeader>
         <Form className="p-4" id="rename-storage-migration-form" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -46,12 +48,12 @@ export default function RenameStorageMigration({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              Cancel
+              {translateText('Cancel')}
             </Button>
           </DialogClose>
           <Button form="rename-storage-migration-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

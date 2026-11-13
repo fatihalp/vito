@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Link, useForm, usePage } from '@inertiajs/react';
@@ -7,12 +8,14 @@ import { SharedData } from '@/types';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Edit({ backup }: { backup: Backup }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
-  return <DropdownMenuItem onSelect={() => dialog.backupEdit.open({ backup })}>Edit</DropdownMenuItem>;
+  return <DropdownMenuItem onSelect={() => dialog.backupEdit.open({ backup })}>{translateText('Edit')}</DropdownMenuItem>;
 }
 
 function Passphrase({ backup }: { backup: Backup }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const isAdmin = usePage<SharedData>().props.auth.user?.is_admin;
 
@@ -20,10 +23,11 @@ function Passphrase({ backup }: { backup: Backup }) {
     return null;
   }
 
-  return <DropdownMenuItem onSelect={() => dialog.pgBackRestPassphrase.open({ backup })}>Encryption passphrase</DropdownMenuItem>;
+  return <DropdownMenuItem onSelect={() => dialog.pgBackRestPassphrase.open({ backup })}>{translateText("Encryption passphrase")}</DropdownMenuItem>;
 }
 
 function ToggleEnabled({ backup }: { backup: Backup }) {
+  const translateText = useTranslate();
   const form = useForm();
 
   const submit = () => {
@@ -34,12 +38,13 @@ function ToggleEnabled({ backup }: { backup: Backup }) {
 
   return (
     <DropdownMenuItem onClick={submit} disabled={form.processing}>
-      {backup.enabled ? 'Disable' : 'Enable'}
+      {backup.enabled ? translateText("Disable") : translateText("Enable")}
     </DropdownMenuItem>
   );
 }
 
 function Delete({ backup }: { backup: Backup }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const target =
     (backup.type === 'pgbackrest' ? 'PostgreSQL cluster' : backup.type === 'database' ? backup.database?.name : backup.path) ?? `#${backup.id}`;
@@ -49,7 +54,7 @@ function Delete({ backup }: { backup: Backup }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: `Delete backup [${target}]`,
+          title: translateText("Delete backup [:value]", { value: target }),
           description:
             backup.type === 'pgbackrest'
               ? 'Pure stops pgBackRest backups and WAL archiving on this server. Backups already in S3 are kept. Save the encryption passphrase first, because without it they cannot be restored.'
@@ -61,16 +66,17 @@ function Delete({ backup }: { backup: Backup }) {
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }
 
 export default function BackupActions({ backup }: { backup: Backup }) {
+  const translateText = useTranslate();
   return (
     <div className="flex items-center justify-end gap-1.5">
       {backup.status === 'deleting' ? (
-        <span className="flex h-8 w-8 items-center justify-center" aria-label="Deleting backup">
+        <span className="flex h-8 w-8 items-center justify-center" aria-label={translateText("Deleting backup")}>
           <LoaderCircleIcon className="text-muted-foreground h-4 w-4 animate-spin" />
         </span>
       ) : (
@@ -82,7 +88,7 @@ export default function BackupActions({ backup }: { backup: Backup }) {
             <Edit backup={backup} />
             <ToggleEnabled backup={backup} />
             <DropdownMenuItem asChild>
-              <Link href={`/servers/${backup.server_id}/backups/${backup.id}/files`}>Files</Link>
+              <Link href={`/servers/${backup.server_id}/backups/${backup.id}/files`}>{translateText("Files")}</Link>
             </DropdownMenuItem>
             <Passphrase backup={backup} />
             <DropdownMenuSeparator />

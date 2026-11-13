@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useEffect, useMemo, useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
@@ -69,7 +70,8 @@ function formatBytes(b: number): string {
 }
 
 function SizeCell({ entry }: { entry: LogEntry }) {
-  if (!entry.exists) return <span className="text-muted-foreground text-xs">Missing</span>;
+  const translateText = useTranslate();
+  if (!entry.exists) return <span className="text-muted-foreground text-xs">{translateText("Missing")}</span>;
   if (entry.size_bytes === 0) return <span className="text-muted-foreground text-xs">0 B</span>;
 
   return (
@@ -89,6 +91,7 @@ function SizeCell({ entry }: { entry: LogEntry }) {
 }
 
 function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   if (!entry.exists || !entry.clearable) {
@@ -104,11 +107,11 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
       variant="ghost"
       size="icon"
       className="size-7 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-      title={`Clear ${entry.label}`}
+      title={translateText("Clear :value", { value: entry.label })}
       onClick={() =>
         dialog.confirm.open({
           title: 'Clear Log File',
-          description: `The log file "${entry.label}" will be cleared. This action cannot be undone.`,
+          description: translateText("The log file \":value\" will be cleared. This action cannot be undone.", { value: entry.label }),
           confirmLabel: 'Clear',
           method: 'post',
           url: `/servers/${serverId}/monitoring/log-rotation/clear`,
@@ -122,6 +125,7 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
 }
 
 function CleanupSuggestions({ serverId }: { serverId: number }) {
+  const translateText = useTranslate();
   const [selected, setSelected] = useState<string[]>([]);
   const dialog = useDialog();
 
@@ -174,25 +178,25 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
       <div className="bg-muted/40 flex flex-wrap items-center justify-between gap-2 border-b px-4 py-2.5">
         <div className="flex flex-wrap items-center gap-2 min-w-0">
           <EraserIcon className="text-muted-foreground size-4 shrink-0" />
-          <span className="text-sm font-semibold">Cleanup suggestions</span>
+          <span className="text-sm font-semibold">{translateText("Cleanup suggestions")}</span>
           <span className="text-muted-foreground hidden sm:inline text-xs">
-            Scan results from server. Pure never deletes anything itself.
+            {translateText("Scan results from server. Pure never deletes anything itself.")}
           </span>
           {selectedBytes > 0 && (
             <span className="font-mono text-xs text-muted-foreground">
-              ({formatBytes(selectedBytes)} selected)
+              ({formatBytes(selectedBytes)} {translateText("selected)")}
             </span>
           )}
         </div>
         <div className="flex items-center gap-2">
           {categories && categories.length > 0 && (
             <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={selectAll}>
-              {selected.length === categories.length ? 'Deselect all' : 'Select all'}
+              {selected.length === categories.length ? translateText("Deselect all") : translateText("Select all")}
             </Button>
           )}
           <Button variant="outline" size="sm" className="h-8" onClick={() => query.refetch()} disabled={query.isFetching}>
             <RefreshCwIcon className={cn('size-3.5', query.isFetching && 'animate-spin')} />
-            <span className="hidden sm:inline">Rescan</span>
+            <span className="hidden sm:inline">{translateText("Rescan")}</span>
           </Button>
           <Button
             variant="outline"
@@ -202,7 +206,7 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
             disabled={selected.length === 0 || query.isFetching}
           >
             <TerminalIcon className="size-3.5" />
-            <span>Show commands{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</span>
+            <span>{translateText("Show commands")}{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</span>
           </Button>
         </div>
       </div>
@@ -262,11 +266,11 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                 <div className="mt-2.5 flex items-center justify-between border-t pt-2 text-[11px]">
                   {category.risk === 'caution' ? (
                     <Badge variant="outline" className="text-[10px] text-muted-foreground font-normal border-border">
-                      Review first
+                      {translateText("Review first")}
                     </Badge>
                   ) : (
                     <span className="text-muted-foreground text-[10px]">
-                      {category.count} file{category.count !== 1 ? 's' : ''}
+                      {translateText(category.count === 1 ? ':count file' : ':count files', { count: category.count })}
                     </span>
                   )}
 
@@ -278,11 +282,11 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                           className="text-muted-foreground hover:text-foreground text-[11px] font-medium flex items-center gap-1 cursor-pointer"
                         >
                           <InfoIcon className="size-3" />
-                          <span>Sample files ({category.samples.length})</span>
+                          <span>{translateText("Sample files (")}{category.samples.length})</span>
                         </button>
                       </PopoverTrigger>
                       <PopoverContent align="end" className="w-80 p-3 text-xs" onClick={(e) => e.stopPropagation()}>
-                        <p className="font-semibold text-xs mb-1.5">{category.label} samples</p>
+                        <p className="font-semibold text-xs mb-1.5">{category.label} {translateText("samples")}</p>
                         <ul className="space-y-1.5 font-mono text-[11px] max-h-48 overflow-auto">
                           {category.samples.map((sample) => (
                             <li key={sample.path} className="flex justify-between gap-2 border-b pb-1 last:border-0">
@@ -293,7 +297,7 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
                         </ul>
                         {category.count > category.samples.length && (
                           <p className="text-[10px] text-muted-foreground mt-1.5 pt-1 border-t">
-                            and {category.count - category.samples.length} more files
+                            {translateText('and')} {category.count - category.samples.length} {translateText("more files")}
                           </p>
                         )}
                       </PopoverContent>
@@ -305,13 +309,14 @@ function CleanupSuggestions({ serverId }: { serverId: number }) {
           })}
         </div>
       ) : (
-        <p className="text-muted-foreground p-6 text-center text-sm">Nothing to clean up. No large or rotated logs and no caches were found.</p>
+        <p className="text-muted-foreground p-6 text-center text-sm">{translateText("Nothing to clean up. No large or rotated logs and no caches were found.")}</p>
       )}
     </div>
   );
 }
 
 export default function LogRotation() {
+  const translateText = useTranslate();
   const { server, logs } = usePage<Page>().props;
   const dialog = useDialog();
 
@@ -387,7 +392,7 @@ export default function LogRotation() {
     if (clearable.length === 0) return;
     dialog.confirm.open({
       title: 'Clear All Log Files',
-      description: `${clearable.length} log files will be cleared (total ${formatBytes(totalSize)}). This action cannot be undone.`,
+      description: translateText(":value log files will be cleared (total :value2). This action cannot be undone.", { value: clearable.length, value2: formatBytes(totalSize) }),
       confirmLabel: 'Clear All',
       method: 'post',
       url: `/servers/${server.id}/monitoring/log-rotation/clear-all`,
@@ -397,18 +402,18 @@ export default function LogRotation() {
 
   return (
     <ServerLayout>
-      <Head title={`Log Rotation - ${server.name}`} />
+      <Head title={translateText("Log Rotation - :value", { value: server.name })} />
 
       <Container>
         <HeaderContainer>
           <Heading
             title="Log Rotation"
-            description="View and rotate server and service log files"
+            description={translateText("View and rotate server and service log files")}
           />
           <div className="flex items-center gap-2">
             {totalSize > 0 && (
               <span className="text-muted-foreground text-sm">
-                Total: <strong className="text-foreground">{formatBytes(totalSize)}</strong>
+                {translateText('Total:')} <strong className="text-foreground">{formatBytes(totalSize)}</strong>
               </span>
             )}
             {clearable.length > 0 && (
@@ -418,12 +423,12 @@ export default function LogRotation() {
                 onClick={handleClearAll}
               >
                 <Trash2Icon className="size-4" />
-                <span>Clear All</span>
+                <span>{translateText("Clear All")}</span>
               </Button>
             )}
             <Button variant="outline" onClick={() => router.reload()}>
               <RefreshCwIcon className="size-4" />
-              <span className="hidden sm:inline">Refresh</span>
+              <span className="hidden sm:inline">{translateText('Refresh')}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -433,8 +438,8 @@ export default function LogRotation() {
         {logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border p-16 text-center">
             <FileTextIcon className="text-muted-foreground mb-4 size-10" />
-            <p className="text-muted-foreground">No log files found.</p>
-            <p className="text-muted-foreground mt-1 text-sm">At least one service must be installed on the server.</p>
+            <p className="text-muted-foreground">{translateText("No log files found.")}</p>
+            <p className="text-muted-foreground mt-1 text-sm">{translateText("At least one service must be installed on the server.")}</p>
           </div>
         ) : (
           <div className="overflow-hidden rounded-md border shadow-xs bg-card min-w-0">
@@ -463,7 +468,7 @@ export default function LogRotation() {
                   <SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
                   <Input
                     type="text"
-                    placeholder="Search logs by name or path..."
+                    placeholder={translateText("Search logs by name or path...")}
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     className="h-8 pl-8 pr-7 text-xs"
@@ -488,7 +493,7 @@ export default function LogRotation() {
                     onCheckedChange={setHideEmpty}
                   />
                   <Label htmlFor="hide-empty" className="text-xs cursor-pointer">
-                    Hide empty / missing
+                    {translateText("Hide empty / missing")}
                   </Label>
                 </div>
 
@@ -499,11 +504,11 @@ export default function LogRotation() {
                   onClick={() => setSortBySize(!sortBySize)}
                 >
                   <ArrowUpDownIcon className="size-3" />
-                  <span>{sortBySize ? 'Largest first' : 'Default order'}</span>
+                  <span>{sortBySize ? translateText("Largest first") : translateText("Default order")}</span>
                 </Button>
 
                 <span className="text-muted-foreground text-xs hidden sm:inline">
-                  Showing <strong>{filteredLogs.length}</strong> of {logs.length} (<strong>{formatBytes(filteredTotalSize)}</strong>)
+                  {translateText('Showing :count of :total', { count: filteredLogs.length, total: logs.length })} (<strong>{formatBytes(filteredTotalSize)}</strong>)
                 </span>
               </div>
             </div>
@@ -512,11 +517,11 @@ export default function LogRotation() {
               <Table className="table-fixed w-full">
                 <TableHeader className="sticky top-0 bg-card shadow-xs z-10">
                   <TableRow>
-                    {activeTab === 'all' && <TableHead className="w-28">Service</TableHead>}
-                    <TableHead className="w-56 md:w-72">Log File</TableHead>
-                    <TableHead>Path</TableHead>
-                    <TableHead className="w-24 text-right">Size</TableHead>
-                    <TableHead className="w-14 text-right">Actions</TableHead>
+                    {activeTab === 'all' && <TableHead className="w-28">{translateText('Service')}</TableHead>}
+                    <TableHead className="w-56 md:w-72">{translateText("Log File")}</TableHead>
+                    <TableHead>{translateText('Path')}</TableHead>
+                    <TableHead className="w-24 text-right">{translateText('Size')}</TableHead>
+                    <TableHead className="w-14 text-right">{translateText('Actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -551,7 +556,7 @@ export default function LogRotation() {
                       <TableCell colSpan={activeTab === 'all' ? 5 : 4} className="h-32 text-center">
                         <div className="flex flex-col items-center justify-center gap-1.5 text-muted-foreground">
                           <FilterIcon className="size-5" />
-                          <p className="text-sm">No log files match your filters.</p>
+                          <p className="text-sm">{translateText("No log files match your filters.")}</p>
                           {(search || hideEmpty) && (
                             <Button
                               variant="link"
@@ -562,7 +567,7 @@ export default function LogRotation() {
                                 setHideEmpty(false);
                               }}
                             >
-                              Reset filters
+                              {translateText("Reset filters")}
                             </Button>
                           )}
                         </div>

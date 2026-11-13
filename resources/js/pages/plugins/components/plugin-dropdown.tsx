@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Plugin } from '@/types/plugin';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { MoreVerticalIcon } from 'lucide-react';
@@ -11,11 +12,12 @@ import DeleteLogs from '@/pages/plugins/components/delete-logs';
 import InstallPlugin from '@/pages/plugins/components/install';
 
 export default function PluginDropdown({ plugin }: { plugin: Plugin }) {
+  const translateText = useTranslate();
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="w-8 p-0">
-          <span className="sr-only">Open menu</span>
+          <span className="sr-only">{translateText('Open menu')}</span>
           <MoreVerticalIcon />
         </Button>
       </DropdownMenuTrigger>

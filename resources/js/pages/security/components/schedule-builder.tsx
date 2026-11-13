@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -32,18 +33,19 @@ export function buildSchedule({ frequency, time, weekday }: Parsed): string {
 }
 
 export default function ScheduleBuilder({ value, onChange }: { value: Parsed; onChange: (next: Parsed) => void }) {
+  const translateText = useTranslate();
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <div className="flex flex-col gap-2">
-        <Label htmlFor="frequency">Frequency</Label>
+        <Label htmlFor="frequency">{translateText("Frequency")}</Label>
         <Select value={value.frequency} onValueChange={(frequency) => onChange({ ...value, frequency: frequency as Parsed['frequency'] })}>
           <SelectTrigger id="frequency" className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
-              <SelectItem value="daily">Daily</SelectItem>
-              <SelectItem value="weekly">Weekly</SelectItem>
+              <SelectItem value="daily">{translateText("Daily")}</SelectItem>
+              <SelectItem value="weekly">{translateText("Weekly")}</SelectItem>
             </SelectGroup>
           </SelectContent>
         </Select>
@@ -51,7 +53,7 @@ export default function ScheduleBuilder({ value, onChange }: { value: Parsed; on
 
       {value.frequency === 'weekly' && (
         <div className="flex flex-col gap-2">
-          <Label htmlFor="weekday">Day</Label>
+          <Label htmlFor="weekday">{translateText("Day")}</Label>
           <Select value={value.weekday} onValueChange={(weekday) => onChange({ ...value, weekday })}>
             <SelectTrigger id="weekday" className="w-full">
               <SelectValue />
@@ -70,7 +72,7 @@ export default function ScheduleBuilder({ value, onChange }: { value: Parsed; on
       )}
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="time">Time (UTC)</Label>
+        <Label htmlFor="time">{translateText("Time (UTC)")}</Label>
         <Input
           id="time"
           type="time"

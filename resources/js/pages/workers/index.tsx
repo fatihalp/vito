@@ -1,3 +1,5 @@
+import { useTranslate } from '@/hooks/use-translate';
+import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { PaginatedData } from '@/types';
@@ -17,6 +19,7 @@ import { useRealtime } from '@/hooks/use-socket-events';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function WorkerIndex() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     workers: PaginatedData<Worker>;
@@ -36,20 +39,20 @@ export default function WorkerIndex() {
 
   return (
     <ServerLayout>
-      <Head title={`Workers - ${page.props.server.name}`} />
+      <Head title={translateText("Workers - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
           <Heading
-            title="Workers"
-            description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : "Here you can manage server's workers"}
+            title={translateText('Workers')}
+            description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : translateText("Here you can manage server's workers")}
           />
-          <div className="flex items-center gap-2">
+          {page.props.server.services?.process_manager && <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <MoreHorizontalIcon className="size-4" />
-                  <span>Actions</span>
+                  <span>{translateText('Actions')}</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -57,7 +60,7 @@ export default function WorkerIndex() {
                   onSelect={() =>
                     dialog.confirm.open({
                       title: 'Resync workers',
-                      description: `Fetch the live status of ${scopeLabel} from the process manager and update Pure. Continue?`,
+                      description: translateText("Fetch the live status of :value from the process manager and update Pure. Continue?", { value: scopeLabel }),
                       confirmLabel: 'Resync',
                       method: 'post',
                       url: `/servers/${scope.server}/workers/resync${scope.site ? `/${scope.site}` : ''}`,
@@ -65,13 +68,13 @@ export default function WorkerIndex() {
                   }
                 >
                   <RefreshCwIcon />
-                  Resync
+                  {translateText("Resync")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() =>
                     dialog.confirm.open({
                       title: 'Restart all workers',
-                      description: `Are you sure you want to restart ${scopeLabel}?`,
+                      description: translateText("Are you sure you want to restart :value?", { value: scopeLabel }),
                       confirmLabel: 'Restart All',
                       method: 'post',
                       url: `/servers/${scope.server}/workers/restart-all${scope.site ? `/${scope.site}` : ''}`,
@@ -79,18 +82,20 @@ export default function WorkerIndex() {
                   }
                 >
                   <RotateCwIcon />
-                  Restart All
+                  {translateText("Restart All")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button onClick={() => dialog.workerForm.open({ serverId: page.props.server.id, site: page.props.site })}>
               <PlusIcon />
-              <span className="hidden lg:block">Create</span>
+              <span className="hidden lg:block">{translateText('Create')}</span>
             </Button>
-          </div>
+          </div>}
         </HeaderContainer>
 
         {page.props.site && <SiteBanners site={page.props.site} />}
+
+        <RuntimeProcesses kind="worker" />
 
         <DataTable columns={columns(page.props.sites)} paginatedData={workers} />
       </Container>

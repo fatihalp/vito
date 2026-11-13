@@ -30,7 +30,6 @@ class SSH
 
     protected ?string $asUser = null;
 
-    
     protected array $variables = [];
 
     protected string $publicKey;
@@ -55,7 +54,6 @@ class SSH
         return $this;
     }
 
-    
     private function ensureLog(?string $log, ?int $siteId = null): void
     {
         if (! $this->log instanceof ServerLog && $log) {
@@ -67,7 +65,6 @@ class SSH
         }
     }
 
-    
     private function ensureSftp(): SFTP
     {
         if (! $this->connection instanceof SFTP) {
@@ -81,7 +78,6 @@ class SSH
         return $this->connection;
     }
 
-    
     protected function writeOutput(string $chunk): void
     {
         $this->log?->write($chunk);
@@ -108,7 +104,6 @@ class SSH
         return $this;
     }
 
-    
     public function variables(array $variables): self
     {
         $this->variables = $variables;
@@ -116,10 +111,9 @@ class SSH
         return $this;
     }
 
-    
     public function connect(bool $sftp = false): void
     {
-        
+
         $ip = $this->server->is_self ? '127.0.0.1' : $this->server->ip;
         if (str($ip)->contains(':')) {
             $ip = '['.$ip.']';
@@ -144,8 +138,7 @@ class SSH
         }
     }
 
-    
-    public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null, int $timeout = 0): string
+    public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null, int $timeout = 0, int $outputLimit = 0): string
     {
         $this->ensureLog($log, $siteId);
 
@@ -175,8 +168,14 @@ class SSH
 
             $this->connection->setTimeout($timeout);
             if ($stream === true) {
-                
-                $this->connection->exec($command, function ($output) use ($streamCallback) {
+
+                $received = 0;
+                $this->connection->exec($command, function ($output) use ($streamCallback, $outputLimit, &$received) {
+                    $received += strlen($output);
+                    if ($outputLimit > 0 && $received > $outputLimit) {
+                        $this->disconnect();
+                        throw new RuntimeException('Remote output exceeded its size limit');
+                    }
                     $this->writeOutput($output);
 
                     return $streamCallback($output);
@@ -185,7 +184,11 @@ class SSH
                 return '';
             }
             $output = '';
-            $this->connection->exec($command, function (string $out) use (&$output): void {
+            $this->connection->exec($command, function (string $out) use (&$output, $outputLimit): void {
+                if ($outputLimit > 0 && strlen($output) + strlen($out) > $outputLimit) {
+                    $this->disconnect();
+                    throw new RuntimeException('Remote output exceeded its size limit');
+                }
                 $this->writeOutput($out);
 
                 $output .= $out;
@@ -211,7 +214,6 @@ class SSH
         }
     }
 
-    
     public function upload(string $local, string $remote, ?string $owner = null, ?string $log = null, ?int $siteId = null, string $permission = '644'): void
     {
         $this->ensureLog($log, $siteId);
@@ -238,7 +240,6 @@ class SSH
         ));
     }
 
-    
     public function download(string $local, string $remote, ?string $log = null, ?int $siteId = null): void
     {
         $this->ensureLog($log, $siteId);
@@ -247,13 +248,12 @@ class SSH
         $sftp->get($remote, $local);
     }
 
-    
     public function write(string $remotePath, string|View $content, ?string $owner = null, ?string $log = null, ?int $siteId = null): void
     {
         $tmpName = Str::random(10).strtotime('now');
 
         try {
-            
+
             $storageDisk = Storage::disk('local');
             $storageDisk->put($tmpName, $content);
             $tmpRemotePath = '/tmp/'.$tmpName;
@@ -276,7 +276,6 @@ class SSH
         }
     }
 
-    
     public function disconnect(): void
     {
         if ($this->connection instanceof SSH2) {
@@ -285,7 +284,6 @@ class SSH
         }
     }
 
-    
     public function __destruct()
     {
         $this->disconnect();

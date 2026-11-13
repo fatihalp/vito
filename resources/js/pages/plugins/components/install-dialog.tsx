@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Repo } from '@/types/repo';
 import {
   Dialog,
@@ -21,6 +22,7 @@ import { Plugin } from '@/types/plugin';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function InstallDialog({ repo }: { repo?: Repo }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const page = usePage<{
     plugins: Plugin[];
@@ -44,18 +46,18 @@ export default function InstallDialog({ repo }: { repo?: Repo }) {
       <DialogTrigger asChild>
         <Button disabled={repo && page.props.plugins.filter((plugin) => plugin.name === repo.full_name).length > 0}>
           <DownloadIcon />
-          {repo && page.props.plugins.filter((plugin) => plugin.name === repo.full_name).length > 0 ? 'Installed' : 'Install'}
+          {repo && page.props.plugins.filter((plugin) => plugin.name === repo.full_name).length > 0 ? translateText("Installed") : translateText("Install")}
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Install plugin</DialogTitle>
-          <DialogDescription>Install a plugin from a GitHub Repository</DialogDescription>
+          <DialogTitle>{translateText("Install plugin")}</DialogTitle>
+          <DialogDescription>{translateText("Install a plugin from a GitHub Repository")}</DialogDescription>
         </DialogHeader>
         <Alert>
           <TriangleAlertIcon className="text-warning!" />
           <AlertDescription>
-            Be careful when installing third-party plugins. Always review the source code and verify that the plugin is not harmful before installing.
+            {translateText("Be careful when installing third-party plugins. Always review the source code and verify that the plugin is not harmful before installing.")}
           </AlertDescription>
         </Alert>
         <Form className="p-4" id="install-plugin-form" onSubmit={submit}>
@@ -70,11 +72,11 @@ export default function InstallDialog({ repo }: { repo?: Repo }) {
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Install
+            {translateText('Install')}
           </Button>
         </DialogFooter>
       </DialogContent>

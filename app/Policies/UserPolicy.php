@@ -29,6 +29,11 @@ class UserPolicy
         return $user->isAdmin();
     }
 
+    public function updateLocale(User $user, User $model): bool
+    {
+        return $user->is($model);
+    }
+
     public function delete(User $user, User $model): bool
     {
         return $user->isAdmin() && $user->id !== $model->id;

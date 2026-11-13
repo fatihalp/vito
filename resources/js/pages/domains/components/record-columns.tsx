@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
 import { DNSRecord } from '@/types/dns-record';
@@ -11,9 +12,10 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Edit({ domain, record }: { domain: Domain; record: DNSRecord }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
-  return <DropdownMenuItem onSelect={() => dialog.dnsRecordForm.open({ domain, record })}>Edit</DropdownMenuItem>;
+  return <DropdownMenuItem onSelect={() => dialog.dnsRecordForm.open({ domain, record })}>{translateText('Edit')}</DropdownMenuItem>;
 }
 
 function CopyableText({ text }: { text: string | null | undefined }) {
@@ -31,6 +33,7 @@ function CopyableText({ text }: { text: string | null | undefined }) {
 }
 
 function Delete({ record }: { record: DNSRecord }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -39,7 +42,7 @@ function Delete({ record }: { record: DNSRecord }) {
       onSelect={() =>
         dialog.confirm.open({
           title: 'Delete DNS Record',
-          description: `Are you sure you want to delete this DNS record? Type: ${record.type}, Name: ${record.name}, Content: ${record.content}`,
+          description: translateText("Are you sure you want to delete this DNS record? Type: :value, Name: :value2, Content: :value3", { value: record.type, value2: record.name, value3: record.content }),
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -47,7 +50,7 @@ function Delete({ record }: { record: DNSRecord }) {
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }

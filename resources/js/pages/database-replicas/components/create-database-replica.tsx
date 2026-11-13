@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -29,6 +30,7 @@ export default function CreateDatabaseReplica({
   server: Server;
   cluster: PostgresCluster | null;
 }) {
+  const translateText = useTranslate();
   const [requirements, setRequirements] = useState<ServerRequirements | null>(null);
   const [candidates, setCandidates] = useState<Candidate[]>([]);
   const [planFit, setPlanFit] = useState<PlanFit>({ blocked: null, warnings: [] });
@@ -92,26 +94,24 @@ export default function CreateDatabaseReplica({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>Create replica of {server.name}</SheetTitle>
-          <SheetDescription className="sr-only">Create a PostgreSQL streaming replica</SheetDescription>
+          <SheetTitle>{translateText("Create replica of")} {server.name}</SheetTitle>
+          <SheetDescription className="sr-only">{translateText("Create a PostgreSQL streaming replica")}</SheetDescription>
         </SheetHeader>
         <Form id="create-database-replica-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
-              Pure connects both servers over a private network (a provider network such as a Hetzner Cloud Network when it can, else an encrypted WireGuard
-              network), opens PostgreSQL and pgBackRest only to the replica, restores the replica from the latest pgBackRest backup and streams WAL from this
-              server. Backups then run on the replica straight to S3. PostgreSQL on this server restarts once to listen on its private address.
+              {translateText("Pure connects both servers over a private network (a provider network such as a Hetzner Cloud Network when it can, else an encrypted WireGuard network), opens PostgreSQL and pgBackRest only to the replica, restores the replica from the latest pgBackRest backup and streams WAL from this server. Backups then run on the replica straight to S3. PostgreSQL on this server restarts once to listen on its private address.")}
             </div>
 
             <FormField>
-              <Label>Replica server</Label>
+              <Label>{translateText("Replica server")}</Label>
               <Select value={form.data.mode} onValueChange={(mode) => form.setData((data) => ({ ...data, mode: mode as 'new' | 'existing', replica_server_id: '', confirmation: '' }))}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="new">Create a new server for this replica</SelectItem>
-                  <SelectItem value="existing">Use a server I already have</SelectItem>
+                  <SelectItem value="new">{translateText("Create a new server for this replica")}</SelectItem>
+                  <SelectItem value="existing">{translateText("Use a server I already have")}</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={errors.mode} />
@@ -120,16 +120,16 @@ export default function CreateDatabaseReplica({
             {form.data.mode === 'new' ? (
               <>
                 <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
-                  <p className="font-medium">The new server</p>
+                  <p className="font-medium">{translateText("The new server")}</p>
                   <p className="text-muted-foreground">
-                    Pure creates it at your provider (billed by the provider) with the same operating system and PostgreSQL {requirements?.postgresql ?? ''} as{' '}
-                    {server.name}, and nothing else on it, so no data of yours can be replaced by the restore.
+                    {translateText("Pure creates it at your provider (billed by the provider) with the same operating system and PostgreSQL")} {requirements?.postgresql ?? ''} {translateText("as")}{' '}
+                    {server.name}{translateText(", and nothing else on it, so no data of yours can be replaced by the restore.")}
                   </p>
                   {requirements && (
                     <p className="text-muted-foreground">
-                      It needs <span className="text-foreground font-medium">at least {requirements.storage_gb ?? '?'} GB of disk</span>,{' '}
-                      {requirements.cores ?? '?'} vCPU and {requirements.memory_gb ?? '?'} GB of memory to keep up with {server.name}, on a{' '}
-                      {requirements.architecture ?? 'matching'} processor — a streaming replica copies the data files byte for byte.
+                      {translateText("It needs")} <span className="text-foreground font-medium">{translateText("at least")} {requirements.storage_gb ?? '?'} {translateText("GB of disk")}</span>,{' '}
+                      {requirements.cores ?? '?'} {translateText("vCPU and")} {requirements.memory_gb ?? '?'} {translateText("GB of memory to keep up with")} {server.name}{translateText(", on a")}{' '}
+                      {requirements.architecture ?? translateText("matching")} {translateText("processor — a streaming replica copies the data files byte for byte.")}
                     </p>
                   )}
                 </div>
@@ -146,10 +146,10 @@ export default function CreateDatabaseReplica({
             ) : (
               <>
                 <FormField>
-                  <Label htmlFor="replica_server_id">Server</Label>
+                  <Label htmlFor="replica_server_id">{translateText('Server')}</Label>
                   <Select value={form.data.replica_server_id} onValueChange={(value) => form.setData((data) => ({ ...data, replica_server_id: value, confirmation: '' }))}>
                     <SelectTrigger id="replica_server_id">
-                      <SelectValue placeholder={candidates.length === 0 ? 'Loading the servers…' : 'Select a server'} />
+                      <SelectValue placeholder={candidates.length === 0 ? translateText("Loading the servers…") : translateText("Select a server")} />
                     </SelectTrigger>
                     <SelectContent>
                       {candidates.map((candidate) => (
@@ -163,8 +163,7 @@ export default function CreateDatabaseReplica({
                   </Select>
                   {candidates.length > 0 && usable.length === 0 && (
                     <p className="text-muted-foreground text-sm">
-                      No server in this project can hold a replica. Create a new server instead, or install PostgreSQL {requirements?.postgresql ?? ''} on an
-                      empty server.
+                      {translateText("No server in this project can hold a replica. Create a new server instead, or install PostgreSQL")} {requirements?.postgresql ?? ''} {translateText("on an empty server.")}
                     </p>
                   )}
                   <InputError message={errors.replica_server_id} />
@@ -173,16 +172,15 @@ export default function CreateDatabaseReplica({
                 {selected && (
                   <>
                     <Alert variant="destructive">
-                      <AlertTitle>Everything PostgreSQL holds on {selected.name} is destroyed</AlertTitle>
+                      <AlertTitle>{translateText("Everything PostgreSQL holds on")} {selected.name} {translateText("is destroyed")}</AlertTitle>
                       <AlertDescription>
-                        Pure wipes the PostgreSQL data directory of {selected.name} and restores this server's backup over it. The server keeps{' '}
-                        {selected.sites === 1 ? '1 site' : `${selected.sites} sites`} and everything outside PostgreSQL, but its databases cannot be recovered
-                        afterwards unless you have your own backup of them.
+                        {translateText("Pure wipes the PostgreSQL data directory of")} {selected.name} {translateText("and restores this server's backup over it. The server keeps")}{' '}
+                        {selected.sites === 1 ? '1 site' : `${selected.sites} sites`} {translateText("and everything outside PostgreSQL, but its databases cannot be recovered afterwards unless you have your own backup of them.")}
                       </AlertDescription>
                     </Alert>
 
                     <FormField>
-                      <Label htmlFor="confirmation">Type {selected.name} to confirm</Label>
+                      <Label htmlFor="confirmation">{translateText('Type')} {selected.name} {translateText("to confirm")}</Label>
                       <Input
                         id="confirmation"
                         autoComplete="off"
@@ -198,7 +196,7 @@ export default function CreateDatabaseReplica({
             )}
 
             <FormField>
-              <Label htmlFor="max_slot_wal_keep_size_gb">WAL kept for a disconnected replica (GB)</Label>
+              <Label htmlFor="max_slot_wal_keep_size_gb">{translateText("WAL kept for a disconnected replica (GB)")}</Label>
               <Input
                 id="max_slot_wal_keep_size_gb"
                 type="number"
@@ -207,7 +205,7 @@ export default function CreateDatabaseReplica({
                 onChange={(e) => form.setData('max_slot_wal_keep_size_gb', e.target.value)}
               />
               <p className="text-muted-foreground text-sm">
-                When a replica falls this far behind, PostgreSQL drops its WAL instead of filling this server's disk, and the replica needs a rebuild.
+                {translateText("When a replica falls this far behind, PostgreSQL drops its WAL instead of filling this server's disk, and the replica needs a rebuild.")}
               </p>
               <InputError message={errors.max_slot_wal_keep_size_gb} />
             </FormField>
@@ -215,11 +213,10 @@ export default function CreateDatabaseReplica({
             {needsBackup && (
               <>
                 <div className="text-muted-foreground rounded-md border p-3 text-sm">
-                  Replicas are built from pgBackRest backups, and this server has none yet. Choose where to keep them and a strategy. The replica is
-                  created as soon as the first full backup finishes.
+                  {translateText("Replicas are built from pgBackRest backups, and this server has none yet. Choose where to keep them and a strategy. The replica is created as soon as the first full backup finishes.")}
                 </div>
                 <FormField>
-                  <Label htmlFor="storage">S3 storage</Label>
+                  <Label htmlFor="storage">{translateText("S3 storage")}</Label>
                   <StorageProviderSelect
                     id="storage"
                     name="storage"
@@ -255,10 +252,10 @@ export default function CreateDatabaseReplica({
               disabled={form.processing || (form.data.mode === 'new' && Boolean(planFit.blocked)) || (form.data.mode === 'existing' && !selected)}
             >
               {form.processing && <LoaderCircle className="animate-spin" />}
-              Create
+              {translateText('Create')}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
           </div>
         </SheetFooter>

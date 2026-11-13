@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -15,6 +16,7 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Network, NetworkPeer } from '@/types/network';
 
 export default function NetworkPeers() {
+  const translateText = useTranslate();
   const page = usePage<{
     network: Network;
     peers: InertiaTableData;
@@ -24,15 +26,15 @@ export default function NetworkPeers() {
 
   return (
     <NetworkLayout>
-      <Head title={`Peers - ${network.name}`} />
+      <Head title={translateText("Peers - :value", { value: network.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Peers" description="Devices that connect to this network, such as laptops or CI runners" />
+          <Heading title="Peers" description={translateText("Devices that connect to this network, such as laptops or CI runners")} />
           <div className="flex items-center gap-2">
             <Button onClick={() => dialog.networkAddPeer.open({ networkId: network.id })}>
               <PlusIcon />
-              <span className="hidden lg:block">Add peer</span>
+              <span className="hidden lg:block">{translateText('Add peer')}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -52,7 +54,7 @@ export default function NetworkPeers() {
                     <DropdownMenuItem
                       onSelect={() => dialog.networkPeerConfig.open({ networkId: network.id, peerId: peer.id, byo: peer.byo, name: peer.name })}
                     >
-                      Show config
+                      {translateText("Show config")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() =>
@@ -66,7 +68,7 @@ export default function NetworkPeers() {
                         })
                       }
                     >
-                      Regenerate keys
+                      {translateText("Regenerate keys")}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onSelect={() =>
@@ -82,7 +84,7 @@ export default function NetworkPeers() {
                         })
                       }
                     >
-                      {disabled ? 'Enable' : 'Disable'}
+                      {disabled ? translateText("Enable") : translateText("Disable")}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
@@ -98,7 +100,7 @@ export default function NetworkPeers() {
                         })
                       }
                     >
-                      Remove
+                      {translateText('Remove')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Server, ServerFeatureAction } from '@/types/server';
 import { FormEvent } from 'react';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -25,6 +26,7 @@ export default function FeatureAction({
   actionId: string;
   action: ServerFeatureAction;
 }) {
+  const translateText = useTranslate();
   const form = useForm<Record<string, FieldValue>>({});
 
   const submit = (e: FormEvent) => {
@@ -42,7 +44,7 @@ export default function FeatureAction({
       <DialogContent className="sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{action.label}</DialogTitle>
-          <DialogDescription className="sr-only">action {action.label}</DialogDescription>
+          <DialogDescription className="sr-only">{translateText("action")} {action.label}</DialogDescription>
         </DialogHeader>
         <Form id="action-form" onSubmit={submit} className="p-4">
           <FormFields>
@@ -59,7 +61,7 @@ export default function FeatureAction({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="action-form" disabled={form.processing} onClick={submit}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}

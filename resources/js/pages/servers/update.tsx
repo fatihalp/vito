@@ -1,4 +1,4 @@
-import { withQuery } from '@/lib/url';
+import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -32,6 +32,7 @@ type PageProps = {
 };
 
 export default function ServerUpdate() {
+  const translateText = useTranslate();
   const { server: initialServer, initialLog, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
@@ -98,15 +99,6 @@ export default function ServerUpdate() {
     [csrf_token, isTriggering, server.id, server.status]
   );
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      const type = params.get('type') === 'kernel' ? 'kernel' : 'os';
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerUpdate(type);
-    }
-  }, [triggerUpdate]);
-
   const copyAllLogs = () => {
     copy(content || '');
   };
@@ -117,14 +109,14 @@ export default function ServerUpdate() {
 
   return (
     <ServerLayout>
-      <Head title={`Update Packages - ${server.name}`} />
+      <Head title={translateText("Update Packages - :value", { value: server.name })} />
 
       <Container className="space-y-3.5 py-4">
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="sm" asChild className="gap-1.5 text-muted-foreground hover:text-foreground h-8 px-2 cursor-pointer">
             <Link href={`/servers/${server.id}`}>
               <ArrowLeftIcon className="size-3.5" />
-              <span>Overview</span>
+              <span>{translateText('Overview')}</span>
             </Link>
           </Button>
 
@@ -132,16 +124,16 @@ export default function ServerUpdate() {
             {isUpdating ? (
               <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
                 <LoaderCircleIcon className="size-3.5 animate-spin" />
-                <span>Updating {updateType === 'kernel' ? 'kernel' : 'packages'}...</span>
+                <span>{translateText("Updating")} {updateType === 'kernel' ? 'kernel' : translateText("packages")}...</span>
               </Badge>
             ) : server.updates > 0 ? (
               <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
-                {server.updates} {server.updates === 1 ? 'update' : 'updates'} available
+                {server.updates} {server.updates === 1 ? translateText("update") : translateText("updates")} {translateText("available")}
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1.5 px-2.5 py-1 text-xs text-neutral-600 border-neutral-500/30 dark:text-neutral-400">
                 <CheckCircle2Icon className="size-3 text-neutral-500" />
-                <span>Up to date</span>
+                <span>{translateText("Up to date")}</span>
               </Badge>
             )}
           </div>
@@ -151,11 +143,11 @@ export default function ServerUpdate() {
           <div className="flex items-center justify-between gap-3 rounded-lg border border-neutral-500/30 bg-neutral-500/10 px-3.5 py-2.5 text-xs text-neutral-700 dark:text-neutral-300">
             <div className="flex items-center gap-2 min-w-0">
               <RefreshCwIcon className="size-4 shrink-0 text-neutral-500" />
-              <span className="truncate">A restart is required to apply kernel or core system updates.</span>
+              <span className="truncate">{translateText("A restart is required to apply kernel or core system updates.")}</span>
             </div>
             <Button size="sm" asChild className="h-7 text-xs shrink-0 cursor-pointer" variant="outline">
-              <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
-                Restart server
+              <Link href={`/servers/${server.id}/restart`}>
+                {translateText("Restart server")}
               </Link>
             </Button>
           </div>
@@ -182,12 +174,12 @@ export default function ServerUpdate() {
               {isUpdating ? (
                 <>
                   <LoaderCircleIcon className="size-3.5 animate-spin" />
-                  <span>Updating...</span>
+                  <span>{translateText("Updating...")}</span>
                 </>
               ) : (
                 <>
                   <RefreshCwIcon className="size-3.5" />
-                  <span>{server.updates > 0 ? `Update ${server.updates} packages` : 'Update packages'}</span>
+                  <span>{server.updates > 0 ? `Update ${server.updates} packages` : translateText("Update packages")}</span>
                 </>
               )}
             </Button>
@@ -201,7 +193,7 @@ export default function ServerUpdate() {
                 className="h-7.5 text-xs gap-1.5 cursor-pointer border-neutral-500/40 text-neutral-600 hover:bg-neutral-500/10"
               >
                 <RefreshCwIcon className="size-3" />
-                <span>Update kernel &amp; restart</span>
+                <span>{translateText("Update kernel & restart")}</span>
               </Button>
             )}
 
@@ -218,7 +210,7 @@ export default function ServerUpdate() {
                 as="button"
               >
                 <RefreshCwIcon className="size-3" />
-                <span>Check for updates</span>
+                <span>{translateText("Check for updates")}</span>
               </Link>
             </Button>
           </div>
@@ -230,8 +222,8 @@ export default function ServerUpdate() {
                 size="icon"
                 className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
                 asChild
-                title="Download log file"
-                aria-label="Download log"
+                title={translateText("Download log file")}
+                aria-label={translateText('Download log')}
               >
                 <a
                   href={`/servers/${server.id}/logs/${activeLogId}/download`}
@@ -247,8 +239,8 @@ export default function ServerUpdate() {
               size="icon"
               className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={copyAllLogs}
-              title="Copy terminal logs"
-              aria-label="Copy logs"
+              title={translateText("Copy terminal logs")}
+              aria-label={translateText("Copy logs")}
             >
               {copied ? <CheckIcon className="size-3.5 text-neutral-500" /> : <CopyIcon className="size-3.5" />}
             </Button>
@@ -257,8 +249,8 @@ export default function ServerUpdate() {
               size="icon"
               className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
               onClick={clearLogs}
-              title="Clear terminal logs"
-              aria-label="Clear logs"
+              title={translateText("Clear terminal logs")}
+              aria-label={translateText("Clear logs")}
             >
               <Trash2Icon className="size-3.5" />
             </Button>
@@ -280,20 +272,20 @@ export default function ServerUpdate() {
             {isLoading && (
               <div className="flex items-center gap-2 text-neutral-400">
                 <LoaderCircleIcon className="size-3.5 animate-spin shrink-0" />
-                <span>Loading logs...</span>
+                <span>{translateText("Loading logs...")}</span>
               </div>
             )}
 
             {logError && (
               <div className="text-neutral-400">
-                Error loading log: {logError}
+                {translateText("Error loading log:")} {logError}
               </div>
             )}
 
             {!isLoading && !logError && !content && isUpdating && (
               <div className="flex items-center gap-2 text-neutral-400/90">
                 <LoaderCircleIcon className="size-3.5 animate-spin shrink-0" />
-                <span>Connecting to server and running update...</span>
+                <span>{translateText("Connecting to server and running update...")}</span>
               </div>
             )}
 
@@ -301,7 +293,7 @@ export default function ServerUpdate() {
               <div className="text-neutral-500">
                 {server.updates > 0
                   ? `${server.updates} package updates available. Click "Update packages" to apply.`
-                  : 'Ready. No package updates pending.'}
+                  : translateText("Ready. No package updates pending.")}
               </div>
             )}
 
@@ -309,7 +301,7 @@ export default function ServerUpdate() {
               isPendingLog(content) ? (
                 <div className="flex items-center gap-2 text-neutral-400/90 py-6">
                   <LoaderCircleIcon className="size-4 animate-spin shrink-0" />
-                  <span>Job is queued and will begin automatically...</span>
+                  <span>{translateText("Job is queued and will begin automatically...")}</span>
                 </div>
               ) : (
                 <div className="text-neutral-200 whitespace-pre-wrap break-all">
@@ -321,7 +313,7 @@ export default function ServerUpdate() {
             {isUpdating && content && (
               <div className="flex items-center gap-2 text-neutral-400/90 pt-2 border-t border-neutral-800/60 mt-2">
                 <LoaderCircleIcon className="size-3.5 animate-spin shrink-0" />
-                <span>Applying updates in real time...</span>
+                <span>{translateText("Applying updates in real time...")}</span>
               </div>
             )}
 

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -6,6 +7,9 @@ import SiteBanners from '@/components/site-banners';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useDialog } from '@/hooks/use-dialog';
 import ServerLayout from '@/layouts/server/layout';
@@ -36,6 +40,7 @@ type PendingConnect = {
 };
 
 export default function SiteResources() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -53,6 +58,12 @@ export default function SiteResources() {
     page.props.storageProviders[0]?.id?.toString() ?? '',
   );
   const [isConnecting, setIsConnecting] = useState(false);
+  const [managementMode, setManagementMode] = useState('observed');
+  const [runtimeDriver, setRuntimeDriver] = useState('native');
+  const [databaseName, setDatabaseName] = useState('');
+  const [container, setContainer] = useState('');
+  const [runtimeUser, setRuntimeUser] = useState('');
+  const [databaseUsername, setDatabaseUsername] = useState('');
   const [isInstalling, setIsInstalling] = useState(false);
   const [pendingConnect, setPendingConnect] = useState<PendingConnect | null>(null);
 
@@ -74,12 +85,12 @@ export default function SiteResources() {
     page.props.servers.find((s) => s.id.toString() === selectedCacheServerId) ??
     page.props.servers.find((s) => s.id === page.props.server.id);
 
-  const isDbReady = !!selectedDbServer?.has_database;
+  const isDbReady = managementMode === 'observed' || !!selectedDbServer?.has_database;
   const isDbInstalling =
     (selectedDbServer?.database_status != null && selectedDbServer.database_status !== 'ready') ||
     (pendingConnect?.type === 'database' && pendingConnect.serverId === selectedDbServerId);
 
-  const isCacheReady = !!selectedCacheServer?.has_cache;
+  const isCacheReady = managementMode === 'observed' || !!selectedCacheServer?.has_cache;
   const isCacheInstalling =
     (selectedCacheServer?.cache_status != null && selectedCacheServer.cache_status !== 'ready') ||
     (pendingConnect?.type === 'cache' && pendingConnect.serverId === selectedCacheServerId);
@@ -111,6 +122,12 @@ export default function SiteResources() {
     const data: Record<string, string | boolean | undefined> = {
       type,
       confirm_overwrite: confirmOverwrite,
+      management_mode: managementMode,
+      runtime_driver: runtimeDriver,
+      database_name: databaseName || undefined,
+      container: container || undefined,
+      runtime_user: runtimeDriver === 'rootless_docker' ? runtimeUser : undefined,
+      database_username: runtimeDriver === 'rootless_docker' ? databaseUsername : undefined,
     };
     if (type === 'storage') {
       data.storage_provider_id = storageProviderId;
@@ -146,7 +163,7 @@ export default function SiteResources() {
               data: { ...data, confirm_overwrite: true },
             });
           } else {
-            toast.error(serverError || storageError || typeError || 'Failed to connect resource');
+            toast.error(serverError || storageError || typeError || Object.values(errors).find((message) => typeof message === 'string' && message) || translateText('Failed to connect resource'));
           }
         },
       },
@@ -227,6 +244,10 @@ export default function SiteResources() {
   };
 
   const copyEnv = (resource: SiteResource) => {
+    if (resource.secrets_redacted) {
+      dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource });
+      return;
+    }
     if (!resource.environment || Object.keys(resource.environment).length === 0) {
       toast.error('No environment variables to copy');
       return;
@@ -242,9 +263,11 @@ export default function SiteResources() {
 
   const disconnectResource = (resource: SiteResource) => {
     dialog.confirm.open({
-      title: `Disconnect ${resource.type}?`,
+      title: translateText("Disconnect :value?", { value: resource.type }),
       description:
-        resource.type_value === 'database'
+        resource.management_mode === 'observed'
+          ? 'Remove this inventory link from Pure. The running application, environment file, database, service and data will not change.'
+          : resource.type_value === 'database'
           ? 'This site will be disconnected from the database and its DB_* environment variables will be removed. Your database and data will NOT be deleted and remain completely intact on your server.'
           : resource.type_value === 'cache'
             ? 'This site will be disconnected from Redis and its cache environment variables will be restored. Your Redis service remains running on the server.'
@@ -260,19 +283,39 @@ export default function SiteResources() {
 
   return (
     <ServerLayout>
-      <Head title={`Resources - ${page.props.site.domain}`} />
+      <Head title={translateText("Resources - :value", { value: page.props.site.domain })} />
       <Container>
         <HeaderContainer>
           <div className="flex items-center gap-2.5">
-            <Heading title="Resources" />
+            <Heading title={translateText('Resources')} />
             <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-              {connectedCount} of 3 connected
+              {connectedCount} {translateText("resources registered")}
             </Badge>
           </div>
           {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
         </HeaderContainer>
 
         {page.props.site.status === 'installation_failed' && <SiteBanners site={page.props.site} />}
+
+        <div className="grid gap-3 rounded-lg border bg-card p-4">
+          <Label htmlFor="resource-management-mode">{translateText("Connection mode")}</Label>
+          <Select value={managementMode} onValueChange={setManagementMode}>
+            <SelectTrigger id="resource-management-mode"><SelectValue /></SelectTrigger>
+            <SelectContent><SelectItem value="observed">{translateText("Register an existing connection")}</SelectItem><SelectItem value="managed">{translateText("Create and manage a connection")}</SelectItem></SelectContent>
+          </Select>
+          <Alert><AlertDescription>{managementMode === 'observed' ? translateText("Register what the application already uses. No environment files, users, services or firewall rules are changed. A missing link here does not mean the application is disconnected.") : translateText("Pure can create database users, change environment values and configure networking. Use this for new applications or a planned connection change.")}</AlertDescription></Alert>
+          {managementMode === 'observed' && !dbResource && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid gap-2"><Label htmlFor="existing-database">{translateText("Existing database name")}</Label><Input id="existing-database" value={databaseName} onChange={(event) => setDatabaseName(event.target.value)} placeholder={translateText(runtimeDriver === 'rootless_docker' ? "Existing database name" : "Use the application's DB_DATABASE")} /></div>
+              <div className="grid gap-2"><Label htmlFor="database-runtime">PostgreSQL runtime</Label><Select value={runtimeDriver} onValueChange={setRuntimeDriver}><SelectTrigger id="database-runtime"><SelectValue /></SelectTrigger><SelectContent><SelectItem value="native">{translateText("Installed on the server")}</SelectItem><SelectItem value="docker">Docker container</SelectItem><SelectItem value="rootless_docker">Rootless Docker</SelectItem></SelectContent></Select></div>
+              {['docker', 'rootless_docker'].includes(runtimeDriver) && <div className="grid gap-2"><Label htmlFor="database-container">{translateText("Existing container name")}</Label><Input id="database-container" value={container} onChange={(event) => setContainer(event.target.value)} placeholder="project-db-1" /></div>}
+              {runtimeDriver === 'rootless_docker' && <>
+                <div className="grid gap-2"><Label htmlFor="database-runtime-user">{translateText("Isolated Linux user")}</Label><Input id="database-runtime-user" value={runtimeUser} onChange={(event) => setRuntimeUser(event.target.value)} autoComplete="off" /></div>
+                <div className="grid gap-2"><Label htmlFor="existing-database-user">{translateText("Database username")}</Label><Input id="existing-database-user" value={databaseUsername} onChange={(event) => setDatabaseUsername(event.target.value)} autoComplete="off" /></div>
+              </>}
+            </div>
+          )}
+        </div>
 
         <div className="flex w-full flex-col gap-3">
           <Card className="w-full transition-shadow">
@@ -283,30 +326,30 @@ export default function SiteResources() {
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold">Database</span>
+                    <span className="text-sm font-semibold">{translateText('Database')}</span>
                     {dbResource ? (
                       <Badge variant={dbResource.status_color}>
                         {dbResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
+                        {dbResource.management_mode === 'observed' ? translateText("Existing connection") : dbResource.status === 'ready' ? translateText("Connected") : dbResource.status}
                       </Badge>
                     ) : isDbInstalling ? (
                       <Badge variant="warning" className="text-xs">
                         <LoaderCircleIcon className="mr-1 size-3 animate-spin" />
-                        Installing...
+                        {translateText('Installing...')}
                       </Badge>
                     ) : isDbReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {managementMode === 'observed' ? translateText("Not registered in Pure") : translateText("Ready")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                        Not installed
+                        {translateText("Not installed")}
                       </Badge>
                     )}
                   </div>
                   {dbResource && (
                     <p className="text-xs text-muted-foreground truncate">
-                      {getResourceTitle(dbResource)} · {dbResource.server?.name ?? 'Server'} ({dbResource.server?.ip ?? ''})
+                      {getResourceTitle(dbResource)} · {dbResource.server?.name ?? translateText("Server")} ({dbResource.server?.ip ?? ''})
                     </p>
                   )}
                 </div>
@@ -321,7 +364,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(dbResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>{translateText('Details')}</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -332,22 +375,23 @@ export default function SiteResources() {
                     {!collapsedIds[dbResource.id] ? (
                       <>
                         <ChevronUpIcon className="size-3.5" />
-                        <span>Hide</span>
+                        <span>{translateText('Hide')}</span>
                       </>
                     ) : (
                       <>
                         <ChevronDownIcon className="size-3.5" />
-                        <span>Credentials</span>
+                        <span>{translateText('Credentials')}</span>
                       </>
                     )}
                   </Button>
+                  <Button variant="outline" size="sm" asChild><Link href={`/servers/${page.props.server.id}/sites/${page.props.site.id}/resources/${dbResource.id}/browse`}>{translateText("Browse tables")}</Link></Button>
                   <Button
                     variant="ghost"
                     size="icon"
                     className="size-8 text-muted-foreground hover:text-foreground"
                     onClick={() => disconnectResource(dbResource)}
-                    aria-label="Disconnect database"
-                    title="Disconnect database from site"
+                    aria-label={translateText("Disconnect database")}
+                    title={translateText("Disconnect database from site")}
                   >
                     <UnlinkIcon className="size-3.5" />
                   </Button>
@@ -357,7 +401,7 @@ export default function SiteResources() {
                   {dbServers.length > 1 && (
                     <Select value={selectedDbServerId} onValueChange={setSelectedDbServerId}>
                       <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
-                        <SelectValue placeholder="Select server" />
+                        <SelectValue placeholder={translateText("Select server")} />
                       </SelectTrigger>
                       <SelectContent>
                         {dbServers.map((s) => (
@@ -371,7 +415,7 @@ export default function SiteResources() {
 
                   {isDbInstalling ? (
                     <span className="text-xs text-muted-foreground">
-                      Installing PostgreSQL...
+                      {translateText("Installing PostgreSQL...")}
                     </span>
                   ) : isDbReady ? (
                     <Button
@@ -385,7 +429,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Database
+                      {managementMode === 'observed' ? translateText("Register database") : translateText("Connect database")}
                     </Button>
                   ) : (
                     <Button
@@ -400,7 +444,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Install PostgreSQL &amp; Connect
+                      {translateText("Install PostgreSQL & Connect")}
                     </Button>
                   )}
                 </div>
@@ -414,6 +458,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={dbResource.environment}
+                    redacted={dbResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: dbResource })}
                     type="database"
                     title={null}
                   />
@@ -429,30 +475,30 @@ export default function SiteResources() {
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold">Cache &amp; Queue (Redis)</span>
+                    <span className="text-sm font-semibold">{translateText("Cache & Queue (Redis)")}</span>
                     {cacheResource ? (
                       <Badge variant={cacheResource.status_color}>
                         {cacheResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
+                        {cacheResource.management_mode === 'observed' ? translateText("Existing connection") : cacheResource.status === 'ready' ? translateText("Connected") : cacheResource.status}
                       </Badge>
                     ) : isCacheInstalling ? (
                       <Badge variant="warning" className="text-xs">
                         <LoaderCircleIcon className="mr-1 size-3 animate-spin" />
-                        Installing...
+                        {translateText('Installing...')}
                       </Badge>
                     ) : isCacheReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {managementMode === 'observed' ? translateText("Not registered in Pure") : translateText("Ready")}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                        Not installed
+                        {translateText("Not installed")}
                       </Badge>
                     )}
                   </div>
                   {cacheResource && (
                     <p className="text-xs text-muted-foreground truncate">
-                      Redis · {cacheResource.server?.name ?? 'Server'} ({cacheResource.server?.ip ?? ''})
+                      Redis · {cacheResource.server?.name ?? translateText("Server")} ({cacheResource.server?.ip ?? ''})
                     </p>
                   )}
                 </div>
@@ -467,7 +513,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(cacheResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>{translateText('Details')}</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -478,12 +524,12 @@ export default function SiteResources() {
                     {!collapsedIds[cacheResource.id] ? (
                       <>
                         <ChevronUpIcon className="size-3.5" />
-                        <span>Hide</span>
+                        <span>{translateText('Hide')}</span>
                       </>
                     ) : (
                       <>
                         <ChevronDownIcon className="size-3.5" />
-                        <span>Credentials</span>
+                        <span>{translateText('Credentials')}</span>
                       </>
                     )}
                   </Button>
@@ -492,8 +538,8 @@ export default function SiteResources() {
                     size="icon"
                     className="size-8 text-muted-foreground hover:text-foreground"
                     onClick={() => disconnectResource(cacheResource)}
-                    aria-label="Disconnect Redis"
-                    title="Disconnect Redis from site"
+                    aria-label={translateText("Disconnect Redis")}
+                    title={translateText("Disconnect Redis from site")}
                   >
                     <UnlinkIcon className="size-3.5" />
                   </Button>
@@ -503,7 +549,7 @@ export default function SiteResources() {
                   {cacheServers.length > 1 && (
                     <Select value={selectedCacheServerId} onValueChange={setSelectedCacheServerId}>
                       <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
-                        <SelectValue placeholder="Select server" />
+                        <SelectValue placeholder={translateText("Select server")} />
                       </SelectTrigger>
                       <SelectContent>
                         {cacheServers.map((s) => (
@@ -517,7 +563,7 @@ export default function SiteResources() {
 
                   {isCacheInstalling ? (
                     <span className="text-xs text-muted-foreground">
-                      Installing Redis...
+                      {translateText("Installing Redis...")}
                     </span>
                   ) : isCacheReady ? (
                     <Button
@@ -531,7 +577,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Redis
+                      {managementMode === 'observed' ? translateText("Register Redis") : translateText("Connect Redis")}
                     </Button>
                   ) : (
                     <Button
@@ -546,7 +592,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Install Redis &amp; Connect
+                      {translateText("Install Redis & Connect")}
                     </Button>
                   )}
                 </div>
@@ -560,6 +606,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={cacheResource.environment}
+                    redacted={cacheResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: cacheResource })}
                     type="cache"
                     title={null}
                   />
@@ -579,11 +627,11 @@ export default function SiteResources() {
                     {storageResource ? (
                       <Badge variant={storageResource.status_color}>
                         {storageResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {storageResource.status === 'ready' ? 'Connected' : storageResource.status}
+                        {storageResource.management_mode === 'observed' ? translateText("Existing connection") : storageResource.status === 'ready' ? translateText("Connected") : storageResource.status}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-                        Not configured
+                        {translateText("Not configured")}
                       </Badge>
                     )}
                   </div>
@@ -604,7 +652,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(storageResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>{translateText('Details')}</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -615,12 +663,12 @@ export default function SiteResources() {
                     {!collapsedIds[storageResource.id] ? (
                       <>
                         <ChevronUpIcon className="size-3.5" />
-                        <span>Hide</span>
+                        <span>{translateText('Hide')}</span>
                       </>
                     ) : (
                       <>
                         <ChevronDownIcon className="size-3.5" />
-                        <span>Credentials</span>
+                        <span>{translateText('Credentials')}</span>
                       </>
                     )}
                   </Button>
@@ -629,8 +677,8 @@ export default function SiteResources() {
                     size="icon"
                     className="size-8 text-muted-foreground hover:text-foreground"
                     onClick={() => disconnectResource(storageResource)}
-                    aria-label="Disconnect storage"
-                    title="Disconnect storage from site"
+                    aria-label={translateText("Disconnect storage")}
+                    title={translateText("Disconnect storage from site")}
                   >
                     <UnlinkIcon className="size-3.5" />
                   </Button>
@@ -644,7 +692,7 @@ export default function SiteResources() {
                         onValueChange={setSelectedStorageProviderId}
                       >
                         <SelectTrigger className="w-auto min-w-[160px] sm:min-w-[200px] h-8 text-xs">
-                          <SelectValue placeholder="Select provider" />
+                          <SelectValue placeholder={translateText("Select provider")} />
                         </SelectTrigger>
                         <SelectContent>
                           {page.props.storageProviders.map((provider) => (
@@ -671,14 +719,14 @@ export default function SiteResources() {
                         ) : (
                           <PlusIcon className="size-3.5" />
                         )}
-                        Connect Storage
+                        {managementMode === 'observed' ? translateText("Register storage") : translateText("Connect storage")}
                       </Button>
                     </>
                   ) : (
                     <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" asChild>
                       <Link href={"/settings/storage-providers"}>
                         <ExternalLinkIcon className="size-3.5" />
-                        Configure Provider
+                        {translateText("Configure Provider")}
                       </Link>
                     </Button>
                   )}
@@ -693,6 +741,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={storageResource.environment}
+                    redacted={storageResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: storageResource })}
                     type="storage"
                     title={null}
                   />

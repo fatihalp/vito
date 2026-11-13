@@ -10,6 +10,8 @@ use App\Enums\BackupType;
 use App\Http\Resources\BackupFileResource;
 use App\Http\Resources\BackupResource;
 use App\Models\Backup;
+use App\Models\BackupMonitor;
+use App\Http\Resources\BackupMonitorResource;
 use App\Models\BackupFile;
 use App\Models\NotificationChannel;
 use App\Models\PostgresCluster;
@@ -37,6 +39,8 @@ class BackupController extends Controller
 
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make(user()->currentProject->backups())->simplePaginate(),
+            'monitorServers' => $this->monitorServers(),
+            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->whereHas('server', fn ($query) => $query->where('project_id', user()->current_project_id))->orderBy('label')->get()),
             'attention' => app(CheckBackupHealth::class)->attention(user()->currentProject->backups()),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
         ]);
@@ -51,6 +55,8 @@ class BackupController extends Controller
 
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make($server->backups())->forServer($server)->simplePaginate(),
+            'monitorServers' => $this->monitorServers(),
+            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->where('server_id', $server->id)->orderBy('label')->get()),
             'attention' => app(CheckBackupHealth::class)->attention($server->backups()),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
             'replicaOf' => $cluster !== null && $cluster->primary_server_id !== $server->id
@@ -181,5 +187,16 @@ class BackupController extends Controller
 
         return back()
             ->with('warning', 'Backup is being deleted...');
+    }
+
+    private function monitorServers(): array
+    {
+        if (! user()->isAdmin()) {
+            return [];
+        }
+
+        return Server::query()->with('project.users')->orderBy('name')->get(['id', 'name', 'project_id', 'is_self', 'status'])
+            ->filter(fn (Server $server): bool => user()->can('create', [BackupMonitor::class, $server]) && user()->can('update', $server))
+            ->map(fn (Server $server): array => $server->only(['id', 'name']))->values()->all();
     }
 }

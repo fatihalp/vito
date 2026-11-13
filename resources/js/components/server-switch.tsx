@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Server } from '@/types/server';
@@ -10,6 +11,7 @@ import { CommandGroup, CommandItem } from '@/components/ui/command';
 import serverHelper from '@/lib/server-helper';
 
 export function ServerSwitch() {
+  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>(page.props.server?.id?.toString() ?? '');
@@ -37,13 +39,13 @@ export function ServerSwitch() {
         value="create-server"
         onSelect={() => {
           setOpen(false);
-          router.visit("/servers/create");
+          router.visit('/servers/create');
         }}
         className="gap-0 cursor-pointer"
       >
         <div className="flex items-center">
           <PlusIcon className="size-4" />
-          <span className="ml-2">Create new server</span>
+          <span className="ml-2">{translateText('Create new server')}</span>
         </div>
       </CommandItem>
     </CommandGroup>
@@ -60,7 +62,7 @@ export function ServerSwitch() {
         }}
       >
         <ServerIcon />
-        <span>All Servers</span>
+        <span>{translateText('All Servers')}</span>
         <CheckIcon className={`ml-auto ${page.props.server ? 'opacity-0' : 'opacity-100'}`} />
       </CommandItem>
     </CommandGroup>
@@ -72,7 +74,7 @@ export function ServerSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Switch server. Current server: ${page.props.server?.name ?? 'none'}`}
+      aria-label={translateText("Switch server. Current server: :value", { value: page.props.server?.name ?? 'none' })}
     >
       {page.props.server ? (
         <>
@@ -82,7 +84,7 @@ export function ServerSwitch() {
       ) : (
         <>
           <ServerIcon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <span className="hidden sm:flex">Select a server</span>
+          <span className="hidden sm:flex">{translateText('Select a server')}</span>
         </>
       )}
       <ChevronsUpDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />

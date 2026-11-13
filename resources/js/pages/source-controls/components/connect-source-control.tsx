@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -18,7 +19,7 @@ import InputError from '@/components/ui/input-error';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import DynamicField from '@/components/ui/dynamic-field';
 import { useConfigs } from '@/stores/bootstrap-store';
 
@@ -26,7 +27,7 @@ type SourceControlForm = {
   provider: string;
   name: string;
   global: boolean;
-  [key: string]: any;
+  [key: string]: DynamicFieldValue;
 };
 
 export default function ConnectSourceControl({
@@ -38,6 +39,7 @@ export default function ConnectSourceControl({
   onProviderAdded?: () => void;
   children: ReactNode;
 }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const configs = useConfigs()!;
@@ -78,13 +80,13 @@ export default function ConnectSourceControl({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>Connect to source control</DialogTitle>
-          <DialogDescription className="sr-only">Connect to a new source control</DialogDescription>
+          <DialogTitle>{translateText("Connect to source control")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Connect to a new source control")}</DialogDescription>
         </DialogHeader>
         <Form id="create-source-control-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="provider">Provider</Label>
+              <Label htmlFor="provider">{translateText('Provider')}</Label>
               <Select
                 value={form.data.provider}
                 onValueChange={(value) => {
@@ -93,7 +95,7 @@ export default function ConnectSourceControl({
                 }}
               >
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder="Select a provider" />
+                  <SelectValue placeholder={translateText('Select a provider')} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -110,7 +112,7 @@ export default function ConnectSourceControl({
               <InputError message={form.errors.provider} />
             </FormField>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input type="text" name="name" id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -129,7 +131,7 @@ export default function ConnectSourceControl({
             <FormField>
               <div className="flex items-center space-x-3">
                 <Checkbox id="global" name="global" checked={form.data.global} onClick={() => form.setData('global', !form.data.global)} />
-                <Label htmlFor="global">Is global (accessible in all projects)</Label>
+                <Label htmlFor="global">{translateText('Is global (accessible in all projects)')}</Label>
               </div>
               <InputError message={form.errors.global} />
             </FormField>
@@ -138,12 +140,12 @@ export default function ConnectSourceControl({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              Cancel
+              {translateText('Cancel')}
             </Button>
           </DialogClose>
           <Button type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            Connect
+            {translateText('Connect')}
           </Button>
         </DialogFooter>
       </DialogContent>

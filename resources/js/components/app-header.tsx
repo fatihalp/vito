@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import { ProjectSwitch } from '@/components/project-switch';
 import { MailIcon, SlashIcon, WifiIcon, WifiOffIcon } from 'lucide-react';
@@ -17,13 +18,14 @@ export function AppHeader({
   socketStatus: SocketStatus;
   socketReconnect: () => void;
 }) {
+  const translateText = useTranslate();
   const page = usePage<SharedData>();
 
   return (
     <header className="bg-sidebar -ml-1 flex shrink-0 flex-col md:-ml-2">
       <div className="flex h-12 items-center justify-between gap-2 border-b px-4">
         <div className="flex min-w-0 items-center gap-1">
-          <SidebarTrigger className="-ml-1 md:hidden" aria-label="Toggle navigation" aria-controls="app-navigation" />
+          <SidebarTrigger className="-ml-1 md:hidden" aria-label={translateText("Toggle navigation")} aria-controls="app-navigation" />
           <div className="flex min-w-0 items-center gap-2 text-sm">
             <ProjectSwitch />
             <SlashIcon className="text-muted-foreground size-3 shrink-0" />
@@ -38,7 +40,7 @@ export function AppHeader({
               <Link href={`${"/settings/projects"}#invitations`}>
                 <MailIcon className="size-4" />
                 <span className="hidden sm:inline">
-                  {page.props.auth.pendingInvitationsCount} {page.props.auth.pendingInvitationsCount === 1 ? 'invitation' : 'invitations'}
+                  {page.props.auth.pendingInvitationsCount} {page.props.auth.pendingInvitationsCount === 1 ? translateText("invitation") : translateText("invitations")}
                 </span>
                 <span className="sm:hidden">{page.props.auth.pendingInvitationsCount}</span>
               </Link>
@@ -53,13 +55,13 @@ export function AppHeader({
                   className="size-8"
                   onClick={socketReconnect}
                   disabled={socketStatus === 'connecting'}
-                  aria-label={socketStatus === 'connecting' ? 'Connecting to WebSocket' : 'WebSocket disconnected, click to reconnect'}
+                  aria-label={socketStatus === 'connecting' ? translateText("Connecting to WebSocket") : translateText("WebSocket disconnected, click to reconnect")}
                 >
                   {socketStatus === 'connecting' ? <WifiIcon className="size-4 animate-pulse" /> : <WifiOffIcon className="size-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {socketStatus === 'connecting' ? 'Connecting to WebSocket...' : 'WebSocket connection failed. Click to retry.'}
+                {socketStatus === 'connecting' ? translateText("Connecting to WebSocket...") : translateText("WebSocket connection failed. Click to retry.")}
               </TooltipContent>
             </Tooltip>
           )}

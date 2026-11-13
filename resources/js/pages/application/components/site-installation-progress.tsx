@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import React, { useState, useEffect, useMemo } from 'react';
 import { router, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -52,6 +53,7 @@ interface SiteInstallationProgressProps {
 }
 
 export default function SiteInstallationProgress({ server, site: initialSite }: SiteInstallationProgressProps) {
+  const translateText = useTranslate();
   const site = useRealtimeRecord(initialSite, 'site') || initialSite;
   const page = usePage<SharedData>();
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
@@ -229,20 +231,20 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
           <div className="flex flex-col gap-1">
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-semibold tracking-tight">
-                {failed ? 'Site installation failed' : 'Installing application'}
+                {failed ? translateText("Site installation failed") : translateText("Installing application")}
               </h2>
               {failed && (
                 <Badge
                   variant="destructive"
                   className="text-xs font-normal"
                 >
-                  Failed
+                  {translateText('Failed')}
                 </Badge>
               )}
             </div>
             <p className="text-muted-foreground text-sm">
               {failed
-                ? 'The installation did not complete. Review the logs below or retry.'
+                ? translateText("The installation did not complete. Review the logs below or retry.")
                 : `Setting up ${site.domain} · ${completedCount} of ${totalSteps} steps completed`}
             </p>
           </div>
@@ -257,31 +259,30 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                   disabled={deleting || retrying}
                 >
                   <Trash2 className="size-3.5" />
-                  <span>Cancel & Delete</span>
+                  <span>{translateText("Cancel & Delete")}</span>
                 </Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Cancel installation & delete site?</DialogTitle>
+                  <DialogTitle>{translateText("Cancel installation & delete site?")}</DialogTitle>
                   <DialogDescription>
-                    Are you sure you want to abandon the installation and delete <strong>{site.domain}</strong>?
-                    Any created system files, web server configuration, and user will be removed. This action cannot be undone.
+                    {translateText("Are you sure you want to abandon the installation and delete")} <strong>{site.domain}</strong>{translateText("? Any created system files, web server configuration, and user will be removed. This action cannot be undone.")}
                   </DialogDescription>
                 </DialogHeader>
 
                 <div className="flex flex-col gap-4 py-2">
                   <div className="flex flex-col gap-2">
                     <Label htmlFor="confirm-site-domain" className="text-sm">
-                      Type{' '}
+                      {translateText('Type')}{' '}
                       <button
                         type="button"
                         onClick={() => setConfirmDomain(site.domain)}
                         className="font-semibold text-foreground underline decoration-dotted hover:text-primary cursor-pointer"
-                        title="Click to auto-fill"
+                        title={translateText("Click to auto-fill")}
                       >
                         {site.domain}
                       </button>{' '}
-                      to confirm:
+                      {translateText("to confirm:")}
                     </Label>
                     <Input
                       id="confirm-site-domain"
@@ -302,10 +303,10 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     />
                     <div className="flex flex-col gap-0.5">
                       <Label htmlFor="force-delete-checkbox" className="cursor-pointer text-xs font-medium">
-                        Force delete
+                        {translateText('Force delete')}
                       </Label>
                       <p className="text-muted-foreground text-xs">
-                        Remove the site from Pure even if cleaning up files on the remote server fails.
+                        {translateText("Remove the site from Pure even if cleaning up files on the remote server fails.")}
                       </p>
                     </div>
                   </div>
@@ -321,7 +322,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     onClick={() => handleOpenDeleteChange(false)}
                     disabled={deleting}
                   >
-                    Keep Installation
+                    {translateText("Keep Installation")}
                   </Button>
                   <Button
                     variant="destructive"
@@ -331,10 +332,10 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     {deleting ? (
                       <>
                         <Loader2 className="mr-2 size-3.5 animate-spin" />
-                        Deleting Site...
+                        {translateText("Deleting Site...")}
                       </>
                     ) : (
-                      'Cancel & Delete Site'
+                      translateText("Cancel & Delete Site")
                     )}
                   </Button>
                 </DialogFooter>
@@ -351,21 +352,20 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     disabled={retrying}
                   >
                     <RotateCcw className={cn('size-3.5', retrying && 'animate-spin')} />
-                    <span>Retry Installation</span>
+                    <span>{translateText("Retry Installation")}</span>
                   </Button>
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
-                    <DialogTitle>Resume or retry installation?</DialogTitle>
+                    <DialogTitle>{translateText("Resume or retry installation?")}</DialogTitle>
                     <DialogDescription>
-                      This will safely re-trigger the installation for <strong>{site.domain}</strong>. All completed
-                      steps (system user, vhost, repository clone, ssh keys) are stored and will be skipped.
+                      {translateText("This will safely re-trigger the installation for")} <strong>{site.domain}</strong>{translateText(". All completed steps (system user, vhost, repository clone, ssh keys) are stored and will be skipped.")}
                     </DialogDescription>
                   </DialogHeader>
 
                   {canEditComposer && (
                     <div className="space-y-2 py-2">
-                      <Label htmlFor="composer-install-cmd">Composer install command</Label>
+                      <Label htmlFor="composer-install-cmd">{translateText('Composer install command')}</Label>
                       <Textarea
                         id="composer-install-cmd"
                         value={composerCommand}
@@ -380,14 +380,14 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
 
                   <DialogFooter className="gap-2 sm:gap-0">
                     <Button variant="outline" onClick={() => setRetryDialogOpen(false)} disabled={retrying}>
-                      Cancel
+                      {translateText('Cancel')}
                     </Button>
                     <Button
                       variant="destructive"
                       onClick={handleRetry}
                       disabled={retrying}
                     >
-                      {retrying ? 'Starting...' : 'Resume Installation'}
+                      {retrying ? translateText("Starting...") : translateText("Resume Installation")}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
@@ -402,7 +402,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
           <div className="border-destructive/30 bg-destructive/5 text-destructive rounded-lg border p-3 text-xs">
             <div className="flex items-center gap-1.5 font-semibold">
               <AlertCircle className="size-4 shrink-0" />
-              <span>Last Error</span>
+              <span>{translateText("Last Error")}</span>
             </div>
             <pre className="mt-1 font-mono whitespace-pre-wrap break-all text-xs opacity-90">{site.last_error}</pre>
           </div>
@@ -412,7 +412,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
         <Card className="border-border/60 shadow-none lg:col-span-5">
           <CardHeader className="p-3.5 border-b flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-base font-semibold">Installation Steps</CardTitle>
+            <CardTitle className="text-base font-semibold">{translateText("Installation Steps")}</CardTitle>
             <span className="text-sm text-muted-foreground font-mono">
               {completedCount}/{totalSteps}
             </span>
@@ -507,7 +507,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
             <div className="flex items-center gap-2 min-w-0">
               <Terminal className="size-4 text-muted-foreground shrink-0" />
               <CardTitle className="text-sm font-semibold truncate">
-                {activeLog ? activeLog.name : 'Installation Output'}
+                {activeLog ? activeLog.name : translateText("Installation Output")}
               </CardTitle>
             </div>
 
@@ -518,7 +518,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                   onValueChange={(val) => setSelectedLogId(Number(val))}
                 >
                   <SelectTrigger className="h-7 text-xs w-44">
-                    <SelectValue placeholder="Select log..." />
+                    <SelectValue placeholder={translateText("Select log...")} />
                   </SelectTrigger>
                   <SelectContent>
                     {logsList.map((log) => (
@@ -536,7 +536,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     href={`/servers/${server.id}/logs/${activeLog.id}/download`}
                     target="_blank"
                     rel="noreferrer"
-                    title="Download log"
+                    title={translateText('Download log')}
                   >
                     <Download className="size-3.5" />
                   </a>
@@ -555,7 +555,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                     <Loader2 className="size-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : (
-                  liveLogContent || 'No output recorded yet.'
+                  liveLogContent || translateText("No output recorded yet.")
                 )}
               </LogOutput>
             ) : (
@@ -563,10 +563,10 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
                 {logsQuery.isLoading ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="size-4 animate-spin" />
-                    <span>Checking for logs...</span>
+                    <span>{translateText("Checking for logs...")}</span>
                   </div>
                 ) : (
-                  <span>No installation logs found yet.</span>
+                  <span>{translateText("No installation logs found yet.")}</span>
                 )}
               </div>
             )}
@@ -582,7 +582,7 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
           >
             <div className="flex items-center gap-2">
               <FileText className="size-3.5 text-muted-foreground" />
-              <span>All Installation Logs</span>
+              <span>{translateText("All Installation Logs")}</span>
               <Badge variant="gray" className="text-[10px] px-1.5 py-0 h-4">
                 {logsList.length}
               </Badge>

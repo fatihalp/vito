@@ -54,6 +54,7 @@ class Kernel extends HttpKernel
             ShareErrorsFromSession::class,
             PreventRequestForgery::class,
             SubstituteBindings::class,
+            \App\Http\Middleware\SetLocale::class,
             ResolveCurrentProject::class,
             HandleInertiaRequests::class,
             EnsurePasswordIsChanged::class,

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardRow } from '@/components/ui/card';
@@ -15,6 +16,7 @@ type PluginLogsDialogProps = {
 };
 
 export default function PluginLogsDialog({ open, onOpenChange, name, errors }: PluginLogsDialogProps) {
+  const translateText = useTranslate();
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   const toggleExpanded = (key: string) => {
@@ -35,18 +37,17 @@ export default function PluginLogsDialog({ open, onOpenChange, name, errors }: P
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="flex max-h-[80vh] max-w-2xl! flex-col" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Error Logs - {name}</DialogTitle>
+          <DialogTitle>{translateText("Error Logs -")} {name}</DialogTitle>
           <DialogDescription>
-            {errors.length}
-            {errors.length === 10 && '+'} error{errors.length !== 1 ? 's' : ''} found in this plugin.
-            {errors.length === 10 && 'The most recent 10 will be shown below.'}
+            {translateText(errors.length === 1 ? ':count error found in this plugin.' : ':count errors found in this plugin.', { count: errors.length === 10 ? '10+' : errors.length })}
+            {errors.length === 10 && translateText("The most recent 10 will be shown below.")}
           </DialogDescription>
         </DialogHeader>
         <div className="flex-1 overflow-y-auto p-4">
           {errors.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-center">
               <AlertCircleIcon className="text-muted-foreground mb-3 h-12 w-12" />
-              <p className="text-muted-foreground">No errors found</p>
+              <p className="text-muted-foreground">{translateText("No errors found")}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -117,7 +118,7 @@ export default function PluginLogsDialog({ open, onOpenChange, name, errors }: P
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            {translateText('Close')}
           </Button>
         </DialogFooter>
       </DialogContent>

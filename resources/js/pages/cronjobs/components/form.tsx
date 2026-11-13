@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useMemo, FormEvent, useState, useEffect } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -33,6 +34,7 @@ export default function CronJobForm({
   cronJob?: CronJob;
   templateId?: string;
 }) {
+  const translateText = useTranslate();
   const page = usePage<SharedData & { server: Server; sites?: Array<{ id: number; domain: string }>; ssh_users?: string[] }>();
   const configs = useConfigs()!;
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
@@ -139,14 +141,14 @@ export default function CronJobForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{cronJob ? 'Edit' : 'Create'} cron job</DialogTitle>
-          <DialogDescription className="sr-only">{cronJob ? 'Edit' : 'Create new'} cron job</DialogDescription>
+          <DialogTitle>{cronJob ? translateText("Edit") : translateText("Create")} {translateText("cron job")}</DialogTitle>
+          <DialogDescription className="sr-only">{cronJob ? translateText("Edit") : translateText("Create new")} {translateText("cron job")}</DialogDescription>
         </DialogHeader>
         <Form id="cronjob-form" onSubmit={submit} className="min-h-0 overflow-y-auto p-4">
           <FormFields>
             {!cronJob && (
               <FormField>
-                <Label htmlFor="template">Start with a template</Label>
+                <Label htmlFor="template">{translateText("Start with a template")}</Label>
                 <Select
                   value={selectedTemplate || 'custom'}
                   onValueChange={(value) => {
@@ -158,11 +160,11 @@ export default function CronJobForm({
                   }}
                 >
                   <SelectTrigger id="template" className="h-auto min-h-9 w-full text-left [&>span]:line-clamp-none [&_span]:whitespace-normal">
-                    <SelectValue placeholder="Write your own command" />
+                    <SelectValue placeholder={translateText("Write your own command")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="custom">Write your own command</SelectItem>
+                      <SelectItem value="custom">{translateText("Write your own command")}</SelectItem>
                       {CRONJOB_TEMPLATES.map((template) => (
                         <SelectItem key={template.id} value={template.id} className="[&_span]:whitespace-normal">
                           {template.label}
@@ -180,19 +182,19 @@ export default function CronJobForm({
             )}
 
             <FormField>
-              <Label htmlFor="name">Name (optional)</Label>
+              <Label htmlFor="name">{translateText("Name (optional)")}</Label>
               <Input
                 type="text"
                 id="name"
                 value={form.data.name}
                 onChange={(e) => form.setData('name', e.target.value)}
-                placeholder="Optional name for the cron job"
+                placeholder={translateText("Optional name for the cron job")}
               />
               <InputError message={form.errors.name} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="command">Command</Label>
+              <Label htmlFor="command">{translateText('Command')}</Label>
               <Textarea
                 id="command"
                 rows={2}
@@ -207,24 +209,24 @@ export default function CronJobForm({
               />
               <InputError message={form.errors.command} />
               {form.data.site_id !== '0' ? (
-                <p id="command-help" className="text-muted-foreground text-xs">Enter only the command. It runs from the selected site's directory.</p>
+                <p id="command-help" className="text-muted-foreground text-xs">{translateText("Enter only the command. It runs from the selected site's directory.")}</p>
               ) : (
                 <p id="command-help" className="text-muted-foreground text-xs leading-relaxed">
-                  Select a site to run from its directory, or include the full path in your command.
+                  {translateText("Select a site to run from its directory, or include the full path in your command.")}
                 </p>
               )}
             </FormField>
 
             {page.props.sites && !site && (
               <FormField>
-                <Label htmlFor="site_id">Belongs to</Label>
+                <Label htmlFor="site_id">{translateText("Belongs to")}</Label>
                 <Select value={form.data.site_id} onValueChange={(value) => form.setData('site_id', value)}>
                   <SelectTrigger id="site_id">
-                    <SelectValue placeholder="Select a site (optional)" />
+                    <SelectValue placeholder={translateText("Select a site (optional)")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="0">Server</SelectItem>
+                      <SelectItem value="0">{translateText('Server')}</SelectItem>
                       {page.props.sites.map((siteOption) => (
                         <SelectItem key={`site-${siteOption.id}`} value={siteOption.id.toString()}>
                           {siteOption.domain}
@@ -238,10 +240,10 @@ export default function CronJobForm({
             )}
 
             <FormField>
-              <Label htmlFor="frequency">Frequency</Label>
+              <Label htmlFor="frequency">{translateText("Frequency")}</Label>
               <Select value={form.data.frequency} onValueChange={(value) => form.setData('frequency', value)}>
                 <SelectTrigger id="frequency">
-                  <SelectValue placeholder="Select a frequency" />
+                  <SelectValue placeholder={translateText("Select a frequency")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -256,14 +258,14 @@ export default function CronJobForm({
               <InputError message={form.errors.frequency} />
               {form.data.command.includes('schedule:run') && form.data.frequency !== '* * * * *' && (
                 <p className="text-muted-foreground text-xs leading-relaxed">
-                  Laravel Task Scheduler (<code className="font-mono">schedule:run</code>) should run every minute (<code className="font-mono">* * * * *</code>) to execute scheduled tasks on time.
+                  Laravel Task Scheduler (<code className="font-mono">schedule:run</code>{translateText(") should run every minute (")}<code className="font-mono">* * * * *</code>{translateText(") to execute scheduled tasks on time.")}
                 </p>
               )}
             </FormField>
 
             {form.data.frequency === 'custom' && (
               <FormField>
-                <Label htmlFor="custom_frequency">Custom frequency (crontab)</Label>
+                <Label htmlFor="custom_frequency">{translateText("Custom frequency (crontab)")}</Label>
                 <Input
                   id="custom_frequency"
                   name="custom_frequency"
@@ -276,10 +278,10 @@ export default function CronJobForm({
             )}
 
             <FormField>
-              <Label htmlFor="user">User</Label>
+              <Label htmlFor="user">{translateText('User')}</Label>
               <Select value={form.data.user} onValueChange={(value) => form.setData('user', value)}>
                 <SelectTrigger id="user">
-                  <SelectValue placeholder="Select a user" />
+                  <SelectValue placeholder={translateText("Select a user")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -297,11 +299,11 @@ export default function CronJobForm({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           <Button form="cronjob-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

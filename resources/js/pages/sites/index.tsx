@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useEffect } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -48,12 +49,13 @@ const siteCell = ({ row, value }: CellRenderProps) => (
 );
 
 function SiteWarnings({ row }: { row: Row }) {
-  const warningItems = getSiteWarningItems(row as unknown as Site);
+  const translateText = useTranslate();
+  const warningItems = getSiteWarningItems(row as unknown as Site, false, translateText);
 
   return (
     <>
       {row.status && row.status !== 'ready' && (
-        <Badge variant={(row.status_color as 'default') ?? 'default'}>{String(row.status)}</Badge>
+        <Badge variant={(row.status_color as 'default') ?? 'default'}>{translateText(String(row.status))}</Badge>
       )}
       {warningItems.length > 0 && <WarningsPopover items={warningItems} />}
     </>
@@ -69,6 +71,7 @@ function GitCell({ row, value }: CellRenderProps) {
 }
 
 function RelativeDateCell({ value }: CellRenderProps) {
+  const translateText = useTranslate();
   if (typeof value !== 'string' || !value) {
     return null;
   }
@@ -76,7 +79,7 @@ function RelativeDateCell({ value }: CellRenderProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap text-xs" aria-label="Show exact date">
+        <button type="button" className="text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap text-xs" aria-label={translateText("Show exact date")}>
           <DateTime date={value} relative />
         </button>
       </PopoverTrigger>
@@ -88,6 +91,7 @@ function RelativeDateCell({ value }: CellRenderProps) {
 }
 
 export default function Sites() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const { advanced } = usePanelView();
   const gitStatusChecking = page.props.gitStatusChecking ?? 0;
@@ -105,7 +109,7 @@ export default function Sites() {
 
   return (
     <Comp>
-      <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
+      <Head title={translateText("Sites :value", { value: page.props.server ? ' - ' + page.props.server.name : '' })} />
       <Container className="py-3">
         <VitoTable
           fitContent
@@ -130,13 +134,13 @@ export default function Sites() {
                     router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                   }}
                 >
-                  <SelectTrigger className="h-8 w-36 text-sm" aria-label="Group sites by">
-                    <SelectValue placeholder="No grouping" />
+                  <SelectTrigger className="h-8 w-36 text-sm" aria-label={translateText("Group sites by")}>
+                    <SelectValue placeholder={translateText("No grouping")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No grouping</SelectItem>
-                    <SelectItem value="project">Group by Project</SelectItem>
-                    <SelectItem value="server">Group by Server</SelectItem>
+                    <SelectItem value="none">{translateText("No grouping")}</SelectItem>
+                    <SelectItem value="project">{translateText("Group by Project")}</SelectItem>
+                    <SelectItem value="server">{translateText("Group by Server")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
@@ -154,20 +158,20 @@ export default function Sites() {
                     router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                   }}
                 >
-                  <SelectTrigger className="h-8 w-36 text-sm" aria-label="Filter sites by Git status">
-                    <SelectValue placeholder="All Git statuses" />
+                  <SelectTrigger className="h-8 w-36 text-sm" aria-label={translateText("Filter sites by Git status")}>
+                    <SelectValue placeholder={translateText("All Git statuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Git statuses</SelectItem>
-                    <SelectItem value="up_to_date">Up to date</SelectItem>
-                    <SelectItem value="behind">Behind</SelectItem>
+                    <SelectItem value="all">{translateText("All Git statuses")}</SelectItem>
+                    <SelectItem value="up_to_date">{translateText("Up to date")}</SelectItem>
+                    <SelectItem value="behind">{translateText("Behind")}</SelectItem>
                   </SelectContent>
                 </Select>
               )}
               {advanced && gitStatusChecking > 0 && (
                 <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
                   <LoaderCircleIcon className="size-3.5 animate-spin" />
-                  Checking {gitStatusChecking} {gitStatusChecking === 1 ? 'site' : 'sites'}
+                  {translateText(gitStatusChecking === 1 ? 'Checking :count site' : 'Checking :count sites', { count: gitStatusChecking })}
                 </span>
               )}
               <div className="ml-auto flex shrink-0 items-center gap-2">
@@ -182,7 +186,7 @@ export default function Sites() {
                         }
                       >
                         <PlusIcon />
-                        Create site
+                        {translateText('Create site')}
                       </Link>
                     </Button>
                 )}

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { BreadcrumbHeader } from '@/components/breadcrumb-header';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
@@ -24,6 +25,7 @@ type Page = {
 };
 
 export default function Show() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const dialog = useDialog();
   const { command, server, site } = page.props;
@@ -53,11 +55,11 @@ export default function Show() {
       <Container>
         <div className="flex items-start justify-between gap-4">
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
-            <Heading title={command.name} description="Run the command and follow its output here in real time." />
+            <Heading title={command.name} description={translateText("Run the command and follow its output here in real time.")} />
           </BreadcrumbHeader>
           <Button onClick={() => dialog.commandExecute.open({ command })}>
             <PlayIcon />
-            Run again
+            {translateText("Run again")}
           </Button>
         </div>
 
@@ -67,7 +69,7 @@ export default function Show() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TerminalIcon className="size-4" />
-              Command
+              {translateText('Command')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
@@ -77,8 +79,8 @@ export default function Show() {
 
         <section className="flex flex-col gap-3">
           <div>
-            <h2 className="text-lg font-semibold">Execution logs</h2>
-            <p className="text-muted-foreground text-sm">The newest execution opens automatically and streams output as it arrives.</p>
+            <h2 className="text-lg font-semibold">{translateText("Execution logs")}</h2>
+            <p className="text-muted-foreground text-sm">{translateText("The newest execution opens automatically and streams output as it arrives.")}</p>
           </div>
           {executions.data.length > 0 ? (
             <>
@@ -88,11 +90,11 @@ export default function Show() {
               {(executions.links.prev || executions.links.next) && (
                 <div className="flex items-center justify-between gap-3 pt-1">
                   <Button variant="outline" disabled={!executions.links.prev} onClick={() => visitPage(executions.links.prev)}>
-                    Previous
+                    {translateText('Previous')}
                   </Button>
-                  <span className="text-muted-foreground text-sm">Page {executions.meta.current_page}</span>
+                  <span className="text-muted-foreground text-sm">{translateText('Page')} {executions.meta.current_page}</span>
                   <Button variant="outline" disabled={!executions.links.next} onClick={() => visitPage(executions.links.next)}>
-                    Next
+                    {translateText('Next')}
                   </Button>
                 </div>
               )}
@@ -102,12 +104,12 @@ export default function Show() {
               <CardContent className="flex flex-col items-center gap-3 px-6 py-12 text-center">
                 <TerminalIcon className="text-muted-foreground size-6" />
                 <div>
-                  <h3 className="font-medium">No executions yet</h3>
-                  <p className="text-muted-foreground text-sm">Run the command to see its live output here.</p>
+                  <h3 className="font-medium">{translateText("No executions yet")}</h3>
+                  <p className="text-muted-foreground text-sm">{translateText("Run the command to see its live output here.")}</p>
                 </div>
                 <Button onClick={() => dialog.commandExecute.open({ command })}>
                   <PlayIcon />
-                  Run command
+                  {translateText("Run command")}
                 </Button>
               </CardContent>
             </Card>

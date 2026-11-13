@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { FormEvent, useState } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
@@ -16,6 +17,7 @@ import ServerSelect from '@/pages/servers/components/server-select';
 import PgBackRestFields, { PgBackRestSettings, pgBackRestDefaults } from '@/pages/backups/components/pgbackrest-fields';
 
 export default function CreateBackup({ open, onOpenChange, server }: { open: boolean; onOpenChange: (open: boolean) => void; server?: Server }) {
+  const translateText = useTranslate();
   const configs = useConfigs()!;
   const [selectedServer, setSelectedServer] = useState<Server | undefined>(undefined);
   const activeServer = server ?? selectedServer;
@@ -56,15 +58,15 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>Create backup</SheetTitle>
-          <SheetDescription className="sr-only">Create a new backup</SheetDescription>
+          <SheetTitle>{translateText("Create backup")}</SheetTitle>
+          <SheetDescription className="sr-only">{translateText("Create a new backup")}</SheetDescription>
         </SheetHeader>
         <Form id="create-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
             {}
             {!server && (
               <FormField>
-                <Label htmlFor="server">Server</Label>
+                <Label htmlFor="server">{translateText('Server')}</Label>
                 <ServerSelect
                   id="server"
                   value={selectedServer ? String(selectedServer.id) : ''}
@@ -81,18 +83,18 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {}
             <FormField>
-              <Label htmlFor="type">Backup Type</Label>
+              <Label htmlFor="type">{translateText("Backup Type")}</Label>
               <Select
                 value={form.data.type}
                 onValueChange={(value) => form.setData('type', value)}
               >
                 <SelectTrigger id="type">
-                  <SelectValue placeholder="Select backup type" />
+                  <SelectValue placeholder={translateText("Select backup type")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="file">File Backup</SelectItem>
-                    {activeServer?.services?.database && <SelectItem value="database">Database Backup</SelectItem>}
+                    <SelectItem value="file">{translateText("File Backup")}</SelectItem>
+                    {activeServer?.services?.database && <SelectItem value="database">{translateText("Database Backup")}</SelectItem>}
                     {activeServer?.services?.database === 'postgresql' && <SelectItem value="pgbackrest">PostgreSQL cluster (pgBackRest)</SelectItem>}
                   </SelectGroup>
                 </SelectContent>
@@ -102,16 +104,14 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {isPgBackRest && (
               <div className="text-muted-foreground rounded-md border p-3 text-sm">
-                Backs up the whole PostgreSQL cluster straight to S3 with pgBackRest: parallel, compressed and encrypted, with point-in-time recovery from
-                continuously archived WAL. Pure installs pgBackRest and turns on WAL archiving, which restarts PostgreSQL once if archiving is off. Copy the
-                encryption passphrase from the backup's menu and keep it somewhere safe; the backups can't be restored without it.
+                {translateText("Backs up the whole PostgreSQL cluster straight to S3 with pgBackRest: parallel, compressed and encrypted, with point-in-time recovery from continuously archived WAL. Pure installs pgBackRest and turns on WAL archiving, which restarts PostgreSQL once if archiving is off. Copy the encryption passphrase from the backup's menu and keep it somewhere safe; the backups can't be restored without it.")}
               </div>
             )}
 
             {}
             {form.data.type === 'database' && activeServer && (
               <FormField>
-                <Label htmlFor="database">Database</Label>
+                <Label htmlFor="database">{translateText('Database')}</Label>
                 <DatabaseSelect
                   id="database"
                   name="database"
@@ -126,7 +126,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
             {}
             {form.data.type === 'file' && (
               <FormField>
-                <Label htmlFor="path">File/Directory Path</Label>
+                <Label htmlFor="path">{translateText("File/Directory Path")}</Label>
                 <Input
                   id="path"
                   name="path"
@@ -134,7 +134,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                   onChange={(e) => form.setData('path', e.target.value)}
                   placeholder="/var/www/html or /home/user/documents"
                 />
-                <div className="text-muted-foreground mt-1 text-sm">Specify the file or directory path to backup.</div>
+                <div className="text-muted-foreground mt-1 text-sm">{translateText("Specify the file or directory path to backup.")}</div>
                 <InputError message={form.errors.path} />
               </FormField>
             )}
@@ -154,10 +154,10 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {!isPgBackRest && (
             <FormField>
-              <Label htmlFor="interval">Interval</Label>
+              <Label htmlFor="interval">{translateText("Interval")}</Label>
               <Select value={form.data.interval} onValueChange={(value) => form.setData('interval', value)}>
                 <SelectTrigger id="interval">
-                  <SelectValue placeholder="Select an interval" />
+                  <SelectValue placeholder={translateText("Select an interval")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -175,7 +175,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {!isPgBackRest && form.data.interval === 'custom' && (
               <FormField>
-                <Label htmlFor="custom_interval">Custom interval (crontab)</Label>
+                <Label htmlFor="custom_interval">{translateText("Custom interval (crontab)")}</Label>
                 <Input
                   id="custom_interval"
                   name="custom_interval"
@@ -189,7 +189,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {!isPgBackRest && (
               <FormField>
-                <Label htmlFor="keep">Backups to keep</Label>
+                <Label htmlFor="keep">{translateText("Backups to keep")}</Label>
                 <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
                 <InputError message={form.errors.keep} />
               </FormField>
@@ -202,10 +202,10 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
           <div className="flex items-center gap-2">
             <Button form="create-backup-form" type="submit" disabled={form.processing || !activeServer}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              Create
+              {translateText('Create')}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
           </div>
         </SheetFooter>

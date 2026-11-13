@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
@@ -26,6 +27,7 @@ export default function StorageProviderEditDialog({
   onOpenChange: (open: boolean) => void;
   storageProvider: StorageProvider;
 }) {
+  const translateText = useTranslate();
   const configs = useConfigs()!;
   const [showOptional, setShowOptional] = useState(false);
 
@@ -58,8 +60,8 @@ export default function StorageProviderEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Edit {storageProvider.name}</DialogTitle>
-          <DialogDescription className="sr-only">Edit storage provider</DialogDescription>
+          <DialogTitle>{translateText('Edit')} {storageProvider.name}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Edit storage provider")}</DialogDescription>
         </DialogHeader>
         <Form
           id="edit-storage-provider-form"
@@ -72,7 +74,7 @@ export default function StorageProviderEditDialog({
         >
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input
                 type="text"
                 id="name"
@@ -106,7 +108,7 @@ export default function StorageProviderEditDialog({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
               >
                 <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
-                <span>{showOptional ? 'Hide optional fields' : 'Show optional fields (Path, Global)'}</span>
+                <span>{showOptional ? translateText("Hide optional fields") : translateText("Show optional fields (Path, Global)")}</span>
               </button>
 
               {showOptional && (
@@ -129,7 +131,7 @@ export default function StorageProviderEditDialog({
                         onCheckedChange={(checked) => form.setData('global', Boolean(checked))}
                       />
                       <Label htmlFor="global" className="text-xs font-normal">
-                        Is global (accessible in all projects)
+                        {translateText('Is global (accessible in all projects)')}
                       </Label>
                     </div>
                     <InputError message={form.errors.global} />
@@ -145,12 +147,12 @@ export default function StorageProviderEditDialog({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="edit-storage-provider-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

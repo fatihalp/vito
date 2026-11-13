@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
@@ -11,6 +12,7 @@ import ErrorIndicator from '@/components/error-indicator';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Delete({ worker }: { worker: Worker }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -27,12 +29,13 @@ function Delete({ worker }: { worker: Worker }) {
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }
 
 function BootstrapLockedItem({ label, destructive }: { label: string; destructive?: boolean }) {
+  const translateText = useTranslate();
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -42,12 +45,13 @@ function BootstrapLockedItem({ label, destructive }: { label: string; destructiv
           </DropdownMenuItem>
         </div>
       </TooltipTrigger>
-      <TooltipContent side="left">Site managed application worker</TooltipContent>
+      <TooltipContent side="left">{translateText("Site managed application worker")}</TooltipContent>
     </Tooltip>
   );
 }
 
 function Actions({ worker }: { worker: Worker }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const locked = worker.is_site_bootstrap;
 
@@ -59,9 +63,9 @@ function Actions({ worker }: { worker: Worker }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {locked ? (
-            <BootstrapLockedItem label="Edit" />
+            <BootstrapLockedItem label={translateText('Edit')} />
           ) : (
-            <DropdownMenuItem onSelect={() => dialog.workerForm.open({ serverId: worker.server_id, worker })}>Edit</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => dialog.workerForm.open({ serverId: worker.server_id, worker })}>{translateText('Edit')}</DropdownMenuItem>
           )}
           <WorkerAction type="start" worker={worker} />
           <WorkerAction type="stop" worker={worker} />
@@ -69,7 +73,7 @@ function Actions({ worker }: { worker: Worker }) {
           <WorkerLogs worker={worker} />
           <WorkerEnvironment worker={worker} />
           <DropdownMenuSeparator />
-          {locked ? <BootstrapLockedItem label="Delete" destructive /> : <Delete worker={worker} />}
+          {locked ? <BootstrapLockedItem label={translateText('Delete')} destructive /> : <Delete worker={worker} />}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

@@ -36,6 +36,11 @@ class Site extends AbstractModel
 
     use HasProjectThroughServer;
 
+    public function runtimeProcesses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(RuntimeProcess::class, 'runtime_process_site');
+    }
+
     protected $fillable = [
         'server_id',
         'isolated_user_id',
@@ -503,11 +508,14 @@ class Site extends AbstractModel
         $stored = data_get($this->type_data, 'env_path');
 
         if ($path === null) {
-            return is_string($stored) ? $stored : $this->path.'/.env';
+            $path = is_string($stored) && $stored !== '' ? $stored : $this->path.'/.env';
         }
 
         if ($stored !== null && $path === $stored) {
-            return $path;
+            if (str_starts_with($path, '/')) {
+                return $path;
+            }
+            $path = $this->path.'/'.$path;
         }
 
         if (

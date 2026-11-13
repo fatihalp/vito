@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useId, useState } from 'react';
 import {
   Dialog,
@@ -23,6 +24,7 @@ import RadioCard from '@/components/radio-card';
 type ApplyChoice = '' | 'config' | 'restart';
 
 export default function StartCommand({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const groupLabelId = useId();
   const hasWorker = site.bootstrap_worker_id != null;
@@ -61,14 +63,14 @@ export default function StartCommand({ site, children }: { site: Site; children:
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Update Start Command</DialogTitle>
-          <DialogDescription>The shell command supervisor uses to start your application worker.</DialogDescription>
+          <DialogTitle>{translateText("Update Start Command")}</DialogTitle>
+          <DialogDescription>{translateText("The shell command supervisor uses to start your application worker.")}</DialogDescription>
         </DialogHeader>
 
         <Form id="start-command-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="start_command">Start Command</Label>
+              <Label htmlFor="start_command">{translateText("Start Command")}</Label>
               <Input
                 id="start_command"
                 type="text"
@@ -77,14 +79,14 @@ export default function StartCommand({ site, children }: { site: Site; children:
                 onChange={(e) => form.setData('start_command', e.target.value)}
               />
               {!hasWorker && (
-                <p className="text-muted-foreground text-xs">The application worker will be created with this command on the next deploy.</p>
+                <p className="text-muted-foreground text-xs">{translateText("The application worker will be created with this command on the next deploy.")}</p>
               )}
               <InputError message={form.errors.start_command} />
             </FormField>
 
             {hasWorker && (
               <FormField>
-                <Label id={groupLabelId}>How should we apply this change?</Label>
+                <Label id={groupLabelId}>{translateText("How should we apply this change?")}</Label>
                 <RadioGroup
                   value={form.data.apply}
                   onValueChange={(value) => form.setData('apply', value as ApplyChoice)}
@@ -95,15 +97,15 @@ export default function StartCommand({ site, children }: { site: Site; children:
                     value="config"
                     selected={form.data.apply === 'config'}
                     onSelect={(value) => form.setData('apply', value as ApplyChoice)}
-                    title="Update config only"
-                    description="The worker keeps running its current command. The change takes effect on the next restart or deploy."
+                    title={translateText("Update config only")}
+                    description={translateText("The worker keeps running its current command. The change takes effect on the next restart or deploy.")}
                   />
                   <RadioCard
                     value="restart"
                     selected={form.data.apply === 'restart'}
                     onSelect={(value) => form.setData('apply', value as ApplyChoice)}
-                    title="Update and restart now"
-                    description="Rewrites the config and restarts the worker immediately so the new command takes effect right away."
+                    title={translateText("Update and restart now")}
+                    description={translateText("Rewrites the config and restarts the worker immediately so the new command takes effect right away.")}
                   />
                 </RadioGroup>
               </FormField>
@@ -113,11 +115,11 @@ export default function StartCommand({ site, children }: { site: Site; children:
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="start-command-form" disabled={form.processing || choiceMissing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Combobox } from '@/components/ui/combobox';
@@ -14,6 +15,7 @@ interface SelectBranchProps {
 }
 
 export default function SelectBranch({ sourceControlId, repository, value, onValueChange, placeholder = 'Enter branch' }: SelectBranchProps) {
+  const translateText = useTranslate();
   const [branches, setBranches] = useState<string[]>([]);
   const [gettingBranches, setGettingBranches] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -70,7 +72,7 @@ export default function SelectBranch({ sourceControlId, repository, value, onVal
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
-        {gettingBranches && <Input id="branch" type="text" value="" disabled={true} placeholder="Fetching..." />}
+        {gettingBranches && <Input id="branch" type="text" value="" disabled={true} placeholder={translateText("Fetching...")} />}
         {!gettingBranches && (branches.length === 0 || !sourceControlId || !repository) && (
           <Input id="branch" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
         )}

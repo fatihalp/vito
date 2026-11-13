@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { DatabaseUser } from '@/types/database-user';
@@ -25,13 +26,14 @@ type Page = {
 };
 
 export default function DatabaseUsers() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const dialog = useDialog();
   const usesHost = page.props.usesHost;
 
   return (
     <ServerLayout>
-      <Head title={`Users - ${page.props.server.name}`} />
+      <Head title={translateText("Users - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
@@ -39,7 +41,7 @@ export default function DatabaseUsers() {
             title={
               page.props.server.counts?.database_users !== undefined
                 ? `Users (${page.props.server.counts.database_users})`
-                : 'Users'
+                : translateText("Users")
             }
           />
           <div className="flex items-center gap-2">
@@ -56,13 +58,13 @@ export default function DatabaseUsers() {
                 })
               }
             >
-              Sync
+              {translateText('Sync')}
             </Button>
             {!page.props.replicaOf && (
               <CreateDatabaseUser server={page.props.server.id} usesHost={usesHost}>
                 <Button>
                   <PlusIcon />
-                  <span className="hidden lg:block">Create</span>
+                  <span className="hidden lg:block">{translateText('Create')}</span>
                 </Button>
               </CreateDatabaseUser>
             )}
@@ -72,15 +74,14 @@ export default function DatabaseUsers() {
         {page.props.replicaOf && (
           <Alert>
             <InfoIcon />
-            <AlertTitle>This server is a PostgreSQL replica of {page.props.replicaOf.name}</AlertTitle>
+            <AlertTitle>{translateText('This server is a PostgreSQL replica of')} {page.props.replicaOf.name}</AlertTitle>
             <AlertDescription>
               <p>
-                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Pure imports the list when
-                the replica is built; use Sync to refresh it.
+                {translateText("Everything here is a copy of")} {page.props.replicaOf.name} {translateText("and is read-only, so create and delete on the primary. Pure imports the list when the replica is built; use Sync to refresh it.")}
               </p>
               {page.props.replicaOf.server_id && (
                 <Link href={`/servers/${page.props.replicaOf.server_id}/database/users`} className="text-foreground underline">
-                  Open the primary
+                  {translateText("Open the primary")}
                 </Link>
               )}
             </AlertDescription>
@@ -98,8 +99,8 @@ export default function DatabaseUsers() {
                     <TableActionTrigger />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onSelect={() => dialog.databaseUserEdit.open({ databaseUser, usesHost })}>Edit</DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => dialog.databaseUserLink.open({ databaseUser })}>Link</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => dialog.databaseUserEdit.open({ databaseUser, usesHost })}>{translateText('Edit')}</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => dialog.databaseUserLink.open({ databaseUser })}>{translateText('Link')}</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>

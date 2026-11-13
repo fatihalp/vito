@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useState } from 'react';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { Head, usePage } from '@inertiajs/react';
@@ -106,6 +107,7 @@ function UsageBar({ percent, label, used, total }: { percent: number; label: str
 }
 
 export default function Information() {
+  const translateText = useTranslate();
   const { server, info } = usePage<Page>().props;
   const [showRaw, setShowRaw] = useState(false);
   const { copied, copy } = useClipboard();
@@ -113,10 +115,10 @@ export default function Information() {
   if (info.error) {
     return (
       <ServerLayout>
-        <Head title={`Server Information - ${server.name}`} />
+        <Head title={translateText("Server Information - :value", { value: server.name })} />
         <Container>
           <HeaderContainer>
-            <Heading title="Server Information" />
+            <Heading title={translateText("Server Information")} />
           </HeaderContainer>
           <div className="rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-xs text-destructive">
             {info.error}
@@ -130,11 +132,11 @@ export default function Information() {
 
   return (
     <ServerLayout>
-      <Head title={`Server Information - ${server.name}`} />
+      <Head title={translateText("Server Information - :value", { value: server.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Server Information" />
+          <Heading title={translateText("Server Information")} />
         </HeaderContainer>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -142,13 +144,13 @@ export default function Information() {
             <div className="rounded-md border shadow-2xs overflow-hidden">
               <div className="bg-muted/30 flex items-center gap-2 border-b px-3.5 py-2">
                 <ServerIcon className="size-3.5 text-muted-foreground" />
-                <h3 className="text-xs font-semibold">System</h3>
+                <h3 className="text-xs font-semibold">{translateText('System')}</h3>
               </div>
               <div className="p-3.5 space-y-0.5">
                 <CompactRow label="Hostname" value={info.system.hostname} />
                 <CompactRow label="OS" value={info.system.os} />
-                <CompactRow label="Architecture" value={info.system.arch} />
-                <CompactRow label="Uptime" value={info.system.uptime} />
+                <CompactRow label={translateText("Architecture")} value={info.system.arch} />
+                <CompactRow label={translateText("Uptime")} value={info.system.uptime} />
                 <CompactRow label="Kernel" value={info.system.kernel} />
               </div>
             </div>
@@ -157,23 +159,23 @@ export default function Information() {
               <div className="bg-muted/30 flex items-center justify-between border-b px-3.5 py-2">
                 <div className="flex items-center gap-2">
                   <CpuIcon className="size-3.5 text-muted-foreground" />
-                  <h3 className="text-xs font-semibold">Processor</h3>
+                  <h3 className="text-xs font-semibold">{translateText("Processor")}</h3>
                 </div>
                 <span className="text-[11px] text-muted-foreground font-mono">
-                  {info.total_processors} core{info.total_processors !== 1 ? 's' : ''}
+                  {translateText(info.total_processors === 1 ? ':count core' : ':count cores', { count: info.total_processors })}
                 </span>
               </div>
               <div className="p-3.5 space-y-0.5">
                 {firstProc ? (
                   <>
                     <CompactRow label="Model" value={firstProc.name} />
-                    <CompactRow label="Vendor" value={firstProc.vendor} />
-                    <CompactRow label="Speed" value={firstProc.speed} />
+                    <CompactRow label={translateText("Vendor")} value={firstProc.vendor} />
+                    <CompactRow label={translateText("Speed")} value={firstProc.speed} />
                     <CompactRow label="Cache" value={firstProc.cache} />
-                    <CompactRow label="Cores" value={`${info.total_processors} active`} />
+                    <CompactRow label={translateText('Cores')} value={`${info.total_processors} active`} />
                   </>
                 ) : (
-                  <p className="text-xs text-muted-foreground">No CPU data available.</p>
+                  <p className="text-xs text-muted-foreground">{translateText("No CPU data available.")}</p>
                 )}
               </div>
             </div>
@@ -182,9 +184,9 @@ export default function Information() {
           <div className="space-y-4">
             <div className="rounded-md border shadow-2xs overflow-hidden">
               <div className="bg-muted/30 flex items-center justify-between border-b px-3.5 py-2">
-                <h3 className="text-xs font-semibold">Memory</h3>
+                <h3 className="text-xs font-semibold">{translateText("Memory")}</h3>
                 <span className="text-[11px] font-mono text-muted-foreground">
-                  Total: {info.memory.total}
+                  {translateText('Total:')} {info.memory.total}
                 </span>
               </div>
               <div className="p-3.5 space-y-3">
@@ -204,11 +206,11 @@ export default function Information() {
                 )}
                 <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/50 text-[11px]">
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Free</span>
+                    <span className="text-muted-foreground block text-[10px]">{translateText("Free")}</span>
                     <span className="font-mono font-medium">{info.memory.free}</span>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block text-[10px]">Available</span>
+                    <span className="text-muted-foreground block text-[10px]">{translateText("Available")}</span>
                     <span className="font-mono font-medium">{info.memory.available}</span>
                   </div>
                   <div>
@@ -223,17 +225,17 @@ export default function Information() {
               <div className="rounded-md border shadow-2xs overflow-hidden">
                 <div className="bg-muted/30 flex items-center gap-2 border-b px-3.5 py-2">
                   <HardDriveIcon className="size-3.5 text-muted-foreground" />
-                  <h3 className="text-xs font-semibold">Storage &amp; Disks</h3>
+                  <h3 className="text-xs font-semibold">{translateText("Storage & Disks")}</h3>
                 </div>
                 <div className="p-0 overflow-x-auto">
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="border-b bg-muted/10 text-muted-foreground">
                         <th className="py-1.5 px-3 text-left font-medium">Mount</th>
-                        <th className="py-1.5 px-3 text-left font-medium">Size</th>
-                        <th className="py-1.5 px-3 text-left font-medium">Used</th>
-                        <th className="py-1.5 px-3 text-left font-medium">Avail</th>
-                        <th className="py-1.5 px-3 text-right font-medium">Use%</th>
+                        <th className="py-1.5 px-3 text-left font-medium">{translateText('Size')}</th>
+                        <th className="py-1.5 px-3 text-left font-medium">{translateText("Used")}</th>
+                        <th className="py-1.5 px-3 text-left font-medium">{translateText("Avail")}</th>
+                        <th className="py-1.5 px-3 text-right font-medium">{translateText("Use%")}</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/40">
@@ -269,7 +271,7 @@ export default function Information() {
             className="flex w-full items-center justify-between bg-muted/30 px-3.5 py-2 text-left hover:bg-muted/50 transition-colors"
             onClick={() => setShowRaw((v) => !v)}
           >
-            <span className="text-xs font-semibold text-muted-foreground">Raw Console Output</span>
+            <span className="text-xs font-semibold text-muted-foreground">{translateText("Raw Console Output")}</span>
             {showRaw ? <ChevronUpIcon className="size-3.5 text-muted-foreground" /> : <ChevronDownIcon className="size-3.5 text-muted-foreground" />}
           </button>
           {showRaw && (
@@ -281,7 +283,7 @@ export default function Information() {
                 onClick={() => copy(info.raw_report)}
               >
                 <ClipboardIcon className="size-3 mr-1" />
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? translateText("Copied") : translateText("Copy")}
               </Button>
               <pre className="max-h-72 overflow-auto bg-muted/10 p-3 pt-8 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-foreground/80">
                 {info.raw_report}

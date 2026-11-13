@@ -51,6 +51,8 @@ class ManageBackup
             return;
         }
 
+        Validator::make($input, $this->scheduleRules())->validate();
+
         $backup->interval = $input['interval'] == 'custom' ? $input['custom_interval'] : $input['interval'];
         $backup->keep_backups = $input['keep'];
         $backup->save();
@@ -98,7 +100,7 @@ class ManageBackup
     {
         $backupType = BackupType::from($input['type'] ?? BackupType::DATABASE->value);
 
-        $rules = [
+        $rules = array_merge($this->scheduleRules(), [
             'type' => [
                 'required',
                 Rule::in([BackupType::DATABASE->value, BackupType::FILE->value]),
@@ -108,16 +110,7 @@ class ManageBackup
                 Rule::exists('storage_providers', 'id')
                     ->where(fn ($query) => $query->where('project_id', $server->project_id)->orWhereNull('project_id')),
             ],
-            'keep' => [
-                'required',
-                'numeric',
-                'min:1',
-            ],
-            'interval' => [
-                'required',
-                Rule::in(array_keys(config('core.cronjob_intervals'))),
-            ],
-        ];
+        ]);
 
         if ($backupType === BackupType::DATABASE) {
             $rules['database'] = [
@@ -134,13 +127,15 @@ class ManageBackup
             ];
         }
 
-        if (isset($input['interval']) && $input['interval'] == 'custom') {
-            $rules['custom_interval'] = [
-                'required',
-                new CronRule,
-            ];
-        }
-
         Validator::make($input, $rules)->validate();
+    }
+
+    private function scheduleRules(): array
+    {
+        return [
+            'keep' => ['required', 'integer', 'min:1'],
+            'interval' => ['required', Rule::in(array_keys(config('core.cronjob_intervals')))],
+            'custom_interval' => ['exclude_unless:interval,custom', 'required', 'string', new CronRule],
+        ];
     }
 }

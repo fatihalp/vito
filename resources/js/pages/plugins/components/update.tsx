@@ -1,8 +1,10 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Plugin } from '@/types/plugin';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function UpdatePlugin({ plugin }: { plugin: Plugin }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -10,7 +12,7 @@ export default function UpdatePlugin({ plugin }: { plugin: Plugin }) {
       onSelect={() =>
         dialog.confirm.open({
           title: 'Update plugin',
-          description: `Are you sure you want to update the plugin ${plugin.name ?? plugin.folder} to the latest released version?`,
+          description: translateText("Are you sure you want to update the plugin :value to the latest released version?", { value: plugin.name ?? plugin.folder }),
           confirmLabel: 'Update',
           method: 'patch',
           url: "/admin/plugins/update",
@@ -18,7 +20,7 @@ export default function UpdatePlugin({ plugin }: { plugin: Plugin }) {
         })
       }
     >
-      Update
+      {translateText('Update')}
     </DropdownMenuItem>
   );
 }

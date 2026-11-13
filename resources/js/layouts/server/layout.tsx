@@ -118,19 +118,19 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       flyoutContent: <RecentSitesFlyout server={server} />,
     },
     {
-      title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
+      title: services['database'] && server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
       href: `/servers/${serverId}/database`,
       icon: DatabaseIcon,
       isDisabled: isMenuDisabled,
-      hidden: !services['database'],
       children: [
         {
-          title: server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
+          title: services['database'] && server.counts?.databases !== undefined ? `Databases (${server.counts.databases})` : 'Databases',
           href: `/servers/${serverId}/database`,
           onlyActivePath: `/servers/${serverId}/database`,
           icon: DatabaseIcon,
         },
         {
+          hidden: !services['database'],
           title: server.counts?.database_users !== undefined ? `Database users (${server.counts.database_users})` : 'Database users',
           href: `/servers/${serverId}/database/users`,
           icon: UsersIcon,
@@ -162,8 +162,8 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       onlyActivePath: `/servers/${serverId}/workers`,
       icon: ListEndIcon,
       isDisabled: isMenuDisabled,
-      hidden: !services['process_manager'],
     },
+    { title: 'Runtime processes', href: `/servers/${serverId}/runtime-processes`, onlyActivePath: `/servers/${serverId}/runtime-processes`, icon: CpuIcon },
     {
       title: server.counts?.services !== undefined ? `Services (${server.counts.services})` : 'Services',
       href: `/servers/${serverId}/services`,

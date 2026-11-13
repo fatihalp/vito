@@ -1,23 +1,27 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode, useState } from 'react';
-import { ChevronDownIcon, TriangleAlertIcon } from 'lucide-react';
+import { ChevronDownIcon, InfoIcon, TriangleAlertIcon } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 export interface BannerItem {
   key: string;
+  severity?: 'info' | 'warning';
   title: string;
   description: ReactNode;
   action?: ReactNode;
 }
 
 export function BannerRow({ item }: { item: BannerItem }) {
+  const translateText = useTranslate();
+  const Icon = item.severity === 'info' ? InfoIcon : TriangleAlertIcon;
   return (
     <div className="flex flex-wrap items-start gap-3 px-4 py-3">
-      <TriangleAlertIcon className="text-warning h-4 w-4 shrink-0" />
+      <Icon className={`h-4 w-4 shrink-0 ${item.severity === 'info' ? 'text-sky-600 dark:text-sky-400' : 'text-warning'}`} />
       <div className="min-w-0 flex-1 basis-64 text-sm leading-relaxed">
-        <p className="font-medium">{item.title}</p>
-        <div className="text-muted-foreground">{item.description}</div>
+        <p className="font-medium">{translateText(item.title)}</p>
+        <div className="text-muted-foreground">{typeof item.description === 'string' ? translateText(item.description) : item.description}</div>
       </div>
       {item.action && <div className="shrink-0">{item.action}</div>}
     </div>
@@ -25,25 +29,29 @@ export function BannerRow({ item }: { item: BannerItem }) {
 }
 
 export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; summaryLabel?: (count: number) => string }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   if (items.length === 0) return null;
+  const warningCount = items.filter((item) => item.severity !== 'info').length;
+  const Icon = warningCount > 0 ? TriangleAlertIcon : InfoIcon;
+  const color = warningCount > 0 ? 'border-warning/40 bg-warning/5' : 'border-sky-500/30 bg-sky-500/5';
 
   if (items.length === 1) {
     return (
-      <div className="border-warning/40 bg-warning/5 rounded-lg border">
+      <div className={`${color} rounded-lg border`}>
         <BannerRow item={items[0]} />
       </div>
     );
   }
 
-  const label = summaryLabel ? summaryLabel(items.length) : `${items.length} warnings require your attention`;
+  const label = warningCount === 0 ? translateText(items.length === 1 ? ':count site note' : ':count site notes', { count: items.length }) : summaryLabel ? summaryLabel(warningCount) : translateText(':count warnings require your attention', { count: warningCount });
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
-      <div className="border-warning/40 bg-warning/5 rounded-lg border">
+      <div className={`${color} rounded-lg border`}>
         <CollapsibleTrigger className="flex w-full cursor-pointer items-center gap-3 px-4 py-2.5 text-left">
-          <TriangleAlertIcon className="text-warning h-4 w-4 shrink-0" />
+          <Icon className={`h-4 w-4 shrink-0 ${warningCount > 0 ? 'text-warning' : 'text-sky-600 dark:text-sky-400'}`} />
           <span className="flex-1 text-sm font-medium">{label}</span>
           <ChevronDownIcon className={`text-muted-foreground h-4 w-4 shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
         </CollapsibleTrigger>
@@ -63,15 +71,18 @@ export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; su
 }
 
 export function WarningsPopover({ items }: { items: BannerItem[] }) {
+  const translateText = useTranslate();
   if (items.length === 0) return null;
 
-  const label = `${items.length} site ${items.length === 1 ? 'warning' : 'warnings'}`;
+  const warningCount = items.filter((item) => item.severity !== 'info').length;
+  const Icon = warningCount > 0 ? TriangleAlertIcon : InfoIcon;
+  const label = warningCount > 0 ? translateText(warningCount === 1 ? ':count site warning' : ':count site warnings', { count: warningCount }) : translateText(items.length === 1 ? ':count site note' : ':count site notes', { count: items.length });
 
   return (
     <Popover>
       <PopoverTrigger asChild>
         <Button variant="outline" size="icon" aria-label={label}>
-          <TriangleAlertIcon className="text-warning" />
+          <Icon className={warningCount > 0 ? 'text-warning' : 'text-sky-600 dark:text-sky-400'} />
           <span className="sr-only">{label}</span>
         </Button>
       </PopoverTrigger>

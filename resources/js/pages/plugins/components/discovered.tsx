@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { CardRow } from '@/components/ui/card';
 import { Plugin } from '@/types/plugin';
 import { Separator } from '@/components/ui/separator';
@@ -6,6 +7,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip
 import { TriangleAlert } from 'lucide-react';
 
 export default function DiscoveredPlugins({ plugins }: { plugins: Plugin[] }) {
+  const translateText = useTranslate();
   const installedPlugins = plugins.filter((plugin) => !plugin.is_installed);
   return (
     <div>
@@ -22,7 +24,7 @@ export default function DiscoveredPlugins({ plugins }: { plugins: Plugin[] }) {
                     <TooltipTrigger>
                       <TriangleAlert className="text-danger mt-1" />
                     </TooltipTrigger>
-                    <TooltipContent>This plugin has errors</TooltipContent>
+                    <TooltipContent>{translateText("This plugin has errors")}</TooltipContent>
                   </Tooltip>
                 )}
                 <PluginDropdown plugin={plugin} />
@@ -33,7 +35,7 @@ export default function DiscoveredPlugins({ plugins }: { plugins: Plugin[] }) {
         ))
       ) : (
         <CardRow className="items-center justify-center">
-          <span className="text-muted-foreground">No uninstalled plugins discovered</span>
+          <span className="text-muted-foreground">{translateText("No uninstalled plugins discovered")}</span>
         </CardRow>
       )}
     </div>

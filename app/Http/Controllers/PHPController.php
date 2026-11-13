@@ -22,7 +22,6 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class PHPController extends Controller
 {
-
     #[Get('/{service}/extensions', name: 'php.extensions')]
     public function extensions(Server $server, Service $service): JsonResponse
     {
@@ -64,8 +63,6 @@ class PHPController extends Controller
 
         return back()->with('info', 'PHP extension is being installed.');
     }
-
-    
 
     #[Post('/{service}/default-cli', name: 'php.default-cli')]
     public function defaultCli(Request $request, Server $server, Service $service): RedirectResponse

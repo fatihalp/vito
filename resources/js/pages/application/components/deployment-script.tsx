@@ -1,6 +1,7 @@
+import { useTranslate } from '@/hooks/use-translate';
 import React, { FormEvent, Fragment, ReactNode, useState } from 'react';
 import { Link, useForm } from '@inertiajs/react';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,7 @@ export default function DeploymentScript({
   description?: string;
   children: ReactNode;
 }) {
+  const translateText = useTranslate();
 
   const availableCommands = site.available_tooling_commands ?? [];
 
@@ -57,15 +59,14 @@ export default function DeploymentScript({
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="sm:max-w-5xl">
         <SheetHeader>
-          <SheetTitle className="capitalize">{script.name} script</SheetTitle>
-          <SheetDescription>{description || 'Update script'}</SheetDescription>
+          <SheetTitle className="capitalize">{script.name} {translateText("script")}</SheetTitle>
+          <SheetDescription>{description || translateText("Update script")}</SheetDescription>
         </SheetHeader>
         <Form id="update-script-form" className="relative h-full flex-col gap-0" onSubmit={submit}>
           <div className="relative flex-1">
             <Editor
               defaultLanguage="bash"
               value={form.data.script}
-              theme="vs-dark"
               className="h-full"
               onChange={(value) => form.setData('script', value ?? '')}
               options={{
@@ -78,16 +79,16 @@ export default function DeploymentScript({
                   <AlertDescription className="flex items-center gap-2">
                     <StatusRipple variant="default" />
                     <p>
-                      Using{' '}
+                      {translateText("Using")}{' '}
                       {(availableCommands ?? []).map((cmd, i) => (
                         <Fragment key={cmd}>
                           {i > 0 && ', '}
                           <code>`{cmd}`</code>
                         </Fragment>
                       ))}{' '}
-                      command(s) in your script will use the version installed for this site. Install or change tooling via the{' '}
+                      {translateText("command(s) in your script will use the version installed for this site. Install or change tooling via the")}{' '}
                       <Link href={`/servers/${site.server_id}/sites/${site.id}/tooling`} className="underline">
-                        Tooling area
+                        {translateText("Tooling area")}
                       </Link>
                       .
                     </p>
@@ -105,7 +106,7 @@ export default function DeploymentScript({
                     checked={form.data.restart_workers}
                     onCheckedChange={(value) => form.setData('restart_workers', value)}
                   />
-                  <Label htmlFor="restart_workers">Restart workers after deployment</Label>
+                  <Label htmlFor="restart_workers">{translateText("Restart workers after deployment")}</Label>
                   <InputError message={form.errors.restart_workers} />
                 </div>
               </FormField>
@@ -116,10 +117,10 @@ export default function DeploymentScript({
           <div className="flex items-center gap-2">
             <Button form="update-script-form" disabled={form.processing} onClick={submit}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
-              Save
+              {translateText('Save')}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
             <InputError message={form.errors.script} />
           </div>

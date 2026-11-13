@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Link, router } from '@inertiajs/react';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { RotateCcwIcon } from 'lucide-react';
@@ -16,14 +17,14 @@ import { formatDuration } from '@/pages/application/deployments/progress';
 const deploymentUrl = (deployment: Deployment) =>
   `/servers/${encodeURIComponent(String(deployment.server_id))}/sites/${deployment.site_id}/deployments/${deployment.id}`;
 
-const commitCell = ({ row }: CellRenderProps) => {
+const commitCell = ({ row }: CellRenderProps, translateText: ReturnType<typeof useTranslate>) => {
   const deployment = row as unknown as Deployment;
   const state = deploymentState(deployment);
   const actor = deploymentActor(deployment);
   const duration = state !== 'deploying' && deployment.duration != null ? formatDuration(deployment.duration) : null;
   const showsLabel = state === 'deploying' || state === 'failed';
   const details = [
-    showsLabel && <span className={cn('font-medium', DEPLOYMENT_STATES[state].className)}>{DEPLOYMENT_STATES[state].label}</span>,
+    showsLabel && <span className={cn('font-medium', DEPLOYMENT_STATES[state].className)}>{translateText(DEPLOYMENT_STATES[state].label)}</span>,
     duration,
     actor,
   ].filter(Boolean);
@@ -41,9 +42,9 @@ const commitCell = ({ row }: CellRenderProps) => {
             </span>
           ))}
           {deployment.is_duplicate && (
-            <span className="text-warning inline-flex shrink-0 items-center gap-1" title="This commit was already deployed previously">
+            <span className="text-warning inline-flex shrink-0 items-center gap-1" title={translateText("This commit was already deployed previously")}>
               · <RotateCcwIcon className="size-3.5" />
-              Redeploy
+              {translateText('Redeploy')}
             </span>
           )}
         </div>
@@ -61,6 +62,7 @@ const deployedAtCell = ({ row }: CellRenderProps) => {
 };
 
 function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
+  const translateText = useTranslate();
   return (
     <div className="flex items-center gap-2">
       <DropdownMenu modal={false}>
@@ -70,14 +72,14 @@ function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
         <DropdownMenuContent align="start">
           <DropdownMenuItem asChild>
             <Link href={deploymentUrl(deployment)}>
-              View details
+              {translateText('View details')}
             </Link>
           </DropdownMenuItem>
           {deployment.log && (
             <>
               <View serverLog={deployment.log} />
               <Download serverLog={deployment.log}>
-                <DropdownMenuItem>Download</DropdownMenuItem>
+                <DropdownMenuItem>{translateText('Download')}</DropdownMenuItem>
               </Download>
             </>
           )}
@@ -96,6 +98,7 @@ export default function DeploymentsTable({
   showPagination?: boolean;
   modal?: boolean;
 }) {
+  const translateText = useTranslate();
   if (!deployments?.columns) {
     return null;
   }
@@ -114,7 +117,7 @@ export default function DeploymentsTable({
           : ''
       }
       cellRenderers={{
-        commit: commitCell,
+        commit: (props) => commitCell(props, translateText),
         created_at: deployedAtCell,
       }}
       actions={(row: Row) => <DeploymentRowActions deployment={asRow<Deployment>(row, ['id', 'site_id', 'server_id'])} />}

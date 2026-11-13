@@ -14,6 +14,7 @@ class SslResource extends JsonResource
             'id' => $this->id,
             'server_id' => $this->server_id ?? $this->site?->server_id,
             'site_id' => $this->site_id,
+            'site_domain' => $this->whenLoaded('site', fn () => $this->site?->domain),
             'is_wildcard' => $this->is_wildcard,
             'has_csr' => $this->has_csr,
             'type' => $this->type,

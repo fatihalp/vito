@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { GitPullRequestIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { parseCommitMessage, pullRequestUrl, safeUrl } from '@/lib/commit-message';
@@ -22,8 +23,9 @@ export default function CommitSummary({
   showScope?: boolean;
   className?: string;
 }) {
+  const translateText = useTranslate();
   if (!commit?.message) {
-    return <span className={cn('text-muted-foreground', className)}>No commit message</span>;
+    return <span className={cn('text-muted-foreground', className)}>{translateText('No commit message')}</span>;
   }
 
   const parsed = parseCommitMessage(commit.message);
@@ -53,7 +55,7 @@ export default function CommitSummary({
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground inline-flex shrink-0 items-center gap-0.5 tabular-nums hover:underline"
-            title={`Open pull request #${parsed.pullRequest}`}
+            title={translateText("Open pull request #:number", { number: parsed.pullRequest })}
           >
             <GitPullRequestIcon className="size-3.5" />#{parsed.pullRequest}
           </a>

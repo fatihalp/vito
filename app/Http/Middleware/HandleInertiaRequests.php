@@ -19,16 +19,13 @@ use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
 {
-    
     protected $rootView = 'app';
 
-    
     public function version(Request $request): ?string
     {
         return parent::version($request);
     }
 
-    
     public function share(Request $request): array
     {
         $user = $request->user();
@@ -117,6 +114,7 @@ class HandleInertiaRequests extends Middleware
         return [
             ...parent::share($request),
             ...$data,
+            'locale' => app()->getLocale(),
             'name' => config('app.name'),
             'version' => config('app.version'),
             'env' => config('app.env'),

@@ -15,8 +15,7 @@ class DatabasePolicy
 
     public function viewAny(User $user, Server $server): bool
     {
-        return $this->hasServerReadAccess($user, $server)
-            && $server->database();
+        return $this->hasServerReadAccess($user, $server);
     }
 
     public function view(User $user, Database $database): bool
@@ -32,6 +31,11 @@ class DatabasePolicy
         return $this->hasServerWriteAccess($user, $server) &&
             $server->isReady() &&
             $server->database();
+    }
+
+    public function browse(User $user, Database $database, Server $server): bool
+    {
+        return $database->server_id === $server->id && $this->hasServerOwnerAccess($user, $server);
     }
 
     public function update(User $user, Database $database): bool

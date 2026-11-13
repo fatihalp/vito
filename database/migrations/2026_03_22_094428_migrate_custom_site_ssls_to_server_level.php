@@ -14,7 +14,7 @@ return new class extends Migration
             $table->dropColumn('is_active');
         });
 
-        Ssl::query()
+        Ssl::withoutGlobalScopes()
             ->whereNotNull('site_id')
             ->where('type', SslType::CUSTOM)
             ->each(function (Ssl $ssl): void {

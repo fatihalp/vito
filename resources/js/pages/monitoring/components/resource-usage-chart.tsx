@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import * as React from 'react';
 import { useId } from 'react';
 import { Area, AreaChart, XAxis, YAxis } from 'recharts';
@@ -23,6 +24,7 @@ interface Props<T extends object> {
 }
 
 export function ResourceUsageChart<T extends object>({ title, color, dataKey, label, chartData, link, formatter, single, height, showXAxis, valueFormatter }: Props<T>) {
+  const translateText = useTranslate();
   const gradientId = useId();
   const resolvedHeight = height ?? (single ? 'large' : 'small');
   const heightClass = resolvedHeight === 'large' ? 'h-[400px]' : resolvedHeight === 'medium' ? 'h-[200px]' : 'h-[100px]';
@@ -55,13 +57,13 @@ export function ResourceUsageChart<T extends object>({ title, color, dataKey, la
           </div>
           {!single && link && (
             <Button variant="ghost" onClick={() => router.visit(link)}>
-              View
+              {translateText('View')}
             </Button>
           )}
         </div>
         {validData.length === 0 ? (
           <div className={cn('text-muted-foreground flex aspect-auto w-full items-center justify-center rounded-b-xl border-t text-sm', heightClass)}>
-            No data
+            {translateText("No data")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className={cn('aspect-auto w-full overflow-hidden rounded-b-xl', heightClass)}>

@@ -63,7 +63,10 @@ export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) 
 
 const UserForm = lazy(() => import('@/pages/users/components/user-form'));
 
+const BackupMonitorForm = lazy(() => import('@/pages/backups/components/monitor-form'));
+
 export const dialogs = {
+  backupMonitorCreate: BackupMonitorForm,
   cleanupCommands: CleanupCommandsDialog,
   userForm: UserForm,
   logViewer: LogViewerDialog,
@@ -123,7 +126,7 @@ export const dialogs = {
   projectForm: ProjectForm,
   siteResourceReveal: RevealSiteResourceDialog,
   
-} as const satisfies Record<string, ComponentType<any>>;
+} as const satisfies Record<string, ComponentType<never>>;
 
 export type DialogRegistry = typeof dialogs;
 

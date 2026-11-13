@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Backup } from '@/types/backup';
 import { BackupFile } from '@/types/backup-file';
 import { Server } from '@/types/server';
@@ -24,6 +25,7 @@ export default function RestoreBackup({
   backup: Backup;
   file: BackupFile;
 }) {
+  const translateText = useTranslate();
   const page = usePage<{ server?: Server }>();
   const sourceServerName = page.props.server?.name ?? 'Original server';
   const [targetServerId, setTargetServerId] = useState(backup.server_id);
@@ -50,8 +52,8 @@ export default function RestoreBackup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Restore backup</DialogTitle>
-          <DialogDescription className="sr-only">Restore backup</DialogDescription>
+          <DialogTitle>{translateText("Restore backup")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Restore backup")}</DialogDescription>
         </DialogHeader>
         <Form id="restore-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
@@ -60,14 +62,14 @@ export default function RestoreBackup({
                 <div className="text-muted-foreground text-sm">
                   {file.database_engine
                     ? `Source: ${file.database_engine} ${file.database_version ?? ''}`.trim()
-                    : 'Source database engine/version unknown - this file can only be restored to its original server.'}
+                    : translateText("Source database engine/version unknown - this file can only be restored to its original server.")}
                 </div>
                 <FormField>
-                  <Label htmlFor="target-server">To server</Label>
+                  <Label htmlFor="target-server">{translateText("To server")}</Label>
                   <ServerSelect
                     id="target-server"
                     value={String(targetServerId)}
-                    placeholder={targetServerName ?? 'Select server...'}
+                    placeholder={targetServerName ?? translateText("Select server...")}
                     onValueChange={(server) => {
                       if (server) {
                         setTargetServerId(server.id);
@@ -81,7 +83,7 @@ export default function RestoreBackup({
                   />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="database">To database</Label>
+                  <Label htmlFor="database">{translateText("To database")}</Label>
                   <DatabaseSelect
                     id="database"
                     name="database"
@@ -96,7 +98,7 @@ export default function RestoreBackup({
             {backup.type === 'file' && (
               <>
                 <FormField>
-                  <Label htmlFor="path">Restore to path</Label>
+                  <Label htmlFor="path">{translateText("Restore to path")}</Label>
                   <Input
                     id="path"
                     name="path"
@@ -109,7 +111,7 @@ export default function RestoreBackup({
                 </FormField>
 
                 <FormField>
-                  <Label htmlFor="owner">Owner *</Label>
+                  <Label htmlFor="owner">{translateText("Owner *")}</Label>
                   <Input
                     id="owner"
                     name="owner"
@@ -119,13 +121,13 @@ export default function RestoreBackup({
                     onChange={(e) => form.setData('owner', e.target.value)}
                   />
                   <div className="text-muted-foreground mt-1 text-sm">
-                    Default: vito:vito. If using isolated users, change this field. Examples: "user1", "user1:group1", "root:root"
+                    {translateText("Default: vito:vito. If using isolated users, change this field. Examples: \"user1\", \"user1:group1\", \"root:root\"")}
                   </div>
                   <InputError message={form.errors.owner} />
                 </FormField>
 
                 <FormField>
-                  <Label htmlFor="permissions">Permissions *</Label>
+                  <Label htmlFor="permissions">{translateText("Permissions *")}</Label>
                   <Input
                     id="permissions"
                     name="permissions"
@@ -134,7 +136,7 @@ export default function RestoreBackup({
                     value={form.data.permissions}
                     onChange={(e) => form.setData('permissions', e.target.value)}
                   />
-                  <div className="text-muted-foreground mt-1 text-sm">Format: 3-4 digits (e.g., 755, 644, 0755)</div>
+                  <div className="text-muted-foreground mt-1 text-sm">{translateText("Format: 3-4 digits (e.g., 755, 644, 0755)")}</div>
                   <InputError message={form.errors.permissions} />
                 </FormField>
               </>
@@ -144,12 +146,12 @@ export default function RestoreBackup({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={form.processing}>
-              Cancel
+              {translateText('Cancel')}
             </Button>
           </DialogClose>
           <Button form="restore-backup-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Restore
+            {translateText('Restore')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -18,7 +18,7 @@ return new class extends Migration
         });
         Site::query()->chunk(100, function ($sites): void {
             foreach ($sites as $site) {
-                foreach ($site->ssls as $ssl) {
+                foreach ($site->ssls()->withoutGlobalScopes()->get() as $ssl) {
                     if ($ssl->type === SslType::LETSENCRYPT) {
                         $ssl->certificate_path = $ssl->certificate;
                         $ssl->pk_path = $ssl->pk;
@@ -34,7 +34,7 @@ return new class extends Migration
                     }
                     $ssl->save();
                 }
-                $activeSSL = $site->ssls()->where('expires_at', '>=', now())->latest()->first();
+                $activeSSL = $site->ssls()->withoutGlobalScopes()->where('expires_at', '>=', now())->latest()->first();
                 if ($activeSSL) {
                     $activeSSL->update(['is_active' => true]);
                 }

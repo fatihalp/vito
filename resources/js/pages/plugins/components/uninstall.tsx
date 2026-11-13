@@ -1,8 +1,10 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Plugin } from '@/types/plugin';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function Uninstall({ plugin }: { plugin: Plugin }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const label = plugin.is_installed ? 'Uninstall' : 'Remove';
 
@@ -11,8 +13,8 @@ export default function Uninstall({ plugin }: { plugin: Plugin }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: `${label} Plugin`,
-          description: `Are you sure you want to ${label.toLowerCase()} the plugin ${plugin.name ?? plugin.folder}?`,
+          title: translateText(":value Plugin", { value: translateText(label) }),
+          description: translateText("Are you sure you want to :value the plugin :value2?", { value: translateText(label), value2: plugin.name ?? plugin.folder }),
           variant: 'destructive',
           confirmLabel: label,
           method: 'delete',
@@ -21,7 +23,7 @@ export default function Uninstall({ plugin }: { plugin: Plugin }) {
         })
       }
     >
-      {label}
+      {translateText(label)}
     </DropdownMenuItem>
   );
 }

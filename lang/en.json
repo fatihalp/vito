@@ -1,5 +1,24 @@
 {
-    "servers.create.public_key_text": "mkdir -p /root/.ssh && touch /root/.ssh/authorized_keys && echo ':public_key' >> /root/.ssh/authorized_keys",
-    "servers.create.public_key_warning": "Your server needs to have a new unused installation of supported operating systems and must have a root user. To get started, add our public key to /root/.ssh/authorized_keys file by running the bellow command on your server as root.",
-    "server_providers.plan": ":name - :cpu Cores - :memory Memory - :disk Disk"
+  "servers.create.public_key_text": "mkdir -p /root/.ssh && touch /root/.ssh/authorized_keys && echo ':public_key' >> /root/.ssh/authorized_keys",
+  "servers.create.public_key_warning": "Your server needs to have a new unused installation of supported operating systems and must have a root user. To get started, add our public key to /root/.ssh/authorized_keys file by running the bellow command on your server as root.",
+  "server_providers.plan": ":name - :cpu Cores - :memory Memory - :disk Disk",
+  "Database username": "Database username",
+  "Delete site from Pure.": "Delete site from Pure.",
+  "Are you sure you want to delete": "Are you sure you want to delete",
+  "? The site will be removed from Pure. Its files and physical server will remain untouched.": "? The site will be removed from Pure. Its files and physical server will remain untouched.",
+  "Confirm domain name": "Confirm domain name",
+  "Deploy Scripts": "Deploy Scripts",
+  "This commit (:commit) has already been deployed in a previous release.": "This commit (:commit) has already been deployed in a previous release.",
+  "This commit was already deployed previously": "This commit was already deployed previously",
+  "Duplicate": "Duplicate",
+  "Site details": "Site details",
+  "location :location, server type :plan": "location :location, server type :plan",
+  "This server type is currently unavailable in the selected location. Try another location or plan.": "This server type is currently unavailable in the selected location. Try another location or plan.",
+  "A resource with this name already exists in your Hetzner project.": "A resource with this name already exists in your Hetzner project.",
+  "Your Hetzner project resource limit is reached.": "Your Hetzner project resource limit is reached.",
+  "The Hetzner API token is invalid or lacks read & write permission.": "The Hetzner API token is invalid or lacks read & write permission.",
+  "Hetzner: :message": "Hetzner: :message",
+  "request failed": "request failed",
+  "Duplicate commit": "Duplicate commit",
+  "Deployment #:id started. Note: commit :commit was already deployed previously.": "Deployment #:id started. Note: commit :commit was already deployed previously."
 }

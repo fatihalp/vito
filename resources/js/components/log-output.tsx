@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import React, { ReactNode, useRef, useEffect, useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
@@ -40,6 +41,7 @@ function formatLogNode(node: ReactNode): ReactNode {
 }
 
 export default function LogOutput({ className, children }: { className?: string; children: ReactNode }) {
+  const translateText = useTranslate();
   const rootRef = useRef<HTMLDivElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
   const [autoScroll, setAutoScroll] = useState(true);
@@ -108,14 +110,14 @@ export default function LogOutput({ className, children }: { className?: string;
               variant="outline"
               size="icon"
               className="bg-accent! absolute right-4 bottom-4 z-10"
-              aria-label={autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}
+              aria-label={autoScroll ? translateText("Disable auto-scroll") : translateText("Enable auto-scroll")}
               aria-pressed={autoScroll}
               onClick={() => setAutoScroll(!autoScroll)}
             >
               <ArrowDown className={cn('h-4 w-4', autoScroll && 'animate-bounce')} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">{autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}</TooltipContent>
+          <TooltipContent side="left">{autoScroll ? translateText("Disable auto-scroll") : translateText("Enable auto-scroll")}</TooltipContent>
         </Tooltip>
       )}
     </div>

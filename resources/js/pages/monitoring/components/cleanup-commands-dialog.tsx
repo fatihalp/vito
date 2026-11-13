@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { CopyIcon, TerminalIcon, CheckIcon } from 'lucide-react';
@@ -19,6 +20,7 @@ function formatBytes(b: number): string {
 }
 
 export default function CleanupCommandsDialog({ open, onOpenChange, commands, selectedBytes }: CleanupCommandsDialogProps) {
+  const translateText = useTranslate();
   const [copied, setCopied] = useState(false);
 
   const copyCommands = () => {
@@ -41,9 +43,9 @@ export default function CleanupCommandsDialog({ open, onOpenChange, commands, se
               <TerminalIcon className="size-5" />
             </div>
             <div>
-              <DialogTitle>Cleanup Commands{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</DialogTitle>
+              <DialogTitle>{translateText("Cleanup Commands")}{selectedBytes > 0 ? ` (${formatBytes(selectedBytes)})` : ''}</DialogTitle>
               <DialogDescription className="mt-1">
-                Run these commands on the server over SSH. Review them carefully before running, as these deletions cannot be undone.
+                {translateText("Run these commands on the server over SSH. Review them carefully before running, as these deletions cannot be undone.")}
               </DialogDescription>
             </div>
           </div>
@@ -57,11 +59,11 @@ export default function CleanupCommandsDialog({ open, onOpenChange, commands, se
 
         <DialogFooter className="flex-row items-center justify-between sm:justify-between">
           <Button variant="ghost" onClick={() => onOpenChange(false)}>
-            Close
+            {translateText('Close')}
           </Button>
           <Button onClick={copyCommands} disabled={!commands}>
             {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
-            <span>{copied ? 'Copied' : 'Copy Commands'}</span>
+            <span>{copied ? translateText("Copied") : translateText("Copy Commands")}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

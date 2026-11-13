@@ -9,7 +9,9 @@ function getSnapshot(): PanelView {
   try {
     const saved = localStorage.getItem(storageKey);
     if (saved === 'basic' || saved === 'advanced') currentView = saved;
-  } catch {}
+  } catch {
+    return currentView;
+  }
   return currentView;
 }
 
@@ -26,8 +28,11 @@ function setView(view: PanelView): void {
   currentView = view;
   try {
     localStorage.setItem(storageKey, view);
-  } catch {}
-  window.dispatchEvent(new Event(changeEvent));
+  } catch {
+    return;
+  } finally {
+    window.dispatchEvent(new Event(changeEvent));
+  }
 }
 
 export function usePanelView() {

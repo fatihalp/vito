@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useCallback } from 'react';
 import { router } from '@inertiajs/react';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import { Site } from '@/types/site';
 import { Worker } from '@/types/worker';
 
 export default function ProxiedAppCard({ site, initialWorker }: { site: Site; initialWorker: Worker | null }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const worker = useRealtimeRecord<Worker>(initialWorker, 'worker');
 
@@ -46,12 +48,12 @@ export default function ProxiedAppCard({ site, initialWorker }: { site: Site; in
         </div>
 
         <div className="col-span-2 col-start-1 row-start-2 flex min-w-0 items-center gap-4 overflow-hidden p-4 xl:col-span-1 xl:col-start-2 xl:row-start-1 xl:border-r">
-          <span className="shrink-0 text-sm font-medium">Start command</span>
+          <span className="shrink-0 text-sm font-medium">{translateText("Start command")}</span>
           <div className="flex min-w-0 flex-1 justify-end overflow-hidden">
             <StartCommand site={site}>
               <Button variant="outline" className="h-6 max-w-full min-w-0 overflow-hidden font-mono text-xs">
                 <span className="block min-w-0 truncate" title={site.start_command ?? undefined}>
-                  {site.start_command ?? 'Not set'}
+                  {site.start_command ?? translateText("Not set")}
                 </span>
               </Button>
             </StartCommand>
@@ -61,14 +63,14 @@ export default function ProxiedAppCard({ site, initialWorker }: { site: Site; in
         <div className="col-start-2 row-start-1 flex min-w-0 items-center justify-between gap-4 border-b p-4 xl:col-start-3 xl:border-b-0">
           <span className="shrink-0 text-sm font-medium">Worker</span>
           <div className="flex items-center gap-1">
-            <ErrorIndicator error={worker?.error ?? null} label="Worker error" />
+            <ErrorIndicator error={worker?.error ?? null} label={translateText("Worker error")} />
             <Badge variant={worker?.status_color ?? 'gray'} className="text-xs">
-              {worker?.status ?? 'pending_deploy'}
+              {worker?.status ?? translateText("pending_deploy")}
             </Badge>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-6 w-6 p-0">
-                  <span className="sr-only">Open worker menu</span>
+                  <span className="sr-only">{translateText("Open worker menu")}</span>
                   <MoreVerticalIcon className="size-3.5" />
                 </Button>
               </DropdownMenuTrigger>
@@ -83,7 +85,7 @@ export default function ProxiedAppCard({ site, initialWorker }: { site: Site; in
                   </>
                 ) : (
                   <DropdownMenuItem onSelect={() => dialog.workerEnv.open({ serverId: site.server_id, siteId: site.id })}>
-                    Environment
+                    {translateText('Environment')}
                   </DropdownMenuItem>
                 )}
               </DropdownMenuContent>

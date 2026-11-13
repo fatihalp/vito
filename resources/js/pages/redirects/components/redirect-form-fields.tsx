@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { InertiaFormProps } from '@inertiajs/react';
 import { FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ export type RedirectForm = {
 };
 
 export default function RedirectFormFields({ form }: { form: InertiaFormProps<RedirectForm> }) {
+  const translateText = useTranslate();
   const onModeChange = (value: string) => {
     form.setData((data) => ({
       ...data,
@@ -25,23 +27,23 @@ export default function RedirectFormFields({ form }: { form: InertiaFormProps<Re
   return (
     <FormFields>
       <FormField>
-        <Label htmlFor="mode">Mode</Label>
+        <Label htmlFor="mode">{translateText("Mode")}</Label>
         <Select onValueChange={onModeChange} value={form.data.mode}>
           <SelectTrigger id="mode">
-            <SelectValue placeholder="Select mode" />
+            <SelectValue placeholder={translateText("Select mode")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="301">301 - Moved Permanently</SelectItem>
-            <SelectItem value="302">302 - Found</SelectItem>
-            <SelectItem value="307">307 - Temporary Redirect</SelectItem>
-            <SelectItem value="308">308 - Permanent Redirect</SelectItem>
-            <SelectItem value="1000">Proxy (/docs to https://docs.example.com)</SelectItem>
+            <SelectItem value="301">{translateText("301 - Moved Permanently")}</SelectItem>
+            <SelectItem value="302">{translateText("302 - Found")}</SelectItem>
+            <SelectItem value="307">{translateText("307 - Temporary Redirect")}</SelectItem>
+            <SelectItem value="308">{translateText("308 - Permanent Redirect")}</SelectItem>
+            <SelectItem value="1000">{translateText("Proxy (/docs to https://docs.example.com)")}</SelectItem>
           </SelectContent>
         </Select>
         <InputError message={form.errors.mode} />
       </FormField>
       <FormField>
-        <Label htmlFor="from">From</Label>
+        <Label htmlFor="from">{translateText("From")}</Label>
         <Input
           type="text"
           id="from"
@@ -53,7 +55,7 @@ export default function RedirectFormFields({ form }: { form: InertiaFormProps<Re
         <InputError message={form.errors.from} />
       </FormField>
       <FormField>
-        <Label htmlFor="to">To</Label>
+        <Label htmlFor="to">{translateText("To")}</Label>
         <Input
           type="text"
           id="to"
@@ -68,7 +70,7 @@ export default function RedirectFormFields({ form }: { form: InertiaFormProps<Re
         <FormField>
           <div className="flex items-center gap-3">
             <Checkbox id="websocket" name="websocket" checked={form.data.websocket} onClick={() => form.setData('websocket', !form.data.websocket)} />
-            <Label htmlFor="websocket">WebSocket support</Label>
+            <Label htmlFor="websocket">{translateText("WebSocket support")}</Label>
           </div>
           <InputError message={form.errors.websocket} />
         </FormField>

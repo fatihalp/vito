@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/ui/input-error';
@@ -6,10 +7,11 @@ import { Input } from '@/components/ui/input';
 import FieldUpdateDialog from '@/components/field-update-dialog';
 
 export default function Port({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   return (
     <FieldUpdateDialog
-      title="Update Port"
-      description="The port your application listens on. The VHost will be regenerated when you save."
+      title={translateText("Update Port")}
+      description={translateText("The port your application listens on. The VHost will be regenerated when you save.")}
       initialValue={site.port?.toString() ?? ''}
       fieldName="port"
       url={`/servers/${site.server_id}/sites/${site.id}/settings/port`}
@@ -28,8 +30,7 @@ export default function Port({ site, children }: { site: Site; children: ReactNo
             onChange={(e) => form.setData('port', e.target.value)}
           />
           <p className="text-muted-foreground text-xs">
-            Make sure your application is configured to listen on this port (e.g., via the <code>PORT</code> environment variable). Use a
-            non-privileged port (1024–65535).
+            {translateText("Make sure your application is configured to listen on this port (e.g., via the")} <code>PORT</code> {translateText("environment variable). Use a non-privileged port (1024–65535).")}
           </p>
           <InputError message={form.errors.port} />
         </>

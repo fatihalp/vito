@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -20,6 +21,7 @@ export default function Fail2banForm({
   serverId: number;
   fail2ban?: Service | null;
 }) {
+  const translateText = useTranslate();
   const data = (fail2ban?.type_data ?? {}) as Record<string, string | number>;
   const isInstalled = !!fail2ban;
 
@@ -49,20 +51,20 @@ export default function Fail2banForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{isInstalled ? 'Configure Fail2ban' : 'Install Fail2ban'}</DialogTitle>
-          <DialogDescription>Protect SSH from brute-force attacks by banning repeated failed logins.</DialogDescription>
+          <DialogTitle>{isInstalled ? translateText("Configure Fail2ban") : translateText("Install Fail2ban")}</DialogTitle>
+          <DialogDescription>{translateText("Protect SSH from brute-force attacks by banning repeated failed logins.")}</DialogDescription>
         </DialogHeader>
         <Form id="fail2ban-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="maxretry">Max retries</Label>
+              <Label htmlFor="maxretry">{translateText("Max retries")}</Label>
               <Input type="number" id="maxretry" min={1} value={form.data.maxretry} onChange={(e) => form.setData('maxretry', e.target.value)} />
-              <p className="text-muted-foreground text-xs">Failed attempts allowed within the find-time window before a ban.</p>
+              <p className="text-muted-foreground text-xs">{translateText("Failed attempts allowed within the find-time window before a ban.")}</p>
               <InputError message={form.errors.maxretry} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="findtime">Find time</Label>
+              <Label htmlFor="findtime">{translateText("Find time")}</Label>
               <Input
                 type="text"
                 id="findtime"
@@ -70,19 +72,19 @@ export default function Fail2banForm({
                 value={form.data.findtime}
                 onChange={(e) => form.setData('findtime', e.target.value)}
               />
-              <p className="text-muted-foreground text-xs">Window in which failures are counted (e.g. 10m, 1h).</p>
+              <p className="text-muted-foreground text-xs">{translateText("Window in which failures are counted (e.g. 10m, 1h).")}</p>
               <InputError message={form.errors.findtime} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="bantime">Ban time</Label>
+              <Label htmlFor="bantime">{translateText("Ban time")}</Label>
               <Input type="text" id="bantime" placeholder="10m" value={form.data.bantime} onChange={(e) => form.setData('bantime', e.target.value)} />
-              <p className="text-muted-foreground text-xs">How long an IP stays banned (e.g. 10m, 1h, 1d, -1 for permanent).</p>
+              <p className="text-muted-foreground text-xs">{translateText("How long an IP stays banned (e.g. 10m, 1h, 1d, -1 for permanent).")}</p>
               <InputError message={form.errors.bantime} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="ignoreip">Ignored IPs</Label>
+              <Label htmlFor="ignoreip">{translateText("Ignored IPs")}</Label>
               <Input
                 type="text"
                 id="ignoreip"
@@ -91,7 +93,7 @@ export default function Fail2banForm({
                 onChange={(e) => form.setData('ignoreip', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                Space-separated IPs/CIDRs that are never banned. Localhost and Pure&apos;s own address are always allowed.
+                {translateText("Space-separated IPs/CIDRs that are never banned. Localhost and Pure's own address are always allowed.")}
               </p>
               <InputError message={form.errors.ignoreip} />
             </FormField>
@@ -99,11 +101,11 @@ export default function Fail2banForm({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           <Button form="fail2ban-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {isInstalled ? 'Save' : 'Install'}
+            {isInstalled ? translateText("Save") : translateText("Install")}
           </Button>
         </DialogFooter>
       </DialogContent>

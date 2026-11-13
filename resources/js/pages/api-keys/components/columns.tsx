@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -8,6 +9,7 @@ import { Project } from '@/types/project';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Delete({ apiKey }: { apiKey: ApiKey }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -15,8 +17,8 @@ function Delete({ apiKey }: { apiKey: ApiKey }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: `Delete ${apiKey.name}`,
-          description: `Are you sure you want to delete ${apiKey.name}?`,
+          title: translateText("Delete :value", { value: apiKey.name }),
+          description: translateText("Are you sure you want to delete :value?", { value: apiKey.name }),
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -24,7 +26,7 @@ function Delete({ apiKey }: { apiKey: ApiKey }) {
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }

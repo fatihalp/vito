@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import {
   ChevronLeft,
@@ -87,6 +88,7 @@ export function DataTable<TData, TValue>({
   sortable = true,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
+  const translateText = useTranslate();
   
   const tableData = paginatedData?.data || data || [];
   const orderedColumns = useMemo(
@@ -268,7 +270,7 @@ export function DataTable<TData, TValue>({
         {searchable && (
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search..."
+              placeholder={translateText('Search...')}
               className="max-w-sm"
               value={searchQuery}
               onChange={(e) => {
@@ -304,11 +306,11 @@ export function DataTable<TData, TValue>({
                           className="flex cursor-pointer items-center gap-2"
                           onClick={() => handleSort(sortKey)}
                         >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {typeof header.column.columnDef.header === 'string' ? translateText(header.column.columnDef.header) : flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIndicator sortKey={sortKey} />
                         </button>
                       ) : (
-                        flexRender(header.column.columnDef.header, header.getContext())
+                        typeof header.column.columnDef.header === 'string' ? translateText(header.column.columnDef.header) : flexRender(header.column.columnDef.header, header.getContext())
                       )}
                     </TableHead>
                   );
@@ -333,7 +335,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
-                  No results.
+                  {translateText('No results.')}
                 </TableCell>
               </TableRow>
             )}
@@ -345,15 +347,16 @@ export function DataTable<TData, TValue>({
             <div className="text-muted-foreground flex items-center text-sm">
               {paginatedData.meta.from && paginatedData.meta.to && (
                 <span>
-                  Showing {paginatedData.meta.from} to {paginatedData.meta.to}
-                  {paginatedData.meta.total && ` of ${paginatedData.meta.total}`} results
+                  {paginatedData.meta.total !== undefined
+                    ? translateText('Showing :from to :to of :total results', { from: paginatedData.meta.from, to: paginatedData.meta.to, total: paginatedData.meta.total })
+                    : translateText('Showing :from to :to', { from: paginatedData.meta.from, to: paginatedData.meta.to })}
                 </span>
               )}
             </div>
 
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm whitespace-nowrap">Rows per page</span>
+                <span className="text-muted-foreground text-sm whitespace-nowrap">{translateText('Rows per page')}</span>
                 <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
                   <SelectTrigger className="h-8 w-[70px]">
                     <SelectValue placeholder={String(currentPerPage)} />
@@ -373,7 +376,7 @@ export function DataTable<TData, TValue>({
                   className="h-8 w-8 cursor-pointer"
                   onClick={() => goToPage(1)}
                   disabled={currentPage <= 1 || isFetching}
-                  title="First page"
+                  title={translateText('First page')}
                 >
                   <ChevronsLeft className="h-4 w-4" />
                 </Button>
@@ -384,7 +387,7 @@ export function DataTable<TData, TValue>({
                   className="h-8 w-8 cursor-pointer"
                   onClick={() => goToPage(currentPage - 1)}
                   disabled={currentPage <= 1 || isFetching}
-                  title="Previous page"
+                  title={translateText('Previous page')}
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
@@ -428,7 +431,7 @@ export function DataTable<TData, TValue>({
                   className="h-8 w-8 cursor-pointer"
                   onClick={() => goToPage(currentPage + 1)}
                   disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.next) || isFetching}
-                  title="Next page"
+                  title={translateText('Next page')}
                 >
                   <ChevronRight className="h-4 w-4" />
                 </Button>
@@ -439,7 +442,7 @@ export function DataTable<TData, TValue>({
                   className="h-8 w-8 cursor-pointer"
                   onClick={() => goToPage(lastPage || currentPage + 1)}
                   disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.last) || isFetching}
-                  title="Last page"
+                  title={translateText('Last page')}
                 >
                   <ChevronsRight className="h-4 w-4" />
                 </Button>

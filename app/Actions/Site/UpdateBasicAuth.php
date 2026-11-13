@@ -2,7 +2,6 @@
 
 namespace App\Actions\Site;
 
-use App\Helpers\Apr1Hasher;
 use App\Models\Site;
 use App\Services\Webserver\Nginx;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +28,6 @@ class UpdateBasicAuth
                 if ($plain !== '') {
                     return [
                         'username' => $username,
-                        'apr1' => Apr1Hasher::hash($plain),
                         'bcrypt' => password_hash($plain, PASSWORD_BCRYPT),
                     ];
                 }
@@ -41,11 +39,10 @@ class UpdateBasicAuth
 
                 return [
                     'username' => $username,
-                    'apr1' => $prev['apr1'] ?? null,
                     'bcrypt' => $prev['bcrypt'] ?? null,
                 ];
             })
-            ->filter(fn (?array $u) => $u !== null && ! empty($u['apr1']) && ! empty($u['bcrypt']))
+            ->filter(fn (?array $u) => $u !== null && ! empty($u['bcrypt']))
             ->values()
             ->all();
 
@@ -95,7 +92,7 @@ class UpdateBasicAuth
         foreach ($input['users'] as $index => $u) {
             $username = trim((string) ($u['username'] ?? ''));
             $plain = (string) ($u['password'] ?? '');
-            $hasExisting = $existing->has($username) && ! empty($existing[$username]['apr1']);
+            $hasExisting = $existing->has($username) && ! empty($existing[$username]['bcrypt']);
             if ($plain === '' && ! $hasExisting) {
                 $errors["users.$index.password"] = 'Password is required for new users.';
             }
@@ -125,7 +122,7 @@ class UpdateBasicAuth
             return;
         }
 
-        $lines = array_map(fn (array $u) => $u['username'].':'.$u['apr1']."\n", $users);
+        $lines = array_map(fn (array $u) => $u['username'].':'.$u['bcrypt']."\n", $users);
         $usernames = implode(', ', array_map(fn (array $u) => $u['username'], $users));
 
         $site->server->ssh()->exec(

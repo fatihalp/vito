@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon } from 'lucide-react';
@@ -16,6 +17,7 @@ type DataRetentionDialogProps = {
 };
 
 export default function DataRetentionDialog({ open, onOpenChange, server, dataRetention }: DataRetentionDialogProps) {
+  const translateText = useTranslate();
   const form = useForm({
     data_retention: String(dataRetention || '30'),
   });
@@ -33,26 +35,26 @@ export default function DataRetentionDialog({ open, onOpenChange, server, dataRe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Data retention</DialogTitle>
-          <DialogDescription className="sr-only">Data retention</DialogDescription>
+          <DialogTitle>{translateText('Data retention')}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText('Data retention')}</DialogDescription>
         </DialogHeader>
         <Form id="data-retention-form" className="p-4" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="data_retention">Data retention (days)</Label>
+              <Label htmlFor="data_retention">{translateText("Data retention (days)")}</Label>
               <Select value={form.data.data_retention} onValueChange={(value) => form.setData('data_retention', value)}>
                 <SelectTrigger id="data_retention">
-                  <SelectValue placeholder="Select a period" />
+                  <SelectValue placeholder={translateText("Select a period")} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="7">7 Days</SelectItem>
-                    <SelectItem value="14">14 Days</SelectItem>
-                    <SelectItem value="30">30 Days</SelectItem>
-                    <SelectItem value="60">60 Days</SelectItem>
-                    <SelectItem value="90">90 Days</SelectItem>
-                    <SelectItem value="180">180 Days</SelectItem>
-                    <SelectItem value="365">365 Days</SelectItem>
+                    <SelectItem value="7">{translateText("7 Days")}</SelectItem>
+                    <SelectItem value="14">{translateText("14 Days")}</SelectItem>
+                    <SelectItem value="30">{translateText("30 Days")}</SelectItem>
+                    <SelectItem value="60">{translateText("60 Days")}</SelectItem>
+                    <SelectItem value="90">{translateText("90 Days")}</SelectItem>
+                    <SelectItem value="180">{translateText("180 Days")}</SelectItem>
+                    <SelectItem value="365">{translateText("365 Days")}</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -61,11 +63,11 @@ export default function DataRetentionDialog({ open, onOpenChange, server, dataRe
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Close</Button>
+            <Button variant="outline">{translateText('Close')}</Button>
           </DialogClose>
           <Button form="data-retention-form" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

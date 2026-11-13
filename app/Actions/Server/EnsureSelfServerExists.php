@@ -66,6 +66,7 @@ class EnsureSelfServerExists
 
         if (! $server->exists) {
             $server->fill([
+                'name' => self::SERVER_NAME,
                 'user_id' => $user?->id ?? User::query()->where('is_admin', true)->value('id') ?? User::query()->value('id'),
                 'role' => ServerRole::APP,
                 'stage' => 'prod',
@@ -87,7 +88,6 @@ class EnsureSelfServerExists
 
         $server->fill([
             'project_id' => $project->id,
-            'name' => self::SERVER_NAME,
         ])->save();
 
         $this->ensureKeys($server);
@@ -154,7 +154,7 @@ class EnsureSelfServerExists
             'branch' => $site->branch ?: $this->detectGitBranch(),
             'status' => SiteStatus::READY,
             'progress' => 100,
-            'user' => $server->getSshUser() ?: (string) config('core.ssh_user', 'vito'),
+            'user' => $site->user ?: (string) config('core.ssh_user', 'vito'),
             'force_ssl' => false,
             'ssl_enabled' => str_starts_with((string) config('app.url'), 'https://'),
             'vhost_generation_enabled' => false,
@@ -167,7 +167,7 @@ class EnsureSelfServerExists
         ])->saveQuietly();
 
         $defaultScriptContent = implode("\n", [
-            'git pull origin $BRANCH',
+            'git pull --ff-only origin "$BRANCH"',
             'composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev',
             'php artisan vito',
         ]);
@@ -178,7 +178,8 @@ class EnsureSelfServerExists
         );
 
         $currentContent = trim((string) $script->content);
-        if ($currentContent === '' || str_starts_with($currentContent, "git pull\nphp artisan vito")) {
+        $previousDefault = str_replace('git pull --ff-only origin "$BRANCH"', 'git pull origin $BRANCH', $defaultScriptContent);
+        if ($currentContent === '' || $currentContent === $previousDefault || str_starts_with($currentContent, "git pull\nphp artisan vito")) {
             $script->update(['content' => $defaultScriptContent, 'configs' => ['restart_workers' => false]]);
         }
 
@@ -249,7 +250,7 @@ class EnsureSelfServerExists
     private function ensureKeys(Server $server): void
     {
         $storageDisk = Storage::disk(config('core.key_pairs_disk'));
-        File::ensureDirectoryExists($storageDisk->path(''));
+        File::ensureDirectoryExists($storageDisk->path(''), 0700);
 
         $pairs = [
             storage_path(config('core.ssh_private_key_name')) => $storageDisk->path((string) $server->id),
@@ -259,6 +260,7 @@ class EnsureSelfServerExists
         foreach ($pairs as $source => $target) {
             if (! File::exists($target) && File::exists($source)) {
                 File::copy($source, $target);
+                File::chmod($target, str_ends_with($target, '.pub') ? 0644 : 0600);
             }
         }
     }
@@ -270,7 +272,7 @@ class EnsureSelfServerExists
             return;
         }
 
-        $home = getenv('HOME') ?: ($_SERVER['HOME'] ?? home_path((string) config('core.ssh_user', 'vito')));
+        $home = home_path((string) config('core.ssh_user', 'vito'));
         $sshDir = $home.'/.ssh';
         $authKeysPath = $sshDir.'/authorized_keys';
 

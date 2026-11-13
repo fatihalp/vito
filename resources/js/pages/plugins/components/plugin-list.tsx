@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useInfiniteQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Repo } from '@/types/repo';
@@ -14,6 +15,7 @@ interface PluginListProps {
 }
 
 export default function PluginList({ filter }: PluginListProps) {
+  const translateText = useTranslate();
   const isOfficial = filter === 'official';
   const query = useInfiniteQuery<{
     total_count: number;
@@ -61,7 +63,7 @@ export default function PluginList({ filter }: PluginListProps) {
                       {isOfficial ? (
                         <BadgeCheckIcon className="text-primary size-4" />
                       ) : (
-                        <Badge variant="outline">by {repo.owner.login}</Badge>
+                        <Badge variant="outline">{translateText("by")} {repo.owner.login}</Badge>
                       )}
                     </div>
                     <span className="text-muted-foreground text-xs">{repo.description}</span>
@@ -84,14 +86,14 @@ export default function PluginList({ filter }: PluginListProps) {
             <div className="flex items-center justify-center p-5">
               <Button variant="outline" onClick={() => query.fetchNextPage()}>
                 {query.isFetchingNextPage && <LoaderCircleIcon className="animate-spin" />}
-                Load more
+                {translateText("Load more")}
               </Button>
             </div>
           )}
         </>
       ) : (
         <CardRow className="items-center justify-center">
-          <span className="text-muted-foreground">No plugins found</span>
+          <span className="text-muted-foreground">{translateText("No plugins found")}</span>
         </CardRow>
       )}
     </div>

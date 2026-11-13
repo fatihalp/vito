@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useState } from 'react';
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +16,7 @@ export default function CopyableField({
   mono?: boolean;
   masked?: boolean;
 }) {
+  const translateText = useTranslate();
   const [copied, setCopied] = useState(false);
   const [revealed, setRevealed] = useState(!masked);
 
@@ -39,12 +41,12 @@ export default function CopyableField({
           variant="ghost"
           className="h-6 w-6 shrink-0"
           onClick={() => setRevealed((r) => !r)}
-          aria-label={revealed ? 'Hide value' : 'Show value'}
+          aria-label={revealed ? translateText("Hide value") : translateText("Show value")}
         >
           {revealed ? <EyeOffIcon className="size-3.5" /> : <EyeIcon className="size-3.5" />}
         </Button>
       )}
-      <Button type="button" size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={copy} aria-label="Copy">
+      <Button type="button" size="icon" variant="ghost" className="h-6 w-6 shrink-0" onClick={copy} aria-label={translateText('Copy')}>
         {copied ? <CheckIcon className="text-success size-3.5" /> : <CopyIcon className="size-3.5" />}
       </Button>
     </div>

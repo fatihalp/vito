@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { type Server } from '@/types/server';
 import { useState, useEffect, useRef, type ReactNode } from 'react';
@@ -50,6 +51,7 @@ export default function ServerSelect({
   showIp = true,
   excludeSelf = false,
 }: ServerSelectProps) {
+  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const [internalOpen, setInternalOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -183,12 +185,12 @@ export default function ServerSelect({
       <PopoverTrigger asChild>{trigger || defaultTrigger}</PopoverTrigger>
       <PopoverContent className="flex max-h-[400px] w-(--radix-popover-trigger-width) min-w-56 flex-col p-0" align="start">
         <Command shouldFilter={false} className="flex flex-col overflow-hidden">
-          <CommandInput placeholder="Search server..." value={query} onValueChange={setQuery} />
+          <CommandInput placeholder={translateText("Search server...")} value={query} onValueChange={setQuery} />
           <CommandList data-slot="command-list" className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
             {header && <div className="border-b">{header}</div>}
             {servers.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
-                {isFetching ? 'Searching...' : query === '' ? 'Start typing to search servers' : 'No servers found.'}
+                {isFetching ? translateText("Searching...") : query === '' ? translateText("Start typing to search servers") : translateText("No servers found.")}
               </div>
             ) : (
               <CommandGroup>
@@ -220,8 +222,8 @@ export default function ServerSelect({
                             setOpen(false);
                           }}
                           className="text-muted-foreground hover:text-foreground hover:bg-accent/80 p-1 rounded-sm transition-colors"
-                          title={`${server.name} settings`}
-                          aria-label={`${server.name} settings`}
+                          title={translateText(":value settings", { value: server.name })}
+                          aria-label={translateText(":value settings", { value: server.name })}
                         >
                           <SettingsIcon className="size-3.5" />
                         </Link>
@@ -233,9 +235,9 @@ export default function ServerSelect({
                 {hasNextPage && (
                   <div ref={loadMoreRef} className="flex justify-center py-2">
                     {isFetchingNextPage ? (
-                      <span className="text-muted-foreground text-xs">Loading more...</span>
+                      <span className="text-muted-foreground text-xs">{translateText('Loading more...')}</span>
                     ) : (
-                      <span className="text-muted-foreground text-xs">Scroll for more</span>
+                      <span className="text-muted-foreground text-xs">{translateText('Scroll for more')}</span>
                     )}
                   </div>
                 )}

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import React, { FormEvent, ReactNode, useMemo, useState } from 'react';
 import { useForm, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -71,6 +72,7 @@ function getServiceIcon(type: string) {
 }
 
 export default function InstallService({ name, children }: { name?: string; children: ReactNode }) {
+  const translateText = useTranslate();
   const page = usePage<{ server: Server }>();
   const configs = useConfigs()!;
 
@@ -144,9 +146,9 @@ export default function InstallService({ name, children }: { name?: string; chil
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] flex flex-col p-0 gap-0 overflow-hidden">
         <DialogHeader className="px-4 py-3 border-b">
-          <DialogTitle className="text-base font-semibold">Install Service</DialogTitle>
+          <DialogTitle className="text-base font-semibold">{translateText("Install Service")}</DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Select a service to install on <strong className="text-foreground">{page.props.server.name}</strong>
+            {translateText("Select a service to install on")} <strong className="text-foreground">{page.props.server.name}</strong>
           </DialogDescription>
         </DialogHeader>
 
@@ -154,7 +156,7 @@ export default function InstallService({ name, children }: { name?: string; chil
           <div className="relative">
             <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 size-3.5 text-muted-foreground" />
             <Input
-              placeholder="Search services (e.g. PHP, Nginx, MySQL, Redis, Node)..."
+              placeholder={translateText("Search services (e.g. PHP, Nginx, MySQL, Redis, Node)...")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="h-8 text-xs pl-8 bg-background"
@@ -166,7 +168,7 @@ export default function InstallService({ name, children }: { name?: string; chil
           {filteredServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
               <SearchIcon className="size-6 mb-1.5 opacity-40" />
-              <p className="text-xs font-medium">No services found matching "{search}"</p>
+              <p className="text-xs font-medium">{translateText("No services found matching \"")}{search}"</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
@@ -220,7 +222,7 @@ export default function InstallService({ name, children }: { name?: string; chil
                         className="pt-1.5 mt-0.5 border-t flex flex-wrap gap-1 items-center"
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <span className="text-[10px] font-medium text-muted-foreground mr-1">Version:</span>
+                        <span className="text-[10px] font-medium text-muted-foreground mr-1">{translateText("Version:")}</span>
                         {service.versions.map((ver: string) => {
                           const isVersionActive = form.data.version === ver;
                           return (
@@ -254,7 +256,7 @@ export default function InstallService({ name, children }: { name?: string; chil
               <span className="flex items-center gap-1.5">
                 <CheckIcon className="size-3.5 text-primary shrink-0" />
                 <span className="truncate">
-                  Selected: <strong className="text-foreground">{selectedService.label}</strong>
+                  {translateText("Selected:")} <strong className="text-foreground">{selectedService.label}</strong>
                   {form.data.version && (
                     <Badge variant="outline" className="ml-1 text-[10px] font-mono py-0 px-1">
                       {form.data.version}
@@ -263,14 +265,14 @@ export default function InstallService({ name, children }: { name?: string; chil
                 </span>
               </span>
             ) : (
-              <span className="text-muted-foreground">Select a service above</span>
+              <span className="text-muted-foreground">{translateText("Select a service above")}</span>
             )}
           </div>
 
           <div className="flex items-center gap-2">
             <DialogClose asChild>
               <Button variant="outline" size="sm" className="h-8 text-xs">
-                Cancel
+                {translateText('Cancel')}
               </Button>
             </DialogClose>
             <Button
@@ -282,10 +284,10 @@ export default function InstallService({ name, children }: { name?: string; chil
               {form.processing ? (
                 <>
                   <LoaderCircleIcon className="size-3.5 animate-spin mr-1" />
-                  Installing...
+                  {translateText('Installing...')}
                 </>
               ) : (
-                'Install'
+                translateText("Install")
               )}
             </Button>
           </div>

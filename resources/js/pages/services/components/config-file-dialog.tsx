@@ -1,10 +1,11 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { ConfigPath, Service } from '@/types/service';
 import { FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor } from '@monaco-editor/react';
+import { Editor } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -22,6 +23,7 @@ export default function ServiceConfigFileDialog({
   service: Service;
   configPath: ConfigPath;
 }) {
+  const translateText = useTranslate();
   const form = useForm<{
     content: string;
     config_name: string;
@@ -57,9 +59,9 @@ export default function ServiceConfigFileDialog({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-5xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>Edit {configPath.name}</SheetTitle>
+          <SheetTitle>{translateText('Edit')} {configPath.name}</SheetTitle>
           <SheetDescription className="sr-only">
-            You can edit the {configPath.name} file for this service. Make sure to save your changes.
+            {translateText("You can edit the")} {configPath.name} {translateText("file for this service. Make sure to save your changes.")}
           </SheetDescription>
         </SheetHeader>
         <Form id="update-config-form" className="h-full" onSubmit={submit}>
@@ -67,7 +69,6 @@ export default function ServiceConfigFileDialog({
             <Editor
               defaultLanguage="ini"
               value={form.data.content}
-              theme="vs-dark"
               className="h-full"
               onChange={(value) => form.setData('content', value ?? '')}
               options={{
@@ -82,10 +83,10 @@ export default function ServiceConfigFileDialog({
           <div className="flex items-center gap-2">
             <Button form="update-config-form" type="submit" disabled={form.processing || query.isLoading} className="ml-2">
               {(form.processing || query.isLoading) && <LoaderCircleIcon className="animate-spin" />}
-              Save
+              {translateText('Save')}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
           </div>
         </SheetFooter>

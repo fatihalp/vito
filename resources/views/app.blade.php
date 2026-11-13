@@ -4,7 +4,15 @@
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-        <style>html { color-scheme: dark; background: #111113; }</style>
+        <style>html { color-scheme: dark; background: #111113; } html.light { color-scheme: light; background: #f5f5f7; }</style>
+        <script>
+            try {
+                const theme = localStorage.getItem('vito-theme');
+                const light = theme === 'light' || (theme === 'system' && matchMedia('(prefers-color-scheme: light)').matches);
+                document.documentElement.classList.toggle('dark', !light);
+                document.documentElement.classList.toggle('light', light);
+            } catch {}
+        </script>
 
         <title data-inertia>{{ config('app.name', 'Laravel') }}</title>
 

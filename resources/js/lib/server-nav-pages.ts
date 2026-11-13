@@ -37,6 +37,7 @@ export const SERVER_NAV_PAGES: ServerNavPage[] = [
   { key: 'Version upgrade', label: 'Version upgrade', path: '/database-upgrades', icon: ArrowUpCircleIcon },
   { key: 'CronJobs', label: 'CronJobs', path: '/cronjobs', icon: ClockIcon },
   { key: 'Workers', label: 'Workers', path: '/workers', icon: ListEndIcon },
+  { key: 'Runtime processes', label: 'Runtime processes', path: '/runtime-processes', icon: CpuIcon },
   { key: 'Services', label: 'Services', path: '/services', icon: CogIcon },
   { key: 'Backups', label: 'Backups', path: '/backups', icon: CloudUploadIcon },
   { key: 'Hardening', label: 'Hardening', path: '/security', icon: ShieldIcon },

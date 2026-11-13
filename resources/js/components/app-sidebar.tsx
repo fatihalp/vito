@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { NavUser } from '@/components/nav-user';
 import { cn, currentPath } from '@/lib/utils';
@@ -77,6 +78,7 @@ export function AppSidebar({
   secondNavOpen?: boolean;
   onSecondNavOpenChange?: (open: boolean) => void;
 }) {
+  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const navGroups = secondNavGroups ?? [{ title: '', items: secondNavItems ?? [] }];
   const hasSecondNav = navGroups.some((group) => group.items.length > 0);
@@ -88,7 +90,7 @@ export function AppSidebar({
   const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
-      href: "/overview",
+      href: withQuery('/overview', { project: page.props.auth.projectScope }),
       onlyActivePath: "/overview",
       icon: LayoutDashboardIcon,
     },
@@ -154,7 +156,7 @@ export function AppSidebar({
               href={"/overview"}
               prefetch
               className="flex min-w-0 items-center gap-2 group-data-[state=collapsed]:hidden"
-              aria-label={`Pure ${page.props.version}`}
+              aria-label={translateText("Pure :value", { value: page.props.version })}
             >
               <AppLogo />
             </Link>
@@ -164,7 +166,7 @@ export function AppSidebar({
                   variant="ghost"
                   size="icon"
                   className="size-7 group-data-[state=collapsed]:hidden"
-                  aria-label="Show contextual navigation"
+                  aria-label={translateText("Show contextual navigation")}
                   aria-controls="context-navigation"
                   aria-expanded={false}
                   onClick={() => onSecondNavOpenChange(true)}
@@ -172,7 +174,7 @@ export function AppSidebar({
                   <PanelLeftOpenIcon />
                 </Button>
               )}
-              <SidebarTrigger aria-label="Toggle main navigation" aria-controls="app-navigation" />
+              <SidebarTrigger aria-label={translateText("Toggle main navigation")} aria-controls="app-navigation" />
             </div>
           </div>
         </SidebarHeader>
@@ -188,19 +190,19 @@ export function AppSidebar({
                     <SidebarMenuButton
                       asChild
                       isActive={item.href === activePrimaryHref}
-                      tooltip={item.title}
+                      tooltip={translateText(item.title)}
                       hidden={item.hidden}
                       className="group-data-[state=collapsed]:size-8! group-data-[state=collapsed]:p-2! group-data-[state=collapsed]:justify-center"
                     >
                       {item.external ? (
                         <a href={item.href} target="_blank">
                           {item.icon && <item.icon />}
-                          <span className="group-data-[state=collapsed]:hidden">{item.title}</span>
+                          <span className="group-data-[state=collapsed]:hidden">{translateText(item.title)}</span>
                         </a>
                       ) : (
                         <Link href={item.href}>
                           {item.icon && <item.icon />}
-                          <span className="group-data-[state=collapsed]:hidden">{item.title}</span>
+                          <span className="group-data-[state=collapsed]:hidden">{translateText(item.title)}</span>
                         </Link>
                       )}
                     </SidebarMenuButton>
@@ -242,7 +244,7 @@ export function AppSidebar({
                   variant="ghost"
                   size="icon"
                   className="size-7 shrink-0"
-                  aria-label="Hide contextual navigation"
+                  aria-label={translateText("Hide contextual navigation")}
                   aria-controls="context-navigation"
                   aria-expanded={secondNavOpen}
                   onClick={() => onSecondNavOpenChange(false)}
@@ -278,7 +280,7 @@ export function AppSidebar({
                             <CollapsibleTrigger asChild>
                               <SidebarMenuButton isActive={groupActive} disabled={item.isDisabled || false} hidden={item.hidden}>
                                 {item.icon && <item.icon />}
-                                <span className="truncate">{item.title}</span>
+                                <span className="truncate">{translateText(item.title)}</span>
                                 <ChevronRightIcon className="ml-auto size-4 shrink-0 transition-transform group-data-[state=open]/collapsible:rotate-90" />
                               </SidebarMenuButton>
                             </CollapsibleTrigger>
@@ -323,7 +325,7 @@ export function AppSidebar({
                               {item.external ? (
                                 <a href={item.href} target="_blank" className="flex items-center w-full">
                                   {item.icon && <item.icon />}
-                                  <span className="truncate">{item.title}</span>
+                                  <span className="truncate">{translateText(item.title)}</span>
                                   {item.badge !== undefined && (
                                     <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
                                       {item.badge}
@@ -337,7 +339,7 @@ export function AppSidebar({
                                   className={cn('flex items-center w-full', item.isDisabled && 'pointer-events-none opacity-50')}
                                 >
                                   {item.icon && <item.icon />}
-                                  <span className="truncate">{item.title}</span>
+                                  <span className="truncate">{translateText(item.title)}</span>
                                   {item.badge !== undefined && (
                                     <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
                                       {item.badge}
@@ -357,7 +359,7 @@ export function AppSidebar({
                           {item.external ? (
                             <a href={item.href} target="_blank" className="flex items-center w-full">
                               {item.icon && <item.icon />}
-                              <span className="truncate">{item.title}</span>
+                              <span className="truncate">{translateText(item.title)}</span>
                               {item.badge !== undefined && (
                                 <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
                                   {item.badge}
@@ -371,7 +373,7 @@ export function AppSidebar({
                               className={cn('flex items-center w-full', item.isDisabled && 'pointer-events-none opacity-50')}
                             >
                               {item.icon && <item.icon />}
-                              <span className="truncate">{item.title}</span>
+                              <span className="truncate">{translateText(item.title)}</span>
                               {item.badge !== undefined && (
                                 <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
                                   {item.badge}

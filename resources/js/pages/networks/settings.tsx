@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -18,6 +19,7 @@ import { formatDateString } from '@/lib/utils';
 import { Network } from '@/types/network';
 
 export default function NetworkSettings() {
+  const translateText = useTranslate();
   const page = usePage<{ network: Network }>();
   const network = useRealtimeRecord<Network>(page.props.network, 'network')!;
   const dialog = useDialog();
@@ -59,24 +61,24 @@ export default function NetworkSettings() {
 
   return (
     <NetworkLayout>
-      <Head title={`Settings - ${network.name}`} />
+      <Head title={translateText("Settings - :value", { value: network.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Settings" description="Manage this network's settings" />
+          <Heading title={translateText('Settings')} description={translateText("Manage this network's settings")} />
         </HeaderContainer>
 
         <Card className="overflow-hidden">
           <CardHeader className="flex-row items-center justify-between gap-2">
             <div className="space-y-2">
-              <CardTitle>Network details</CardTitle>
-              <CardDescription>Update network details</CardDescription>
+              <CardTitle>{translateText("Network details")}</CardTitle>
+              <CardDescription>{translateText("Update network details")}</CardDescription>
             </div>
             <div className="flex items-center gap-2">
               {form.isDirty && (
                 <Button onClick={submit}>
                   {form.processing && <LoaderCircleIcon className="animate-spin" />}
-                  Save changes
+                  {translateText('Save changes')}
                 </Button>
               )}
               {(editMode || form.isDirty) && (
@@ -87,7 +89,7 @@ export default function NetworkSettings() {
                     form.reset();
                   }}
                 >
-                  Cancel
+                  {translateText('Cancel')}
                 </Button>
               )}
             </div>
@@ -99,7 +101,7 @@ export default function NetworkSettings() {
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">
-              <span>Name</span>
+              <span>{translateText('Name')}</span>
               {editMode === 'name' ? (
                 <div className="flex max-w-48 flex-col items-end gap-1">
                   <Input
@@ -120,12 +122,12 @@ export default function NetworkSettings() {
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">
-              <span>Type</span>
+              <span>{translateText('Type')}</span>
               <Badge variant={network.type_color}>{network.type}</Badge>
             </div>
             <Separator />
             <div className="flex items-center justify-between p-4">
-              <span>Status</span>
+              <span>{translateText('Status')}</span>
               <Badge variant={network.status_color}>{network.status}</Badge>
             </div>
             <Separator />
@@ -137,19 +139,19 @@ export default function NetworkSettings() {
               <>
                 <Separator />
                 <div className="flex items-center justify-between p-4">
-                  <span>Address pool</span>
+                  <span>{translateText("Address pool")}</span>
                   <span className="text-muted-foreground">{network.addressing_pool}</span>
                 </div>
                 <Separator />
                 <div className="flex items-center justify-between p-4">
-                  <span>Listen port</span>
+                  <span>{translateText("Listen port")}</span>
                   <span className="text-muted-foreground">{network.port ?? '-'}</span>
                 </div>
               </>
             )}
             <Separator />
             <div className="flex items-center justify-between p-4">
-              <span>Created at</span>
+              <span>{translateText('Created at')}</span>
               <span className="text-muted-foreground">{formatDateString(network.created_at)}</span>
             </div>
           </CardContent>
@@ -158,26 +160,25 @@ export default function NetworkSettings() {
         {network.is_managed && !network.is_orphaned && !network.is_stranded && (
           <Card className="overflow-hidden">
             <CardHeader>
-              <CardTitle>Provider managed</CardTitle>
+              <CardTitle>{translateText("Provider managed")}</CardTitle>
               <CardDescription>
-                This network mirrors a private network at your cloud provider. Its members are synced automatically, and it is removed from Pure when
-                the network no longer exists at the provider.
+                {translateText("This network mirrors a private network at your cloud provider. Its members are synced automatically, and it is removed from Pure when the network no longer exists at the provider.")}
               </CardDescription>
             </CardHeader>
             <CardContent className="bg-background p-0">
               <div className="flex items-center justify-between p-4">
-                <span>Provider</span>
+                <span>{translateText('Provider')}</span>
                 <span className="text-muted-foreground">{network.provider ?? '-'}</span>
               </div>
               <Separator />
               <div className="flex items-center justify-between p-4">
-                <span>Region</span>
+                <span>{translateText('Region')}</span>
                 <span className="text-muted-foreground">{network.region ?? '-'}</span>
               </div>
               <Separator />
               <div className="flex items-center justify-between p-4">
-                <span>Last synced</span>
-                <span className="text-muted-foreground">{network.last_synced_at ? formatDateString(network.last_synced_at) : 'Never'}</span>
+                <span>{translateText("Last synced")}</span>
+                <span className="text-muted-foreground">{network.last_synced_at ? formatDateString(network.last_synced_at) : translateText("Never")}</span>
               </div>
             </CardContent>
           </Card>
@@ -186,10 +187,9 @@ export default function NetworkSettings() {
         {network.is_orphaned && (
           <Alert>
             <TriangleAlertIcon className="size-4" />
-            <AlertTitle>Provider connection removed</AlertTitle>
+            <AlertTitle>{translateText("Provider connection removed")}</AlertTitle>
             <AlertDescription>
-              The cloud provider connection this network came from no longer exists, so it can no longer be synced or removed automatically. Deleting
-              it here is the only way to clear it.
+              {translateText("The cloud provider connection this network came from no longer exists, so it can no longer be synced or removed automatically. Deleting it here is the only way to clear it.")}
             </AlertDescription>
           </Alert>
         )}
@@ -197,10 +197,9 @@ export default function NetworkSettings() {
         {network.is_stranded && (
           <Alert>
             <TriangleAlertIcon className="size-4" />
-            <AlertTitle>Cannot be synced</AlertTitle>
+            <AlertTitle>{translateText("Cannot be synced")}</AlertTitle>
             <AlertDescription>
-              None of this network's servers still carries the identifier its cloud provider knows them by, so Pure can no longer sync it or remove it
-              automatically. Deleting it here is the only way to clear it.
+              {translateText("None of this network's servers still carries the identifier its cloud provider knows them by, so Pure can no longer sync it or remove it automatically. Deleting it here is the only way to clear it.")}
             </AlertDescription>
           </Alert>
         )}
@@ -208,8 +207,8 @@ export default function NetworkSettings() {
         {(!network.is_managed || network.is_orphaned || network.is_stranded) && (
           <Card className="border-destructive/30 overflow-hidden">
             <CardHeader>
-              <CardTitle>Delete network</CardTitle>
-              <CardDescription>Tear this network down on all of its servers and remove it. This action cannot be undone.</CardDescription>
+              <CardTitle>{translateText("Delete network")}</CardTitle>
+              <CardDescription>{translateText("Tear this network down on all of its servers and remove it. This action cannot be undone.")}</CardDescription>
             </CardHeader>
             <CardContent className="bg-background">
               <div className="p-4">
@@ -217,8 +216,8 @@ export default function NetworkSettings() {
                   variant="destructive"
                   onClick={() =>
                     dialog.confirm.open({
-                      title: `Delete network [${network.name}]`,
-                      description: `Are you sure you want to delete ${network.name}? This tears the network down on all of its servers.`,
+                      title: translateText("Delete network [:value]", { value: network.name }),
+                      description: translateText("Are you sure you want to delete :value? This tears the network down on all of its servers.", { value: network.name }),
                       variant: 'destructive',
                       confirmLabel: 'Delete',
                       method: 'delete',
@@ -226,7 +225,7 @@ export default function NetworkSettings() {
                     })
                   }
                 >
-                  Delete network
+                  {translateText("Delete network")}
                 </Button>
               </div>
             </CardContent>

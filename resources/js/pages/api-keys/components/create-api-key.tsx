@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { ClipboardCheckIcon, ClipboardIcon, LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,6 +29,7 @@ type ApiKeyForm = {
 };
 
 export default function CreateApiKey({ children, projects }: { children: ReactNode; projects: Project[] }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [token, setToken] = useState<string | undefined>();
   const tokenInputRef = useRef<HTMLInputElement>(null);
@@ -71,8 +73,8 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Create an API key</DialogTitle>
-          <DialogDescription className="sr-only">Create a new api key</DialogDescription>
+          <DialogTitle>{translateText("Create an API key")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Create a new api key")}</DialogDescription>
         </DialogHeader>
         <Form id="create-tag-form" onSubmit={submit} className="p-4">
           {token ? (
@@ -87,23 +89,23 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
           ) : (
             <FormFields>
               <FormField>
-                <Label htmlFor="name">Name</Label>
+                <Label htmlFor="name">{translateText('Name')}</Label>
                 <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
                 <InputError message={form.errors.name} />
               </FormField>
               <FormField>
-                <Label htmlFor="permission">Permission</Label>
+                <Label htmlFor="permission">{translateText('Permission')}</Label>
                 <Select name="permission" value={form.data.permission} onValueChange={(value) => form.setData('permission', value)}>
                   <SelectTrigger id="permission">
-                    <SelectValue placeholder="Select a permission" />
+                    <SelectValue placeholder={translateText("Select a permission")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
                       <SelectItem key="permission-read" value="read">
-                        read
+                        {translateText('read')}
                       </SelectItem>
                       <SelectItem key="permission-write" value="write">
-                        read & write
+                        {translateText('read & write')}
                       </SelectItem>
                     </SelectGroup>
                   </SelectContent>
@@ -111,15 +113,15 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
                 <InputError message={form.errors.permission} />
               </FormField>
               <FormField>
-                <Label htmlFor="projects">Projects</Label>
+                <Label htmlFor="projects">{translateText('Projects')}</Label>
                 <MultiSelect
                   options={projectOptions}
                   onValueChange={(value) => form.setData('projects', value)}
                   defaultValue={form.data.projects}
-                  placeholder="Select projects"
+                  placeholder={translateText("Select projects")}
                   maxCount={3}
                 />
-                <p className="text-muted-foreground text-xs">Select at least one project.</p>
+                <p className="text-muted-foreground text-xs">{translateText("Select at least one project.")}</p>
                 <InputError message={form.errors.projects} />
               </FormField>
             </FormFields>
@@ -129,12 +131,12 @@ export default function CreateApiKey({ children, projects }: { children: ReactNo
           <DialogFooter>
             <DialogClose asChild>
               <Button type="button" variant="outline">
-                Cancel
+                {translateText('Cancel')}
               </Button>
             </DialogClose>
             <Button type="button" onClick={submit} disabled={form.processing || form.data.projects.length === 0}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              Create
+              {translateText('Create')}
             </Button>
           </DialogFooter>
         )}
