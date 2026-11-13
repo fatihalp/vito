@@ -7,11 +7,11 @@ use App\Http\Middleware\CanSeeProjectMiddleware;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\HandleInertiaRequests;
-use App\Http\Middleware\HasProjectMiddleware;
 use App\Http\Middleware\MustBeAdminMiddleware;
 use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\ResolveCurrentProject;
 use App\Http\Middleware\TrackUserActivity;
 use App\Http\Middleware\TrimStrings;
 use App\Http\Middleware\TrustProxies;
@@ -54,6 +54,7 @@ class Kernel extends HttpKernel
             ShareErrorsFromSession::class,
             PreventRequestForgery::class,
             SubstituteBindings::class,
+            ResolveCurrentProject::class,
             HandleInertiaRequests::class,
             EnsurePasswordIsChanged::class,
             TrackUserActivity::class,
@@ -79,7 +80,6 @@ class Kernel extends HttpKernel
         'verified' => EnsureEmailIsVerified::class,
         'abilities' => CheckAbilities::class,
         'ability' => CheckForAnyAbility::class,
-        'has-project' => HasProjectMiddleware::class,
         'can-see-project' => CanSeeProjectMiddleware::class,
         'must-be-admin' => MustBeAdminMiddleware::class,
     ];

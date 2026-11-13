@@ -14,7 +14,7 @@ use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/settings')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerSettingController extends Controller
 {
 

@@ -25,7 +25,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/security')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class SecurityController extends Controller
 {
 

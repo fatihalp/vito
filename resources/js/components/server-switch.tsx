@@ -1,6 +1,7 @@
+import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Server } from '@/types/server';
-import { router, useForm, usePage } from '@inertiajs/react';
+import { router, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, ServerIcon } from 'lucide-react';
@@ -12,7 +13,6 @@ export function ServerSwitch() {
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<string>(page.props.server?.id?.toString() ?? '');
-  const form = useForm();
 
   useEffect(() => {
     setSelected(page.props.server?.id?.toString() ?? '');
@@ -28,7 +28,7 @@ export function ServerSwitch() {
     setSelected(value);
     setOpen(false);
     serverHelper.storeServer(server, page.props.auth.user.id);
-    form.post(`/servers/${server.id}/switch`);
+    router.visit(`/servers/${server.id}`);
   };
 
   const footer = (
@@ -56,7 +56,7 @@ export function ServerSwitch() {
         onSelect={() => {
           setSelected('');
           setOpen(false);
-          router.visit("/servers");
+          router.visit(withQuery('/servers', { project: page.props.auth.projectScope }));
         }}
       >
         <ServerIcon />
@@ -93,7 +93,7 @@ export function ServerSwitch() {
     <div className="flex items-center">
       <ServerSelect
         value={selected}
-        projectId={page.props.server?.project_id ?? page.props.auth?.currentProject?.id}
+        projectId="all"
         onValueChangeAdvanced={handleServerChange}
         trigger={trigger}
         open={open}

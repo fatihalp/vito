@@ -20,7 +20,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/network')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerNetworkController extends Controller
 {
 

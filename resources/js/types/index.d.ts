@@ -9,6 +9,7 @@ import type { ServerRole } from '@/lib/server-roles';
 export interface Auth {
   user: User;
   currentProject?: Project;
+  projectScope: string;
   pendingInvitationsCount: number;
 }
 

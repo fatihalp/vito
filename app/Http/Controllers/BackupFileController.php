@@ -23,7 +23,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/backups/{backup}/files')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class BackupFileController extends Controller
 {
 

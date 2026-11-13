@@ -23,7 +23,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Prefix('/servers/{server}/ssl')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerSslController extends Controller
 {
 

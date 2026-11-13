@@ -31,7 +31,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
 
 #[Prefix('networks')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class NetworkController extends Controller
 {
 

@@ -25,7 +25,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
 
 #[Prefix('networks/{network}/peers')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class NetworkPeerController extends Controller
 {
 

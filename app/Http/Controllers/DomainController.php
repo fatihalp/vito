@@ -23,7 +23,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('domains')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class DomainController extends Controller
 {
 

@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircleIcon } from 'lucide-react';
 import DialogHost from '@/components/dialogs/dialog-host';
 import { getQueryClient } from '@/lib/query-client';
+import { useProjectHeader } from '@/hooks/use-project-header';
 
 export default function Layout({
   children,
@@ -32,6 +33,7 @@ export default function Layout({
   const page = usePage<SharedData & { server?: { id: number }; site?: { id: number } }>();
   const queryClient = getQueryClient(page.props.auth.user.id);
   const { status: socketStatus, reconnect: socketReconnect } = useSocketEvents();
+  useProjectHeader(page.props.auth.currentProject?.id);
   const syncBootstrap = useBootstrapStore((s) => s.syncWithServerVersion);
   const fetchBootstrap = useBootstrapStore((s) => s.fetch);
   const bootstrapConfigsLoaded = useBootstrapStore((s) => s.configs !== null);

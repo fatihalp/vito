@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class EventsController extends Controller
 {
 

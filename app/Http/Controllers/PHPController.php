@@ -19,7 +19,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/php')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class PHPController extends Controller
 {
 

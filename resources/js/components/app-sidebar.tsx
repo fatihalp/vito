@@ -94,14 +94,14 @@ export function AppSidebar({
     },
     {
       title: 'Servers',
-      href: "/servers",
+      href: withQuery('/servers', { project: page.props.auth.projectScope }),
       icon: ServerIcon,
       badge: serversCount,
       flyoutContent: <RecentServersFlyout />,
     },
     {
       title: 'Sites',
-      href: withQuery("/sites", { project: 'all' }),
+      href: withQuery('/sites', { project: page.props.auth.projectScope }),
       onlyActivePath: "/sites",
       icon: MousePointerClickIcon,
       badge: sitesCount,

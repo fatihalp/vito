@@ -3,6 +3,9 @@
 namespace App\Actions\Server;
 
 use App\Models\Project;
+use App\Models\Server;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Validator;
 
@@ -10,12 +13,28 @@ class GetServers
 {
     public function get(Project $project, array $input, int $perPage = 10): Collection
     {
+        return $this->paginate($project->servers()->getQuery(), $input, $perPage);
+    }
+
+    public function getGlobal(User $user, array $input, int $perPage = 10): Collection
+    {
+        $serversQuery = Server::query()
+            ->whereIn('project_id', $user->allProjects()->pluck('id'))
+            ->orderByRaw('CASE WHEN project_id = ? THEN 0 ELSE 1 END', [$user->current_project_id])
+            ->orderBy('project_id')
+            ->orderBy('name');
+
+        return $this->paginate($serversQuery, $input, $perPage);
+    }
+
+    private function paginate(Builder $serversQuery, array $input, int $perPage): Collection
+    {
         $validated = $this->validate($input);
 
-        $serversQuery = $project->servers()->forResource();
+        $serversQuery->forResource();
 
         if (! empty($validated['exclude_self'])) {
-            $serversQuery->where(function ($query) {
+            $serversQuery->where(function (Builder $query) {
                 $query->where('is_self', false)->orWhereNull('is_self');
             });
         }

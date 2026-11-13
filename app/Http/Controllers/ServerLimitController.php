@@ -16,7 +16,7 @@ use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/limits')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerLimitController extends Controller
 {
     #[Get('/', name: 'servers.limits')]

@@ -10,7 +10,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('/servers/{server}/log-analysis')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class LogAnalysisController extends Controller
 {
 

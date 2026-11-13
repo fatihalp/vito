@@ -17,7 +17,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('/servers/{server}/sites/{site}/topology')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class SiteTopologyController extends Controller
 {
     #[Get('/', name: 'site-topology')]

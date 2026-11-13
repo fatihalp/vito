@@ -20,7 +20,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/database-upgrades')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class DatabaseUpgradeController extends Controller
 {
     #[Get('/', name: 'database-upgrades')]

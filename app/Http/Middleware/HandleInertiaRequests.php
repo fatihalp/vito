@@ -36,16 +36,9 @@ class HandleInertiaRequests extends Middleware
             $user->load(['projects' => fn ($query) => $query->forResource($user)]);
         }
 
-        $currentProject = $user
-            ? ($user->projects->firstWhere('id', $user->current_project_id) ?? $user->currentProject)
+        $currentProject = $user?->currentProject
+            ? ($user->projects->firstWhere('id', $user->currentProject->id) ?? $user->currentProject)
             : null;
-        $canSeeCurrentProject = $user && $currentProject && $user->can('view', $currentProject);
-
-        if ($user && (! $currentProject || ! $canSeeCurrentProject)) {
-            $currentProject = $user->ensureHasDefaultProject();
-            $user->load(['projects' => fn ($query) => $query->forResource($user)]);
-            $currentProject = $user->projects->firstWhere('id', $currentProject->id) ?? $currentProject;
-        }
 
         $data = [];
         if ($request->route('server')) {
@@ -63,15 +56,6 @@ class HandleInertiaRequests extends Middleware
                 $serverProject = $user?->projects->firstWhere('id', $server->project_id) ?? $server->project;
                 if ($serverProject) {
                     $server->setRelation('project', $serverProject);
-                }
-
-                if ($user && $user->can('view', $server)) {
-                    if ($user->current_project_id !== $server->project_id) {
-                        $user->current_project_id = $server->project_id;
-                        $user->save();
-                    }
-
-                    $currentProject = $serverProject;
                 }
             }
 
@@ -123,23 +107,11 @@ class HandleInertiaRequests extends Middleware
                 }
 
                 if ($user && $user->can('view', $network)) {
-                    if ($user->current_project_id !== $network->project_id) {
-                        $user->current_project_id = $network->project_id;
-                        $user->save();
-                    }
-
-                    $currentProject = $networkProject;
-
                     $data['network'] = fn (): NetworkResource => NetworkResource::make(
                         $network->load('serverProvider')->loadCount('servers')
                     );
                 }
             }
-        }
-
-        if ($currentProject && $user) {
-            $currentProject = $user->projects->firstWhere('id', $currentProject->id) ?? $currentProject;
-            $user->setRelation('currentProject', $currentProject);
         }
 
         return [
@@ -161,6 +133,7 @@ class HandleInertiaRequests extends Middleware
                         ? $currentProject->loadCount(['servers', 'sites'])
                         : $currentProject
                 ) : null,
+                'projectScope' => $request->attributes->get(ResolveCurrentProject::SCOPE_ATTRIBUTE),
                 'pendingInvitationsCount' => UserProject::query()
                     ->where('email', $user->email)
                     ->whereNull('user_id')

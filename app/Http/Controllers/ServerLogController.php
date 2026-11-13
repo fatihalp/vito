@@ -31,7 +31,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 #[Prefix('servers/{server}/logs')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerLogController extends Controller
 {
 

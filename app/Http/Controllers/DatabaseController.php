@@ -21,7 +21,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/database')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class DatabaseController extends Controller
 {
 

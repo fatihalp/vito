@@ -35,7 +35,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
 
 #[Prefix('/servers/{server}/sites/{site}/domains')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class HostedDomainController extends Controller
 {
 

@@ -22,7 +22,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
 
 #[Prefix('/servers/{server}/sites/{site}/redirects')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class RedirectController extends Controller
 {
 

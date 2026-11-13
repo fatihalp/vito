@@ -26,7 +26,7 @@ use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class SiteController extends Controller
 {
 

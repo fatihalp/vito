@@ -29,7 +29,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Where;
 
 #[Prefix('servers/{server}/monitoring')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class MonitoringController extends Controller
 {
 

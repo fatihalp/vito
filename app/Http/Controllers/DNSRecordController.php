@@ -22,7 +22,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('domains/{domain}/records')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class DNSRecordController extends Controller
 {
 

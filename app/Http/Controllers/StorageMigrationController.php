@@ -26,7 +26,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('storage-migrations')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class StorageMigrationController extends Controller
 {
 

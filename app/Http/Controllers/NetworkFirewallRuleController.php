@@ -18,7 +18,7 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 use Spatie\RouteAttributes\Attributes\Put;
 
 #[Prefix('networks/{network}/firewall')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class NetworkFirewallRuleController extends Controller
 {
 

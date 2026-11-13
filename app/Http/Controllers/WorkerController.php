@@ -34,7 +34,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('servers/{server}')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class WorkerController extends Controller
 {
 

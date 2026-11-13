@@ -1,8 +1,8 @@
 import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Project } from '@/types/project';
-import { router, useForm, usePage } from '@inertiajs/react';
-import { useState, useEffect, useMemo } from 'react';
+import { router, usePage } from '@inertiajs/react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, Layers3Icon, PlusIcon } from 'lucide-react';
 import ProjectForm from '@/pages/projects/components/project-form';
@@ -10,49 +10,25 @@ import { ProjectSelect } from '@/components/project-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 
 export function ProjectSwitch() {
-  const page = usePage<SharedData & { siteScope?: string; serverScope?: string }>();
+  const page = usePage<SharedData>();
   const { auth } = page.props;
-  const isAllProjects = page.props.siteScope === 'all' || page.props.serverScope === 'all';
+  const isAllProjects = auth.projectScope === 'all';
+  const currentProject = auth.currentProject;
+  const selected = isAllProjects ? 'all' : (currentProject?.id.toString() ?? '');
   const [open, setOpen] = useState(false);
   const [projectFormOpen, setProjectFormOpen] = useState(false);
-  const form = useForm();
+  const pathname = page.url.split('?')[0];
+  const isInsideResource = Boolean(page.props.server || page.props.network);
 
-  const currentProject = useMemo(() => {
-    if (isAllProjects) return null;
-    const serverProjectId = page.props.server?.project_id;
-    if (serverProjectId && auth.user?.projects) {
-      const found = auth.user.projects.find((p) => p.id === serverProjectId);
-      if (found) return found;
-    }
-    const networkProjectId = page.props.network?.project_id;
-    if (networkProjectId && auth.user?.projects) {
-      const found = auth.user.projects.find((p) => p.id === networkProjectId);
-      if (found) return found;
-    }
-    return auth.currentProject ?? null;
-  }, [isAllProjects, page.props.server?.project_id, page.props.network?.project_id, auth.user?.projects, auth.currentProject]);
-
-  const [selected, setSelected] = useState<string>(isAllProjects ? 'all' : (currentProject?.id?.toString() ?? ''));
-
-  useEffect(() => {
-    setSelected(isAllProjects ? 'all' : (currentProject?.id?.toString() ?? ''));
-  }, [currentProject?.id, isAllProjects]);
-
-  const handleProjectChange = (value: string, project: Project) => {
-    setSelected(value);
+  const visitScope = (scope: string) => {
     setOpen(false);
-    form.patch(`/settings/projects/switch/${project.id}`);
+    const listPath = pathname.startsWith('/sites') ? '/sites' : '/servers';
+    router.visit(withQuery(isInsideResource || scope === 'all' ? listPath : pathname, { project: scope }));
   };
 
-  const handleAllProjects = () => {
-    setSelected('all');
-    setOpen(false);
-    if (typeof window !== 'undefined' && window.location.pathname.startsWith('/servers')) {
-      router.get(withQuery("/servers", { project: 'all' }));
-    } else {
-      router.get(withQuery("/sites", { project: 'all' }));
-    }
-  };
+  const handleProjectChange = (_value: string, project: Project) => visitScope(project.id.toString());
+
+  const handleAllProjects = () => visitScope('all');
 
   const header = (
     <CommandGroup>

@@ -23,7 +23,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/database-replicas')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class DatabaseReplicaController extends Controller
 {
     #[Get('/', name: 'database-replicas')]

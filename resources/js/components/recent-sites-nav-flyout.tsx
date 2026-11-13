@@ -18,7 +18,7 @@ export default function RecentSitesNavFlyout() {
           Recent Sites
         </span>
         <Link
-          href={withQuery("/sites", { project: 'all' })}
+          href={withQuery('/sites', { project: page.props.auth.projectScope })}
           className="text-[11px] text-primary hover:underline flex items-center gap-1 font-medium"
         >
           <span>All</span>
@@ -58,7 +58,7 @@ export default function RecentSitesNavFlyout() {
         <div className="py-3 px-2 text-center text-xs text-muted-foreground">
           <p>No sites found.</p>
           <Link
-            href={withQuery("/sites", { project: 'all' })}
+            href={withQuery('/sites', { project: page.props.auth.projectScope })}
             className="text-primary hover:underline mt-1 inline-block text-xs font-medium"
           >
             Browse sites

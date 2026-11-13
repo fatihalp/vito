@@ -45,7 +45,7 @@ class GetAccessibleSites
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? 'all');
+        $scope = (string) ($validated['project'] ?? $user->current_project_id);
         $serverScope = (string) ($validated['server'] ?? 'all');
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 

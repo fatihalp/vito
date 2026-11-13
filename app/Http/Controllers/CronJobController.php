@@ -30,7 +30,7 @@ use Spatie\RouteAttributes\Attributes\Put;
 use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('servers/{server}')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class CronJobController extends Controller
 {
     #[Get('/cronjobs', name: 'cronjobs')]

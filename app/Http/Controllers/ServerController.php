@@ -35,7 +35,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerController extends Controller
 {
     #[Get('/', name: 'servers')]
@@ -79,6 +79,12 @@ class ServerController extends Controller
     #[Get('/json', name: 'servers.json')]
     public function json(Request $request): ResourceCollection
     {
+        if ($request->input('project_id') === 'all') {
+            $this->authorize('viewAny', [Server::class]);
+
+            return ServerResource::collection(app(GetServers::class)->getGlobal(user(), $request->input(), 10));
+        }
+
         $projectId = $request->input('project_id');
         $project = $projectId
             ? user()->allProjects()->where('projects.id', (int) $projectId)->firstOrFail()
@@ -86,9 +92,7 @@ class ServerController extends Controller
 
         $this->authorize('viewAny', [Server::class, $project]);
 
-        $servers = app(GetServers::class)->get($project, $request->input(), 10);
-
-        return ServerResource::collection($servers);
+        return ServerResource::collection(app(GetServers::class)->get($project, $request->input(), 10));
     }
 
     #[Post('/', name: 'servers.store')]
@@ -131,14 +135,6 @@ class ServerController extends Controller
                 ? Inertia::defer(fn () => ServerLogResource::collection($server->logs()->latest()->simplePaginate(config('web.pagination_size'), pageName: 'logsPage')))
                 : null,
         ]);
-    }
-
-    #[Post('/{server}/switch', name: 'servers.switch')]
-    public function switch(Server $server): RedirectResponse
-    {
-        $this->authorize('view', $server);
-
-        return redirect()->route('servers.show', ['server' => $server->id]);
     }
 
     #[Patch('/{server}/status', name: 'servers.status')]

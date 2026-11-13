@@ -14,7 +14,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/commands')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerCommandController extends Controller
 {
     #[Get('/', name: 'servers.commands')]

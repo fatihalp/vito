@@ -13,7 +13,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('/servers/{server}/features')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerFeatureController extends Controller
 {
 

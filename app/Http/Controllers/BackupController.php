@@ -26,7 +26,7 @@ use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Patch;
 use Spatie\RouteAttributes\Attributes\Post;
 
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class BackupController extends Controller
 {
 

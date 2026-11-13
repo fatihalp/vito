@@ -38,7 +38,7 @@ export function SiteSwitch() {
     setSelected(value);
     setOpen(false);
     setPrimaryNavOpen(false);
-    siteHelper.storeSite(site, page.props.auth.user.id, page.props.auth.currentProject?.id);
+    siteHelper.storeSite(site, page.props.auth.user.id, site.server?.project_id ?? page.props.auth.currentProject?.id);
     form.post(`/servers/${site.server_id}/sites/${site.id}/switch`);
   };
 
@@ -49,7 +49,7 @@ export function SiteSwitch() {
         onSelect={() => {
           setOpen(false);
           setPrimaryNavOpen(false);
-          router.visit(withQuery("/sites", { project: 'all' }));
+          router.visit(withQuery('/sites', { project: page.props.auth.projectScope }));
         }}
         className="gap-0"
       >

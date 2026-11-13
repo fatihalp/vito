@@ -19,7 +19,7 @@ use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
 
 #[Prefix('servers/{server}/ssh-keys')]
-#[Middleware(['auth', 'has-project'])]
+#[Middleware(['auth'])]
 class ServerSshKeyController extends Controller
 {
 

@@ -10,10 +10,11 @@ import { cn } from '@/lib/utils';
 import axios from 'axios';
 import { Link, usePage } from '@inertiajs/react';
 import { type SharedData } from '@/types';
+import { Badge } from '@/components/ui/badge';
 
 interface ServerSelectProps {
   value: string;
-  projectId?: number;
+  projectId?: number | 'all';
   valueBy?: keyof Server;
   onValueChange?: (selectedServer?: Server) => void;
   
@@ -103,6 +104,9 @@ export default function ServerSelect({
   });
 
   const servers = (data?.pages.flat() ?? []).filter((s) => !excludeSelf || !s.is_self);
+  const projectNames = new Map((page.props.auth.user.projects ?? []).map((project) => [project.id, project.name]));
+  const showProjectName = (server: Server) =>
+    activeProjectId === 'all' && (page.props.auth.projectScope === 'all' || server.project_id !== page.props.auth.currentProject?.id);
 
   useEffect(() => {
     if (refetch) {
@@ -197,10 +201,17 @@ export default function ServerSelect({
                       onSelect={() => handleSelect(server, serverValue)}
                       className="group flex items-center justify-between gap-2 cursor-pointer"
                     >
-                      <span className="truncate flex-1">
-                        {server.name}
-                        {showIp && ` (${server.ip})`}
-                      </span>
+                      <div className="flex min-w-0 flex-1 items-center gap-2">
+                        <span className="truncate">
+                          {server.name}
+                          {showIp && ` (${server.ip})`}
+                        </span>
+                        {showProjectName(server) && (
+                          <Badge variant="outline" className="text-muted-foreground h-4 shrink-0 px-1.5 py-0 text-[10px] font-normal">
+                            {projectNames.get(server.project_id)}
+                          </Badge>
+                        )}
+                      </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <Link
                           href={`/servers/${server.id}/settings`}

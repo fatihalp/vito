@@ -65,7 +65,7 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       const action = url.pathname.slice(serverPath.length);
       if (
         (method === 'delete' && (action === '' || action === '/')) ||
-        ['/switch', '/status', '/start', '/settings/update', '/transfer'].includes(action) ||
+        ['/status', '/start', '/settings/update', '/transfer'].includes(action) ||
         /^\/sites\/\d+\/switch$/.test(action)
       ) {
         return;
