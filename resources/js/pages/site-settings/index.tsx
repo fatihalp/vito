@@ -199,7 +199,7 @@ export default function SiteSettings() {
           <Card className="border-destructive/50 flex-row flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Delete site</span>
-              <span className="text-muted-foreground text-sm">Permanently removes the site and all of its data from the server. This cannot be undone.</span>
+              <span className="text-muted-foreground text-sm">Permanently deletes the site and its files from the server. Databases are kept. This cannot be undone.</span>
             </div>
             <DeleteSite site={site}>
               <Button variant="destructive" size="sm">

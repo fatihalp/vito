@@ -36,6 +36,8 @@ class DeleteSite
             }
         }
 
+        $site->webserver()->deleteSite($site);
+
         $iuser = $site->isolatedUser;
         $isLastSibling = ! $site->userSharedWithSiblings();
 
@@ -63,10 +65,6 @@ class DeleteSite
             'domain' => [
                 'required',
                 Rule::in($site->domain),
-            ],
-            'force' => [
-                'nullable',
-                'boolean',
             ],
         ])->validate();
     }

@@ -44,12 +44,12 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Delete {site.domain}</DialogTitle>
-          <DialogDescription className="sr-only">Delete site from Pure.</DialogDescription>
+          <DialogDescription className="sr-only">Delete site and its files.</DialogDescription>
         </DialogHeader>
 
         <p className="p-4 text-sm text-muted-foreground">
-          Are you sure you want to delete <strong className="text-foreground">{site.domain}</strong>? The site will be removed from Pure.
-          Its files and physical server will remain untouched.
+          Are you sure you want to delete <strong className="text-foreground">{site.domain}</strong>? The site, its files and its web server
+          configuration will be deleted from the server. Databases, database users and other server resources are kept.
         </p>
 
         <Form id="delete-site-form" onSubmit={submit} className="p-4">
