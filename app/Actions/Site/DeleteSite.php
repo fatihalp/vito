@@ -2,8 +2,12 @@
 
 namespace App\Actions\Site;
 
+use App\Actions\CronJob\SyncCronJobs;
+use App\Enums\CronjobStatus;
 use App\Events\SiteDeletedEvent;
+use App\Models\CronJob;
 use App\Models\Site;
+use App\Models\Worker;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -38,6 +42,8 @@ class DeleteSite
         }
 
         $site->webserver()->deleteSite($site);
+        $this->deleteWorkersFromServer($site);
+        $this->deleteCronJobsFromServer($site);
 
         $lastIsolatedUser = $site->userSharedWithSiblings() ? null : $site->isolatedUser;
 
@@ -48,6 +54,28 @@ class DeleteSite
         $this->deleteRow($site);
 
         $lastIsolatedUser?->delete();
+    }
+
+    private function deleteWorkersFromServer(Site $site): void
+    {
+        $site->workers()->each(fn (Worker $worker): ?bool => $worker->delete());
+    }
+
+    private function deleteCronJobsFromServer(Site $site): void
+    {
+        $users = $site->cronJobs()->distinct()->pluck('user')->all();
+
+        if ($users === []) {
+            return;
+        }
+
+        app(SyncCronJobs::class)->sync($site->server, $users);
+
+        $site->cronJobs()->update(['status' => CronjobStatus::DELETING]);
+
+        foreach ($users as $user) {
+            $site->server->cron()->update($user, CronJob::crontab($site->server, $user));
+        }
     }
 
     private function deleteIsolatedUserFromServer(Site $site): void
