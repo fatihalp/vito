@@ -12,6 +12,7 @@ use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Site\UpdatePHPVersion;
 use App\Actions\Site\UpdatePort;
 use App\Actions\Site\UpdateSiteStats;
+use App\Actions\Site\UpdateSiteSuspension;
 use App\Actions\Site\UpdateSiteWorkerEnvironment;
 use App\Actions\Site\UpdateSourceControl;
 use App\Actions\Site\UpdateStartCommand;
@@ -318,6 +319,16 @@ class SiteSettingController extends Controller
     }
 
     
+
+    #[Post('/toggle-suspension', name: 'site-settings.toggle-suspension')]
+    public function toggleSuspension(Request $request, Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        $suspended = app(UpdateSiteSuspension::class)->update($site, $request->input());
+
+        return back()->with('success', $suspended ? 'Site suspended. Visitors now receive a 503 response.' : 'Site resumed and is being served again.');
+    }
 
     #[Delete('/', name: 'site-settings.destroy')]
     public function destroy(Request $request, Server $server, Site $site): RedirectResponse

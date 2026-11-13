@@ -61,6 +61,7 @@ class Site extends AbstractModel
         'vhost_template',
         'vhost_generation_enabled',
         'verification_key',
+        'suspended_at',
     ];
 
     protected $with = ['isolatedUser'];
@@ -79,6 +80,7 @@ class Site extends AbstractModel
         'ssl_enabled' => 'boolean',
         'vhost_generation_enabled' => 'boolean',
         'status' => SiteStatus::class,
+        'suspended_at' => 'datetime',
     ];
 
     public static function boot(): void
@@ -117,6 +119,11 @@ class Site extends AbstractModel
     public function isReady(): bool
     {
         return $this->status === SiteStatus::READY;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 
     public function isSelf(): bool

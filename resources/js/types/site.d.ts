@@ -57,6 +57,7 @@ export interface Site {
   features: SiteFeature[];
   modern_deployment: boolean;
   stats_enabled: boolean;
+  suspended: boolean;
   is_proxied_site_type: boolean;
   available_tooling_commands: string[];
   start_command: string | null;
@@ -95,6 +96,7 @@ export interface SiteFeature {
 
 export type SiteWarning =
   | { key: 'pending_domains'; count: number; domains: string[] }
+  | { key: 'suspended' }
   | { key: 'ssl_disabled' }
   | { key: 'vhost_generation_disabled' }
   | { key: 'php_settings_ignored' }

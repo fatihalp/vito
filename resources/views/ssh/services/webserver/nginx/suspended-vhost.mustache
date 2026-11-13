@@ -1,0 +1,106 @@
+{{#has_force_ssl_redirect}}
+server {
+    listen 80;
+    listen [::]:80;
+
+    server_name{{#force_ssl_domains}} {{name}}{{/force_ssl_domains}};
+
+    {{#verification_key}}
+    location ^~ /.well-known/vito/{{verification_key}}/ {
+        allow all;
+        default_type text/plain;
+        add_header Cache-Control "no-store" always;
+        alias /var/lib/vito/verify/{{verification_key}}/;
+        try_files $uri =404;
+    }
+    {{/verification_key}}
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+{{/has_force_ssl_redirect}}
+
+{{#server_blocks}}
+server {
+    {{#listen_80}}
+    listen 80;
+    listen [::]:80;
+
+    {{/listen_80}}
+    {{#listen_443}}
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    ssl_certificate {{ssl_certificate_path}};
+    ssl_certificate_key {{ssl_certificate_key_path}};
+    {{/listen_443}}
+
+    server_name{{#domains}} {{name}}{{/domains}};
+    root {{root}};
+
+    access_log /var/log/nginx/{{primary_domain}}-access.log;
+    error_log  /var/log/nginx/{{primary_domain}}-error.log error;
+
+    location ^~ /.well-known/acme-challenge/ {
+        allow all;
+        try_files $uri =404;
+    }
+
+    {{#verification_key}}
+    location ^~ /.well-known/vito/{{verification_key}}/ {
+        allow all;
+        default_type text/plain;
+        add_header Cache-Control "no-store" always;
+        alias /var/lib/vito/verify/{{verification_key}}/;
+        try_files $uri =404;
+    }
+    {{/verification_key}}
+
+    location / {
+        default_type text/html;
+        add_header Cache-Control "no-store" always;
+        return 503 '<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta name=robots content=noindex><title>Site suspended</title></head><body><h1>This site is suspended</h1></body></html>';
+    }
+}
+
+{{/server_blocks}}
+
+{{#redirect_blocks}}
+server {
+    {{#listen_80}}
+    listen 80;
+    listen [::]:80;
+
+    {{/listen_80}}
+    {{#listen_443}}
+    listen 443 ssl;
+    listen [::]:443 ssl;
+
+    ssl_certificate {{ssl_certificate_path}};
+    ssl_certificate_key {{ssl_certificate_key_path}};
+    {{/listen_443}}
+
+    server_name{{#domains}} {{name}}{{/domains}};
+
+    location ^~ /.well-known/acme-challenge/ {
+        allow all;
+        try_files $uri =404;
+    }
+
+    {{#verification_key}}
+    location ^~ /.well-known/vito/{{verification_key}}/ {
+        allow all;
+        default_type text/plain;
+        add_header Cache-Control "no-store" always;
+        alias /var/lib/vito/verify/{{verification_key}}/;
+        try_files $uri =404;
+    }
+    {{/verification_key}}
+
+    location / {
+        return 301 {{redirect_scheme}}://{{redirect_target}}$request_uri;
+    }
+}
+
+{{/redirect_blocks}}
