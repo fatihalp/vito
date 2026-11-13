@@ -12,6 +12,7 @@ use App\Http\Resources\DeploymentResource;
 use App\Jobs\Worker\ResyncSiteToWorkerServersJob;
 use App\Models\Deployment;
 use App\Models\ServerLog;
+use App\Models\Site;
 use App\Notifications\DeploymentCompleted;
 use App\SSH\OS\Git;
 use App\Traits\UniqueQueue;
@@ -26,7 +27,8 @@ class DeployJob implements ShouldQueue
 
     public function __construct(
         protected Deployment $deployment,
-        protected bool $isModern = true
+        protected bool $isModern = true,
+        protected bool $finishing = false,
     ) {
         $this->onQueue('ssh');
     }
@@ -37,32 +39,49 @@ class DeployJob implements ShouldQueue
         $log = ServerLog::find($this->deployment->log_id);
 
         $this->run("site-{$site->id}", function () use ($site, $log) {
+            if ($this->finishing) {
+                $this->finish($site);
+
+                return;
+            }
+
             if ($this->isModern) {
                 $this->handleModernDeployment($site, $log);
             } else {
                 $this->handleClassicDeployment($site, $log);
             }
 
-            $site->type()->afterDeploy($this->deployment);
+            if ($site->isSelf()) {
+                dispatch(new self($this->deployment, $this->isModern, finishing: true));
 
-            if ($site->type_data['composer_install_failed'] ?? false) {
-                $site->jsonForget('type_data', 'composer_install_failed');
+                return;
             }
 
-            $this->deployment->status = DeploymentStatus::FINISHED;
-            $this->deployment->finished_at = now();
-            $this->deployment->save();
-            dispatch(new CheckAppDebugJob($site));
-            dispatch(new CheckCommitsBehindJob($site));
-            $this->deployment->activate();
-            $this->broadcastDeploymentUpdate();
-            app(BroadcastSiteUpdate::class)->broadcast($site);
-            Notifier::send($site, new DeploymentCompleted($this->deployment, $site));
-
-            if ($site->workers()->whereNotNull('server_id')->where('server_id', '!=', $site->server_id)->exists()) {
-                dispatch(new ResyncSiteToWorkerServersJob($site));
-            }
+            $this->finish($site);
         });
+    }
+
+    private function finish(Site $site): void
+    {
+        $site->type()->afterDeploy($this->deployment);
+
+        if ($site->type_data['composer_install_failed'] ?? false) {
+            $site->jsonForget('type_data', 'composer_install_failed');
+        }
+
+        $this->deployment->status = DeploymentStatus::FINISHED;
+        $this->deployment->finished_at = now();
+        $this->deployment->save();
+        dispatch(new CheckAppDebugJob($site));
+        dispatch(new CheckCommitsBehindJob($site));
+        $this->deployment->activate();
+        $this->broadcastDeploymentUpdate();
+        app(BroadcastSiteUpdate::class)->broadcast($site);
+        Notifier::send($site, new DeploymentCompleted($this->deployment, $site));
+
+        if ($site->workers()->whereNotNull('server_id')->where('server_id', '!=', $site->server_id)->exists()) {
+            dispatch(new ResyncSiteToWorkerServersJob($site));
+        }
     }
 
     public function failed(Throwable $e): void
