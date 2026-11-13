@@ -201,6 +201,19 @@ class Gitlab extends AbstractSourceControlProvider
         return null;
     }
 
+    public function countCommitsBehind(string $repo, string $commitId, string $branch): int
+    {
+        $res = Http::withToken($this->data()['token'])
+            ->get($this->getApiUrl().'/projects/'.urlencode($repo).'/repository/compare', [
+                'from' => $commitId,
+                'to' => $branch,
+            ]);
+
+        $this->handleResponseErrors($res, $repo);
+
+        return count($res->json('commits') ?? []);
+    }
+
     public function deployKey(string $title, string $repo, string $key): string
     {
         $repository = urlencode($repo);

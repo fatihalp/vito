@@ -6,6 +6,7 @@ use App\Actions\Site\CreateSite;
 use App\Actions\Site\DisableSsl;
 use App\Actions\Site\EnableSsl;
 use App\Actions\Site\GetAccessibleSites;
+use App\Actions\Site\GetCommitsBehind;
 use App\Actions\Site\GetSiteCreationDefaults;
 use App\Actions\Site\GetSites;
 use App\Actions\Site\RetrySite;
@@ -36,7 +37,7 @@ class SiteController extends Controller
         $this->authorize('viewAny', user()->currentProject);
         $result = app(GetAccessibleSites::class)->get(user(), $request->input());
 
-        $sites = SiteTable::make($result['query'])
+        $sites = SiteTable::make(app(GetCommitsBehind::class)->filter($result['query'], $request->input()))
             ->withGrouping($result['groupBy'])
             ->paginate();
 
@@ -45,6 +46,7 @@ class SiteController extends Controller
             'siteScope' => $result['scope'],
             'serverScope' => $result['serverScope'],
             'groupBy' => $result['groupBy'],
+            'gitStatus' => $request->input('git_status', 'all'),
             'servers' => $result['servers'],
         ]);
     }
@@ -58,12 +60,13 @@ class SiteController extends Controller
     }
 
     #[Get('/servers/{server}/sites', name: 'sites')]
-    public function server(Server $server): Response
+    public function server(Request $request, Server $server): Response
     {
         $this->authorize('viewAny', [Site::class, $server]);
 
         return Inertia::render('sites/index', [
-            'sites' => SiteTable::make($server->sites())->forServer($server)->simplePaginate(),
+            'sites' => SiteTable::make(app(GetCommitsBehind::class)->filter($server->sites()->getQuery(), $request->input()))->forServer($server)->simplePaginate(),
+            'gitStatus' => $request->input('git_status', 'all'),
         ]);
     }
 

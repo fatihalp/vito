@@ -2,7 +2,6 @@
 
 namespace App\Actions\Site;
 
-use App\Enums\DeploymentStatus;
 use App\Models\Site;
 use Throwable;
 
@@ -26,11 +25,6 @@ class GetLatestCommit
             return null;
         }
 
-        $deployedCommitId = $site->deployments()
-            ->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING])
-            ->latest('id')
-            ->value('commit_id');
-
-        return [...$commit, 'deployed' => $commit['commit_id'] === $deployedCommitId];
+        return [...$commit, 'deployed' => $commit['commit_id'] === $site->deployedCommitId()];
     }
 }

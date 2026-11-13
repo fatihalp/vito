@@ -44,6 +44,8 @@ interface SourceControlProvider
     
     public function getLastCommit(string $repo, string $branch): ?array;
 
+    public function countCommitsBehind(string $repo, string $commitId, string $branch): int;
+
     
     public function deployKey(string $title, string $repo, string $key): string;
 

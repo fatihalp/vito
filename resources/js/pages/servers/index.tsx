@@ -1,4 +1,5 @@
 import { usePanelView } from '@/hooks/use-panel-view';
+import PanelViewToggle from '@/components/panel-view-toggle';
 import { useSocketStore } from '@/stores/socket-store';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 
@@ -302,7 +303,7 @@ const phpVersionsCell = ({ value, row }: CellRenderProps) => {
 export default function Servers() {
   const page = usePage<Page & SharedData>();
   const versionForm = useForm({ project: page.props.serverScope ?? 'all' });
-  const { advanced, setView } = usePanelView();
+  const { advanced } = usePanelView();
   const checkingVersions = page.props.phpVersionsChecking || versionForm.processing;
 
   const socketStatus = useSocketStore((s) => s.status);
@@ -361,10 +362,7 @@ export default function Servers() {
           }}
           toolbar={
             <div className="flex flex-wrap items-center gap-3">
-              <div className="flex rounded-md border border-border p-0.5" role="group" aria-label="Server view">
-                <Button size="sm" variant={advanced ? 'ghost' : 'secondary'} aria-pressed={!advanced} onClick={() => setView('basic')}>Basic</Button>
-                <Button size="sm" variant={advanced ? 'secondary' : 'ghost'} aria-pressed={advanced} onClick={() => setView('advanced')}>Advanced</Button>
-              </div>
+              <PanelViewToggle label="Server view" />
               {advanced && <Select
                 value={page.props.phpStatus ?? 'all'}
                 onValueChange={(status) => {

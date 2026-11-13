@@ -17,6 +17,9 @@ import { getSiteWarningItems } from '@/components/site-banners';
 import type { CellRenderProps, InertiaTableData, Row } from '@forjedio/inertia-table-react';
 import { SharedData } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { usePanelView } from '@/hooks/use-panel-view';
+import PanelViewToggle from '@/components/panel-view-toggle';
+import CommitsBehindCell from '@/pages/sites/components/commits-behind-cell';
 
 type ServerOption = {
   id: number;
@@ -31,6 +34,7 @@ type Page = {
   siteScope?: string;
   serverScope?: string;
   groupBy?: 'none' | 'project' | 'server';
+  gitStatus?: 'all' | 'up_to_date' | 'behind';
   servers?: ServerOption[];
 };
 
@@ -66,6 +70,14 @@ function SiteWarnings({ row }: { row: Row }) {
   );
 }
 
+function GitCell({ row, value }: CellRenderProps) {
+  if (!value) {
+    return null;
+  }
+
+  return <CommitsBehindCell serverId={row.server_id as number} siteId={row.id as number} />;
+}
+
 function CreatedAtCell({ value }: CellRenderProps) {
   if (typeof value !== 'string' || !value) {
     return null;
@@ -87,6 +99,7 @@ function CreatedAtCell({ value }: CellRenderProps) {
 
 export default function Sites() {
   const page = usePage<Page & SharedData>();
+  const { advanced } = usePanelView();
 
   const Comp = page.props.server ? ServerLayout : Layout;
 
@@ -106,12 +119,37 @@ export default function Sites() {
         <VitoTable
           fitContent
           toolbarClassName="[&_input]:h-8 [&_input]:min-w-36 [&_input]:max-w-56 [&_input]:text-sm"
-          tableData={{ ...page.props.sites, columns: page.props.sites.columns.filter((column) => column.hidden || ['domain', 'server.project.name', 'created_at'].includes(column.name)).map((column) => ({ ...column, fit: false })) }}
-          columnWidths={{ 'server.project.name': '18%', created_at: '9rem' }}
+          tableData={{ ...page.props.sites, columns: page.props.sites.columns.filter((column) => column.hidden || ['domain', 'server.project.name', 'created_at', ...(advanced ? ['branch'] : [])].includes(column.name)).map((column) => ({ ...column, fit: false })) }}
+          columnWidths={{ 'server.project.name': '18%', branch: '16rem', created_at: '9rem' }}
           rowClassName={() => '[&>td]:py-2'}
           groupBy={page.props.groupBy}
           toolbar={
             <>
+              <PanelViewToggle label="Site view" />
+              {advanced && (
+                <Select
+                  value={page.props.gitStatus ?? 'all'}
+                  onValueChange={(gitStatus) => {
+                    const url = new URL(window.location.href);
+                    if (gitStatus === 'all') {
+                      url.searchParams.delete('git_status');
+                    } else {
+                      url.searchParams.set('git_status', gitStatus);
+                    }
+                    url.searchParams.delete('page');
+                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-36 text-sm" aria-label="Filter sites by Git status">
+                    <SelectValue placeholder="All Git statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Git statuses</SelectItem>
+                    <SelectItem value="up_to_date">Up to date</SelectItem>
+                    <SelectItem value="behind">Behind</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
               {!page.props.server && (
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2">
@@ -227,6 +265,7 @@ export default function Sites() {
           cellRenderers={{
             domain: siteCell,
             'server.project.name': ({ value }) => <span className="text-muted-foreground text-xs">{String(value ?? '')}</span>,
+            branch: GitCell,
             created_at: CreatedAtCell,
           }}
           onRowClick={(row: Row) => {

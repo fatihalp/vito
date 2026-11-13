@@ -81,6 +81,7 @@ class SiteTable extends Table
                 ->route('application', ['server' => ':server_id', 'site' => ':id']),
             BadgeColumn::make('user', 'User')->variant('outline')->sortable(),
             BadgeColumn::make('type', 'Type')->variant('outline')->sortable(),
+            Column::make('branch', 'Git'),
             DateTimeColumn::make('created_at', 'Created at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
             Column::make('id', 'ID')->sortable(),

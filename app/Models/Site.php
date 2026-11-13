@@ -191,6 +191,14 @@ class Site extends AbstractModel
         return $this->hasMany(Deployment::class);
     }
 
+    public function deployedCommitId(): ?string
+    {
+        return $this->deployments()
+            ->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING])
+            ->latest('id')
+            ->value('commit_id');
+    }
+
     public function envVersions(): HasMany
     {
         return $this->hasMany(EnvVersion::class);

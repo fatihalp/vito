@@ -123,6 +123,14 @@ class GithubApp extends AbstractSourceControlProvider
         return null;
     }
 
+    public function countCommitsBehind(string $repo, string $commitId, string $branch): int
+    {
+        $res = $this->getClient()->get(self::API_BASE_URL.'/repos/'.$repo.'/compare/'.$commitId.'...'.$branch);
+        $this->handleResponseErrors($res, $repo);
+
+        return (int) $res->json('ahead_by');
+    }
+
     public function deployKey(string $title, string $repo, string $key): string
     {
         return '';

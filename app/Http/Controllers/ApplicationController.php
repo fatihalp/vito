@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Site\Deploy;
 use App\Actions\Site\GenerateAppKey;
+use App\Actions\Site\GetCommitsBehind;
 use App\Actions\Site\GetEnv;
 use App\Actions\Site\GetLatestCommit;
 use App\Actions\Site\GetSiteOverview;
@@ -101,6 +102,14 @@ class ApplicationController extends Controller
         );
 
         return back()->with('success', 'Domain Cloudflare proxy status updated.');
+    }
+
+    #[Get('/commits-behind', name: 'application.commits-behind')]
+    public function commitsBehind(Server $server, Site $site): JsonResponse
+    {
+        $this->authorize('view', [$site, $server]);
+
+        return response()->json(app(GetCommitsBehind::class)->get($site));
     }
 
     #[Get('/deployments', name: 'application.deployments.index')]
