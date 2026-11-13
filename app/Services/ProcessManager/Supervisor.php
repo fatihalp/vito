@@ -182,24 +182,13 @@ class Supervisor extends AbstractProcessManager implements HasLogs
     
     public function restartAll(?int $siteId = null): void
     {
-        if ($siteId !== null) {
-            $ids = $this->service->server->workers()
-                ->where('site_id', $siteId)
-                ->whereNotIn('status', [WorkerStatus::CREATING, WorkerStatus::DELETING])
-                ->pluck('id')
-                ->all();
+        $ids = $this->service->server->workers()
+            ->when($siteId !== null, fn ($query) => $query->where('site_id', $siteId))
+            ->whereNotIn('status', [WorkerStatus::CREATING, WorkerStatus::DELETING])
+            ->pluck('id')
+            ->all();
 
-            if ($ids !== []) {
-                $this->restartMany($ids, $siteId);
-            }
-
-            return;
-        }
-
-        $this->service->server->ssh()->exec(
-            view('ssh.services.process-manager.supervisor.restart-all-workers'),
-            'restart-all-workers'
-        );
+        $this->restartMany($ids, $siteId);
     }
 
     

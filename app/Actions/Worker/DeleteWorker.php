@@ -2,6 +2,8 @@
 
 namespace App\Actions\Worker;
 
+use App\Enums\WorkerStatus;
+use App\Jobs\Worker\DeleteJob;
 use App\Models\Worker;
 use Illuminate\Validation\ValidationException;
 
@@ -16,6 +18,10 @@ class DeleteWorker
             ]);
         }
 
-        $worker->delete();
+        $worker->status = WorkerStatus::DELETING;
+        $worker->error = null;
+        $worker->save();
+
+        dispatch(new DeleteJob($worker))->onQueue('ssh');
     }
 }

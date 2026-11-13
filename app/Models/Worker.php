@@ -9,8 +9,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
-use Throwable;
 
 class Worker extends AbstractModel
 {
@@ -47,24 +45,6 @@ class Worker extends AbstractModel
         'redirect_stderr' => 'boolean',
         'status' => WorkerStatus::class,
     ];
-
-    public static function boot(): void
-    {
-        parent::boot();
-
-        static::deleting(function (Worker $worker): void {
-            try {
-                
-                $service = $worker->server->processManager();
-                
-                $handler = $service->handler();
-
-                $handler->delete($worker->id, $worker->site_id);
-            } catch (Throwable $e) {
-                Log::error($e);
-            }
-        });
-    }
 
     public function getServerIdAttribute(?int $value): ?int
     {

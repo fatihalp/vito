@@ -88,7 +88,7 @@ class CreateWorker
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('workers')->where(function ($query) use ($targetServer, $site) {
+                Rule::unique('workers')->withoutTrashed()->where(function ($query) use ($targetServer, $site) {
                     return $query->where('server_id', $targetServer->id)
                         ->where(function ($query) use ($site) {
                             if ($site) {
@@ -106,6 +106,7 @@ class CreateWorker
                 'nullable',
                 'string',
                 'max:500',
+                'not_regex:/[\r\n]/',
             ],
             'user' => [
                 'required',

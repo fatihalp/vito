@@ -54,7 +54,7 @@ class EditWorker
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('workers')->where(function ($query) use ($worker, $site) {
+                Rule::unique('workers')->withoutTrashed()->where(function ($query) use ($worker, $site) {
                     return $query->where('server_id', $worker->server_id)
                         ->where(function ($query) use ($site) {
                             if ($site) {
@@ -66,11 +66,14 @@ class EditWorker
             ],
             'command' => [
                 'required',
+                'string',
+                'not_regex:/[\r\n]/',
             ],
             'directory' => [
                 'nullable',
                 'string',
                 'max:500',
+                'not_regex:/[\r\n]/',
             ],
             'user' => [
                 'required',

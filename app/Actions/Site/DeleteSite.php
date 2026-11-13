@@ -58,7 +58,9 @@ class DeleteSite
 
     private function deleteWorkersFromServer(Site $site): void
     {
-        $site->workers()->each(fn (Worker $worker): ?bool => $worker->delete());
+        $site->workers()->with('server')->each(
+            fn (Worker $worker) => $worker->server->processManager()?->handler()->delete($worker->id, $site->id)
+        );
     }
 
     private function deleteCronJobsFromServer(Site $site): void
