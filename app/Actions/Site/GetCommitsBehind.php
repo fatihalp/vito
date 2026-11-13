@@ -3,6 +3,7 @@
 namespace App\Actions\Site;
 
 use App\Enums\DeploymentStatus;
+use App\Jobs\Site\CheckCommitsBehindJob;
 use App\Models\Site;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Cache;
@@ -13,9 +14,7 @@ class GetCommitsBehind
 {
     public function get(Site $site): ?array
     {
-        $provider = $site->sourceControl?->provider();
-
-        if (! $provider || ! $site->repository || ! $site->branch) {
+        if (! $site->sourceControl || ! $site->repository || ! $site->branch) {
             return null;
         }
 
@@ -25,41 +24,71 @@ class GetCommitsBehind
             return ['branch' => $site->branch, 'behind' => null];
         }
 
-        try {
-            $behind = Cache::remember(
-                'site_commits_behind_'.$site->id.'_'.md5($commitId.$site->branch),
-                60,
-                fn (): int => $provider->countCommitsBehind($site->repository, $commitId, $site->branch)
-            );
-        } catch (Throwable $e) {
-            return ['branch' => $site->branch, 'error' => $e->getMessage()];
-        }
-
-        return ['branch' => $site->branch, 'behind' => $behind];
+        return Cache::get($this->key($site, $commitId)) ?? $this->refresh($site, $commitId);
     }
 
-    public function filter(Builder $query, array $input): Builder
+    public function refresh(Site $site, string $commitId): array
     {
-        $status = Validator::make($input, ['git_status' => ['nullable', 'in:all,up_to_date,behind']])->validate()['git_status'] ?? 'all';
-
-        if ($status === 'all') {
-            return $query;
+        try {
+            $result = [
+                'branch' => $site->branch,
+                'behind' => $site->sourceControl->provider()->countCommitsBehind($site->repository, $commitId, $site->branch),
+            ];
+            Cache::put($this->key($site, $commitId), $result, now()->addMinutes(5));
+        } catch (Throwable $e) {
+            $result = ['branch' => $site->branch, 'error' => $e->getMessage()];
+            Cache::put($this->key($site, $commitId), $result, now()->addMinute());
         }
 
-        $ids = (clone $query)
+        return $result;
+    }
+
+    public function scan(Builder $query, array $input): array
+    {
+        $validated = Validator::make($input, [
+            'git_status' => ['nullable', 'in:all,up_to_date,behind'],
+            'sort' => ['nullable', 'string'],
+        ])->validate();
+        $status = $validated['git_status'] ?? 'all';
+
+        if ($status === 'all' && ltrim($validated['sort'] ?? '', '-') !== 'branch') {
+            return ['query' => $query, 'checking' => 0, 'behind' => []];
+        }
+
+        $sites = (clone $query)
             ->whereNotNull('repository')
             ->whereNotNull('branch')
             ->whereNotNull('source_control_id')
             ->whereHas('deployments', fn (Builder $deployments) => $deployments->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING]))
-            ->with('sourceControl')
-            ->get()
-            ->filter(function (Site $site) use ($status): bool {
-                $behind = $this->get($site)['behind'] ?? null;
+            ->get();
 
-                return is_int($behind) && ($status === 'up_to_date' ? $behind === 0 : $behind > 0);
-            })
-            ->modelKeys();
+        $behindBySite = [];
+        $checking = 0;
 
-        return $query->whereIn('sites.id', $ids);
+        foreach ($sites as $site) {
+            $result = Cache::get($this->key($site, (string) $site->deployedCommitId()));
+
+            if ($result === null) {
+                $checking++;
+                dispatch(new CheckCommitsBehindJob($site));
+
+                continue;
+            }
+
+            if (is_int($result['behind'] ?? null)) {
+                $behindBySite[$site->id] = $result['behind'];
+            }
+        }
+
+        if ($status !== 'all') {
+            $query->whereIn('sites.id', array_keys(array_filter($behindBySite, fn (int $behind): bool => $status === 'up_to_date' ? $behind === 0 : $behind > 0)));
+        }
+
+        return ['query' => $query, 'checking' => $checking, 'behind' => $behindBySite];
+    }
+
+    private function key(Site $site, string $commitId): string
+    {
+        return 'site:'.$site->id.':commits-behind:'.md5($commitId.$site->branch);
     }
 }

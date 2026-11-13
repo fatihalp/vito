@@ -21,9 +21,18 @@ class SiteTable extends Table
 
     protected string $groupBy = 'none';
 
+    protected array $commitsBehind = [];
+
     public function forServer(Server $server): static
     {
         $this->server = $server;
+
+        return $this;
+    }
+
+    public function withCommitsBehind(array $commitsBehind): static
+    {
+        $this->commitsBehind = $commitsBehind;
 
         return $this;
     }
@@ -42,7 +51,10 @@ class SiteTable extends Table
             ->with(['server.project', 'isolatedUser', 'hostedDomains.ssl', 'workers'])
             ->withExists([
                 'deployments as has_finished_deployment' => fn (Builder $query) => $query->where('status', DeploymentStatus::FINISHED),
-            ]);
+            ])
+            ->withMax([
+                'deployments as last_deployed_at' => fn (Builder $query) => $query->where('status', DeploymentStatus::FINISHED),
+            ], 'created_at');
 
         if ($this->groupBy === 'project' && ! request()->filled($this->getSortParam())) {
             $this->query
@@ -81,7 +93,8 @@ class SiteTable extends Table
                 ->route('application', ['server' => ':server_id', 'site' => ':id']),
             BadgeColumn::make('user', 'User')->variant('outline')->sortable(),
             BadgeColumn::make('type', 'Type')->variant('outline')->sortable(),
-            Column::make('branch', 'Git'),
+            Column::make('branch', 'Git')->sortable(),
+            DateTimeColumn::make('last_deployed_at', 'Last deployed')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable(),
             EnumColumn::make('status', 'Status')->sortable(),
             Column::make('id', 'ID')->sortable(),
@@ -91,6 +104,25 @@ class SiteTable extends Table
             Column::data('project_name', fn (Site $site) => $site->server->project?->name),
             Column::data('warnings', fn (Site $site) => $site->getWarnings()),
         ];
+    }
+
+    protected function applySorting(array $columns): void
+    {
+        $sort = (string) request()->input($this->getSortParam());
+
+        if (ltrim($sort, '-') !== 'branch') {
+            parent::applySorting($columns);
+
+            return;
+        }
+
+        $known = array_keys($this->commitsBehind) ?: [0];
+        $cases = collect($this->commitsBehind)->map(fn (int $behind, int $id): string => "WHEN {$id} THEN {$behind}")->implode(' ');
+
+        $this->query->reorder()
+            ->orderByRaw('CASE WHEN sites.id IN ('.implode(',', $known).') THEN 0 ELSE 1 END')
+            ->orderByRaw($cases === '' ? 'sites.id' : "CASE sites.id {$cases} END ".(str_starts_with($sort, '-') ? 'DESC' : 'ASC'))
+            ->orderBy('domain');
     }
 
     protected function searchable(): array

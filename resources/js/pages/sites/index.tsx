@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
@@ -7,7 +7,7 @@ import Layout from '@/layouts/app/layout';
 import Container from '@/components/container';
 import { asRow } from '@/lib/inertia-table';
 import { Button } from '@/components/ui/button';
-import { PlusIcon } from 'lucide-react';
+import { LoaderCircleIcon, PlusIcon } from 'lucide-react';
 import { VitoTable } from '@/components/vito-table';
 import { Badge } from '@/components/ui/badge';
 import DateTime from '@/components/date-time';
@@ -35,6 +35,7 @@ type Page = {
   serverScope?: string;
   groupBy?: 'none' | 'project' | 'server';
   gitStatus?: 'all' | 'up_to_date' | 'behind';
+  gitStatusChecking?: number;
   servers?: ServerOption[];
 };
 
@@ -78,7 +79,7 @@ function GitCell({ row, value }: CellRenderProps) {
   return <CommitsBehindCell serverId={row.server_id as number} siteId={row.id as number} />;
 }
 
-function CreatedAtCell({ value }: CellRenderProps) {
+function RelativeDateCell({ value }: CellRenderProps) {
   if (typeof value !== 'string' || !value) {
     return null;
   }
@@ -86,7 +87,7 @@ function CreatedAtCell({ value }: CellRenderProps) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button type="button" className="text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap text-xs" aria-label="Show exact creation date">
+        <button type="button" className="text-muted-foreground hover:text-foreground cursor-pointer whitespace-nowrap text-xs" aria-label="Show exact date">
           <DateTime date={value} relative />
         </button>
       </PopoverTrigger>
@@ -100,6 +101,16 @@ function CreatedAtCell({ value }: CellRenderProps) {
 export default function Sites() {
   const page = usePage<Page & SharedData>();
   const { advanced } = usePanelView();
+  const gitStatusChecking = page.props.gitStatusChecking ?? 0;
+
+  useEffect(() => {
+    if (gitStatusChecking === 0) {
+      return;
+    }
+    const timeout = window.setTimeout(() => router.reload({ only: ['sites', 'gitStatusChecking'] }), 3000);
+
+    return () => window.clearTimeout(timeout);
+  }, [gitStatusChecking]);
 
   const Comp = page.props.server ? ServerLayout : Layout;
 
@@ -119,37 +130,12 @@ export default function Sites() {
         <VitoTable
           fitContent
           toolbarClassName="[&_input]:h-8 [&_input]:min-w-36 [&_input]:max-w-56 [&_input]:text-sm"
-          tableData={{ ...page.props.sites, columns: page.props.sites.columns.filter((column) => column.hidden || ['domain', 'server.project.name', 'created_at', ...(advanced ? ['branch'] : [])].includes(column.name)).map((column) => ({ ...column, fit: false })) }}
-          columnWidths={{ 'server.project.name': '18%', branch: '16rem', created_at: '9rem' }}
+          tableData={{ ...page.props.sites, columns: page.props.sites.columns.filter((column) => column.hidden || ['domain', 'server.project.name', 'created_at', ...(advanced ? ['branch', 'last_deployed_at'] : [])].includes(column.name)).map((column) => ({ ...column, fit: false })) }}
+          columnWidths={{ 'server.project.name': '18%', branch: '13rem', last_deployed_at: '9rem', created_at: '9rem' }}
           rowClassName={() => '[&>td]:py-2'}
           groupBy={page.props.groupBy}
           toolbar={
             <>
-              <PanelViewToggle label="Site view" />
-              {advanced && (
-                <Select
-                  value={page.props.gitStatus ?? 'all'}
-                  onValueChange={(gitStatus) => {
-                    const url = new URL(window.location.href);
-                    if (gitStatus === 'all') {
-                      url.searchParams.delete('git_status');
-                    } else {
-                      url.searchParams.set('git_status', gitStatus);
-                    }
-                    url.searchParams.delete('page');
-                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
-                  }}
-                >
-                  <SelectTrigger className="h-8 w-36 text-sm" aria-label="Filter sites by Git status">
-                    <SelectValue placeholder="All Git statuses" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Git statuses</SelectItem>
-                    <SelectItem value="up_to_date">Up to date</SelectItem>
-                    <SelectItem value="behind">Behind</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
               {!page.props.server && (
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="flex items-center gap-2">
@@ -244,29 +230,61 @@ export default function Sites() {
                   </div>
                 </div>
               )}
-              {!page.props.server?.is_self && (
-                <div className="ml-auto shrink-0">
-                  <Button asChild>
-                    <Link
-                      href={
-                        page.props.server
-                          ? `/servers/${page.props.server.id}/sites/create`
-                          : "/sites/create"
-                      }
-                    >
-                      <PlusIcon />
-                      Create site
-                    </Link>
-                  </Button>
-                </div>
+              {advanced && (
+                <Select
+                  value={page.props.gitStatus ?? 'all'}
+                  onValueChange={(gitStatus) => {
+                    const url = new URL(window.location.href);
+                    if (gitStatus === 'all') {
+                      url.searchParams.delete('git_status');
+                    } else {
+                      url.searchParams.set('git_status', gitStatus);
+                    }
+                    url.searchParams.delete('page');
+                    router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
+                  }}
+                >
+                  <SelectTrigger className="h-8 w-36 text-sm" aria-label="Filter sites by Git status">
+                    <SelectValue placeholder="All Git statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Git statuses</SelectItem>
+                    <SelectItem value="up_to_date">Up to date</SelectItem>
+                    <SelectItem value="behind">Behind</SelectItem>
+                  </SelectContent>
+                </Select>
               )}
+              {advanced && gitStatusChecking > 0 && (
+                <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
+                  <LoaderCircleIcon className="size-3.5 animate-spin" />
+                  Checking {gitStatusChecking} {gitStatusChecking === 1 ? 'site' : 'sites'}
+                </span>
+              )}
+              <div className="ml-auto flex shrink-0 items-center gap-2">
+                <PanelViewToggle label="Site view" />
+                {!page.props.server?.is_self && (
+                    <Button asChild>
+                      <Link
+                        href={
+                          page.props.server
+                            ? `/servers/${page.props.server.id}/sites/create`
+                            : "/sites/create"
+                        }
+                      >
+                        <PlusIcon />
+                        Create site
+                      </Link>
+                    </Button>
+                )}
+              </div>
             </>
           }
           cellRenderers={{
             domain: siteCell,
             'server.project.name': ({ value }) => <span className="text-muted-foreground text-xs">{String(value ?? '')}</span>,
             branch: GitCell,
-            created_at: CreatedAtCell,
+            last_deployed_at: RelativeDateCell,
+            created_at: RelativeDateCell,
           }}
           onRowClick={(row: Row) => {
             const site = asRow<{ id: number; server_id: number }>(row, ['id', 'server_id']);

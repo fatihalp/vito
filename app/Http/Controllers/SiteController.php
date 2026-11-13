@@ -36,8 +36,10 @@ class SiteController extends Controller
     {
         $this->authorize('viewAny', user()->currentProject);
         $result = app(GetAccessibleSites::class)->get(user(), $request->input());
+        $gitFilter = app(GetCommitsBehind::class)->scan($result['query'], $request->input());
 
-        $sites = SiteTable::make(app(GetCommitsBehind::class)->filter($result['query'], $request->input()))
+        $sites = SiteTable::make($gitFilter['query'])
+            ->withCommitsBehind($gitFilter['behind'])
             ->withGrouping($result['groupBy'])
             ->paginate();
 
@@ -47,6 +49,7 @@ class SiteController extends Controller
             'serverScope' => $result['serverScope'],
             'groupBy' => $result['groupBy'],
             'gitStatus' => $request->input('git_status', 'all'),
+            'gitStatusChecking' => $gitFilter['checking'],
             'servers' => $result['servers'],
         ]);
     }
@@ -63,10 +66,12 @@ class SiteController extends Controller
     public function server(Request $request, Server $server): Response
     {
         $this->authorize('viewAny', [Site::class, $server]);
+        $gitFilter = app(GetCommitsBehind::class)->scan($server->sites()->getQuery(), $request->input());
 
         return Inertia::render('sites/index', [
-            'sites' => SiteTable::make(app(GetCommitsBehind::class)->filter($server->sites()->getQuery(), $request->input()))->forServer($server)->simplePaginate(),
+            'sites' => SiteTable::make($gitFilter['query'])->withCommitsBehind($gitFilter['behind'])->forServer($server)->simplePaginate(),
             'gitStatus' => $request->input('git_status', 'all'),
+            'gitStatusChecking' => $gitFilter['checking'],
         ]);
     }
 

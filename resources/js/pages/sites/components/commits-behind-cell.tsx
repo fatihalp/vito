@@ -1,7 +1,9 @@
 import axios from 'axios';
+import { Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
-import { AlertTriangleIcon, LoaderCircleIcon } from 'lucide-react';
+import { GitBranchIcon, LoaderCircleIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 type CommitsBehind = {
   branch: string;
@@ -19,36 +21,57 @@ export default function CommitsBehindCell({ serverId, siteId }: { serverId: numb
   });
 
   if (query.isPending) {
-    return <LoaderCircleIcon className="text-muted-foreground size-3.5 animate-spin" aria-label="Checking commits" />;
-  }
-
-  const error = query.error ? (axios.isAxiosError(query.error) ? query.error.response?.data?.message : null) ?? query.error.message : query.data?.error;
-
-  if (error) {
     return (
-      <span className="text-muted-foreground flex min-w-0 items-center gap-1 text-xs" title={error}>
-        <AlertTriangleIcon className="text-warning size-3.5 shrink-0" />
-        <span className="truncate">{error}</span>
-      </span>
+      <Badge variant="gray">
+        <LoaderCircleIcon className="size-3 animate-spin" />
+        Checking
+      </Badge>
     );
   }
 
-  if (!query.data) {
+  if (!query.data?.branch && !query.error) {
     return null;
   }
 
-  const { branch, behind } = query.data;
+  const error = query.error ? ((axios.isAxiosError(query.error) && query.error.response?.data?.message) || query.error.message) : query.data?.error;
+  const behind = query.data?.behind;
+
+  const badge = error ? (
+    <Badge variant="warning">Check failed</Badge>
+  ) : behind === null || behind === undefined ? (
+    <Badge variant="gray">Not deployed</Badge>
+  ) : behind === 0 ? (
+    <Badge variant="success">Up to date</Badge>
+  ) : (
+    <Badge variant="warning">{behind} behind</Badge>
+  );
+
+  const hint = error
+    ? error
+    : behind === null || behind === undefined
+      ? 'No successful deployment yet.'
+      : behind === 0
+        ? `The deployed commit is the latest on ${query.data?.branch}.`
+        : `${behind} new ${behind === 1 ? 'commit' : 'commits'} on ${query.data?.branch} since the last deployment.`;
 
   return (
-    <div className="flex min-w-0 items-center gap-2">
-      <span className="text-muted-foreground truncate font-mono text-xs" title={branch}>{branch}</span>
-      {behind === null || behind === undefined ? (
-        <Badge variant="outline">Not deployed</Badge>
-      ) : behind === 0 ? (
-        <Badge variant="success">Up to date</Badge>
-      ) : (
-        <Badge variant="warning">{behind} {behind === 1 ? 'commit' : 'commits'} behind</Badge>
-      )}
-    </div>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Link
+          href={error ? '/settings/source-controls' : `/servers/${serverId}/sites/${siteId}`}
+          className="flex min-w-0 items-center gap-2"
+          onClick={(event) => event.stopPropagation()}
+        >
+          {badge}
+          {query.data?.branch && (
+            <span className="text-muted-foreground flex min-w-0 items-center gap-1 text-xs">
+              <GitBranchIcon className="size-3.5 shrink-0" />
+              <span className="truncate">{query.data.branch}</span>
+            </span>
+          )}
+        </Link>
+      </TooltipTrigger>
+      <TooltipContent className="max-w-xs">{hint}</TooltipContent>
+    </Tooltip>
   );
 }
