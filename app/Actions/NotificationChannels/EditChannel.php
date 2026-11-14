@@ -2,6 +2,8 @@
 
 namespace App\Actions\NotificationChannels;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Models\NotificationChannel;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
@@ -15,7 +17,7 @@ class EditChannel
 
         $notificationChannel->fill([
             'label' => $input['name'],
-            'project_id' => isset($input['global']) && $input['global'] ? null : $user->current_project_id,
+            'project_id' => isset($input['global']) && $input['global'] ? null : app(GetProjectScope::class)->projectId($user, $notificationChannel->project_id),
         ]);
         $notificationChannel->save();
     }

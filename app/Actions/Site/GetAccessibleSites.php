@@ -2,6 +2,8 @@
 
 namespace App\Actions\Site;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\Server\EnsureSelfServerExists;
 use App\Models\Site;
 use App\Models\User;
@@ -31,7 +33,7 @@ class GetAccessibleSites
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? $user->current_project_id);
+        $scope = (string) ($validated['project'] ?? app(GetProjectScope::class)->get($user));
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 
         $query = Site::query()

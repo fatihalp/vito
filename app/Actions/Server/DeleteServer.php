@@ -24,6 +24,10 @@ class DeleteServer
             } catch (Throwable $e) {
                 ServerLog::log($server, 'delete-server-from-provider-failed', $e->getMessage());
                 Notifier::send($server, new FailedToDeleteServerFromProvider($server));
+
+                throw ValidationException::withMessages([
+                    'delete_from_provider' => 'The provider could not confirm server deletion. The server remains registered so you can inspect it and retry.',
+                ]);
             }
         }
 

@@ -23,7 +23,7 @@ export function ProjectSwitch() {
   const visitScope = (scope: string) => {
     setOpen(false);
     const listPath = pathname.startsWith('/sites') ? '/sites' : '/servers';
-    router.visit(withQuery(isInsideResource || scope === 'all' ? listPath : pathname, { project: scope }));
+    router.visit(withQuery(isInsideResource ? listPath : pathname, { project: scope }));
   };
 
   const handleProjectChange = (_value: string, project: Project) => visitScope(project.id.toString());

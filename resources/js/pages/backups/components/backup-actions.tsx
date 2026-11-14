@@ -42,7 +42,7 @@ function ToggleEnabled({ backup }: { backup: Backup }) {
 function Delete({ backup }: { backup: Backup }) {
   const dialog = useDialog();
   const target =
-    (backup.type === 'pgbackrest' ? 'PostgreSQL cluster' : backup.type === 'database' ? backup.database?.name : backup.path) ?? `#${backup.id}`;
+    (backup.type === 'pgbackrest' ? 'PostgreSQL cluster' : backup.database?.name) ?? `#${backup.id}`;
 
   return (
     <DropdownMenuItem

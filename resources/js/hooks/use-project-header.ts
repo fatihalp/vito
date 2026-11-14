@@ -4,11 +4,11 @@ import axios from 'axios';
 
 const PROJECT_HEADER = 'X-Vito-Project';
 
-export function useProjectHeader(projectId?: number) {
+export function useProjectHeader(scope?: string) {
   useEffect(() => {
-    if (!projectId) return;
+    if (!scope) return;
 
-    const value = String(projectId);
+    const value = scope;
     axios.defaults.headers.common[PROJECT_HEADER] = value;
     const removeHandler = http.onRequest((config) => ({ ...config, headers: { ...config.headers, [PROJECT_HEADER]: value } }));
 
@@ -16,5 +16,5 @@ export function useProjectHeader(projectId?: number) {
       removeHandler();
       delete axios.defaults.headers.common[PROJECT_HEADER];
     };
-  }, [projectId]);
+  }, [scope]);
 }

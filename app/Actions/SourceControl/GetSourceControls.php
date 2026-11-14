@@ -3,6 +3,7 @@
 namespace App\Actions\SourceControl;
 
 use App\Helpers\QueryBuilder;
+use App\Actions\Projects\GetProjectScope;
 use App\Models\SourceControl;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -20,6 +21,7 @@ class GetSourceControls
         ])->validate();
 
         $query = SourceControl::query()
+            ->where(fn ($query) => $query->whereIn('project_id', app(GetProjectScope::class)->ids($user))->orWhereNull('project_id'))
             ->when(! $user->isAdmin(), fn ($query) => $query->where('user_id', $user->id))
             ->with(['user', 'project' => fn ($query) => $query->forResource($user)]);
 

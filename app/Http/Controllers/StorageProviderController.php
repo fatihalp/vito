@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\StorageProvider\ConnectDropbox;
 use App\Actions\StorageProvider\CreateStorageProvider;
 use App\Actions\StorageProvider\DeleteStorageProvider;
@@ -41,7 +43,7 @@ class StorageProviderController extends Controller
 
         return Inertia::render('storage-providers/index', [
             'storageProviders' => StorageProviderTable::make(
-                StorageProvider::getByProjectId($user->current_project_id, $user)
+                StorageProvider::forCurrentScope($user)
             )->simplePaginate(),
         ]);
     }
@@ -52,7 +54,7 @@ class StorageProviderController extends Controller
         $this->authorize('viewAny', StorageProvider::class);
 
         $user = user();
-        $storageProviders = StorageProvider::getByProjectId($user->current_project_id, $user)
+        $storageProviders = StorageProvider::forCurrentScope($user)
             ->get();
 
         return StorageProviderResource::collection($storageProviders);
@@ -63,7 +65,7 @@ class StorageProviderController extends Controller
     {
         $this->authorize('create', StorageProvider::class);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user());
 
         app(CreateStorageProvider::class)->create(user(), $request->all(), $projectId);
 
@@ -75,7 +77,7 @@ class StorageProviderController extends Controller
     {
         $this->authorize('create', StorageProvider::class);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user());
 
         return Inertia::location($action->redirectUrl($request->all(), $projectId));
     }
@@ -130,7 +132,7 @@ class StorageProviderController extends Controller
     {
         $this->authorize('update', $storageProvider);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user(), $storageProvider->project_id);
 
         app(EditStorageProvider::class)->edit($storageProvider, $request->all(), $projectId);
 

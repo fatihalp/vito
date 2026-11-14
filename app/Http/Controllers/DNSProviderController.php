@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\DNSProvider\CreateDNSProvider;
 use App\Actions\DNSProvider\DeleteDNSProvider;
 use App\Actions\DNSProvider\EditDNSProvider;
@@ -33,7 +35,7 @@ class DNSProviderController extends Controller
         $user = user();
 
         return Inertia::render('dns-providers/index', [
-            'dnsProviders' => DnsProviderTable::make(DNSProvider::getByProjectId($user->current_project_id, $user))->simplePaginate(),
+            'dnsProviders' => DnsProviderTable::make(DNSProvider::forCurrentScope($user))->simplePaginate(),
         ]);
     }
 
@@ -44,7 +46,7 @@ class DNSProviderController extends Controller
 
         $user = user();
 
-        return DNSProviderResource::collection(DNSProvider::getByProjectId($user->current_project_id, $user)->get());
+        return DNSProviderResource::collection(DNSProvider::forCurrentScope($user)->get());
     }
 
     #[Post('/', name: 'dns-providers.store')]
@@ -52,7 +54,7 @@ class DNSProviderController extends Controller
     {
         $this->authorize('create', DNSProvider::class);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user());
 
         app(CreateDNSProvider::class)->create(user(), $request->all(), $projectId);
 
@@ -64,7 +66,7 @@ class DNSProviderController extends Controller
     {
         $this->authorize('update', $dnsProvider);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user(), $dnsProvider->project_id);
 
         app(EditDNSProvider::class)->edit($dnsProvider, $request->all(), $projectId);
 

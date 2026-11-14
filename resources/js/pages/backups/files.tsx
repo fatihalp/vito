@@ -36,7 +36,7 @@ export default function Files() {
   const isPgBackRest = page.props.backup.type === 'pgbackrest';
   const visibleColumns = useMemo(() => {
     const hidden =
-      page.props.backup.type === 'pgbackrest' ? ['restored_to', 'restored_at'] : page.props.backup.type === 'file' ? ['name', 'database_engine'] : ['name'];
+      page.props.backup.type === 'pgbackrest' ? ['restored_to', 'restored_at'] : ['name'];
 
     return columns.filter((column) => !('accessorKey' in column && hidden.includes(String(column.accessorKey))));
   }, [page.props.backup.type]);
@@ -66,7 +66,6 @@ export default function Files() {
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
               {isPgBackRest ? 'pgBackRest backups of' : 'Backup files of'}
               {page.props.backup.type === 'database' && <CopyableBadge text={page.props.backup.database?.name} />}
-              {page.props.backup.type === 'file' && <CopyableBadge text={page.props.backup.path} tooltip />}
               {isPgBackRest && <CopyableBadge text={page.props.backup.pgbackrest?.stanza ?? undefined} />}
             </h2>
             <p className="text-muted-foreground text-sm">

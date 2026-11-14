@@ -33,7 +33,7 @@ export default function Layout({
   const page = usePage<SharedData & { server?: { id: number }; site?: { id: number } }>();
   const queryClient = getQueryClient(page.props.auth.user.id);
   const { status: socketStatus, reconnect: socketReconnect } = useSocketEvents();
-  useProjectHeader(page.props.auth.currentProject?.id);
+  useProjectHeader(page.props.auth.projectScope);
   const syncBootstrap = useBootstrapStore((s) => s.syncWithServerVersion);
   const fetchBootstrap = useBootstrapStore((s) => s.fetch);
   const bootstrapConfigsLoaded = useBootstrapStore((s) => s.configs !== null);

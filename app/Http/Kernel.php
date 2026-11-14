@@ -5,6 +5,7 @@ namespace App\Http;
 use App\Http\Middleware\Authenticate;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsurePasswordIsChanged;
+use App\Http\Middleware\EnsureRouteResourceOwnership;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\MustBeAdminMiddleware;
 use App\Http\Middleware\PreventRequestForgery;
@@ -51,6 +52,7 @@ class Kernel extends HttpKernel
             ShareErrorsFromSession::class,
             PreventRequestForgery::class,
             SubstituteBindings::class,
+            EnsureRouteResourceOwnership::class,
             ResolveCurrentProject::class,
             HandleInertiaRequests::class,
             EnsurePasswordIsChanged::class,
