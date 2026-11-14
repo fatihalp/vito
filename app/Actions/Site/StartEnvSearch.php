@@ -3,6 +3,7 @@
 namespace App\Actions\Site;
 
 use App\Jobs\Site\SearchEnvKeyJob;
+use App\Actions\Projects\GetProjectScope;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
@@ -23,7 +24,7 @@ class StartEnvSearch
         Cache::put("env-search-owner:{$searchId}", $user->id, now()->addMinutes(self::TTL_MINUTES));
         Cache::put("env-search-result:{$searchId}", ['status' => 'pending'], now()->addMinutes(self::TTL_MINUTES));
 
-        SearchEnvKeyJob::dispatch($user, $validated['key'], $searchId)->onQueue('ssh');
+        SearchEnvKeyJob::dispatch($user, $validated['key'], $searchId, app(GetProjectScope::class)->ids($user))->onQueue('ssh');
 
         return $searchId;
     }

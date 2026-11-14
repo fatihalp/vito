@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { LoaderCircleIcon } from 'lucide-react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
 import InputError from '@/components/ui/input-error';
 import DatabaseSelect from '@/pages/databases/components/database-select';
 import ServerSelect from '@/pages/servers/components/server-select';
@@ -31,9 +30,6 @@ export default function RestoreBackup({
 
   const form = useForm({
     database: '',
-    path: '',
-    owner: 'vito:vito',
-    permissions: '755',
   });
 
   const submit = (e: FormEvent) => {
@@ -55,90 +51,40 @@ export default function RestoreBackup({
         </DialogHeader>
         <Form id="restore-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
-            {backup.type === 'database' && (
-              <>
-                <div className="text-muted-foreground text-sm">
-                  {file.database_engine
-                    ? `Source: ${file.database_engine} ${file.database_version ?? ''}`.trim()
-                    : 'Source database engine/version unknown - this file can only be restored to its original server.'}
-                </div>
-                <FormField>
-                  <Label htmlFor="target-server">To server</Label>
-                  <ServerSelect
-                    id="target-server"
-                    value={String(targetServerId)}
-                    placeholder={targetServerName ?? 'Select server...'}
-                    onValueChange={(server) => {
-                      if (server) {
-                        setTargetServerId(server.id);
-                        setTargetServerName(server.name);
-                      } else {
-                        setTargetServerId(backup.server_id);
-                        setTargetServerName(sourceServerName);
-                      }
-                      form.setData('database', '');
-                    }}
-                  />
-                </FormField>
-                <FormField>
-                  <Label htmlFor="database">To database</Label>
-                  <DatabaseSelect
-                    id="database"
-                    name="database"
-                    serverId={targetServerId}
-                    value={form.data.database}
-                    onValueChange={(value) => form.setData('database', value)}
-                  />
-                  <InputError message={form.errors.database} />
-                </FormField>
-              </>
-            )}
-            {backup.type === 'file' && (
-              <>
-                <FormField>
-                  <Label htmlFor="path">Restore to path</Label>
-                  <Input
-                    id="path"
-                    name="path"
-                    type="text"
-                    placeholder="/home/username/restore-path"
-                    value={form.data.path}
-                    onChange={(e) => form.setData('path', e.target.value)}
-                  />
-                  <InputError message={form.errors.path} />
-                </FormField>
-
-                <FormField>
-                  <Label htmlFor="owner">Owner *</Label>
-                  <Input
-                    id="owner"
-                    name="owner"
-                    type="text"
-                    placeholder="vito:vito"
-                    value={form.data.owner}
-                    onChange={(e) => form.setData('owner', e.target.value)}
-                  />
-                  <div className="text-muted-foreground mt-1 text-sm">
-                    Default: vito:vito. If using isolated users, change this field. Examples: "user1", "user1:group1", "root:root"
-                  </div>
-                  <InputError message={form.errors.owner} />
-                </FormField>
-
-                <FormField>
-                  <Label htmlFor="permissions">Permissions *</Label>
-                  <Input
-                    id="permissions"
-                    name="permissions"
-                    type="text"
-                    placeholder="755"
-                    value={form.data.permissions}
-                    onChange={(e) => form.setData('permissions', e.target.value)}
-                  />
-                  <div className="text-muted-foreground mt-1 text-sm">Format: 3-4 digits (e.g., 755, 644, 0755)</div>
-                  <InputError message={form.errors.permissions} />
-                </FormField>
-              </>
-            )}
+            <div className="text-muted-foreground text-sm">
+              {file.database_engine
+                ? `Source: ${file.database_engine} ${file.database_version ?? ''}`.trim()
+                : 'Source database engine/version unknown - this file can only be restored to its original server.'}
+            </div>
+            <FormField>
+              <Label htmlFor="target-server">To server</Label>
+              <ServerSelect
+                id="target-server"
+                value={String(targetServerId)}
+                placeholder={targetServerName ?? 'Select server...'}
+                onValueChange={(server) => {
+                  if (server) {
+                    setTargetServerId(server.id);
+                    setTargetServerName(server.name);
+                  } else {
+                    setTargetServerId(backup.server_id);
+                    setTargetServerName(sourceServerName);
+                  }
+                  form.setData('database', '');
+                }}
+              />
+            </FormField>
+            <FormField>
+              <Label htmlFor="database">To database</Label>
+              <DatabaseSelect
+                id="database"
+                name="database"
+                serverId={targetServerId}
+                value={form.data.database}
+                onValueChange={(value) => form.setData('database', value)}
+              />
+              <InputError message={form.errors.database} />
+            </FormField>
           </FormFields>
         </Form>
         <DialogFooter>

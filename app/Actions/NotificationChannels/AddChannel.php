@@ -2,6 +2,8 @@
 
 namespace App\Actions\NotificationChannels;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Models\NotificationChannel;
 use App\Models\User;
 use App\NotificationChannels\Email;
@@ -21,7 +23,7 @@ class AddChannel
             'user_id' => $user->id,
             'provider' => $input['provider'],
             'label' => $input['name'],
-            'project_id' => isset($input['global']) && $input['global'] ? null : $user->current_project_id,
+            'project_id' => isset($input['global']) && $input['global'] ? null : app(GetProjectScope::class)->projectId($user),
         ]);
         $channel->data = $channel->provider()->createData($input);
         $channel->save();

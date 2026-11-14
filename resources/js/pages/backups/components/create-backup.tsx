@@ -24,16 +24,14 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
     {
       type: string;
       database: string;
-      path: string;
       storage: string;
       interval: string;
       custom_interval: string;
       keep: string;
     } & PgBackRestSettings
   >({
-    type: 'file',
+    type: 'database',
     database: '',
-    path: '',
     storage: '',
     interval: '0 0 * * *',
     custom_interval: '',
@@ -61,7 +59,6 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
         </SheetHeader>
         <Form id="create-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
-            {}
             {!server && (
               <FormField>
                 <Label htmlFor="server">Server</Label>
@@ -71,7 +68,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                   onValueChange={(value) => {
                     setSelectedServer(value);
                     if (!value?.services?.database || (form.data.type === 'pgbackrest' && value.services.database !== 'postgresql')) {
-                      form.setData('type', 'file');
+                      form.setData('type', 'database');
                     }
                     form.setData('database', '');
                   }}
@@ -79,7 +76,6 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
               </FormField>
             )}
 
-            {}
             <FormField>
               <Label htmlFor="type">Backup Type</Label>
               <Select
@@ -91,7 +87,6 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="file">File Backup</SelectItem>
                     {activeServer?.services?.database && <SelectItem value="database">Database Backup</SelectItem>}
                     {activeServer?.services?.database === 'postgresql' && <SelectItem value="pgbackrest">PostgreSQL cluster (pgBackRest)</SelectItem>}
                   </SelectGroup>
@@ -108,7 +103,6 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
               </div>
             )}
 
-            {}
             {form.data.type === 'database' && activeServer && (
               <FormField>
                 <Label htmlFor="database">Database</Label>
@@ -123,23 +117,6 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
               </FormField>
             )}
 
-            {}
-            {form.data.type === 'file' && (
-              <FormField>
-                <Label htmlFor="path">File/Directory Path</Label>
-                <Input
-                  id="path"
-                  name="path"
-                  value={form.data.path}
-                  onChange={(e) => form.setData('path', e.target.value)}
-                  placeholder="/var/www/html or /home/user/documents"
-                />
-                <div className="text-muted-foreground mt-1 text-sm">Specify the file or directory path to backup.</div>
-                <InputError message={form.errors.path} />
-              </FormField>
-            )}
-
-            {}
             <FormField>
               <Label htmlFor="storage">Storage</Label>
               <StorageProviderSelect
@@ -200,7 +177,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
         </Form>
         <SheetFooter>
           <div className="flex items-center gap-2">
-            <Button form="create-backup-form" type="submit" disabled={form.processing || !activeServer}>
+            <Button form="create-backup-form" type="submit" disabled={form.processing || !activeServer?.services?.database}>
               {form.processing && <LoaderCircle className="animate-spin" />}
               Create
             </Button>

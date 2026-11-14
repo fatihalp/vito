@@ -27,7 +27,6 @@ class Backup extends AbstractModel
         'server_id',
         'storage_id',
         'database_id',
-        'path',
         'interval',
         'keep_backups',
         'status',
@@ -54,6 +53,8 @@ class Backup extends AbstractModel
     public static function boot(): void
     {
         parent::boot();
+
+        static::addGlobalScope('type', fn (Builder $query) => $query->whereIn('backups.type', BackupType::cases()));
 
         static::deleting(function ($backup): void {
             
@@ -92,7 +93,6 @@ class Backup extends AbstractModel
     public function target(): ?string
     {
         return match ($this->type) {
-            BackupType::FILE => $this->path,
             BackupType::DATABASE => $this->database?->name,
             BackupType::PGBACKREST => $this->server?->databases->pluck('name')->implode(', ') ?: __('PostgreSQL cluster'),
         };

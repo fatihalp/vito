@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\ServerProvider\CreateServerProvider;
 use App\Actions\ServerProvider\DeleteServerProvider;
 use App\Actions\ServerProvider\EditServerProvider;
@@ -34,7 +36,7 @@ class ServerProviderController extends Controller
 
         return Inertia::render('server-providers/index', [
             'serverProviders' => ServerProviderTable::make(
-                ServerProvider::getByProjectId($user->current_project_id, $user)
+                ServerProvider::forCurrentScope($user)
             )->simplePaginate(),
         ]);
     }
@@ -46,7 +48,7 @@ class ServerProviderController extends Controller
 
         $user = user();
 
-        return ServerProviderResource::collection(ServerProvider::getByProjectId($user->current_project_id, $user)->get());
+        return ServerProviderResource::collection(ServerProvider::forCurrentScope($user)->get());
     }
 
     #[Post('/', name: 'server-providers.store')]
@@ -54,7 +56,7 @@ class ServerProviderController extends Controller
     {
         $this->authorize('create', ServerProvider::class);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user());
 
         app(CreateServerProvider::class)->create(user(), $request->all(), $projectId);
 
@@ -66,7 +68,7 @@ class ServerProviderController extends Controller
     {
         $this->authorize('update', $serverProvider);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user(), $serverProvider->project_id);
 
         app(EditServerProvider::class)->edit($serverProvider, $request->all(), $projectId);
 

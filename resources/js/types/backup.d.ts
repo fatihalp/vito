@@ -9,8 +9,7 @@ export interface Backup {
   storage: StorageProvider;
   database_id: number | null;
   database: Database | null;
-  path: string | null;
-  type: string;
+  type: 'database' | 'pgbackrest';
   keep_backups: number;
   interval: string;
   files_count: number;

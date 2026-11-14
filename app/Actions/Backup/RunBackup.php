@@ -31,7 +31,6 @@ class RunBackup
         }
 
         $backupName = match ($backup->type) {
-            BackupType::FILE => basename($backup->path),
             BackupType::DATABASE => $backup->database?->name,
             BackupType::PGBACKREST => $backup->cluster->stanza,
         };
@@ -56,35 +55,5 @@ class RunBackup
         dispatch(new RunJob($file, $backup))->onQueue('ssh');
 
         return $file;
-    }
-
-    public function compressAndUploadFile(BackupFile $file, Backup $backup): void
-    {
-        $server = $backup->server;
-        $sourcePath = $backup->path;
-        $tempZipPath = $file->tempPath();
-
-        
-        $server->os()->deleteFile($tempZipPath);
-
-        
-        $server->os()->compress($sourcePath, $tempZipPath);
-
-        $size = trim($server->ssh()->exec(
-            'stat -c%s '.escapeshellarg($tempZipPath).' || true',
-            'backup-size'
-        ));
-
-        
-        $upload = $backup->storage->provider()->ssh($server)->upload(
-            $tempZipPath,
-            $file->path()
-        );
-
-        
-        $server->os()->deleteFile($tempZipPath);
-
-        $file->size = is_numeric($size) ? (int) $size : ($upload['size'] ?? null);
-        $file->save();
     }
 }

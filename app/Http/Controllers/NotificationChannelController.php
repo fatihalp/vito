@@ -33,7 +33,7 @@ class NotificationChannelController extends Controller
 
         return Inertia::render('notification-channels/index', [
             'notificationChannels' => NotificationChannelTable::make(
-                NotificationChannel::getByProjectId($user->current_project_id, $user)
+                NotificationChannel::forCurrentScope($user)
             )->simplePaginate(),
         ]);
     }
@@ -44,7 +44,7 @@ class NotificationChannelController extends Controller
         $this->authorize('viewAny', NotificationChannel::class);
 
         $user = user();
-        $notificationChannels = NotificationChannel::getByProjectId($user->current_project_id, $user)->get();
+        $notificationChannels = NotificationChannel::forCurrentScope($user)->get();
 
         return NotificationChannelResource::collection($notificationChannels);
     }

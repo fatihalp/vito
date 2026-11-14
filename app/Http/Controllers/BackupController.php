@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Backup\CheckBackupHealth;
+use App\Actions\Projects\GetProjectScope;
 use App\Actions\Backup\GetBackupLogs;
 use App\Actions\Backup\ManageBackup;
 use App\Actions\Backup\RestoreToNewServer;
@@ -38,9 +39,11 @@ class BackupController extends Controller
     {
         $this->authorize('view', user()->currentProject);
 
+        $query = Backup::query()->whereHas('server', fn ($servers) => $servers->whereIn('project_id', app(GetProjectScope::class)->ids(user())));
+
         return Inertia::render('backups/index', [
-            'backups' => BackupTable::make(user()->currentProject->backups())->simplePaginate(),
-            'attention' => app(CheckBackupHealth::class)->attention(user()->currentProject->backups()),
+            'backups' => BackupTable::make(clone $query)->simplePaginate(),
+            'attention' => app(CheckBackupHealth::class)->attention(clone $query),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
         ]);
     }

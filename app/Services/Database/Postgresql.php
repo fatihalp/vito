@@ -202,7 +202,14 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
                 serviceLabel: 'PostgreSQL',
                 label: 'Service journal',
                 source: ServiceLog::SOURCE_JOURNAL,
-                target: 'postgresql.service',
+                target: 'postgresql@'.$this->service->version.'-main.service',
+            ),
+            new ServiceLog(
+                key: 'postgresql:server',
+                serviceLabel: 'PostgreSQL',
+                label: 'Database log',
+                source: ServiceLog::SOURCE_FILE,
+                target: '/var/log/postgresql/postgresql-'.$this->service->version.'-main.log',
             ),
         ];
     }

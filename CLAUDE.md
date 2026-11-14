@@ -2,10 +2,12 @@
 
 ## Core Rules (High Priority)
 
-- **Architectural Principles**: Strictly adhere to **MVC, SOLID, KISS, DRY, and YAGNI** across both backend and frontend.
+- **Server Management Safety**: This software manages real servers and production data. Treat unintended changes, data loss, and operations on the wrong resource as unacceptable. Validate parameters, resource identity, project boundaries, and current state before every mutation; different inputs must never cause an operation to affect unintended resources.
+- **Stop on Unsafe or Unrequested Operations**: If an operation would exceed the user's request, has an ambiguous target, or could modify or delete unintended data, warn the user and stop before making changes. Never continue by guessing. Enforce safeguards in the application to prevent accidental harmful actions even when the user makes a mistake.
+- **Architectural Principles**: Refactor existing code and implement new features throughout the project using **MVC, SOLID, KISS, DRY, and YAGNI** with self-documenting code.
 - **Zero Dead Code & Zero Tests**: Delete dead, unused, or obsolete code immediately. Do not build speculative abstractions or unused features (YAGNI). Zero tests are maintained in this project — never create `tests/` directories or test files.
 - **Self-Documenting Code & Zero Comments**: Write self-documenting code with descriptive names and single-responsibility functions. No inline comments and no docblocks. Code must explain itself.
-- **English-Only Localization**: All UI strings, flash messages, validation texts, and keys must strictly be in English. No non-English localization files or translations (`lang/en.json` only).
+- **English-Only Codebase**: All code identifiers, UI strings, flash messages, validation texts, documentation, and localization keys must be in English. No non-English localization files or translations (`lang/en.json` only).
 - **Simplicity Over Defensive Over-Engineering**: Avoid convoluted type-check chains, multi-step fallback ladders, and speculative branches. Keep logic linear, predictable, and clear.
 - **Write LESS code**: Reuse existing code. No redundant code or duplications.
 - **Analyse codebase first**: Check sibling files and established conventions before adding new code.

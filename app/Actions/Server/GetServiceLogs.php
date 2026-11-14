@@ -17,7 +17,7 @@ class GetServiceLogs
         $server->loadMissing('sites');
 
         $services = $server->services()
-            ->where('status', ServiceStatus::READY)
+            ->whereNotIn('status', [ServiceStatus::INSTALLING, ServiceStatus::UNINSTALLING])
             ->get();
 
         foreach ($services as $service) {

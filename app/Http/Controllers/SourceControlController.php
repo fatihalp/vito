@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\SourceControl\ConnectSourceControl;
 use App\Actions\SourceControl\DeleteSourceControl;
 use App\Actions\SourceControl\EditSourceControl;
@@ -86,7 +88,7 @@ class SourceControlController extends Controller
             return SourceControlResource::collection($sourceControls);
         }
 
-        $sourceControls = SourceControl::getByProjectId($user->current_project_id, $user)
+        $sourceControls = SourceControl::forCurrentScope($user)
             ->with('user')
             ->get();
 
@@ -162,7 +164,7 @@ class SourceControlController extends Controller
         $this->authorize('create', SourceControl::class);
 
         $user = user();
-        $projectId = $request->boolean('global') ? null : $user->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId($user);
 
         app(ConnectSourceControl::class)->connect($user, $request->all(), $projectId);
 
@@ -174,7 +176,7 @@ class SourceControlController extends Controller
     {
         $this->authorize('update', $sourceControl);
 
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
+        $projectId = $request->boolean('global') ? null : app(GetProjectScope::class)->projectId(user(), $sourceControl->project_id);
 
         app(EditSourceControl::class)->edit($sourceControl, $request->all(), $projectId);
 

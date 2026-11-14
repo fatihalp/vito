@@ -196,7 +196,7 @@ function FileActions({ file }: { file: BackupFile }) {
           ) : (
             <>
               <Download file={file} />
-              <Restore backup={backup} file={file} />
+              {backup.type === 'database' && <Restore backup={backup} file={file} />}
               <Delete file={file} />
             </>
           )}

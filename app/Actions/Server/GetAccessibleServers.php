@@ -2,9 +2,10 @@
 
 namespace App\Actions\Server;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Models\Server;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -30,7 +31,7 @@ class GetAccessibleServers
             ],
         ])->validate();
 
-        $scope = (string) ($validated['project'] ?? $user->current_project_id ?? 'all');
+        $scope = (string) ($validated['project'] ?? app(GetProjectScope::class)->get($user));
         $groupBy = (string) ($validated['group_by'] ?? 'none');
 
         $query = Server::query()

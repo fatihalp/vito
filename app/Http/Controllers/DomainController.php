@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\Domain\AddDomain;
 use App\Actions\Domain\GetAvailableDomains;
 use App\Actions\Domain\RemoveDomain;
@@ -34,7 +36,7 @@ class DomainController extends Controller
 
         $this->authorize('viewAny', [Domain::class, $user->currentProject]);
 
-        $query = $user->currentProject->domains()->with('dnsProvider');
+        $query = Domain::query()->whereIn('project_id', app(GetProjectScope::class)->ids($user))->with('dnsProvider');
         $domains = QueryBuilder::for($query)
             ->sortable('created_at', 'desc')
             ->simplePaginate();
@@ -51,7 +53,7 @@ class DomainController extends Controller
 
         $this->authorize('viewAny', [Domain::class, $user->currentProject]);
 
-        $domains = $user->currentProject->domains()->with('dnsProvider')->orderByDesc('id')->get();
+        $domains = Domain::query()->whereIn('project_id', app(GetProjectScope::class)->ids($user))->with('dnsProvider')->orderByDesc('id')->get();
 
         return DomainResource::collection($domains);
     }
@@ -81,6 +83,8 @@ class DomainController extends Controller
     #[Post('/', name: 'domains.store')]
     public function store(Request $request): RedirectResponse
     {
+        app(GetProjectScope::class)->projectId(user());
+
         $user = user();
 
         $this->authorize('create', [Domain::class, $user->currentProject]);
