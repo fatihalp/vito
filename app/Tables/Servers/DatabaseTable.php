@@ -20,6 +20,7 @@ class DatabaseTable extends Table
     {
         return [
             TextColumn::make('name', 'Name')->withIcon('database')->sortable(),
+            TextColumn::make('size', 'Size')->fallback('Not measured'),
             TextColumn::make('charset', 'Charset')->sortable(),
             TextColumn::make('collation', 'Collation')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),

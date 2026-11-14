@@ -1,4 +1,5 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useEffect } from 'react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -7,24 +8,51 @@ import CreateDatabase from '@/pages/databases/components/create-database';
 import { Button } from '@/components/ui/button';
 import ServerLayout from '@/layouts/server/layout';
 import { VitoTable } from '@/components/vito-table';
-import { InfoIcon, PlusIcon } from 'lucide-react';
+import { InfoIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { InertiaTableData } from '@forjedio/inertia-table-react';
 import { useDialog } from '@/hooks/use-dialog';
+import { usePanelView } from '@/hooks/use-panel-view';
+import PanelViewToggle from '@/components/panel-view-toggle';
+import { cn, formatBytes } from '@/lib/utils';
 
 type Page = {
   server: Server;
   databases: InertiaTableData;
+  databaseSizes: {
+    sizes: Record<string, number>;
+    checked_at: string | null;
+    failed: boolean;
+    checking: boolean;
+  };
+  canRefreshDatabaseSizes: boolean;
   replicaOf?: { server_id: number; name: string | null } | null;
 };
 
 export default function Databases() {
   const page = usePage<Page>();
   const dialog = useDialog();
+  const { advanced } = usePanelView();
+  const sizeForm = useForm({});
+  const { databaseSizes } = page.props;
+  const checkingSizes = databaseSizes.checking || sizeForm.processing;
 
   const dbType = page.props.server.services['database'];
   const defaultCharset = dbType === 'postgresql' ? 'UTF8' : 'utf8mb4';
   const defaultCollation = dbType === 'postgresql' ? 'C.utf8' : 'utf8mb4_0900_ai_ci';
+  const showSizes = advanced && dbType === 'postgresql';
+
+  useEffect(() => {
+    if (!databaseSizes.checking) return;
+
+    const interval = window.setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        router.reload({ only: ['databaseSizes'] });
+      }
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [databaseSizes.checking]);
 
   return (
     <ServerLayout>
@@ -39,7 +67,17 @@ export default function Databases() {
                 : 'Databases'
             }
           />
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {showSizes && page.props.canRefreshDatabaseSizes && (
+              <Button
+                variant="outline"
+                disabled={checkingSizes}
+                onClick={() => sizeForm.post(`/servers/${page.props.server.id}/database/refresh-sizes`, { preserveScroll: true })}
+              >
+                <RefreshCwIcon className={cn(checkingSizes && 'animate-spin')} />
+                {checkingSizes ? 'Calculating sizes...' : 'Recalculate sizes'}
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={() =>
@@ -84,7 +122,33 @@ export default function Databases() {
           </Alert>
         )}
 
-        <VitoTable tableData={page.props.databases} />
+        <VitoTable
+          fitContent
+          tableData={{
+            ...page.props.databases,
+            columns: page.props.databases.columns.filter((column) => column.name !== 'size' || showSizes),
+            data: page.props.databases.data.map((row) => {
+              const size = databaseSizes.sizes[String(row.name)];
+              return { ...row, size: size === undefined ? 'Not measured' : formatBytes(size) };
+            }),
+          }}
+          toolbar={
+            <>
+              {showSizes && (
+                <span className="text-xs text-muted-foreground" role="status">
+                  {databaseSizes.failed
+                    ? 'Size calculation failed. Previous results are preserved.'
+                    : databaseSizes.checked_at
+                      ? `Last measured: ${new Date(databaseSizes.checked_at).toLocaleString('en-US')}`
+                      : 'Sizes have not been measured yet.'}
+                </span>
+              )}
+              <div className="ml-auto">
+                <PanelViewToggle label="Database view" />
+              </div>
+            </>
+          }
+        />
       </Container>
     </ServerLayout>
   );
