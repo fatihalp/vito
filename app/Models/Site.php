@@ -662,7 +662,7 @@ class Site extends AbstractModel
                 'workers',
                 'gitHook',
             ])
-            ->withCount(['hostedDomains', 'workers', 'resources'])
+            ->withCount(['hostedDomains', 'workers', 'resources', 'cronJobs'])
             ->withExists([
                 'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
             ]);
@@ -676,7 +676,7 @@ class Site extends AbstractModel
 
         return $this
             ->load(['hostedDomains.ssl', 'workers', 'gitHook'])
-            ->loadCount(['hostedDomains', 'workers', 'resources'])
+            ->loadCount(['hostedDomains', 'workers', 'resources', 'cronJobs'])
             ->loadExists([
                 'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
             ]);

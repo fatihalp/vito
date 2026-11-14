@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, FormEvent } from 'react';
 import { router } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -22,7 +23,7 @@ type Props = {
 };
 
 export default function ToolingTable({ site, tools, installedVersions, statuses, requiredTooling, siblingCount, onSubmit }: Props) {
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useQueryState('search', '');
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();

@@ -2,6 +2,7 @@ import { useClipboard } from '@/hooks/use-clipboard';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
 import { Head, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import {
   CheckIcon,
   CopyIcon,
@@ -94,9 +95,9 @@ export default function ServerCommands() {
   const { server: initialServer, initialData, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
-  const [source, setSource] = useState<'sudo' | 'bash'>(initialData?.source ?? 'sudo');
-  const [lines, setLines] = useState<string>('100');
-  const [search, setSearch] = useState<string>('');
+  const [source, setSource] = useQueryState<'sudo' | 'bash'>('source', 'sudo');
+  const [lines, setLines] = useQueryState('lines', '100');
+  const [search, setSearch] = useQueryState('search', '');
   const [items, setItems] = useState<CommandItem[]>(initialData?.items ?? []);
   const [loading, setLoading] = useState<boolean>(false);
 

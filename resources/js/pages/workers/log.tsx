@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import ServerLayout from '@/layouts/server/layout';
@@ -60,9 +61,9 @@ function WorkerLogContent() {
 
   const { server } = page.props;
   const worker = useRealtimeRecord<Worker>(page.props.worker, 'worker')!;
-  const [activeTab, setActiveTab] = useState<'output' | 'history'>('output');
+  const [activeTab, setActiveTab] = useQueryState<'output' | 'history'>('tab', 'output');
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [lines, setLines] = useState('100');
+  const [lines, setLines] = useQueryState('lines', '100');
   const [isActionProcessing, setIsActionProcessing] = useState<string | null>(null);
   const dialog = useDialog();
 

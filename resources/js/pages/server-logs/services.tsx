@@ -1,4 +1,4 @@
-import { withQuery } from '@/lib/url';
+import { readQueryParam, replaceQueryParams, withQuery } from '@/lib/url';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
@@ -64,7 +64,7 @@ export default function ServiceLogs() {
 
   const [selectedService, setSelectedService] = useState(initialSelection.service);
   const [selectedKey, setSelectedKey] = useState(initialSelection.key);
-  const [lines, setLines] = useState<LineOption>('500');
+  const [lines, setLines] = useState<LineOption>(() => LINE_OPTIONS.find((option) => option === readQueryParam(page.url, 'lines')) ?? '500');
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [content, setContent] = useState<string>('');
@@ -77,9 +77,8 @@ export default function ServiceLogs() {
   const selected = selectedKey ? itemsByKey[selectedKey] : undefined;
 
   useEffect(() => {
-    setSelectedService(initialSelection.service);
-    setSelectedKey(initialSelection.key);
-  }, [initialSelection.key, initialSelection.service]);
+    replaceQueryParams({ service: selectedService || null, key: selectedKey || null, lines: lines === '500' ? null : lines });
+  }, [selectedService, selectedKey, lines]);
 
   const fetchLog = useCallback(() => {
     abortRef.current?.abort();

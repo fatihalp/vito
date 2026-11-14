@@ -1,7 +1,7 @@
 import SettingsLayout from '@/layouts/settings/layout';
 import { Head, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import Heading from '@/components/heading';
-import { useState } from 'react';
 import Container from '@/components/container';
 import InstalledPlugins from '@/pages/plugins/components/installed';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,7 +12,7 @@ import DiscoveredPlugins from '@/pages/plugins/components/discovered';
 import CheckForUpdates from '@/pages/plugins/components/check-updates';
 import PluginList from '@/pages/plugins/components/plugin-list';
 export default function Plugins() {
-  const [tab, setTab] = useState('installed');
+  const [tab, setTab] = useQueryState('tab', 'installed');
   const page = usePage<{
     plugins: Plugin[];
   }>();
@@ -30,7 +30,7 @@ export default function Plugins() {
           </div>
         </div>
 
-        <Tabs defaultValue={tab} onValueChange={setTab}>
+        <Tabs value={tab} onValueChange={setTab}>
           <TabsList>
             <TabsTrigger value="installed">Installed</TabsTrigger>
             <TabsTrigger value="discovered">Discovered</TabsTrigger>
