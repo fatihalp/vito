@@ -1,17 +1,17 @@
 <?php
 
-namespace App\Plugins;
+namespace App\Registries;
 
 use App\DTOs\DynamicForm;
+use App\StorageProviders\StorageProvider;
 
-class RegisterServerProvider
+class RegisterStorageProvider
 {
     public function __construct(
         private string $name,
         private string $label = '',
         private string $handler = '',
         private ?DynamicForm $form = null,
-        private string $defaultUser = '',
     ) {}
 
     public static function make(string $name): self
@@ -47,24 +47,26 @@ class RegisterServerProvider
         return $this;
     }
 
-    public function defaultUser(string $defaultUser): self
-    {
-        $this->defaultUser = $defaultUser;
-
-        return $this;
-    }
-
     public function register(): void
     {
-        $providers = config('server-provider.providers');
+        $providers = config('storage-provider.providers');
 
         $providers[$this->name] = [
             'label' => $this->label,
             'handler' => $this->handler,
             'form' => $this->form ? $this->form->toArray() : [],
-            'default_user' => $this->defaultUser,
+            'edit_form' => $this->editForm()->toArray(),
         ];
 
-        config(['server-provider.providers' => $providers]);
+        config(['storage-provider.providers' => $providers]);
+    }
+
+    private function editForm(): DynamicForm
+    {
+        if (! is_a($this->handler, StorageProvider::class, true)) {
+            return DynamicForm::make([]);
+        }
+
+        return DynamicForm::make($this->handler::editFields());
     }
 }

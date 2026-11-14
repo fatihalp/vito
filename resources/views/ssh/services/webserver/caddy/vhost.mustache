@@ -37,15 +37,6 @@
     file_server
     {{/is_php}}
 
-    {{#is_octane}}
-    root * {{root}}
-    @notStatic {
-        not file {path}
-    }
-    reverse_proxy @notStatic 127.0.0.1:{{octane_port}}
-    file_server
-    {{/is_octane}}
-
     {{#is_reverse_proxy}}
     reverse_proxy localhost:{{port}}
     {{/is_reverse_proxy}}

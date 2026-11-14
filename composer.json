@@ -72,15 +72,6 @@
       "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#fabb74,#86efac\" \"php artisan serve\" \"php artisan horizon\" \"php artisan schedule:work\" \"php artisan pail --timeout=0\" \"npm run dev\" \"php artisan ws:serve\" --names=server,horizon,schedule,logs,vite,websocket"
     ]
   },
-  "repositories": [
-    {
-      "type": "path",
-      "url": "storage/plugins/*/*",
-      "options": {
-        "symlink": true
-      }
-    }
-  ],
   "extra": {
     "laravel": {
       "dont-discover": []

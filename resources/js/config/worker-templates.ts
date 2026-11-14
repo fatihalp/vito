@@ -33,14 +33,6 @@ export const WORKER_TEMPLATES: WorkerTemplate[] = [
     numprocs: '1',
   },
   {
-    id: 'reverb',
-    label: 'Reverb (WebSocket)',
-    name: 'reverb',
-    command: 'php artisan reverb:start',
-    description: 'Laravel Reverb WebSocket server',
-    numprocs: '1',
-  },
-  {
     id: 'queue-listen',
     label: 'Queue Listen',
     name: 'queue-listen',

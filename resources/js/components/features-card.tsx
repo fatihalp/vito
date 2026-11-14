@@ -1,11 +1,10 @@
-import { ServerFeature } from '@/types/server';
-import { SiteFeature } from '@/types/site';
+import { ServerFeature, ServerFeatureAction } from '@/types/server';
+import { SiteFeature, SiteFeatureAction } from '@/types/site';
 import { Button } from '@/components/ui/button';
 import { MoreVerticalIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardRow, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from '@inertiajs/react';
 
 interface FeaturesCardProps {
   title?: string;
@@ -13,7 +12,7 @@ interface FeaturesCardProps {
   features: {
     [key: string]: ServerFeature | SiteFeature;
   };
-  onActionSelect: (featureId: string, actionId: string, action: any) => void;
+  onActionSelect: (featureId: string, actionId: string, action: ServerFeatureAction | SiteFeatureAction) => void;
 }
 
 export default function FeaturesCard({ 
@@ -65,9 +64,6 @@ export default function FeaturesCard({
         ) : (
           <CardRow className="flex-col items-center justify-center space-y-2">
             <span className="text-muted-foreground">No available features</span>
-            <Link href={"/admin/plugins"} prefetch>
-              <Button variant="outline">Explore Plugins</Button>
-            </Link>
           </CardRow>
         )}
       </CardContent>

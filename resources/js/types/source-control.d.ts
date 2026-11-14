@@ -15,6 +15,7 @@ export interface SourceControl {
   project_id?: number | null;
   global: boolean;
   name: string;
+  active_sites_count?: number;
   provider: string;
   external_identifier?: string | null;
   github_app?: GithubAppDetails;

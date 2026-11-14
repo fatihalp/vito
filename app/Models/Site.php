@@ -409,10 +409,8 @@ class Site extends AbstractModel
         }
 
         $isPhp = (bool) ($this->typeOrNull()?->vhostData()['is_php'] ?? false);
-        $isOctane = (bool) data_get($this->type_data, 'octane', false);
 
         return $isPhp
-            && ! $isOctane
             && $this->vhost_generation_enabled
             && $this->vhost_template === null;
     }

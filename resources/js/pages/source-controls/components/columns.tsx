@@ -46,6 +46,14 @@ export const columns: ColumnDef<SourceControl>[] = [
     header: 'Name',
     enableColumnFilter: true,
     enableSorting: true,
+    cell: ({ row }) => (
+      <span>
+        {row.original.name}{' '}
+        <span className="text-muted-foreground" title="Active sites">
+          ({row.original.active_sites_count})
+        </span>
+      </span>
+    ),
   },
   {
     accessorKey: 'user',

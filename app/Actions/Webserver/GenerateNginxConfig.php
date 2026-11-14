@@ -135,8 +135,6 @@ class GenerateNginxConfig extends AbstractGenerateConfig
             }
         }
 
-        $isOctane = (bool) data_get($site->type_data, 'octane', false);
-        $data['has_octane_map'] = $isOctane;
         $data['has_force_ssl_redirect'] = ! empty($this->forceSSLDomains);
         $data['force_ssl_domains'] = $this->forceSSLDomains;
 

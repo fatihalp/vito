@@ -4,6 +4,7 @@ namespace App\Actions\SourceControl;
 
 use App\Helpers\QueryBuilder;
 use App\Actions\Projects\GetProjectScope;
+use App\Enums\SiteStatus;
 use App\Models\SourceControl;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -20,10 +21,18 @@ class GetSourceControls
             'user_id' => ['nullable', 'regex:/^(all|[0-9]+)$/'],
         ])->validate();
 
+        $projectIds = app(GetProjectScope::class)->ids($user);
+
         $query = SourceControl::query()
-            ->where(fn ($query) => $query->whereIn('project_id', app(GetProjectScope::class)->ids($user))->orWhereNull('project_id'))
+            ->where(fn ($query) => $query->whereIn('project_id', $projectIds)->orWhereNull('project_id'))
             ->when(! $user->isAdmin(), fn ($query) => $query->where('user_id', $user->id))
-            ->with(['user', 'project' => fn ($query) => $query->forResource($user)]);
+            ->with(['user', 'project' => fn ($query) => $query->forResource($user)])
+            ->withCount([
+                'sites as active_sites_count' => fn ($query) => $query
+                    ->where('status', SiteStatus::READY)
+                    ->whereNull('suspended_at')
+                    ->whereHas('server', fn ($query) => $query->whereIn('project_id', $projectIds)),
+            ]);
 
         $provider = $input['provider'] ?? null;
         if ($provider && $provider !== 'all') {

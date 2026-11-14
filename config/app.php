@@ -5,7 +5,6 @@ use App\Providers\DemoServiceProvider;
 use App\Providers\DNSProviderServiceProvider;
 use App\Providers\HorizonServiceProvider;
 use App\Providers\NotificationChannelServiceProvider;
-use App\Providers\PluginsServiceProvider;
 use App\Providers\RouteServiceProvider;
 use App\Providers\ServerProviderServiceProvider;
 use App\Providers\ServiceTypeServiceProvider;
@@ -122,7 +121,6 @@ return [
         App\Providers\AuthServiceProvider::class,
         RouteServiceProvider::class,
         DemoServiceProvider::class,
-        PluginsServiceProvider::class,
         SiteTypeServiceProvider::class,
         ToolingServiceProvider::class,
         ServerProviderServiceProvider::class,
