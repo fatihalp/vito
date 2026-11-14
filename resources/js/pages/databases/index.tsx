@@ -24,6 +24,7 @@ type Page = {
     checked_at: string | null;
     failed: boolean;
     checking: boolean;
+    running: boolean;
   };
   canRefreshDatabaseSizes: boolean;
   replicaOf?: { server_id: number; name: string | null } | null;
@@ -49,7 +50,7 @@ export default function Databases() {
       if (document.visibilityState === 'visible') {
         router.reload({ only: ['databaseSizes'] });
       }
-    }, 5000);
+    }, 2000);
 
     return () => window.clearInterval(interval);
   }, [databaseSizes.checking]);
@@ -75,7 +76,7 @@ export default function Databases() {
                 onClick={() => sizeForm.post(`/servers/${page.props.server.id}/database/refresh-sizes`, { preserveScroll: true })}
               >
                 <RefreshCwIcon className={cn(checkingSizes && 'animate-spin')} />
-                {checkingSizes ? 'Calculating sizes...' : 'Recalculate sizes'}
+                {checkingSizes ? (databaseSizes.running ? 'Estimating sizes...' : 'Waiting in queue...') : 'Refresh estimates'}
               </Button>
             )}
             <Button
@@ -129,13 +130,13 @@ export default function Databases() {
             columns: page.props.databases.columns.filter((column) => column.name !== 'size' || showSizes),
             data: page.props.databases.data.map((row) => {
               const size = databaseSizes.sizes[String(row.name)];
-              return { ...row, size: size === undefined ? 'Not measured' : formatBytes(size) };
+              return { ...row, size: size === undefined ? 'Not measured' : `~${formatBytes(size)}` };
             }),
           }}
           toolbar={
             <>
               {showSizes && (
-                <span className="text-xs text-muted-foreground" role="status">
+                <span className="text-xs text-muted-foreground" role="status" title="Approximate sizes from PostgreSQL statistics, last updated by ANALYZE or VACUUM. Recent changes may not be reflected.">
                   {databaseSizes.failed
                     ? 'Size calculation failed. Previous results are preserved.'
                     : databaseSizes.checked_at
