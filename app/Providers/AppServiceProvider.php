@@ -13,13 +13,11 @@ use App\Listeners\HandleSiteCreatedStats;
 use App\Listeners\HandleSiteDeletedStats;
 use App\Listeners\RecordUserLogin;
 use App\Listeners\SocketEventListener;
-use App\Models\PersonalAccessToken;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Http\Resources\Json\ResourceCollection;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
-use Laravel\Sanctum\Sanctum;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -36,7 +34,6 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind('ftp', fn (): FTP => new FTP);
         $this->app->bind('sftp', fn (): SFTP => new SFTP);
 
-        Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
 
         if (config('app.force_https')) {
             URL::forceHttps();

@@ -45,12 +45,8 @@ class ManageDatabaseReplica
     public function create(User $user, Server $primary, array $input): DatabaseReplica
     {
         $replicaServer = $this->resolve($user, $primary, $input);
+        $this->ensureBackup($primary, $input);
         $cluster = PostgresCluster::forServer($primary);
-
-        if ($cluster?->backup === null) {
-            app(ManagePgBackRest::class)->create($primary, $input['backup'] ?? []);
-            $cluster = PostgresCluster::forServer($primary);
-        }
 
         $replica = $cluster->replicas()->create([
             'replica_server_id' => $replicaServer->id,
@@ -405,6 +401,13 @@ class ManageDatabaseReplica
         return false;
     }
 
+    private function ensureBackup(Server $primary, array $input): void
+    {
+        if (PostgresCluster::forServer($primary)?->backup === null) {
+            app(ManagePgBackRest::class)->create($primary, $input['backup'] ?? []);
+        }
+    }
+
     private function resolve(User $user, Server $primary, array $input): Server
     {
         $new = ($input['mode'] ?? 'existing') === 'new';
@@ -441,6 +444,7 @@ class ManageDatabaseReplica
             $provider = ServerProvider::query()->find($input['server_provider']);
 
             $matching->check($requirements, $matching->plan($provider, $input['region'], $input['plan']));
+            $this->ensureBackup($primary, $input);
 
             return $matching->create($user, $primary, $input, $requirements);
         }

@@ -43,6 +43,7 @@ import EnvHistory from '@/pages/application/components/env-history';
 import { generateUniqueKey } from '@/lib/env';
 import { cn, rowId } from '@/lib/utils';
 import { errorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 
 type ParsedVariable = { key: string; value: string; is_secret: boolean; managed_by?: string };
 
@@ -158,8 +159,7 @@ function EnvironmentEditorContent() {
     form.put(`/servers/${server.id}/sites/${site.id}/env`, {
       preserveScroll: true,
       onSuccess: () => {
-        setVariablesDirty(false);
-        setRawDirty(false);
+        query.refetch();
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       },
@@ -275,8 +275,8 @@ function EnvironmentEditorContent() {
         );
         setRawContent(response.data?.env ?? '');
         setMode('classic');
-      } catch {
-        void 0;
+      } catch (error) {
+        toast.error(errorMessage(error, 'Could not switch editor mode'));
       } finally {
         setIsSwitching(false);
       }
@@ -311,8 +311,8 @@ function EnvironmentEditorContent() {
       );
       setVariablesDirty(false);
       setMode('variables');
-    } catch {
-      void 0;
+    } catch (error) {
+      toast.error(errorMessage(error, 'Could not switch editor mode'));
     } finally {
       setIsSwitching(false);
     }

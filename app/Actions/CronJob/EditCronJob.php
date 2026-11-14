@@ -28,10 +28,10 @@ class EditCronJob
         $cronJob->update([...$attributes, 'status' => CronjobStatus::UPDATING]);
 
         if ($originalUser !== $cronJob->user) {
-            $server->cron()->update($originalUser, CronJob::crontab($server, $originalUser));
+            app(SyncCronJobs::class)->write($server, $originalUser);
         }
 
-        $server->cron()->update($cronJob->user, CronJob::crontab($server, $cronJob->user));
+        app(SyncCronJobs::class)->write($server, $cronJob->user);
         $cronJob->update(['status' => CronjobStatus::READY]);
 
         return $cronJob;

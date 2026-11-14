@@ -2,7 +2,6 @@ import { Head, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import AppWithDeployment from '@/pages/application/components/app-with-deployment';
 import LoadBalancer from '@/pages/application/components/load-balancer';
-import siteHelper from '@/lib/site-helper';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import SiteInstallationProgress from '@/pages/application/components/site-installation-progress';
@@ -13,8 +12,6 @@ export default function Application() {
     server: Server;
     site: Site;
   }>();
-
-  siteHelper.storeSite(page.props.site);
 
   if (page.props.site.status !== 'ready') {
     return (

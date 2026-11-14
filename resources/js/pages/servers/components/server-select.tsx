@@ -56,7 +56,6 @@ export default function ServerSelect({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selected, setSelected] = useState<string>(value);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const refetchRef = useRef<(() => void) | null>(null);
 
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = controlledOnOpenChange || setInternalOpen;
@@ -107,12 +106,6 @@ export default function ServerSelect({
   const projectNames = new Map((page.props.auth.user.projects ?? []).map((project) => [project.id, project.name]));
   const showProjectName = (server: Server) =>
     activeProjectId === 'all' && (page.props.auth.projectScope === 'all' || server.project_id !== page.props.auth.currentProject?.id);
-
-  useEffect(() => {
-    if (refetch) {
-      refetchRef.current = refetch;
-    }
-  }, [refetch]);
 
   useEffect(() => {
     if (!open || !hasNextPage) return;

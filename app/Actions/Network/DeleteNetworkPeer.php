@@ -18,7 +18,7 @@ class DeleteNetworkPeer
         $network = $peer->network;
         $peerId = $peer->id;
 
-        $peer->delete();
+        $peer->forceDelete();
 
         $this->sync->resyncMembers($network);
         $this->recompute->handle($network);

@@ -1,19 +1,9 @@
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-  LoaderCircleIcon,
-  ChevronsUpDownIcon,
-  ChevronUpIcon,
-  ChevronDownIcon,
-} from 'lucide-react';
+import { LoaderCircleIcon, ChevronsUpDownIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react';
 import { router } from '@inertiajs/react';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TablePagination } from '@/components/table-pagination';
 import { cn } from '@/lib/utils';
 import { PaginatedData } from '@/types';
 import { Input } from './ui/input';
@@ -40,25 +30,7 @@ function SortIndicator({ sortKey }: { sortKey: string }) {
   );
 }
 
-function getPaginationPages(currentPage: number, lastPage?: number): (number | 'ellipsis')[] {
-  if (!lastPage || lastPage <= 1) {
-    return [currentPage || 1];
-  }
-
-  if (lastPage <= 7) {
-    return Array.from({ length: lastPage }, (_, i) => i + 1);
-  }
-
-  if (currentPage <= 4) {
-    return [1, 2, 3, 4, 5, 'ellipsis', lastPage];
-  }
-
-  if (currentPage >= lastPage - 3) {
-    return [1, 'ellipsis', lastPage - 4, lastPage - 3, lastPage - 2, lastPage - 1, lastPage];
-  }
-
-  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', lastPage];
-}
+const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -130,8 +102,6 @@ export function DataTable<TData, TValue>({
   }, [paginatedData?.meta?.per_page]);
 
   const currentPage = paginatedData?.meta?.current_page || 1;
-  const lastPage = paginatedData?.meta?.last_page;
-  const pageNumbers = useMemo(() => getPaginationPages(currentPage, lastPage), [currentPage, lastPage]);
 
   const goToPage = (pageNumber: number) => {
     if (onPageChange) {
@@ -142,7 +112,6 @@ export function DataTable<TData, TValue>({
     if (typeof window === 'undefined') return;
     const url = new URL(window.location.href);
 
-    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
     let pageParamSet = false;
     for (const p of pageParams) {
       if (url.searchParams.has(p)) {
@@ -158,15 +127,6 @@ export function DataTable<TData, TValue>({
       url.searchParams.set('search', searchQuery);
     }
 
-    const currentParams = new URLSearchParams(window.location.search);
-    const sortBy = currentParams.get('sort_by');
-    const sortDir = currentParams.get('sort_dir');
-    const perPage = currentParams.get('per_page');
-
-    if (sortBy) url.searchParams.set('sort_by', sortBy);
-    if (sortDir) url.searchParams.set('sort_dir', sortDir);
-    if (perPage) url.searchParams.set('per_page', perPage);
-
     router.get(url.toString(), {}, { preserveState: true, preserveScroll: true });
   };
 
@@ -176,7 +136,6 @@ export function DataTable<TData, TValue>({
     const url = new URL(window.location.href);
     url.searchParams.set('per_page', newPerPage);
 
-    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
     let pageParamReset = false;
     for (const p of pageParams) {
       if (url.searchParams.has(p)) {
@@ -207,7 +166,6 @@ export function DataTable<TData, TValue>({
       params.set('sort_dir', currentDir === 'asc' ? 'desc' : 'asc');
     }
 
-    const pageParams = ['page', 'sourceControlsPage', 'logsPage', 'serversPage', 'sitesPage', 'usersPage'];
     for (const p of pageParams) {
       if (params.has(p)) {
         params.set(p, '1');
@@ -229,37 +187,32 @@ export function DataTable<TData, TValue>({
   }, [searchQuery]);
 
   const handleSearch = () => {
-    if (paginatedData) {
-      setIsSearching(true);
-      const url = new URL(paginatedData.meta.path);
-      if (searchQuery.length > 0) {
-        url.searchParams.set('search', searchQuery);
-      }
-
-      
-      const currentParams = new URLSearchParams(window.location.search);
-      const sortBy = currentParams.get('sort_by');
-      const sortDir = currentParams.get('sort_dir');
-
-      if (sortBy) {
-        url.searchParams.set('sort_by', sortBy);
-      }
-      if (sortDir) {
-        url.searchParams.set('sort_dir', sortDir);
-      }
-
-      router.get(
-        url.toString(),
-        {},
-        {
-          preserveState: true,
-          preserveScroll: true,
-          onSuccess: () => {
-            setIsSearching(false);
-          },
-        },
-      );
+    if (!paginatedData) {
+      return;
     }
+
+    setIsSearching(true);
+    const url = new URL(window.location.href);
+    if (searchQuery.length > 0) {
+      url.searchParams.set('search', searchQuery);
+    } else {
+      url.searchParams.delete('search');
+    }
+    for (const p of pageParams) {
+      url.searchParams.delete(p);
+    }
+
+    router.get(
+      url.toString(),
+      {},
+      {
+        preserveState: true,
+        preserveScroll: true,
+        onFinish: () => {
+          setIsSearching(false);
+        },
+      },
+    );
   };
 
   return (
@@ -341,111 +294,20 @@ export function DataTable<TData, TValue>({
         </Table>
 
         {paginatedData && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t px-4 py-3">
-            <div className="text-muted-foreground flex items-center text-sm">
-              {paginatedData.meta.from && paginatedData.meta.to && (
-                <span>
-                  Showing {paginatedData.meta.from} to {paginatedData.meta.to}
-                  {paginatedData.meta.total && ` of ${paginatedData.meta.total}`} results
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-muted-foreground text-sm whitespace-nowrap">Rows per page</span>
-                <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
-                  <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue placeholder={String(currentPerPage)} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center space-x-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => goToPage(1)}
-                  disabled={currentPage <= 1 || isFetching}
-                  title="First page"
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage <= 1 || isFetching}
-                  title="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-
-                <div className="flex items-center space-x-1">
-                  {pageNumbers.map((p, idx) => {
-                    if (p === 'ellipsis') {
-                      return (
-                        <span
-                          key={`ellipsis-${idx}`}
-                          className="flex h-8 w-8 items-center justify-center text-xs text-muted-foreground select-none"
-                        >
-                          ...
-                        </span>
-                      );
-                    }
-
-                    const isCurrent = p === currentPage;
-
-                    return (
-                      <Button
-                        key={p}
-                        variant={isCurrent ? 'default' : 'outline'}
-                        size="sm"
-                        className={cn(
-                          'h-8 min-w-8 px-2.5 text-xs font-medium cursor-pointer',
-                          isCurrent && 'pointer-events-none font-semibold',
-                        )}
-                        onClick={() => goToPage(p)}
-                        disabled={isFetching}
-                      >
-                        {p}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.next) || isFetching}
-                  title="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => goToPage(lastPage || currentPage + 1)}
-                  disabled={(lastPage ? currentPage >= lastPage : !paginatedData.links?.last) || isFetching}
-                  title="Last page"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <TablePagination
+            from={paginatedData.meta.from}
+            to={paginatedData.meta.to}
+            total={paginatedData.meta.total}
+            currentPage={currentPage}
+            lastPage={paginatedData.meta.last_page}
+            hasNextLink={Boolean(paginatedData.links?.next)}
+            hasLastLink={Boolean(paginatedData.links?.last)}
+            perPage={currentPerPage}
+            perPageLabel="Rows per page"
+            disabled={isFetching}
+            onPageChange={goToPage}
+            onPerPageChange={handlePerPageChange}
+          />
         )}
       </div>
     </div>

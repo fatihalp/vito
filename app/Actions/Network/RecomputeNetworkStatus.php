@@ -26,7 +26,7 @@ class RecomputeNetworkStatus
             if ($network->servers()->count() === 0) {
                 $projectId = $network->project_id;
                 $id = $network->id;
-                $network->delete();
+                $network->forceDelete();
 
                 SocketEvent::dispatch(new SocketEventDTO(
                     projectId: $projectId,

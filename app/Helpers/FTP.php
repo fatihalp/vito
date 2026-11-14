@@ -24,14 +24,4 @@ class FTP
     {
         ftp_close($connection);
     }
-
-    public function passive(Connection $connection, bool $passive): bool
-    {
-        return ftp_pasv($connection, $passive);
-    }
-
-    public function delete(Connection $connection, string $path): bool
-    {
-        return ftp_delete($connection, $path);
-    }
 }

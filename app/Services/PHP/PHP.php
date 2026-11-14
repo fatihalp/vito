@@ -34,6 +34,7 @@ class PHP extends AbstractService implements HasLogs
                 'required',
                 Rule::in(config('service.services.php.versions')),
                 Rule::unique('services', 'version')
+                    ->withoutTrashed()
                     ->where('type', 'php')
                     ->where('server_id', $this->service->server_id),
             ],

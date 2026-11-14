@@ -28,6 +28,12 @@ class RestoreBackup
             ]);
         }
 
+        if (! $backupFile->isAvailable() || $backupFile->status === BackupFileStatus::RESTORING) {
+            throw ValidationException::withMessages([
+                'backup' => __('This backup file cannot be restored in its current state.'),
+            ]);
+        }
+
         $this->validate($backupFile, $input, $backupFile->backup->type);
 
         $backup = $backupFile->backup;
@@ -125,7 +131,7 @@ class RestoreBackup
             $rules['path'] = [
                 'required',
                 'string',
-                'regex:/^\/[^\r\n]*$/',
+                'regex:#^/[\w./ @+-]*$#',
             ];
             $rules['owner'] = [
                 'required',

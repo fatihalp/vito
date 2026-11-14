@@ -17,8 +17,7 @@ class NotificationChannelPolicy
 
     public function view(User $user, NotificationChannel $notificationChannel): bool
     {
-        return $user->id === $notificationChannel->user_id
-            && $user->tokenAllowsProject($notificationChannel->project_id);
+        return $user->id === $notificationChannel->user_id;
     }
 
     public function create(User $user): bool
@@ -28,13 +27,11 @@ class NotificationChannelPolicy
 
     public function update(User $user, NotificationChannel $notificationChannel): bool
     {
-        return $user->id === $notificationChannel->user_id
-            && $user->tokenAllowsProject($notificationChannel->project_id, write: true);
+        return $user->id === $notificationChannel->user_id;
     }
 
     public function delete(User $user, NotificationChannel $notificationChannel): bool
     {
-        return $user->id === $notificationChannel->user_id
-            && $user->tokenAllowsProject($notificationChannel->project_id, write: true);
+        return $user->id === $notificationChannel->user_id;
     }
 }

@@ -38,7 +38,6 @@ import { toast } from 'sonner';
 import { Site } from '@/types/site';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import RecentSitesFlyout from '@/layouts/server/components/recent-sites-flyout';
-import siteHelper from '@/lib/site-helper';
 import serverHelper from '@/lib/server-helper';
 import { findActiveServerNavPage } from '@/lib/server-nav-pages';
 import { SharedData } from '@/types';
@@ -75,12 +74,6 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       toast.warning('This server is offline. Saved data is available in read-only mode. Start or reconnect the server before making changes.');
     });
   }, [isOffline, server.id]);
-
-  useEffect(() => {
-    if (page.props.site && page.props.auth?.user?.id && server.project_id) {
-      siteHelper.storeSite(page.props.site, page.props.auth.user.id, server.project_id);
-    }
-  }, [page.props.site, page.props.auth?.user?.id, server.project_id]);
 
   useEffect(() => {
     const userId = page.props.auth?.user?.id;

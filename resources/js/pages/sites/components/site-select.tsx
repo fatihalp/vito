@@ -49,7 +49,6 @@ export default function SiteSelect({
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [selected, setSelected] = useState<string>(value);
   const loadMoreRef = useRef<HTMLDivElement>(null);
-  const refetchRef = useRef<(() => void) | null>(null);
 
   const activeCurrentServerId = currentServerId ?? serverId;
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
@@ -90,12 +89,6 @@ export default function SiteSelect({
   });
 
   const sites = data?.pages.flat() ?? [];
-
-  useEffect(() => {
-    if (refetch) {
-      refetchRef.current = refetch;
-    }
-  }, [refetch]);
 
   useEffect(() => {
     if (!open || !hasNextPage) return;

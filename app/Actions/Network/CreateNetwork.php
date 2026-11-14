@@ -32,18 +32,20 @@ class CreateNetwork
     ) {}
 
     
-    public function create(Project $project, array $input): Network
+    public function create(Project $project, array $input, bool $seedDefaultFirewallRule = true): Network
     {
         $this->validate($project, $input);
 
         $type = NetworkType::from($input['type']);
 
-        $network = DB::transaction(function () use ($type, $project, $input): Network {
+        $network = DB::transaction(function () use ($type, $project, $input, $seedDefaultFirewallRule): Network {
             $network = $type === NetworkType::WIREGUARD
                 ? $this->buildWireGuard($project, $input)
                 : $this->buildCustom($project, $input);
 
-            $this->seedDefaultFirewallRule($network);
+            if ($seedDefaultFirewallRule) {
+                $this->seedDefaultFirewallRule($network);
+            }
 
             return $network;
         });

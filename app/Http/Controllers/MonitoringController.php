@@ -214,10 +214,7 @@ class MonitoringController extends Controller
 
         foreach ($logs as $log) {
             if ($log['clearable'] ?? false) {
-                try {
-                    $clearServiceLog->run($server, ['key' => $log['key']]);
-                } catch (\Throwable) {
-                }
+                $clearServiceLog->run($server, ['key' => $log['key']]);
             }
         }
 

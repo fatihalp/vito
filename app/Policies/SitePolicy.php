@@ -63,13 +63,6 @@ class SitePolicy
     
     public function revealEnv(User $user, Site $site, Server $server): bool
     {
-        
-        $token = $user->currentAccessToken();
-
-        if ($token !== null && ! $token->can('write')) {
-            return false;
-        }
-
         return $this->update($user, $site, $server);
     }
 

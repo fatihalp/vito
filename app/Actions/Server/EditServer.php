@@ -46,7 +46,7 @@ class EditServer
             $server->local_ip = $input['local_ip'];
         }
         if (isset($input['port'])) {
-            if ($server->port !== $input['port']) {
+            if ($server->port !== (int) $input['port']) {
                 $checkConnection = true;
             }
             $server->port = $input['port'];
@@ -60,7 +60,7 @@ class EditServer
             $this->resync->handle($server);
         }
 
-        if ($endpointChanged || array_key_exists('ip', $input) || array_key_exists('local_ip', $input)) {
+        if ($endpointChanged) {
             $this->resources->refresh($server);
         }
 

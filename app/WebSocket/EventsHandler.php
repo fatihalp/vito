@@ -149,11 +149,6 @@ class EventsHandler implements WebSocketHandler
         }
     }
 
-    public function getConnectionCount(): int
-    {
-        return count($this->connections);
-    }
-
     
     public function broadcastToProject(int $projectId, array $eventData): void
     {

@@ -41,16 +41,4 @@ final class SiteShellEnvironment
 
         return ['PATH' => implode(':', $paths)];
     }
-
-    public static function wrap(Site $site, string $command, bool $cdToSitePath = false): string
-    {
-        $exports = '';
-        foreach (self::collect($site) as $key => $value) {
-            $exports .= sprintf('export %s=%s && ', $key, escapeshellarg($value));
-        }
-
-        $cd = $cdToSitePath && $site->path ? 'cd '.escapeshellarg($site->path).' && ' : '';
-
-        return 'bash -c '.escapeshellarg($exports.$cd.$command);
-    }
 }

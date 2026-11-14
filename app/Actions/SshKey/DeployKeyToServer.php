@@ -7,6 +7,8 @@ use App\Models\Server;
 use App\Models\SshKey;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class DeployKeyToServer
 {
@@ -17,11 +19,25 @@ class DeployKeyToServer
 
         $user = $input['user'];
 
+        if ($server->sshKeys()->where('ssh_keys.id', $sshKey->id)->exists()) {
+            throw ValidationException::withMessages([
+                'user' => __('This key is already deployed to the server. Remove it first to deploy it for another user.'),
+            ]);
+        }
+
         $server->sshKeys()->attach($sshKey, [
             'status' => SshKeyStatus::ADDING,
             'user' => $user,
         ]);
-        $server->os()->deploySSHKey($sshKey->public_key, $user);
+
+        try {
+            $server->os()->deploySSHKey($sshKey->public_key, $user);
+        } catch (Throwable $e) {
+            $server->sshKeys()->detach($sshKey);
+
+            throw $e;
+        }
+
         $sshKey->servers()->updateExistingPivot($server->id, [
             'status' => SshKeyStatus::ADDED,
             'user' => $user,

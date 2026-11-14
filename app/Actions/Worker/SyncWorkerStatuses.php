@@ -34,6 +34,10 @@ class SyncWorkerStatuses
 
         $statuses = $handler->statuses();
 
+        if ($statuses === []) {
+            return 0;
+        }
+
         $changed = $workers->filter(fn (Worker $worker): bool => $this->settle($worker, $statuses[$worker->id] ?? []));
 
         $changed->loadMissing('site')

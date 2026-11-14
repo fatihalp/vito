@@ -33,14 +33,12 @@ export interface NavItem {
   children?: NavItem[];
   hidden?: boolean;
   external?: boolean;
-  badge?: string | number;
   flyoutContent?: React.ReactNode;
 }
 
 export interface Configs {
   operating_systems: string[];
   colors: string[];
-  databases: string[];
   cronjob_intervals: {
     [key: string]: string;
   };

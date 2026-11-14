@@ -67,13 +67,6 @@ export function ProjectSelect({
 
   const projects = data?.pages.flat() ?? [];
   const selectedProject = projects.find((project) => project.id.toString() === value);
-  const refetchRef = useRef<(() => void) | null>(null);
-
-  useEffect(() => {
-    if (refetch) {
-      refetchRef.current = refetch;
-    }
-  }, [refetch]);
 
   useEffect(() => {
     if (!open || !hasNextPage) return;

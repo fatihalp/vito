@@ -36,8 +36,10 @@ class ProbeServerConnection
             } catch (Throwable) {
             }
 
-            $server->status = ServerStatus::READY;
-            $server->save();
+            if ($server->status === ServerStatus::DISCONNECTED) {
+                $server->status = ServerStatus::READY;
+                $server->save();
+            }
 
             try {
                 $server->latestMetric()->update(['reboot_required' => false]);

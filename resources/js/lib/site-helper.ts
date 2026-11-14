@@ -2,7 +2,6 @@ import type { Site } from '@/types/site';
 
 export type RecentSite = Pick<Site, 'id' | 'server_id'> & { last_used_at: number };
 
-const currentSiteKey = 'site';
 const recentSitesLimit = 25;
 const recentHistoryTtl = 30 * 24 * 60 * 60 * 1000;
 const sitePageVisitsLimit = 10;
@@ -46,56 +45,23 @@ function writeRecentSites(key: string, sites: RecentSite[]): void {
 }
 
 const siteHelper = {
-  getStoredSite() {
-    if (typeof window === 'undefined') {
-      return null;
-    }
-
-    try {
-      const storedSite = localStorage.getItem(currentSiteKey);
-
-      return storedSite ? (JSON.parse(storedSite) as Site) : null;
-    } catch {
-      return null;
-    }
-  },
-  storeSite(site?: Site, userId?: number, projectId?: number) {
-    if (typeof window === 'undefined') {
+  storeSite(site: Site, userId: number, projectId?: number): void {
+    if (typeof window === 'undefined' || !projectId) {
       return;
     }
 
-    if (!site) {
-      try {
-        localStorage.removeItem(currentSiteKey);
-      } catch {
-        return;
-      }
-      return;
-    }
-
-    try {
-      localStorage.setItem(currentSiteKey, JSON.stringify(site));
-    } catch {
-      return;
-    }
-
-    if (userId && projectId) {
-      const recentSite: RecentSite = {
-        id: site.id,
-        server_id: site.server_id,
-        last_used_at: Date.now(),
-      };
-      const recentSites = readRecentSites(recentSitesKey(userId, site.server_id)).filter((item) => item.id !== site.id);
-      writeRecentSites(recentSitesKey(userId, site.server_id), [recentSite, ...recentSites].slice(0, recentSitesLimit));
-      const projectSites = readRecentSites(recentProjectSitesKey(userId, projectId)).filter((item) => item.id !== site.id);
-      writeRecentSites(recentProjectSitesKey(userId, projectId), [recentSite, ...projectSites].slice(0, recentSitesLimit));
-    }
+    const recentSite: RecentSite = {
+      id: site.id,
+      server_id: site.server_id,
+      last_used_at: Date.now(),
+    };
+    const recentSites = readRecentSites(recentSitesKey(userId, site.server_id)).filter((item) => item.id !== site.id);
+    writeRecentSites(recentSitesKey(userId, site.server_id), [recentSite, ...recentSites].slice(0, recentSitesLimit));
+    const projectSites = readRecentSites(recentProjectSitesKey(userId, projectId)).filter((item) => item.id !== site.id);
+    writeRecentSites(recentProjectSitesKey(userId, projectId), [recentSite, ...projectSites].slice(0, recentSitesLimit));
   },
   getRecentSites(userId: number, serverId: number, limit = 5): RecentSite[] {
     return readRecentSites(recentSitesKey(userId, serverId)).slice(0, limit);
-  },
-  getRecentProjectSites(userId: number, projectId: number, limit = 3): RecentSite[] {
-    return readRecentSites(recentProjectSitesKey(userId, projectId)).slice(0, limit);
   },
   getAllRecentSites(userId: number, limit = 25): RecentSite[] {
     if (typeof window === 'undefined') {
@@ -175,7 +141,6 @@ const siteHelper = {
   },
   clearRecentSites(userId: number): void {
     try {
-      localStorage.removeItem(currentSiteKey);
       for (let index = localStorage.length - 1; index >= 0; index -= 1) {
         const key = localStorage.key(index);
         if (

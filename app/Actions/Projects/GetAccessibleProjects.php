@@ -4,6 +4,7 @@ namespace App\Actions\Projects;
 
 use App\Actions\Server\ResolveHetznerServerSpecs;
 use App\Helpers\QueryBuilder;
+use App\Models\Server;
 use App\Models\User;
 use App\Models\UserProject;
 use Illuminate\Contracts\Pagination\Paginator;
@@ -13,7 +14,7 @@ class GetAccessibleProjects
     public function get(User $user): Paginator
     {
         $costOrderSql = request('sort_by') === 'monthly_cost'
-            ? app(ResolveHetznerServerSpecs::class)->projectCostOrderSql()
+            ? app(ResolveHetznerServerSpecs::class)->projectCostOrderSql(Server::query()->whereIn('project_id', $user->allProjects()->select('id')))
             : '0';
 
         $query = $user

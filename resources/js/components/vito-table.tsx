@@ -4,15 +4,10 @@ import { Link, router } from '@inertiajs/react';
 import { SOCKET_EVENT, type SocketEventData } from '@/stores/socket-store';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TablePagination } from '@/components/table-pagination';
 import { cn } from '@/lib/utils';
 import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
   ChevronsUpDownIcon,
   ChevronUpIcon,
   ChevronDownIcon,
@@ -21,26 +16,6 @@ import {
   ServerIcon,
 } from 'lucide-react';
 import { orderTableColumns } from '@/lib/table-columns';
-
-function getPaginationPages(currentPage: number, lastPage?: number): (number | 'ellipsis')[] {
-  if (!lastPage || lastPage <= 1) {
-    return [currentPage || 1];
-  }
-
-  if (lastPage <= 7) {
-    return Array.from({ length: lastPage }, (_, i) => i + 1);
-  }
-
-  if (currentPage <= 4) {
-    return [1, 2, 3, 4, 5, 'ellipsis', lastPage];
-  }
-
-  if (currentPage >= lastPage - 3) {
-    return [1, 'ellipsis', lastPage - 4, lastPage - 3, lastPage - 2, lastPage - 1, lastPage];
-  }
-
-  return [1, 'ellipsis', currentPage - 1, currentPage, currentPage + 1, 'ellipsis', lastPage];
-}
 
 interface VitoTableProps extends Omit<InertiaTableProps, 'tableData'> {
   tableData: InertiaTableData;
@@ -110,8 +85,6 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
   });
 
   const currentPage = tableData?.meta?.current_page || 1;
-  const lastPage = tableData?.meta?.last_page;
-  const pageNumbers = useMemo(() => getPaginationPages(currentPage, lastPage), [currentPage, lastPage]);
 
   const currentPerPage = useMemo(() => {
     if (typeof window !== 'undefined') {
@@ -148,20 +121,33 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
     if (!realtimePrefix) return;
     const only = reloadOnlyKey ? reloadOnlyKey.split(',') : undefined;
     let timeout: ReturnType<typeof setTimeout> | undefined;
+    let reloadPending = false;
+    const reloadWhenVisible = () => {
+      if (document.visibilityState !== 'visible') {
+        reloadPending = true;
+        return;
+      }
+      reloadPending = false;
+      router.reload(only ? { only } : {});
+    };
     const handler = (e: Event) => {
       const type = (e as CustomEvent<SocketEventData>).detail?.type;
       if (type?.startsWith(`${realtimePrefix}.`)) {
         if (timeout) clearTimeout(timeout);
-        timeout = setTimeout(() => {
-          if (document.visibilityState !== 'visible') return;
-          router.reload(only ? { only } : {});
-        }, 900);
+        timeout = setTimeout(reloadWhenVisible, 900);
+      }
+    };
+    const visibilityHandler = () => {
+      if (reloadPending) {
+        reloadWhenVisible();
       }
     };
     window.addEventListener(SOCKET_EVENT, handler);
+    document.addEventListener('visibilitychange', visibilityHandler);
     return () => {
       if (timeout) clearTimeout(timeout);
       window.removeEventListener(SOCKET_EVENT, handler);
+      document.removeEventListener('visibilitychange', visibilityHandler);
     };
   }, [realtimePrefix, reloadOnlyKey]);
 
@@ -342,114 +328,19 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
         </Table>
 
         {showPagination && orderedTableData.meta && (
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 border-t px-4 py-3">
-            <div className="text-muted-foreground flex items-center text-sm">
-              {tableData.meta.from && tableData.meta.to && (
-                <span>
-                  Showing {tableData.meta.from} to {tableData.meta.to}
-                  {tableData.meta.total && ` of ${tableData.meta.total}`} results
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Select value={String(currentPerPage)} onValueChange={handlePerPageChange}>
-                  <SelectTrigger className="h-8 w-[70px]">
-                    <SelectValue placeholder={String(currentPerPage)} />
-                  </SelectTrigger>
-                  <SelectContent side="top">
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="25">25</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="flex items-center space-x-1">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => onPageChange(1)}
-                  disabled={currentPage <= 1 || isProcessing}
-                  title="First page"
-                >
-                  <ChevronsLeft className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => onPageChange(currentPage - 1)}
-                  disabled={currentPage <= 1 || isProcessing}
-                  title="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-
-                <div className="flex items-center space-x-1">
-                  {(pageNumbers ?? []).map((p, idx) => {
-                    if (p === 'ellipsis') {
-                      return (
-                        <span
-                          key={`ellipsis-${idx}`}
-                          className="flex h-8 w-8 items-center justify-center text-xs text-muted-foreground select-none"
-                        >
-                          ...
-                        </span>
-                      );
-                    }
-
-                    const isCurrent = p === currentPage;
-
-                    return (
-                      <Button
-                        key={p}
-                        variant={isCurrent ? 'default' : 'outline'}
-                        size="sm"
-                        className={cn(
-                          'h-8 min-w-8 px-2.5 text-xs font-medium cursor-pointer',
-                          isCurrent && 'pointer-events-none font-semibold',
-                        )}
-                        onClick={() => onPageChange(p)}
-                        disabled={isProcessing}
-                      >
-                        {p}
-                      </Button>
-                    );
-                  })}
-                </div>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => onPageChange(currentPage + 1)}
-                  disabled={
-                    (lastPage ? currentPage >= lastPage : !tableData.links?.next) || isProcessing
-                  }
-                  title="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8 cursor-pointer"
-                  onClick={() => onPageChange(lastPage || currentPage + 1)}
-                  disabled={
-                    (lastPage ? currentPage >= lastPage : !tableData.links?.last) || isProcessing
-                  }
-                  title="Last page"
-                >
-                  <ChevronsRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
+          <TablePagination
+            from={tableData.meta.from}
+            to={tableData.meta.to}
+            total={tableData.meta.total}
+            currentPage={currentPage}
+            lastPage={tableData.meta.last_page}
+            hasNextLink={Boolean(tableData.links?.next)}
+            hasLastLink={Boolean(tableData.links?.last)}
+            perPage={currentPerPage}
+            disabled={isProcessing}
+            onPageChange={onPageChange}
+            onPerPageChange={handlePerPageChange}
+          />
         )}
       </div>
 

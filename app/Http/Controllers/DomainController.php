@@ -41,7 +41,6 @@ class DomainController extends Controller
 
         return Inertia::render('domains/index', [
             'domains' => DomainResource::collection($domains),
-            'dnsProviders' => DNSProvider::getByProjectId($user->current_project_id, $user)->where('connected', true)->get(),
         ]);
     }
 

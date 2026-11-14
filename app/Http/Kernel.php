@@ -3,7 +3,6 @@
 namespace App\Http;
 
 use App\Http\Middleware\Authenticate;
-use App\Http\Middleware\CanSeeProjectMiddleware;
 use App\Http\Middleware\EncryptCookies;
 use App\Http\Middleware\EnsurePasswordIsChanged;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -31,8 +30,6 @@ use Illuminate\Routing\Middleware\ThrottleRequests;
 use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
-use Laravel\Sanctum\Http\Middleware\CheckAbilities;
-use Laravel\Sanctum\Http\Middleware\CheckForAnyAbility;
 
 class Kernel extends HttpKernel
 {
@@ -60,10 +57,9 @@ class Kernel extends HttpKernel
             TrackUserActivity::class,
         ],
 
-        'api' => [
-            ThrottleRequests::class.':api',
+        'webhook' => [
+            ThrottleRequests::class.':webhook',
             SubstituteBindings::class,
-            TrackUserActivity::class,
         ],
     ];
 
@@ -78,9 +74,6 @@ class Kernel extends HttpKernel
         'signed' => ValidateSignature::class,
         'throttle' => ThrottleRequests::class,
         'verified' => EnsureEmailIsVerified::class,
-        'abilities' => CheckAbilities::class,
-        'ability' => CheckForAnyAbility::class,
-        'can-see-project' => CanSeeProjectMiddleware::class,
         'must-be-admin' => MustBeAdminMiddleware::class,
     ];
 }

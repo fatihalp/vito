@@ -11,6 +11,8 @@ const STATUSES = ['DONE', 'FAIL', 'FAILED', 'SKIPPED', 'OK', 'SUCCESS', 'WARN', 
 const STATUS_REGEX = new RegExp(`^(${STATUSES.join('|')})$`, 'i');
 const DURATION_REGEX = /^~?\s*\d+(?:\.\d+)?\s*(?:ms|s|m|h)$/i;
 const DURATION_STATUS_REGEX = new RegExp(`^(~?\\s*\\d+(?:\\.\\d+)?\\s*(?:ms|s|m|h))\\s+(${STATUSES.join('|')})$`, 'i');
+const DOTS_DURATION_STATUS_REGEX = new RegExp(`^(\\.{3,})\\s*(~?\\s*\\d+(?:\\.\\d+)?\\s*(?:ms|s|m|h))\\s+(${STATUSES.join('|')})$`, 'i');
+const DOTS_STATUS_REGEX = new RegExp(`^(\\.{3,})\\s+(${STATUSES.join('|')})$`, 'i');
 
 function formatTaskLine(description: string, duration: string, status: string): string {
   const trimmedDesc = description.trimEnd().replace(/\s*\.{2,}\s*$/, '').trimEnd();
@@ -93,9 +95,7 @@ export function cleanLogContent(raw: string): string {
         }
       }
 
-      const dotsDsMatch = nextPlain.match(
-        new RegExp(`^(\\.{3,})\\s*(~?\\s*\\d+(?:\\.\\d+)?\\s*(?:ms|s|m|h))\\s+(${STATUSES.join('|')})$`, 'i'),
-      );
+      const dotsDsMatch = nextPlain.match(DOTS_DURATION_STATUS_REGEX);
       if (dotsDsMatch) {
         output.push(formatTaskLine(line, dotsDsMatch[2], dotsDsMatch[3]));
         i += 1;
@@ -112,7 +112,7 @@ export function cleanLogContent(raw: string): string {
         }
       }
 
-      const dotsStatusMatch = nextPlain.match(new RegExp(`^(\\.{3,})\\s+(${STATUSES.join('|')})$`, 'i'));
+      const dotsStatusMatch = nextPlain.match(DOTS_STATUS_REGEX);
       if (dotsStatusMatch) {
         output.push(formatTaskLine(line, '', dotsStatusMatch[2]));
         i += 1;

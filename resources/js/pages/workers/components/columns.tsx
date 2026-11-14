@@ -23,7 +23,7 @@ function Delete({ worker }: { worker: Worker }) {
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
-          url: `/servers/${worker.server_id}/${worker.id}`,
+          url: `/servers/${worker.server_id}/workers/${worker.id}`,
         })
       }
     >

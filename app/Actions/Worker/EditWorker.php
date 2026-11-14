@@ -98,7 +98,7 @@ class EditWorker
             $rules['site_id'] = [
                 'required',
                 'integer',
-                Rule::exists('sites', 'id')->where('server_id', $worker->server_id),
+                Rule::exists('sites', 'id')->whereIn('server_id', array_filter([$worker->server_id, $worker->site?->server_id])),
             ];
         }
 

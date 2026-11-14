@@ -30,6 +30,14 @@ class SyncCronJobs
         return $errors;
     }
 
+    public function write(Server $server, string $user): void
+    {
+        $entries = $this->parseCrontab($this->getUserCrontab($server, $user));
+        $unmanagedLines = array_column(array_filter($entries, fn (array $entry): bool => $entry['frequency'] === null), 'raw');
+
+        $server->cron()->update($user, implode("\n", array_filter([...$unmanagedLines, CronJob::crontab($server, $user)])));
+    }
+
     private function syncUser(Server $server, string $user): void
     {
         $entries = $this->parseCrontab($this->getUserCrontab($server, $user));

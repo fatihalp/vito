@@ -69,7 +69,7 @@ class ServerLog extends AbstractModel
         });
 
         self::deleting(function (ServerLog $log): void {
-            if ($log->is_remote) {
+            if (! $log->is_remote) {
                 try {
                     if (Storage::disk($log->disk)->exists($log->name)) {
                         Storage::disk($log->disk)->delete($log->name);

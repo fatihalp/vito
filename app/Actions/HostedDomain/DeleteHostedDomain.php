@@ -13,7 +13,7 @@ class DeleteHostedDomain
 
         $site = $hostedDomain->site;
 
-        $hostedDomain->delete();
+        $hostedDomain->forceDelete();
 
         $site->webserver()->updateVHost($site);
 

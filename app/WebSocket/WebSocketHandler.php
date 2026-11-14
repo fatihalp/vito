@@ -15,6 +15,4 @@ interface WebSocketHandler
     public function onClose(string $connId): void;
 
     public function ping(string $connId): void;
-
-    public function getConnectionCount(): int;
 }
