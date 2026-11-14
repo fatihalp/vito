@@ -96,9 +96,9 @@ export default function Sites() {
     if (gitStatusChecking === 0) {
       return;
     }
-    const timeout = window.setTimeout(() => router.reload({ only: ['sites', 'gitStatusChecking'] }), 3000);
+    const interval = window.setInterval(() => router.reload({ only: ['sites', 'gitStatusChecking'] }), 3000);
 
-    return () => window.clearTimeout(timeout);
+    return () => window.clearInterval(interval);
   }, [gitStatusChecking]);
 
   const Comp = page.props.server ? ServerLayout : Layout;

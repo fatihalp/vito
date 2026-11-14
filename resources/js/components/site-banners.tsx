@@ -199,7 +199,11 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
           variant="outline"
           size="sm"
           onClick={() => {
-            router.post(`/servers/${site.server_id}/sites/${site.id}/enable-ssl`, {}, { preserveScroll: true });
+            router.post(
+              `/servers/${site.server_id}/sites/${site.id}/enable-ssl`,
+              {},
+              { preserveScroll: true, onError: (errors) => toast.error(Object.values(errors)[0]) },
+            );
           }}
         >
           Enable SSL
@@ -271,7 +275,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
             router.patch(
               `/servers/${site.server_id}/sites/${site.id}/settings/vhost-generation`,
               { vhost_generation_enabled: true },
-              { preserveScroll: true },
+              { preserveScroll: true, onError: (errors) => toast.error(Object.values(errors)[0]) },
             );
           }}
         >

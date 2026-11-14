@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DeploymentStatus;
 use App\Enums\DeploymentTrigger;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -45,24 +46,24 @@ class Deployment extends AbstractModel
             }
         });
 
-        static::created(function (Deployment $deployment): void {
-            $site = $deployment->site;
-            $keep = $site->type_data['modern_deployment_history'] ?? 10;
-            if ($site->deployments()->whereNotNull('release')->count() > $keep) {
-                $lastDeploymentToKeep = $site->deployments()->whereNotNull('release')->orderByDesc('id')->skip($keep)->first();
-                if ($lastDeploymentToKeep) {
-                    $deployments = $site->deployments()
-                        ->whereNotNull('release')
-                        ->where('active', false)
-                        ->where('id', '<=', $lastDeploymentToKeep->id)
-                        ->get();
+    }
 
-                    foreach ($deployments as $oldDeployment) {
-                        $oldDeployment->removeRelease();
-                    }
-                }
-            }
-        });
+    public function pruneOldReleases(): void
+    {
+        $site = $this->site;
+        $keep = $site->type_data['modern_deployment_history'] ?? 10;
+        $lastDeploymentToKeep = $site->deployments()->whereNotNull('release')->orderByDesc('id')->skip($keep)->first();
+
+        if (! $lastDeploymentToKeep) {
+            return;
+        }
+
+        $site->deployments()
+            ->whereNotNull('release')
+            ->where('active', false)
+            ->where('id', '<=', $lastDeploymentToKeep->id)
+            ->get()
+            ->each(fn (Deployment $deployment) => $deployment->removeRelease());
     }
 
     public function site(): BelongsTo
@@ -90,10 +91,26 @@ class Deployment extends AbstractModel
         return $this->commit_id ? substr($this->commit_id, 0, 7) : null;
     }
 
+    public function scopeWithIsDuplicate(Builder $query): void
+    {
+        $query->addSelect(['is_duplicate' => static::query()
+            ->from('deployments as earlier')
+            ->selectRaw('1')
+            ->whereColumn('earlier.site_id', 'deployments.site_id')
+            ->whereColumn('earlier.commit_id', 'deployments.commit_id')
+            ->whereColumn('earlier.id', '<', 'deployments.id')
+            ->limit(1),
+        ]);
+    }
+
     public function isDuplicate(): bool
     {
         if (empty($this->commit_id)) {
             return false;
+        }
+
+        if (array_key_exists('is_duplicate', $this->attributes)) {
+            return (bool) $this->attributes['is_duplicate'];
         }
 
         return static::query()

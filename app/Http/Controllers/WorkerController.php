@@ -251,7 +251,7 @@ class WorkerController extends Controller
         return back()->with('success', 'Worker logs cleared.');
     }
 
-    #[Delete('/{worker}/{site?}', name: 'workers.destroy')]
+    #[Delete('/workers/{worker}/{site?}', name: 'workers.destroy')]
     public function destroy(Server $server, Worker $worker, ?Site $site = null): RedirectResponse
     {
         $this->authorize('delete', [$worker, $server, $site]);

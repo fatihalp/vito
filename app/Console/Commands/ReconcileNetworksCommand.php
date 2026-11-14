@@ -172,7 +172,7 @@ class ReconcileNetworksCommand extends Command
             .'The tunnel configuration may still exist on the server; it is cleared the next time the server syncs a network.'
         ));
 
-        $member->delete();
+        $member->forceDelete();
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $projectId,

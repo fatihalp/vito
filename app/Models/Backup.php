@@ -2,10 +2,12 @@
 
 namespace App\Models;
 
+use App\Enums\BackupFileStatus;
 use App\Enums\BackupStatus;
 use App\Enums\BackupType;
 use App\SSH\PgBackRest;
 use Cron\CronExpression;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -92,7 +94,7 @@ class Backup extends AbstractModel
         return match ($this->type) {
             BackupType::FILE => $this->path,
             BackupType::DATABASE => $this->database?->name,
-            BackupType::PGBACKREST => __('PostgreSQL cluster'),
+            BackupType::PGBACKREST => $this->server?->databases->pluck('name')->implode(', ') ?: __('PostgreSQL cluster'),
         };
     }
 
@@ -124,5 +126,15 @@ class Backup extends AbstractModel
     public function lastFile(): HasOne
     {
         return $this->hasOne(BackupFile::class, 'backup_id')->latest();
+    }
+
+    public function lastFullFile(): HasOne
+    {
+        return $this->hasOne(BackupFile::class, 'backup_id')->ofMany(
+            ['id' => 'max'],
+            fn (Builder $query) => $query
+                ->whereIn('status', [BackupFileStatus::CREATED, BackupFileStatus::RESTORED])
+                ->where(fn (Builder $query) => $query->whereNull('type')->orWhere('type', 'full')),
+        );
     }
 }

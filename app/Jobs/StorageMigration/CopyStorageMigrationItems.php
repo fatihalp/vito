@@ -147,7 +147,9 @@ class CopyStorageMigrationItems implements ShouldQueue
                 ->pluck('size', 'key_hash');
 
             foreach ($batch as $item) {
-                if (! $this->storageMigration->fresh()->status->isActive() || $this->storageMigration->fresh()->transfer_paused || $this->workerSlot >= $this->storageMigration->fresh()->worker_count) {
+                $current = $this->storageMigration->fresh();
+
+                if (! $current->status->isActive() || $current->transfer_paused || $this->workerSlot >= $current->worker_count) {
                     $this->storageMigration->items()
                         ->where('status', StorageMigrationItemStatus::PROCESSING)
                         ->where('worker_slot', $this->workerSlot)
@@ -157,7 +159,6 @@ class CopyStorageMigrationItems implements ShouldQueue
                 }
 
                 $this->processItem($item, $known);
-                app(BroadcastStorageMigrationUpdate::class)->broadcast($this->storageMigration);
             }
 
             app(BroadcastStorageMigrationUpdate::class)->broadcast($this->storageMigration);

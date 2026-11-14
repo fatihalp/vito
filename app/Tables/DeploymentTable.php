@@ -45,7 +45,7 @@ class DeploymentTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with('log', 'site', 'user');
+        $this->query->withIsDuplicate()->with('log', 'site', 'user');
     }
 
     protected function columns(): array

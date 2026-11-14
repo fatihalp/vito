@@ -54,8 +54,6 @@ class DNSProviderController extends Controller
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
 
-        $this->authorize('assignToProject', [DNSProvider::class, $projectId]);
-
         app(CreateDNSProvider::class)->create(user(), $request->all(), $projectId);
 
         return back()->with('success', 'DNS provider created.');
@@ -67,8 +65,6 @@ class DNSProviderController extends Controller
         $this->authorize('update', $dnsProvider);
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [DNSProvider::class, $projectId]);
 
         app(EditDNSProvider::class)->edit($dnsProvider, $request->all(), $projectId);
 

@@ -130,10 +130,10 @@ class Server extends AbstractModel
                 });
                 $server->sites()->delete();
                 $server->isolatedUsers()->delete();
-                $server->logs()->where('is_remote', false)->delete();
-                $server->logs()->where('is_remote', true)->each(function ($log): void {
-                    $log->delete();
-                });
+                $server->logs()->where('is_remote', true)->delete();
+                $server->logs()->where('is_remote', false)->lazyById()->each(fn (ServerLog $log) => $log->delete());
+                $server->ssls()->delete();
+                NetworkServer::query()->where('server_id', $server->id)->forceDelete();
                 $server->backups()->each(function ($backup): void {
                     $backup->files()->delete();
                     $backup->restores()->delete();
@@ -542,13 +542,6 @@ class Server extends AbstractModel
         $this->save();
     }
 
-    public function download(string $path, string $disk = 'tmp'): void
-    {
-        $this->ssh()->download(
-            Storage::disk($disk)->path(basename($path)),
-            $path
-        );
-    }
     public function featuresConfig(): array
     {
         return config('server.features', []);

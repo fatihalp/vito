@@ -271,30 +271,6 @@ class OS
     }
 
     
-    public function download(string $url, string $path): string
-    {
-        return $this->server->ssh()->exec(
-            view('ssh.os.download', [
-                'url' => $url,
-                'path' => $path,
-            ]),
-            'download'
-        );
-    }
-
-    
-    public function extract(string $path, ?string $destination = null, ?string $user = null): void
-    {
-        $this->server->ssh($user)->exec(
-            view('ssh.os.extract', [
-                'path' => $path,
-                'destination' => $destination,
-            ]),
-            'extract'
-        );
-    }
-
-    
     public function cleanup(): void
     {
         $this->server->ssh()->exec(
@@ -357,12 +333,6 @@ class OS
     }
 
     
-    public function ls(string $path, ?string $user = null): string
-    {
-        return $this->server->ssh($user)->exec('ls -la '.$path);
-    }
-
-    
     public function write(string $path, string $content, ?string $user = null): void
     {
         $this->server->ssh()->write(
@@ -371,12 +341,6 @@ class OS
             $user,
             'write-file'
         );
-    }
-
-    
-    public function mkdir(string $path, ?string $user = null): string
-    {
-        return $this->server->ssh($user)->exec('mkdir -p '.$path);
     }
 
     

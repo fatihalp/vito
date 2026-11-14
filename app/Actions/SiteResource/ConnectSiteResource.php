@@ -133,11 +133,10 @@ class ConnectSiteResource
             throw ValidationException::withMessages(['server_id' => __('Could not determine database charset settings.')]);
         }
 
+        $name = ! empty($options['database_name']) ? $options['database_name'] : 'site_'.$site->id;
         $existingDb = ! empty($options['database_id'])
             ? Database::where('server_id', $server->id)->find($options['database_id'])
-            : (! empty($options['database_name']) ? Database::where('server_id', $server->id)->where('name', $options['database_name'])->first() : null);
-
-        $name = $existingDb ? $existingDb->name : (! empty($options['database_name']) ? $options['database_name'] : 'site_'.$site->id);
+            : Database::where('server_id', $server->id)->where('name', $name)->first();
         $username = 'site_'.$site->id.'_'.Str::lower(Str::random(6));
         $password = Str::password(32, symbols: false);
         $database = $existingDb;

@@ -76,12 +76,12 @@ export default function SiteResources() {
 
   const isDbReady = !!selectedDbServer?.has_database;
   const isDbInstalling =
-    (selectedDbServer?.database_status != null && selectedDbServer.database_status !== 'ready') ||
+    (selectedDbServer?.database_status === 'installing') ||
     (pendingConnect?.type === 'database' && pendingConnect.serverId === selectedDbServerId);
 
   const isCacheReady = !!selectedCacheServer?.has_cache;
   const isCacheInstalling =
-    (selectedCacheServer?.cache_status != null && selectedCacheServer.cache_status !== 'ready') ||
+    (selectedCacheServer?.cache_status === 'installing') ||
     (pendingConnect?.type === 'cache' && pendingConnect.serverId === selectedCacheServerId);
 
   useEffect(() => {
@@ -192,6 +192,17 @@ export default function SiteResources() {
       const { type, serverId } = pendingConnect;
       setPendingConnect(null);
       connectResource({ type, serverId });
+      return;
+    }
+
+    const status =
+      pendingConnect.type === 'database'
+        ? targetServer?.database_status
+        : targetServer?.cache_status;
+
+    if (status === 'installation_failed' || status === 'failed') {
+      setPendingConnect(null);
+      toast.error(`The ${pendingConnect.type} service installation failed on ${targetServer?.name}`);
       return;
     }
 

@@ -55,7 +55,7 @@ class ServerTable extends Table
 
         $sort = (string) request()->input($this->getSortParam(), '');
         $sortingByCost = in_array(ltrim($sort, '-'), ['monthly_cost', 'monthly_cost_order'], true);
-        $costOrderSql = $sortingByCost ? app(ResolveHetznerServerSpecs::class)->serverCostOrderSql() : '0';
+        $costOrderSql = $sortingByCost ? app(ResolveHetznerServerSpecs::class)->serverCostOrderSql(clone $this->query) : '0';
 
         $this->query
             ->select('servers.*')

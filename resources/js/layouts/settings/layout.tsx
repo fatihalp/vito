@@ -5,7 +5,6 @@ import {
   CloudIcon,
   CloudUploadIcon,
   CodeIcon,
-  CommandIcon,
   DatabaseIcon,
   GithubIcon,
   GlobeIcon,
@@ -62,11 +61,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'SSH Keys',
       href: "/settings/ssh-keys",
       icon: KeyIcon,
-    },
-    {
-      title: 'API Keys',
-      href: "/settings/api-keys",
-      icon: CommandIcon,
     },
     {
       title: 'Backups',

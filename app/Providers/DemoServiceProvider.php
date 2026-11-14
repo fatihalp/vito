@@ -3,7 +3,6 @@
 namespace App\Providers;
 
 use App\Models\FirewallRule;
-use App\Models\PersonalAccessToken;
 use App\Models\ServerLog;
 use App\Models\User;
 use Illuminate\Support\Facades\Http;
@@ -23,7 +22,6 @@ class DemoServiceProvider extends ServiceProvider
     protected array $canCreate = [
         ServerLog::class,
         FirewallRule::class,
-        PersonalAccessToken::class,
     ];
 
     public function register(): void

@@ -1,1 +1,1 @@
-curl {{ $passive }} -T {!! escapeshellarg($src) !!} -u {!! escapeshellarg($username.':'.$password) !!} {!! escapeshellarg('ftp'.$ssl.'://'.$host.':'.$port.'/'.$dest) !!}
+curl {{ $passive ? '--ftp-pasv' : '--ftp-port -' }} -T {!! escapeshellarg($src) !!} -u {!! escapeshellarg($username.':'.$password) !!} {!! escapeshellarg('ftp'.($ssl ? 's' : '').'://'.$host.':'.$port.'/'.$dest) !!}

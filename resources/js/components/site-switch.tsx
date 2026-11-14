@@ -15,13 +15,7 @@ export function SiteSwitch() {
   const { setOpenTransient: setPrimaryNavOpen } = useSidebar();
   const [open, setOpen] = useState(false);
   const currentSite = page.props.site || null;
-  const [selected, setSelected] = useState<string>(currentSite?.id?.toString() ?? '');
   const form = useForm();
-
-  useEffect(() => {
-    const site = page.props.site || null;
-    setSelected(site?.id?.toString() ?? '');
-  }, [page.props.site?.id]);
 
   useEffect(() => {
     if (page.props.site) {
@@ -29,14 +23,11 @@ export function SiteSwitch() {
     }
   }, [page.props.auth.user.id, page.props.server?.project_id, page.props.site]);
 
-  const handleSiteChange = (value: string, site: Site) => {
+  const handleSiteChange = (_value: string, site: Site) => {
+    setOpen(false);
     if (!site || !site.id || !site.server_id) {
-      setSelected(value);
-      setOpen(false);
       return;
     }
-    setSelected(value);
-    setOpen(false);
     setPrimaryNavOpen(false);
     siteHelper.storeSite(site, page.props.auth.user.id, site.server?.project_id ?? page.props.auth.currentProject?.id);
     form.post(`/servers/${site.server_id}/sites/${site.id}/switch`);
@@ -107,7 +98,7 @@ export function SiteSwitch() {
     <div className="flex items-center">
       <SiteSelect
         currentServerId={page.props.server?.id}
-        value={selected}
+        value={currentSite?.id?.toString() ?? ''}
         onValueChangeAdvanced={handleSiteChange}
         trigger={trigger}
         open={open}

@@ -338,6 +338,6 @@ class SiteSettingController extends Controller
         app(DeleteSite::class)->delete($site, $request->input());
 
         return redirect()->route('sites', ['server' => $server])
-            ->with('success', 'Site deleted successfully.');
+            ->with('info', 'Site is being deleted.');
     }
 }

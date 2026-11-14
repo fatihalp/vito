@@ -27,6 +27,7 @@ class BackupResource extends JsonResource
             'status_color' => $this->status?->getColor(),
             'enabled' => $this->enabled,
             'last_file' => BackupFileResource::make($this->whenLoaded('lastFile')),
+            'last_full_at' => $this->whenLoaded('lastFullFile', fn () => $this->lastFullFile?->created_at),
             'problems' => array_values($this->health['problems'] ?? []),
             'pgbackrest' => $this->type === BackupType::PGBACKREST ? [
                 'stanza' => $this->cluster?->stanza,

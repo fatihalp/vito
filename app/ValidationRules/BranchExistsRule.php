@@ -17,7 +17,7 @@ class BranchExistsRule implements ValidationRule
             return;
         }
 
-        $sourceControl = SourceControl::query()->find($this->sourceControlId);
+        $sourceControl = SourceControl::query()->where('user_id', user()?->id)->find($this->sourceControlId);
         if (! $sourceControl) {
             return;
         }

@@ -56,8 +56,6 @@ class ServerProviderController extends Controller
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
 
-        $this->authorize('assignToProject', [ServerProvider::class, $projectId]);
-
         app(CreateServerProvider::class)->create(user(), $request->all(), $projectId);
 
         return back()->with('success', 'Server provider created.');
@@ -69,8 +67,6 @@ class ServerProviderController extends Controller
         $this->authorize('update', $serverProvider);
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [ServerProvider::class, $projectId]);
 
         app(EditServerProvider::class)->edit($serverProvider, $request->all(), $projectId);
 

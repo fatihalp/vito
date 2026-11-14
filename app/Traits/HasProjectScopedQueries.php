@@ -12,11 +12,6 @@ trait HasProjectScopedQueries
         return self::scopedToProjects($user, [$projectId]);
     }
 
-    public static function getByTokenProjects(User $user): Builder
-    {
-        return self::scopedToProjects($user, $user->tokenProjectIds());
-    }
-
     private static function scopedToProjects(User $user, array $projectIds): Builder
     {
         $query = static::query();

@@ -85,7 +85,6 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
         force: forceDelete,
       },
       onSuccess: () => {
-        siteHelper.storeSite();
         if (page.props.auth?.currentProject) {
           siteHelper.removeRecentSite(page.props.auth.user.id, page.props.auth.currentProject.id, site.server_id, site.id);
         }

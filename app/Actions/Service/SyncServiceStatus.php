@@ -4,7 +4,6 @@ namespace App\Actions\Service;
 
 use App\DTOs\SocketEventDTO;
 use App\Enums\ServiceStatus;
-use App\Events\ServiceStatusChanged;
 use App\Events\SocketEvent;
 use App\Http\Resources\ServiceResource;
 use App\Models\Server;
@@ -61,8 +60,6 @@ class SyncServiceStatus
         if (! $service instanceof Service) {
             return false;
         }
-
-        ServiceStatusChanged::dispatch($service, $previousStatus, $newStatus);
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $server->project_id,

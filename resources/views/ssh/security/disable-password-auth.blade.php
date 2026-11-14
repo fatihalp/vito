@@ -1,14 +1,9 @@
-@if($useDropin)
 sudo mkdir -p /etc/ssh/sshd_config.d
 sudo tee /etc/ssh/sshd_config.d/00-vito-hardening.conf > /dev/null <<'EOF'
 PasswordAuthentication no
 KbdInteractiveAuthentication no
 PubkeyAuthentication yes
 EOF
-@else
-sudo sed -i -E '/^[[:space:]]*#?[[:space:]]*(PasswordAuthentication|KbdInteractiveAuthentication|ChallengeResponseAuthentication)[[:space:]]/d' /etc/ssh/sshd_config
-printf 'PasswordAuthentication no\nKbdInteractiveAuthentication no\nPubkeyAuthentication yes\n' | sudo tee -a /etc/ssh/sshd_config > /dev/null
-@endif
 
 if ! sudo sshd -t; then
     echo "VITO_SSH_ERROR: invalid sshd configuration"

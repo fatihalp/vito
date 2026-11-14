@@ -4,8 +4,9 @@ namespace App\Actions\Site;
 
 use App\Actions\CronJob\SyncCronJobs;
 use App\Enums\CronjobStatus;
+use App\Enums\SiteStatus;
 use App\Events\SiteDeletedEvent;
-use App\Models\CronJob;
+use App\Jobs\Site\DeleteJob;
 use App\Models\Site;
 use App\Models\Worker;
 use Illuminate\Support\Facades\Log;
@@ -24,9 +25,26 @@ class DeleteSite
             ]);
         }
 
+        if ($site->status === SiteStatus::DELETING) {
+            throw ValidationException::withMessages([
+                'domain' => __('This site is already being deleted.'),
+            ]);
+        }
+
         $this->validate($site, $input);
         $this->ensureSafeBasePath($site);
 
+        $previousStatus = $site->status;
+        $site->status = SiteStatus::DELETING;
+        $site->save();
+
+        app(BroadcastSiteUpdate::class)->broadcast($site);
+
+        dispatch(new DeleteJob($site, $previousStatus))->onQueue('ssh');
+    }
+
+    public function teardown(Site $site): void
+    {
         if ($site->sourceControl && isset($site->type_data['deploy_key_id'])) {
             try {
                 $site->sourceControl->provider()->deleteDeployKey(
@@ -76,7 +94,7 @@ class DeleteSite
         $site->cronJobs()->update(['status' => CronjobStatus::DELETING]);
 
         foreach ($users as $user) {
-            $site->server->cron()->update($user, CronJob::crontab($site->server, $user));
+            app(SyncCronJobs::class)->write($site->server, $user);
         }
     }
 

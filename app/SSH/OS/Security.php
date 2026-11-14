@@ -25,9 +25,7 @@ class Security
         $view = $enabled ? 'ssh.security.enable-password-auth' : 'ssh.security.disable-password-auth';
 
         $this->server->ssh()->exec(
-            view($view, [
-                'useDropin' => $this->supportsConfigDropin(),
-            ]),
+            view($view),
             $enabled ? 'enable-password-auth' : 'disable-password-auth'
         );
     }
@@ -49,16 +47,8 @@ class Security
         $view = $enabled ? 'ssh.security.enable-root-login' : 'ssh.security.disable-root-login';
 
         $this->server->ssh()->exec(
-            view($view, [
-                'useDropin' => $this->supportsConfigDropin(),
-            ]),
+            view($view),
             $enabled ? 'enable-root-login' : 'disable-root-login'
         );
-    }
-
-    
-    private function supportsConfigDropin(): bool
-    {
-        return true;
     }
 }

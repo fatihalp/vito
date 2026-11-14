@@ -164,8 +164,6 @@ class SourceControlController extends Controller
         $user = user();
         $projectId = $request->boolean('global') ? null : $user->currentProject?->id;
 
-        $this->authorize('assignToProject', [SourceControl::class, $projectId]);
-
         app(ConnectSourceControl::class)->connect($user, $request->all(), $projectId);
 
         return back()->with('success', 'Source control created.');
@@ -177,8 +175,6 @@ class SourceControlController extends Controller
         $this->authorize('update', $sourceControl);
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [SourceControl::class, $projectId]);
 
         app(EditSourceControl::class)->edit($sourceControl, $request->all(), $projectId);
 

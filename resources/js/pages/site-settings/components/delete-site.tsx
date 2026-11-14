@@ -30,7 +30,6 @@ export default function DeleteSite({ site, children }: { site: Site; children: R
     e.preventDefault();
     form.delete(`/servers/${site.server_id}/sites/${site.id}/settings`, {
       onSuccess: () => {
-        siteHelper.storeSite();
         if (page.props.auth.currentProject) {
           siteHelper.removeRecentSite(page.props.auth.user.id, page.props.auth.currentProject.id, site.server_id, site.id);
         }

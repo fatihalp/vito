@@ -5,6 +5,7 @@ namespace App\Actions\Plugins\Github;
 use App\Models\Plugin;
 use Exception;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 final readonly class CheckForUpdates
 {
@@ -37,7 +38,7 @@ final readonly class CheckForUpdates
     private function parseGithubUrl(string $url): array
     {
         
-        $parsed = parse_url(rtrim($url, '.git'));
+        $parsed = parse_url(Str::chopEnd($url, '.git'));
         if (($parsed['host'] ?? '') !== 'github.com') {
             throw new Exception('Invalid GitHub URL provided');
         }

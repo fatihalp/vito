@@ -13,6 +13,8 @@ trait UniqueQueue
 
     public $tries = 120;
 
+    public bool $failOnTimeout = true;
+
     public function retryUntil(): \DateTime
     {
         return now()->addHour();

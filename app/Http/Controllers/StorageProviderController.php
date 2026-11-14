@@ -65,8 +65,6 @@ class StorageProviderController extends Controller
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
 
-        $this->authorize('assignToProject', [StorageProvider::class, $projectId]);
-
         app(CreateStorageProvider::class)->create(user(), $request->all(), $projectId);
 
         return back()->with('success', 'Storage provider created.');
@@ -78,8 +76,6 @@ class StorageProviderController extends Controller
         $this->authorize('create', StorageProvider::class);
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [StorageProvider::class, $projectId]);
 
         return Inertia::location($action->redirectUrl($request->all(), $projectId));
     }
@@ -135,8 +131,6 @@ class StorageProviderController extends Controller
         $this->authorize('update', $storageProvider);
 
         $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [StorageProvider::class, $projectId]);
 
         app(EditStorageProvider::class)->edit($storageProvider, $request->all(), $projectId);
 

@@ -5,7 +5,7 @@ import { router, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, Layers3Icon, PlusIcon } from 'lucide-react';
-import ProjectForm from '@/pages/projects/components/project-form';
+import { useDialog } from '@/hooks/use-dialog';
 import { ProjectSelect } from '@/components/project-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 
@@ -16,7 +16,7 @@ export function ProjectSwitch() {
   const currentProject = auth.currentProject;
   const selected = isAllProjects ? 'all' : (currentProject?.id.toString() ?? '');
   const [open, setOpen] = useState(false);
-  const [projectFormOpen, setProjectFormOpen] = useState(false);
+  const dialog = useDialog();
   const pathname = page.url.split('?')[0];
   const isInsideResource = Boolean(page.props.server || page.props.network);
 
@@ -42,20 +42,19 @@ export function ProjectSwitch() {
 
   const footer = (
     <CommandGroup>
-      <ProjectForm defaultOpen={projectFormOpen} onOpenChange={setProjectFormOpen}>
-        <CommandItem
-          value="create-project"
-          onSelect={() => {
-            setProjectFormOpen(true);
-          }}
-          className="gap-0"
-        >
-          <div className="flex items-center">
-            <PlusIcon size={5} />
-            <span className="ml-2">Create new project</span>
-          </div>
-        </CommandItem>
-      </ProjectForm>
+      <CommandItem
+        value="create-project"
+        onSelect={() => {
+          setOpen(false);
+          dialog.projectForm.open({});
+        }}
+        className="gap-0"
+      >
+        <div className="flex items-center">
+          <PlusIcon size={5} />
+          <span className="ml-2">Create new project</span>
+        </div>
+      </CommandItem>
     </CommandGroup>
   );
 

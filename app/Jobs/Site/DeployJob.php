@@ -46,6 +46,7 @@ class DeployJob implements ShouldQueue
             }
 
             if ($this->isModern) {
+                $this->deployment->pruneOldReleases();
                 $this->handleModernDeployment($site, $log);
             } else {
                 $this->handleClassicDeployment($site, $log);

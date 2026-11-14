@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { toast } from 'sonner';
 
 type PageProps = {
   server: Server;
@@ -87,7 +88,7 @@ export default function ServerRestart() {
     setMilestones([{ id: `${Date.now()}`, time: new Date().toLocaleTimeString('en-US'), text: 'Reboot signal sent ($ sudo reboot)' }]);
 
     try {
-      await fetch(`/servers/${server.id}/restart/trigger`, {
+      const response = await fetch(`/servers/${server.id}/restart/trigger`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -96,10 +97,17 @@ export default function ServerRestart() {
           Accept: 'application/json',
         },
       });
-    } catch {
-    }
 
-    setPhase('probing');
+      if (!response.ok) {
+        throw new Error(`Failed to reboot the server (HTTP ${response.status})`);
+      }
+
+      setPhase('probing');
+    } catch (error) {
+      setMilestones([]);
+      setPhase('idle');
+      toast.error(error instanceof Error ? error.message : 'Failed to reboot the server');
+    }
   }, [csrf_token, server.id]);
 
   useEffect(() => {

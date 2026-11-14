@@ -72,7 +72,7 @@ class ServerLogController extends Controller
         $logs = $server->logs()
             ->when($site, fn ($query) => $query->where('site_id', $site->id))
             ->latest()
-            ->simplePaginate($request->query('count') ?? config('web.pagination_size'));
+            ->simplePaginate(min(max((int) $request->query('count', config('web.pagination_size')), 1), 100));
 
         return ServerLogResource::collection($logs);
     }

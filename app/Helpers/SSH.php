@@ -145,7 +145,7 @@ class SSH
     }
 
     
-    public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null, int $timeout = 0): string
+    public function exec(string|View $command, string $log = '', ?int $siteId = null, int $timeout = 0): string
     {
         $this->ensureLog($log, $siteId);
 
@@ -165,25 +165,16 @@ class SSH
             }
             $command = $envPrefix.'set -e; '.$command;
             if ($this->asUser !== null && $this->asUser !== '' && $this->asUser !== '0') {
+                $delimiter = 'VITO_'.Str::random(16);
                 $command = <<<BASH
-                sudo -u {$this->asUser} bash <<'EOF'
+                sudo -u {$this->asUser} bash <<'{$delimiter}'
                 cd ~ || { echo 'VITO_SSH_ERROR: failed to cd to home directory' >&2; exit 1; }
                 {$command}
-                EOF
+                {$delimiter}
                 BASH;
             }
 
             $this->connection->setTimeout($timeout);
-            if ($stream === true) {
-                
-                $this->connection->exec($command, function ($output) use ($streamCallback) {
-                    $this->writeOutput($output);
-
-                    return $streamCallback($output);
-                });
-
-                return '';
-            }
             $output = '';
             $this->connection->exec($command, function (string $out) use (&$output): void {
                 $this->writeOutput($out);

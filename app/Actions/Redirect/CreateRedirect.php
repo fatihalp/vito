@@ -40,7 +40,7 @@ class CreateRedirect
                 'max:255',
                 'regex:/^\/?[A-Za-z0-9._~%\-\/]+$/',
                 'not_regex:/^http(s)?:\/\//',
-                Rule::unique('redirects', 'from')->where('site_id', $site->id)->when($ignore, fn ($rule) => $rule->ignore($ignore->id)),
+                Rule::unique('redirects', 'from')->withoutTrashed()->where('site_id', $site->id)->when($ignore, fn ($rule) => $rule->ignore($ignore->id)),
             ],
             'to' => [
                 'required',
