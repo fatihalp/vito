@@ -33,6 +33,17 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         return false;
     }
 
+    public function getDatabaseSizes(): array
+    {
+        $output = $this->service->server->ssh()->exec(
+            view($this->getScriptView('get-database-sizes')),
+            'get-database-sizes',
+            timeout: 100,
+        );
+
+        return json_decode(trim($output), true, flags: JSON_THROW_ON_ERROR);
+    }
+
     public function databaseUserExists(Server $server, string $username, string $host, ?DatabaseUser $ignore = null): bool
     {
         return $server->databaseUsers()

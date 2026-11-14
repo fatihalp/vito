@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Database\CreateDatabase;
+use App\Actions\Database\RefreshDatabaseSizes;
 use App\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
 use App\Models\Database;
@@ -32,6 +33,8 @@ class DatabaseController extends Controller
 
         return Inertia::render('databases/index', [
             'databases' => DatabaseTable::make($server->databases())->simplePaginate(),
+            'databaseSizes' => fn (): array => app(RefreshDatabaseSizes::class)->cached($server),
+            'canRefreshDatabaseSizes' => request()->user()->can('refreshSizes', [Database::class, $server]),
         ]);
     }
 
@@ -41,6 +44,16 @@ class DatabaseController extends Controller
         $this->authorize('viewAny', [Database::class, $server]);
 
         return DatabaseResource::collection($server->databases()->get());
+    }
+
+    #[Post('/refresh-sizes', name: 'databases.refresh-sizes')]
+    public function refreshSizes(Server $server): RedirectResponse
+    {
+        $this->authorize('refreshSizes', [Database::class, $server]);
+
+        app(RefreshDatabaseSizes::class)->dispatch($server);
+
+        return back()->with('success', 'Database size calculation queued.');
     }
 
     #[Get('/charsets', name: 'databases.charsets')]

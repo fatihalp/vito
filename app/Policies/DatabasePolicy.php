@@ -34,6 +34,13 @@ class DatabasePolicy
             $server->database();
     }
 
+    public function refreshSizes(User $user, Server $server): bool
+    {
+        return $this->hasServerReadAccess($user, $server)
+            && $server->isReady()
+            && $server->database()?->name === 'postgresql';
+    }
+
     public function update(User $user, Database $database): bool
     {
         $server = $database->server;
