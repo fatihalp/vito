@@ -1,4 +1,5 @@
 import { Head, router, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { RefreshCwIcon } from 'lucide-react';
@@ -95,7 +96,8 @@ export default function SiteStats() {
 }
 
 function StatsView({ server, site }: { server: Server; site: Site }) {
-  const [month, setMonth] = useState<string | undefined>(undefined);
+  const [monthParam, setMonth] = useQueryState('month', '');
+  const month = monthParam || undefined;
   const [refreshing, setRefreshing] = useState(false);
   const { data, isLoading, isError } = useSiteStats(server, site, month);
   const queryClient = useQueryClient();

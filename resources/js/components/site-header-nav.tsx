@@ -19,18 +19,33 @@ type SiteNavItem = {
   exact?: boolean;
   activePrefixes?: string[];
   count?: number | null;
+  primary: boolean;
 };
 
-function buildPrimaryItems(server: Server, site: Site): SiteNavItem[] {
-  const routeParams = { server: server.id, site: site.id };
-  const applicationHref = `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}`;
-  const applicationPath = new URL(applicationHref, 'http://localhost').pathname;
+function buildItems(server: Server, site: Site): SiteNavItem[] {
+  const base = `/servers/${server.id}/sites/${site.id}`;
+  const workers = site.counts?.workers ?? 0;
+  const domains = site.counts?.domains ?? 0;
+  const resources = site.counts?.resources ?? 0;
+  const cronJobs = site.counts?.cron_jobs ?? 0;
+  const logErrorsToday = site.counts?.log_errors_today ?? 0;
 
   return [
-    { title: 'Application', href: applicationHref, exact: true, activePrefixes: [`${applicationPath}/deployments/`] },
-    { title: 'Commands', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/commands` },
-    { title: 'Workers', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/workers`, count: site.counts?.workers ?? 0 },
-    { title: 'Settings', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/settings` },
+    { title: 'Application', href: base, exact: true, activePrefixes: [`${base}/deployments/`], primary: true },
+    { title: 'Commands', href: `${base}/commands`, primary: true },
+    { title: 'Workers', href: `${base}/workers`, count: workers, primary: workers > 0 },
+    { title: 'Domains', href: `${base}/domains`, count: domains, primary: domains >= 2 },
+    { title: 'Topology', href: `${base}/topology`, primary: resources > 0 },
+    { title: 'CronJobs', href: `${base}/cronjobs`, count: cronJobs, primary: cronJobs > 0 },
+    ...(logErrorsToday > 0
+      ? [{ title: 'Error Logs', href: `/servers/${server.id}/logs/services?key=${encodeURIComponent(`site:${site.id}:laravel`)}&level=error`, count: logErrorsToday, primary: true }]
+      : []),
+    { title: 'Settings', href: `${base}/settings`, primary: true },
+    { title: 'Resources', href: `${base}/resources`, count: resources, primary: false },
+    { title: 'Logs', href: `${base}/logs`, primary: false },
+    { title: 'Redirects', href: `${base}/redirects`, primary: false },
+    { title: 'Features', href: `${base}/features`, primary: false },
+    { title: 'Tooling', href: `${base}/tooling`, primary: false },
   ];
 }
 
@@ -64,7 +79,7 @@ export function SiteHeaderNav() {
     }
 
     const currentPath = page.url.split('?')[0];
-    const activeItem = buildPrimaryItems(server, site).find((item) => isActive(currentPath, item));
+    const activeItem = buildItems(server, site).find((item) => isActive(currentPath, item));
 
     if (activeItem) {
       siteHelper.recordVisitedSitePage(userId, site.id, activeItem.title);
@@ -76,18 +91,9 @@ export function SiteHeaderNav() {
   }
 
   const currentPath = page.url.split('?')[0];
-  const routeParams = { server: server.id, site: site.id };
-  const primaryItems: SiteNavItem[] = buildPrimaryItems(server, site);
-  const otherItems: SiteNavItem[] = [
-    { title: 'Domains', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/domains`, count: site.counts?.domains ?? 0 },
-    { title: 'Topology', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/topology` },
-    { title: 'Resources', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/resources`, count: site.counts?.resources ?? 0 },
-    { title: 'CronJobs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/cronjobs` },
-    { title: 'Logs', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/logs` },
-    { title: 'Redirects', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/redirects` },
-    { title: 'Features', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/features` },
-    { title: 'Tooling', href: `/servers/${encodeURIComponent(String(routeParams.server))}/sites/${encodeURIComponent(String(routeParams.site))}/tooling` },
-  ];
+  const items = buildItems(server, site);
+  const primaryItems = items.filter((item) => item.primary);
+  const otherItems = items.filter((item) => !item.primary);
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
 
   return (

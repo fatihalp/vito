@@ -9,6 +9,7 @@ import { SERVER_NAV_PAGES } from '@/lib/server-nav-pages';
 import Layout from '@/layouts/app/layout';
 import { SharedData } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import {
   ArrowRightIcon,
   BoxIcon,
@@ -192,7 +193,7 @@ export default function Overview() {
   const [recentServerIds, setRecentServerIds] = useState<number[]>([]);
   const [recentSiteIds, setRecentSiteIds] = useState<number[]>([]);
   const [historyLoaded, setHistoryLoaded] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useQueryState('search', '');
 
   useEffect(() => {
     setRecentServerIds(serverHelper.getAllRecentServers(userId, 25).map((server) => server.id));

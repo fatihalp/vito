@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Actions\Site\CountTodayLogErrors;
 use App\SiteTypes\AbstractProxiedSiteType;
 use App\SSH\OS\Composer;
 use Illuminate\Http\Request;
@@ -71,6 +72,8 @@ class SiteResource extends JsonResource
                 'domains' => (int) ($this->hosted_domains_count ?? $this->hostedDomains_count ?? ($this->relationLoaded('hostedDomains') ? $this->hostedDomains->count() : $this->hostedDomains()->count())),
                 'workers' => (int) ($this->workers_count ?? ($this->relationLoaded('workers') ? $this->workers->count() : $this->workers()->count())),
                 'resources' => (int) ($this->resources_count ?? ($this->relationLoaded('resources') ? $this->resources->count() : $this->resources()->count())),
+                'cron_jobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),
+                'log_errors_today' => app(CountTodayLogErrors::class)->count($this->resource),
             ],
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,

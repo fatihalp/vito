@@ -1,4 +1,5 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQueryState } from '@/hooks/use-query-state';
 import { ChevronRightIcon, FileTextIcon, ListIcon, LoaderCircleIcon, SearchIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,10 +16,10 @@ export default function ServiceLogViewer({ content, isLoading, error, hasSelecti
   error: string | null;
   hasSelection: boolean;
 }) {
-  const [search, setSearch] = useState('');
-  const [level, setLevel] = useState('all');
-  const [order, setOrder] = useState('newest');
-  const [view, setView] = useState<'entries' | 'raw'>('entries');
+  const [search, setSearch] = useQueryState('search', '');
+  const [level, setLevel] = useQueryState<string>('level', 'all');
+  const [order, setOrder] = useQueryState<string>('order', 'newest');
+  const [view, setView] = useQueryState<'entries' | 'raw'>('display', 'entries');
   const entries = useMemo(() => parseServiceLogs(content), [content]);
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();

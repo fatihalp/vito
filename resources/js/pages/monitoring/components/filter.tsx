@@ -17,6 +17,21 @@ import { Calendar } from '@/components/ui/calendar';
 import { DateRange } from 'react-day-picker';
 import { formatDateString } from '@/lib/utils';
 import { useConfigs } from '@/stores/bootstrap-store';
+import { useQueryState } from '@/hooks/use-query-state';
+
+export function useMetricsFilter(): [MetricsFilter | undefined, (filter: MetricsFilter) => void] {
+  const [period, setPeriod] = useQueryState('period', '');
+  const [from, setFrom] = useQueryState('from', '');
+  const [to, setTo] = useQueryState('to', '');
+
+  const setFilter = (filter: MetricsFilter) => {
+    setPeriod(filter.period);
+    setFrom(filter.from ?? '');
+    setTo(filter.to ?? '');
+  };
+
+  return [period ? { period, ...(from ? { from } : {}), ...(to ? { to } : {}) } : undefined, setFilter];
+}
 
 export default function Filter({ value, onValueChange }: { value?: MetricsFilter; onValueChange?: (filter: MetricsFilter) => void }) {
   const configs = useConfigs()!;

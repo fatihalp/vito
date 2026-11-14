@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import { toast } from 'sonner';
 import { AlertCircleIcon, RefreshCwIcon, SearchIcon, SkullIcon } from 'lucide-react';
 import { Server } from '@/types/server';
@@ -77,9 +78,9 @@ export default function Processes() {
     error: page.props.error,
   });
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [interval, setIntervalValue] = useState('0');
-  const [selectedUser, setSelectedUser] = useState<string>('all');
+  const [search, setSearch] = useQueryState('search', '');
+  const [interval, setIntervalValue] = useQueryState('interval', '0');
+  const [selectedUser, setSelectedUser] = useQueryState<string>('user', 'all');
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {

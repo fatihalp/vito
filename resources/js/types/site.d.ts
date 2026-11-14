@@ -67,6 +67,8 @@ export interface Site {
     domains: number | null;
     workers: number | null;
     resources: number | null;
+    cron_jobs: number;
+    log_errors_today: number | null;
   };
   basic_auth: {
     enabled: boolean;

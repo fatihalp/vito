@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Head, usePage, router } from '@inertiajs/react';
+import { useQueryFlag, useQueryState } from '@/hooks/use-query-state';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import {
@@ -315,10 +316,10 @@ export default function LogRotation() {
   const { server, logs } = usePage<Page>().props;
   const dialog = useDialog();
 
-  const [activeTab, setActiveTab] = useState<string>('all');
-  const [search, setSearch] = useState('');
-  const [hideEmpty, setHideEmpty] = useState(false);
-  const [sortBySize, setSortBySize] = useState(true);
+  const [activeTab, setActiveTab] = useQueryState<string>('service', 'all');
+  const [search, setSearch] = useQueryState('search', '');
+  const [hideEmpty, setHideEmpty] = useQueryFlag('hide_empty', false);
+  const [sortBySize, setSortBySize] = useQueryFlag('largest_first', true);
 
   const clearable = logs.filter((l) => l.clearable);
   const totalSize = logs.reduce((sum, l) => sum + (l.exists ? l.size_bytes : 0), 0);

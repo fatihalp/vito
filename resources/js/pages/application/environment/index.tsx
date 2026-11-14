@@ -1,5 +1,6 @@
 import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useQueryFlag, useQueryState } from '@/hooks/use-query-state';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Editor, useMonaco } from '@monaco-editor/react';
@@ -79,17 +80,17 @@ function EnvironmentEditorContent() {
 
   const [variables, setVariables] = useState<EnvVariable[]>([]);
   const [rawContent, setRawContent] = useState('');
-  const [mode, setMode] = useState<'classic' | 'variables'>('variables');
+  const [mode, setMode] = useQueryState<'classic' | 'variables'>('mode', 'variables');
   const [variablesDirty, setVariablesDirty] = useState(false);
   const [rawDirty, setRawDirty] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [canEdit, setCanEdit] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [searchFilter, setSearchFilter] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
+  const [searchFilter, setSearchFilter] = useQueryState('search', '');
+  const [showHistory, setShowHistory] = useQueryFlag('history', false);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
-  const [filterDuplicatesOnly, setFilterDuplicatesOnly] = useState(false);
+  const [filterDuplicatesOnly, setFilterDuplicatesOnly] = useQueryFlag('duplicates', false);
 
   const form = useForm<{ path: string; env?: string; variables?: Array<{ key: string; value: string; is_secret: boolean }> }>({
     path: envPath,
@@ -372,7 +373,7 @@ function EnvironmentEditorContent() {
                 type="button"
                 variant={showHistory ? 'secondary' : 'outline'}
                 size="sm"
-                onClick={() => setShowHistory((value) => !value)}
+                onClick={() => setShowHistory(!showHistory)}
                 className="h-9 gap-1.5 cursor-pointer text-xs"
               >
                 <HistoryIcon className="size-3.5" />
@@ -459,7 +460,7 @@ function EnvironmentEditorContent() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setFilterDuplicatesOnly((prev) => !prev)}
+                onClick={() => setFilterDuplicatesOnly(!filterDuplicatesOnly)}
                 className="h-7 text-xs bg-background/80 hover:bg-background border-neutral-500/30 cursor-pointer"
               >
                 {filterDuplicatesOnly ? 'Show all variables' : `Filter duplicates (${duplicateKeys.size})`}

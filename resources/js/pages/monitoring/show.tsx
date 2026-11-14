@@ -4,9 +4,7 @@ import ServerLayout from '@/layouts/server/layout';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import Container from '@/components/container';
-import Filter from '@/pages/monitoring/components/filter';
-import { useState } from 'react';
-import { MetricsFilter } from '@/types/metric';
+import Filter, { useMetricsFilter } from '@/pages/monitoring/components/filter';
 import CpuView from '@/pages/monitoring/components/cpu-view';
 import MemoryView from '@/pages/monitoring/components/memory-view';
 import DiskView from '@/pages/monitoring/components/disk-view';
@@ -23,7 +21,7 @@ export default function Show() {
     metric: string;
   }>();
 
-  const [filter, setFilter] = useState<MetricsFilter>();
+  const [filter, setFilter] = useMetricsFilter();
   const meta = titles[page.props.metric] ?? { title: page.props.metric, description: '' };
 
   return (
@@ -34,7 +32,7 @@ export default function Show() {
         <HeaderContainer>
           <Heading title={meta.title} description={meta.description} />
           <div className="flex items-center gap-2">
-            <Filter onValueChange={setFilter} />
+            <Filter value={filter} onValueChange={setFilter} />
           </div>
         </HeaderContainer>
 
