@@ -11,6 +11,7 @@ use App\Http\Middleware\MustBeAdminMiddleware;
 use App\Http\Middleware\PreventRequestForgery;
 use App\Http\Middleware\PreventRequestsDuringMaintenance;
 use App\Http\Middleware\RedirectIfAuthenticated;
+use App\Http\Middleware\RememberTableState;
 use App\Http\Middleware\ResolveCurrentProject;
 use App\Http\Middleware\TrackUserActivity;
 use App\Http\Middleware\TrimStrings;
@@ -57,6 +58,7 @@ class Kernel extends HttpKernel
             HandleInertiaRequests::class,
             EnsurePasswordIsChanged::class,
             TrackUserActivity::class,
+            RememberTableState::class,
         ],
 
         'webhook' => [

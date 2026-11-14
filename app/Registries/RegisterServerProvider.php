@@ -1,19 +1,17 @@
 <?php
 
-namespace App\Plugins;
+namespace App\Registries;
 
 use App\DTOs\DynamicForm;
 
-class RegisterDNSProvider
+class RegisterServerProvider
 {
     public function __construct(
         private string $name,
         private string $label = '',
         private string $handler = '',
         private ?DynamicForm $form = null,
-        private ?DynamicForm $editForm = null,
-        private array $proxyTypes = [],
-        private bool $supportsCreatedAt = true,
+        private string $defaultUser = '',
     ) {}
 
     public static function make(string $name): self
@@ -49,40 +47,24 @@ class RegisterDNSProvider
         return $this;
     }
 
-    public function editForm(DynamicForm $editForm): self
+    public function defaultUser(string $defaultUser): self
     {
-        $this->editForm = $editForm;
-
-        return $this;
-    }
-
-    public function proxyTypes(array $proxyTypes): self
-    {
-        $this->proxyTypes = $proxyTypes;
-
-        return $this;
-    }
-
-    public function supportsCreatedAt(bool $supportsCreatedAt): self
-    {
-        $this->supportsCreatedAt = $supportsCreatedAt;
+        $this->defaultUser = $defaultUser;
 
         return $this;
     }
 
     public function register(): void
     {
-        $providers = config('dns-provider.providers');
+        $providers = config('server-provider.providers');
 
         $providers[$this->name] = [
             'label' => $this->label,
             'handler' => $this->handler,
             'form' => $this->form ? $this->form->toArray() : [],
-            'edit_form' => $this->editForm ? $this->editForm->toArray() : [],
-            'proxy_types' => $this->proxyTypes,
-            'supports_created_at' => $this->supportsCreatedAt,
+            'default_user' => $this->defaultUser,
         ];
 
-        config(['dns-provider.providers' => $providers]);
+        config(['server-provider.providers' => $providers]);
     }
 }

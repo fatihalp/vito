@@ -48,7 +48,7 @@ Vito has a specific architecture. Match these patterns exactly:
 - **Resources** in `app/Http/Resources/`. Explicitly whitelist fields — never `parent::toArray()`. ALWAYS call `->getText()` / `->getColor()` on enum properties — never return raw enum values.
 - **Broadcasting** uses `SocketEvent::dispatch()` with a `SocketEventDTO` (`projectId`, `type` like `'server.updated'`, `data` typically a Resource).
 - **Bootstrap context**: shared catalogue data (provider lists, site types, GitHub App install state, public key text) is served from `App\Actions\Bootstrap\GetBootstrap` via `/bootstrap` and cached client-side via `useConfigs()`. Add new catalogue values to `GetBootstrap::configs()`, NOT to `HandleInertiaRequests::share()`. **Any Action that mutates DB/runtime state reflected in `configs()` must call `GetBootstrap::forgetVersion()` after the mutation** — otherwise the cached `bootstrap_version` never changes and clients see stale data forever. Keep `resources/js/types/index.d.ts` `Configs` in sync.
-- **Providers** (Server/DNS/Storage/SourceControl): Interface + AbstractProvider pattern. Extend the abstract (e.g. `AbstractServerProvider`), implement `static id(): string`. Register via plugin classes in `app/Plugins/`.
+- **Providers** (Server/DNS/Storage/SourceControl): Interface + AbstractProvider pattern. Extend the abstract (e.g. `AbstractServerProvider`), implement `static id(): string`. Register built-in providers via the registration classes in `app/Registries/`.
 - **Services** (database/webserver/PHP/etc.): extend `AbstractService`, implement `ServiceInterface`. Implement `static id()` and `static type()`. SSH scripts live in `resources/views/ssh/services/[service-name]/`.
 
 ## Laravel — Workflow

@@ -1,13 +1,14 @@
 <?php
 
-namespace App\Plugins;
+namespace App\Registries;
 
 use App\DTOs\DynamicForm;
 use RuntimeException;
 
-class RegisterServerFeatureAction
+class RegisterSiteFeatureAction
 {
     public function __construct(
+        public string $type,
         public string $feature,
         public string $name,
         public string $label = '',
@@ -15,9 +16,9 @@ class RegisterServerFeatureAction
         public ?DynamicForm $form = null,
     ) {}
 
-    public static function make(string $feature, string $name): self
+    public static function make(string $type, string $feature, string $name): self
     {
-        return new self($feature, $name);
+        return new self($type, $feature, $name);
     }
 
     public function label(string $label): self
@@ -43,15 +44,19 @@ class RegisterServerFeatureAction
 
     public function register(): void
     {
-        $feature = config('server.features.'.$this->feature);
+        if (! config()->has('site.types.'.$this->type)) {
+            throw new RuntimeException('Site types not found');
+        }
+
+        $feature = config('site.types.'.$this->type.'.features.'.$this->feature);
 
         if (! $feature) {
-            throw new RuntimeException("Feature '{$this->feature}' not found");
+            throw new RuntimeException("Feature '{$this->feature}' not found for type '{$this->type}'");
         }
 
         $actions = $feature['actions'] ?? [];
         if (isset($actions[$this->name])) {
-            throw new RuntimeException("Action '{$this->name}' already exists for feature '{$this->feature}'");
+            throw new RuntimeException("Action '{$this->name}' already exists for feature '{$this->feature}' in type '{$this->type}'");
         }
 
         $actions[$this->name] = [
@@ -60,6 +65,6 @@ class RegisterServerFeatureAction
             'form' => $this->form ? $this->form->toArray() : [],
         ];
 
-        config(['server.features.'.$this->feature.'.actions' => $actions]);
+        config(['site.types.'.$this->type.'.features.'.$this->feature.'.actions' => $actions]);
     }
 }

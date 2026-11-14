@@ -1,14 +1,12 @@
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
 import ServerLayout from '@/layouts/server/layout';
 import SiteBanners from '@/components/site-banners';
-import { TriangleAlertIcon } from 'lucide-react';
 import { Site, SiteFeature } from '@/types/site';
 import FeaturesCard from '@/components/features-card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function SiteFeatures() {
@@ -27,21 +25,10 @@ export default function SiteFeatures() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Features" description="Your site has some features enabled by Pure or other plugins" />
+          <Heading title="Features" description="Manage the built-in features available for your site" />
         </HeaderContainer>
 
         <SiteBanners site={page.props.site} />
-
-        <Alert>
-          <TriangleAlertIcon className="text-warning!" />
-          <AlertDescription className="flex gap-1">
-            Pure now uses the new plugins system. If the feature you're looking for is not here, check the
-            <Link className="text-primary" href={"/admin/plugins"}>
-              plugins
-            </Link>
-            and install the required one.
-          </AlertDescription>
-        </Alert>
 
         <FeaturesCard
           title="Site features"

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Plugins;
+namespace App\Registries;
 
 use App\DTOs\DynamicForm;
 use InvalidArgumentException;

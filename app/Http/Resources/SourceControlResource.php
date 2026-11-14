@@ -24,6 +24,7 @@ class SourceControlResource extends JsonResource
             'user_id' => $this->user_id,
             'global' => is_null($this->project_id),
             'name' => $this->profile,
+            'active_sites_count' => $this->whenHas('active_sites_count'),
             'provider' => $this->provider,
             'external_identifier' => $this->external_identifier,
             'ssh_port' => $this->when($supportsSshPort, fn () => $this->provider()->getSshPort()),
