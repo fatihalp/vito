@@ -18,12 +18,12 @@ class RefreshDatabaseSizes
             'database' => ['required', 'in:postgresql'],
         ])->validate();
 
-        if (! Cache::add($this->pendingKey($server), true, now()->addHour())) {
+        if (! Cache::add($this->pendingKey($server), 'queued', now()->addHour())) {
             return;
         }
 
         try {
-            RefreshDatabaseSizesJob::dispatch($server)->onQueue('ssh-checks');
+            RefreshDatabaseSizesJob::dispatch($server)->onConnection('ssh')->onQueue('ssh');
         } catch (Throwable $e) {
             $this->failed($server);
 
@@ -36,6 +36,7 @@ class RefreshDatabaseSizes
         return [
             ...Cache::get($this->resultKey($server), ['sizes' => [], 'checked_at' => null, 'failed' => false]),
             'checking' => Cache::has($this->pendingKey($server)),
+            'running' => Cache::get($this->pendingKey($server)) === 'running',
         ];
     }
 
@@ -48,6 +49,7 @@ class RefreshDatabaseSizes
             throw new RuntimeException('A ready PostgreSQL server is required to calculate database sizes.');
         }
 
+        Cache::put($this->pendingKey($server), 'running', now()->addHour());
         $sizes = $handler->getDatabaseSizes();
         $names = $server->databases()->pluck('name')->all();
 
@@ -62,7 +64,7 @@ class RefreshDatabaseSizes
     public function failed(Server $server): void
     {
         $previous = $this->cached($server);
-        unset($previous['checking']);
+        unset($previous['checking'], $previous['running']);
 
         Cache::forever($this->resultKey($server), [...$previous, 'failed' => true]);
         Cache::forget($this->pendingKey($server));

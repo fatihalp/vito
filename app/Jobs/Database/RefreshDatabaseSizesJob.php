@@ -14,7 +14,7 @@ class RefreshDatabaseSizesJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public int $timeout = 120;
+    public int $timeout = 30;
 
     public function __construct(protected Server $server) {}
 

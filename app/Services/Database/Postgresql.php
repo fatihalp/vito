@@ -36,12 +36,20 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
     public function getDatabaseSizes(): array
     {
         $output = $this->service->server->ssh()->exec(
-            view($this->getScriptView('get-database-sizes')),
+            view($this->getScriptView('get-database-sizes'), [
+                'databases' => $this->service->server->databases()->pluck('name')->all(),
+            ]),
             'get-database-sizes',
-            timeout: 100,
+            timeout: 20,
         );
 
-        return json_decode(trim($output), true, flags: JSON_THROW_ON_ERROR);
+        $sizes = [];
+
+        foreach (array_filter(explode("\n", trim($output))) as $line) {
+            $sizes = array_replace($sizes, json_decode($line, true, flags: JSON_THROW_ON_ERROR));
+        }
+
+        return $sizes;
     }
 
     public function databaseUserExists(Server $server, string $username, string $host, ?DatabaseUser $ignore = null): bool
