@@ -109,7 +109,6 @@ class GetRepoVitoConfig
             'workers' => $workers,
             'limits' => ! empty($limits) ? $limits : null,
             'environment' => $config['environment'] ?? ($config['env'] ?? null),
-            'database' => $config['database'] ?? null,
         ];
     }
 }

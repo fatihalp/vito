@@ -8,21 +8,14 @@ use App\Actions\CronJob\CreateCronJob;
 use App\Actions\Site\UpdatePHPSettings;
 use App\Actions\Worker\CreateWorker;
 use App\DTOs\SocketEventDTO;
-use App\Actions\SiteResource\ConnectSiteResource;
 use App\Enums\DeploymentStatus;
 use App\Enums\RedirectStatus;
-use App\Enums\ServiceStatus;
-use App\Enums\SiteResourceType;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHCommandError;
-use App\Helpers\EnvParser;
 use App\Http\Resources\DeploymentResource;
-use App\Jobs\Service\UpdateVitoAgentConfigJob;
 use App\Models\Deployment;
 use App\Models\Redirect;
-use App\Models\Server;
 use App\Models\ServerLog;
-use App\Models\Service;
 use App\Models\Site;
 use App\Models\SourceControl;
 use RuntimeException;
@@ -206,7 +199,6 @@ class VitoSite extends PHPSite
         $log->save();
 
         $this->ensureEnvironmentFile($config, $log);
-        $this->setupDatabase($config, $log);
 
         $commands = $config['commands'] ?? [];
         if (! empty($commands)) {
@@ -223,147 +215,6 @@ class VitoSite extends PHPSite
         $this->setupCronJobs($config['crons'] ?? []);
         $this->setupWorkers($config['workers'] ?? []);
     }
-
-    private function setupDatabase(array $config, ?ServerLog $log = null): void
-    {
-        $server = $this->site->server;
-
-        if ($this->site->resources()->where('type', SiteResourceType::DATABASE->value)->exists()) {
-            $log?->write("Database resource is already connected to site #{$this->site->id}, skipping.\n");
-
-            return;
-        }
-
-        $dbConfig = $config['database'] ?? null;
-        if ($dbConfig === false || $dbConfig === 'none') {
-            return;
-        }
-
-        $commands = array_merge($config['install_commands'] ?? [], $config['commands'] ?? []);
-        $hasMigrate = false;
-        foreach ($commands as $cmd) {
-            if (is_string($cmd) && (str_contains($cmd, 'migrate') || str_contains($cmd, 'alobot:install') || str_contains($cmd, 'db:seed'))) {
-                $hasMigrate = true;
-                break;
-            }
-        }
-
-        $isLaravel = ($config['type'] ?? '') === 'laravel';
-        if (! $dbConfig && ! $hasMigrate && ! $isLaravel) {
-            return;
-        }
-
-        $service = $server->database();
-        if (! $service) {
-            $driver = $this->detectDatabaseDriver($config);
-            $log?->write("No database service found on server #{$server->id}. Automatically installing {$driver}...\n");
-            $service = $this->autoInstallDatabaseService($server, $driver, $log);
-            if (! $service) {
-                $msg = "Server #{$server->id} has no database service and auto-installation of {$driver} failed.";
-                $log?->write("Error: {$msg}\n");
-
-                throw new RuntimeException($msg);
-            }
-            $server->unsetRelation('services');
-        }
-
-        $dbName = 'site_'.$this->site->id;
-
-        $log?->write("Auto-provisioning database '{$dbName}' on server #{$server->id}...\n");
-
-        try {
-            app(ConnectSiteResource::class)->connect($this->site, [
-                'type' => SiteResourceType::DATABASE->value,
-                'server_id' => $server->id,
-                'database_name' => $dbName,
-                'confirm_overwrite' => true,
-            ]);
-
-            $log?->write("Database '{$dbName}' successfully provisioned and connected.\n\n");
-        } catch (Throwable $e) {
-            $errorMsg = "Failed to auto-provision database '{$dbName}' for site #{$this->site->id}: {$e->getMessage()}";
-            $log?->write("Error: {$errorMsg}\n");
-            Log::error($errorMsg, ['exception' => $e]);
-
-            throw new RuntimeException($errorMsg, previous: $e);
-        }
-    }
-
-    private function detectDatabaseDriver(array $config): string
-    {
-        $dbConfig = $config['database'] ?? null;
-        if (is_array($dbConfig) && ! empty($dbConfig['type'])) {
-            $type = strtolower((string) $dbConfig['type']);
-            if (in_array($type, ['pgsql', 'postgres', 'postgresql'], true)) {
-                return 'postgresql';
-            }
-            if (in_array($type, ['mysql', 'mariadb'], true)) {
-                return 'mysql';
-            }
-        }
-
-        if (is_string($dbConfig) && in_array(strtolower($dbConfig), ['postgresql', 'pgsql', 'postgres'], true)) {
-            return 'postgresql';
-        }
-
-        try {
-            $path = $this->site->resolveEnvPath();
-            $raw = $this->site->getEnv($path);
-            $parsed = EnvParser::parse($raw);
-            $conn = strtolower((string) ($parsed['DB_CONNECTION']['value'] ?? ''));
-            if (str_contains($conn, 'pgsql') || str_contains($conn, 'postgres')) {
-                return 'postgresql';
-            }
-            if (str_contains($conn, 'mysql') || str_contains($conn, 'mariadb')) {
-                return 'mysql';
-            }
-        } catch (Throwable) {
-        }
-
-        return 'mysql';
-    }
-
-    private function autoInstallDatabaseService(Server $server, string $serviceName, ?ServerLog $log = null): ?Service
-    {
-        try {
-            $version = (string) (config("service.services.{$serviceName}.versions")[0] ?? ($serviceName === 'postgresql' ? '17' : '8.4'));
-
-            $service = new Service([
-                'server_id' => $server->id,
-                'name' => $serviceName,
-                'type' => 'database',
-                'version' => $version,
-                'status' => ServiceStatus::INSTALLING,
-                'is_default' => true,
-            ]);
-            $service->save();
-            $service->newLog();
-
-            $log?->write("Installing {$serviceName} {$version} on server #{$server->id}...\n");
-
-            $handler = $service->handler();
-            $handler->install();
-            $service->status = ServiceStatus::READY;
-            $service->installed_version = $handler->version();
-            $service->save();
-
-            UpdateVitoAgentConfigJob::dispatchFor($service);
-
-            $log?->write("{$serviceName} {$version} installed successfully.\n");
-
-            return $service;
-        } catch (Throwable $e) {
-            $log?->write("Failed to install {$serviceName}: {$e->getMessage()}\n");
-            Log::error("Failed to auto-install {$serviceName} for server #{$server->id}: {$e->getMessage()}", ['exception' => $e]);
-
-            if (isset($service) && $service->exists) {
-                $service->forceFill(['status' => ServiceStatus::INSTALLATION_FAILED, 'is_default' => false])->save();
-            }
-
-            return null;
-        }
-    }
-
 
     private function setupLimits(array $config): void
     {

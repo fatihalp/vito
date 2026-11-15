@@ -41,7 +41,6 @@ type VitoConfigData = {
   crons?: Array<{ name?: string; command: string; frequency?: string }>;
   workers?: Array<{ name: string; command: string; numprocs?: number }>;
   environment?: Record<string, string> | string | null;
-  database?: any;
   limits?: {
     client_max_body_size?: string | number;
     upload_max_filesize?: string | number;
