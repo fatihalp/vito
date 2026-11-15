@@ -25,6 +25,16 @@ class GetLatestCommit
             return null;
         }
 
-        return [...$commit, 'deployed' => $commit['commit_id'] === $site->deployedCommitId()];
+        $deployedCommitId = $site->deployedCommitId();
+        $deployed = $commit['commit_id'] === $deployedCommitId;
+        $behind = ! $deployed && $deployedCommitId
+            ? (app(GetCommitsBehind::class)->refresh($site, $deployedCommitId)['behind'] ?? null)
+            : null;
+
+        return [
+            ...$commit,
+            'deployed' => $deployed,
+            'behind' => $behind,
+        ];
     }
 }

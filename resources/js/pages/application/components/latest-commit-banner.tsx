@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import moment from 'moment';
 import { AlertTriangleIcon, GitCommitHorizontalIcon, XIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import CommitSummary from '@/pages/application/components/commit-summary';
 import { parseCommitMessage } from '@/lib/commit-message';
@@ -42,7 +43,12 @@ export default function LatestCommitBanner({
       <GitCommitHorizontalIcon className="text-info size-4 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2 text-sm">
-          <span className="text-info shrink-0 font-medium">New commit on {site.branch}</span>
+          <span className="text-info shrink-0 font-medium">New</span>
+          {typeof latestCommit.behind === 'number' && latestCommit.behind > 0 && (
+            <Badge variant="warning" className="shrink-0">
+              {latestCommit.behind} behind
+            </Badge>
+          )}
           <CommitSummary commit={commit} />
         </div>
         {(commit.name || commit.date) && (
