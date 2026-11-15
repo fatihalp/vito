@@ -12,6 +12,7 @@ use App\Actions\Worker\SyncWorkerStatuses;
 use App\Actions\Worker\UpdateWorkerEnvironment;
 use App\Actions\Worker\WorkerEnvironmentUpdateResult;
 use App\Enums\ServerRole;
+use App\Exceptions\AppError;
 use App\Helpers\EnvParser;
 use App\Helpers\QueryBuilder;
 use App\Http\Resources\WorkerLogResource;
@@ -41,6 +42,7 @@ class WorkerController extends Controller
     #[Get('/workers', name: 'workers')]
     public function index(Server $server): Response
     {
+        $this->ensureProcessManagerInstalled($server);
         $this->authorize('viewAny', [Worker::class, $server]);
 
         $query = $server->workers()->with(['site:id,server_id,type_data', 'creator:id,name,email']);
@@ -57,6 +59,7 @@ class WorkerController extends Controller
     #[Get('/sites/{site}/workers', name: 'workers.site')]
     public function site(Server $server, Site $site): Response
     {
+        $this->ensureProcessManagerInstalled($server);
         $this->authorize('viewAny', [Worker::class, $server, $site]);
 
         return Inertia::render('workers/index', [
@@ -260,5 +263,12 @@ class WorkerController extends Controller
 
         return back()
             ->with('info', 'Worker is being deleted.');
+    }
+
+    private function ensureProcessManagerInstalled(Server $server): void
+    {
+        if ($server->isReady() && ! $server->processManager()) {
+            throw new AppError(__('Workers need a process manager, but this server has none. Install Supervisor from Settings → Services, then open Workers again.'));
+        }
     }
 }
