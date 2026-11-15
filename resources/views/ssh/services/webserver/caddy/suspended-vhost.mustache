@@ -1,0 +1,60 @@
+{{#server_blocks}}
+{{#domains}}{{address}} {{/domains}}{
+    import access_log {{primary_domain}}
+    import security_headers
+
+    {{#has_tls}}
+    tls {{ssl_certificate_path}} {{ssl_certificate_key_path}}
+    {{/has_tls}}
+
+    {{#verification_key}}
+    handle_path /.well-known/vito/{{verification_key}}/* {
+        root * /var/lib/vito/verify/{{verification_key}}
+        header Cache-Control "no-store"
+        file_server
+    }
+    {{/verification_key}}
+
+    handle {
+        header Content-Type "text/html; charset=utf-8"
+        header Cache-Control "no-store"
+        respond "<!DOCTYPE html><html lang=en><head><meta charset=utf-8><meta name=robots content=noindex><title>Site suspended</title></head><body><h1>This site is suspended</h1></body></html>" 503
+    }
+}
+
+{{/server_blocks}}
+
+{{#has_http_verification}}
+{{#http_verification_domains}}{{address}} {{/http_verification_domains}}{
+    handle_path /.well-known/vito/{{verification_key}}/* {
+        root * /var/lib/vito/verify/{{verification_key}}
+        header Cache-Control "no-store"
+        file_server
+    }
+
+    handle {
+        redir https://{host}{uri} permanent
+    }
+}
+
+{{/has_http_verification}}
+{{#redirect_blocks}}
+{{#domains}}{{address}} {{/domains}}{
+    {{#has_tls}}
+    tls {{ssl_certificate_path}} {{ssl_certificate_key_path}}
+    {{/has_tls}}
+
+    {{#verification_key}}
+    handle_path /.well-known/vito/{{verification_key}}/* {
+        root * /var/lib/vito/verify/{{verification_key}}
+        header Cache-Control "no-store"
+        file_server
+    }
+    {{/verification_key}}
+
+    handle {
+        redir {{redirect_scheme}}://{{redirect_target}}{uri} permanent
+    }
+}
+
+{{/redirect_blocks}}

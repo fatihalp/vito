@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\DNSProviders\Cloudflare;
 use App\DTOs\DynamicField;
 use App\DTOs\DynamicForm;
-use App\Plugins\RegisterDNSProvider;
+use App\Registries\RegisterDNSProvider;
 use Illuminate\Support\ServiceProvider;
 
 class DNSProviderServiceProvider extends ServiceProvider

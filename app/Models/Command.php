@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Command extends AbstractModel
@@ -60,11 +59,5 @@ class Command extends AbstractModel
     public function executions(): HasMany
     {
         return $this->hasMany(CommandExecution::class);
-    }
-
-    
-    public function lastExecution(): HasOne
-    {
-        return $this->hasOne(CommandExecution::class)->latest();
     }
 }

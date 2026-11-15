@@ -1,15 +1,6 @@
 import { useTranslate } from '@/hooks/use-translate';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { FormEvent, ReactNode, useEffect, useState } from 'react';
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { LoaderCircle } from 'lucide-react';
 import { useForm } from '@inertiajs/react';
@@ -21,31 +12,14 @@ import { Form, FormField, FormFields } from '@/components/ui/form';
 
 export default function ProjectForm({
   project,
-  open: controlledOpen,
-  defaultOpen,
+  open,
   onOpenChange,
-  children,
 }: {
   project?: Project;
-  open?: boolean;
-  defaultOpen?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  children?: ReactNode;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const translateText = useTranslate();
-  const [localOpen, setOpen] = useState(defaultOpen || false);
-  const open = controlledOpen ?? localOpen;
-  useEffect(() => {
-    setOpen(defaultOpen || false);
-  }, [defaultOpen]);
-
-  const handleOpenChange = (open: boolean) => {
-    setOpen(open);
-    if (onOpenChange) {
-      onOpenChange(open);
-    }
-  };
-
   const form = useForm({
     name: project?.name || '',
   });
@@ -56,7 +30,7 @@ export default function ProjectForm({
     if (project) {
       form.patch(`/settings/projects/${project.id}`, {
         onSuccess() {
-          handleOpenChange(false);
+          onOpenChange(false);
         },
       });
       return;
@@ -64,14 +38,13 @@ export default function ProjectForm({
 
     form.post('/settings/projects', {
       onSuccess() {
-        handleOpenChange(false);
+        onOpenChange(false);
       },
     });
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      {children && <DialogTrigger asChild>{children}</DialogTrigger>}
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{project ? translateText("Edit Project") : translateText("Create Project")}</DialogTitle>

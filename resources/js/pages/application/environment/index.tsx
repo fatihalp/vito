@@ -1,6 +1,7 @@
 import { useTranslate } from '@/hooks/use-translate';
 import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { useQueryFlag, useQueryState } from '@/hooks/use-query-state';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Editor, useMonaco } from '@/components/ui/code-editor';
@@ -44,6 +45,7 @@ import EnvHistory from '@/pages/application/components/env-history';
 import { generateUniqueKey } from '@/lib/env';
 import { cn, rowId } from '@/lib/utils';
 import { errorMessage } from '@/lib/errors';
+import { toast } from 'sonner';
 
 type ParsedVariable = { key: string; value: string; is_secret: boolean; managed_by?: string };
 
@@ -80,17 +82,17 @@ function EnvironmentEditorContent() {
 
   const [variables, setVariables] = useState<EnvVariable[]>([]);
   const [rawContent, setRawContent] = useState('');
-  const [mode, setMode] = useState<'classic' | 'variables'>('variables');
+  const [mode, setMode] = useQueryState<'classic' | 'variables'>('mode', 'variables');
   const [variablesDirty, setVariablesDirty] = useState(false);
   const [rawDirty, setRawDirty] = useState(false);
   const [isSwitching, setIsSwitching] = useState(false);
   const [canEdit, setCanEdit] = useState<boolean | undefined>(undefined);
   const [saveSuccess, setSaveSuccess] = useState(false);
-  const [searchFilter, setSearchFilter] = useState('');
-  const [showHistory, setShowHistory] = useState(false);
+  const [searchFilter, setSearchFilter] = useQueryState('search', '');
+  const [showHistory, setShowHistory] = useQueryFlag('history', false);
   const [generatingKey, setGeneratingKey] = useState(false);
   const [duplicateModalOpen, setDuplicateModalOpen] = useState(false);
-  const [filterDuplicatesOnly, setFilterDuplicatesOnly] = useState(false);
+  const [filterDuplicatesOnly, setFilterDuplicatesOnly] = useQueryFlag('duplicates', false);
 
   const form = useForm<{ path: string; env?: string; variables?: Array<{ key: string; value: string; is_secret: boolean }> }>({
     path: envPath,
@@ -160,8 +162,7 @@ function EnvironmentEditorContent() {
     form.put(`/servers/${server.id}/sites/${site.id}/env`, {
       preserveScroll: true,
       onSuccess: () => {
-        setVariablesDirty(false);
-        setRawDirty(false);
+        query.refetch();
         setSaveSuccess(true);
         setTimeout(() => setSaveSuccess(false), 3000);
       },
@@ -277,8 +278,8 @@ function EnvironmentEditorContent() {
         );
         setRawContent(response.data?.env ?? '');
         setMode('classic');
-      } catch {
-        void 0;
+      } catch (error) {
+        toast.error(errorMessage(error, 'Could not switch editor mode'));
       } finally {
         setIsSwitching(false);
       }
@@ -313,8 +314,8 @@ function EnvironmentEditorContent() {
       );
       setVariablesDirty(false);
       setMode('variables');
-    } catch {
-      void 0;
+    } catch (error) {
+      toast.error(errorMessage(error, 'Could not switch editor mode'));
     } finally {
       setIsSwitching(false);
     }
@@ -374,7 +375,7 @@ function EnvironmentEditorContent() {
                 type="button"
                 variant={showHistory ? 'secondary' : 'outline'}
                 size="sm"
-                onClick={() => setShowHistory((value) => !value)}
+                onClick={() => setShowHistory(!showHistory)}
                 className="h-9 gap-1.5 cursor-pointer text-xs"
               >
                 <HistoryIcon className="size-3.5" />
@@ -460,7 +461,7 @@ function EnvironmentEditorContent() {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => setFilterDuplicatesOnly((prev) => !prev)}
+                onClick={() => setFilterDuplicatesOnly(!filterDuplicatesOnly)}
                 className="h-7 text-xs bg-background/80 hover:bg-background border-neutral-500/30 cursor-pointer"
               >
                 {filterDuplicatesOnly ? translateText("Show all variables") : `Filter duplicates (${duplicateKeys.size})`}

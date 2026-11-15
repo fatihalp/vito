@@ -62,6 +62,12 @@ class ManageServerIp
     
     public function setPrimary(ServerIpAddress $address): void
     {
+        if ($address->status !== IpAddressStatus::CONFIGURED) {
+            throw ValidationException::withMessages([
+                'ip' => __('Only a configured IP address can be made primary.'),
+            ]);
+        }
+
         $server = $address->server;
         $endpointChanged = $address->type !== IpAddressType::PRIVATE && $server->ip !== $address->ip;
 
@@ -94,6 +100,12 @@ class ManageServerIp
         if (! $address->is_managed) {
             throw ValidationException::withMessages([
                 'ip' => __('Only manually added IP addresses can be removed.'),
+            ]);
+        }
+
+        if ($address->is_primary) {
+            throw ValidationException::withMessages([
+                'ip' => __('The primary IP address cannot be removed. Make another address primary first.'),
             ]);
         }
 

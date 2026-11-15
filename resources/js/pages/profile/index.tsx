@@ -1,5 +1,6 @@
 import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, usePage } from '@inertiajs/react';
+import { useQueryState } from '@/hooks/use-query-state';
 import SettingsLayout from '@/layouts/settings/layout';
 import AuthLayout from '@/layouts/auth/layout';
 import Container from '@/components/container';
@@ -8,7 +9,6 @@ import UpdateProfile from '@/pages/profile/components/update-profile';
 import Heading from '@/components/heading';
 import TwoFactor from '@/pages/profile/components/two-factor';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useState } from 'react';
 import { SharedData } from '@/types';
 import { Button } from '@/components/ui/button';
 
@@ -16,7 +16,7 @@ export default function Profile() {
   const translateText = useTranslate();
   const page = usePage<SharedData>();
   const mustChangePassword = page.props.auth.user.must_change_password;
-  const [tab, setTab] = useState(mustChangePassword ? 'password' : 'info');
+  const [tab, setTab] = useQueryState('tab', mustChangePassword ? 'password' : 'info');
 
   if (mustChangePassword) {
     return (

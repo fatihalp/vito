@@ -158,11 +158,12 @@ class SSH
             }
             $command = $envPrefix.'set -e; '.$command;
             if ($this->asUser !== null && $this->asUser !== '' && $this->asUser !== '0') {
+                $delimiter = 'VITO_'.Str::random(16);
                 $command = <<<BASH
-                sudo -u {$this->asUser} bash <<'EOF'
+                sudo -u {$this->asUser} bash <<'{$delimiter}'
                 cd ~ || { echo 'VITO_SSH_ERROR: failed to cd to home directory' >&2; exit 1; }
                 {$command}
-                EOF
+                {$delimiter}
                 BASH;
             }
 

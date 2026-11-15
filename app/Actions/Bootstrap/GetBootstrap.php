@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class GetBootstrap
 {
-    public const string VERSION_CACHE_KEY = 'bootstrap.version';
+    public const string VERSION_CACHE_KEY = 'bootstrap.version.v2';
 
     
     private ?array $cachedConfigs = null;

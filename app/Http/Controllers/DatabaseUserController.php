@@ -83,6 +83,7 @@ class DatabaseUserController extends Controller
     #[Put('/{databaseUser}', name: 'database-users.update')]
     public function update(Request $request, Server $server, DatabaseUser $databaseUser): RedirectResponse
     {
+        abort_unless($databaseUser->server_id === $server->id, 404);
         $this->authorize('update', [$databaseUser, $server]);
 
         app(UpdateDatabaseUser::class)->update($databaseUser, $request->all());
@@ -94,6 +95,7 @@ class DatabaseUserController extends Controller
     #[Put('/link/{databaseUser}', name: 'database-users.link')]
     public function link(Request $request, Server $server, DatabaseUser $databaseUser): RedirectResponse
     {
+        abort_unless($databaseUser->server_id === $server->id, 404);
         $this->authorize('update', [$databaseUser, $server]);
 
         app(LinkUser::class)->link($databaseUser, $request->all());
@@ -105,6 +107,7 @@ class DatabaseUserController extends Controller
     #[Delete('/{databaseUser}', name: 'database-users.destroy')]
     public function destroy(Server $server, DatabaseUser $databaseUser): RedirectResponse
     {
+        abort_unless($databaseUser->server_id === $server->id, 404);
         $this->authorize('delete', [$databaseUser, $server]);
 
         app(DeleteDatabaseUser::class)->delete($server, $databaseUser);

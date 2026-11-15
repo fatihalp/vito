@@ -1,5 +1,4 @@
 import * as React from 'react';
-import { cva, type VariantProps } from 'class-variance-authority';
 import { CheckIcon, ChevronDown, XIcon } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -9,20 +8,9 @@ import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList, CommandSeparator } from '@/components/ui/command';
 
+const badgeClassName = 'm-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300';
 
-const multiSelectVariants = cva('m-1 transition ease-in-out delay-150 hover:-translate-y-1 hover:scale-110 duration-300', {
-  variants: {
-    variant: {
-      inverted: 'inverted',
-    },
-  },
-  defaultVariants: {
-    variant: 'inverted',
-  },
-});
-
-
-interface MultiSelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof multiSelectVariants> {
+interface MultiSelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   
   options: {
     
@@ -43,9 +31,6 @@ interface MultiSelectProps extends React.ButtonHTMLAttributes<HTMLButtonElement>
   placeholder?: string;
 
   
-  animation?: number;
-
-  
   maxCount?: number;
 
   
@@ -63,10 +48,8 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
     {
       options,
       onValueChange,
-      variant,
       defaultValue = [],
       placeholder = 'Select options',
-      animation = 0,
       maxCount = 3,
       modalPopover = false,
       className,
@@ -76,7 +59,6 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
   ) => {
     const [selectedValues, setSelectedValues] = React.useState<string[]>(defaultValue);
     const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
-    const [isAnimating] = React.useState(false);
 
     const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
@@ -136,8 +118,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                     return (
                       <Badge
                         key={value}
-                        className={cn(isAnimating ? 'animate-bounce' : '', multiSelectVariants({ variant }))}
-                        style={{ animationDuration: `${animation}s` }}
+                        className={badgeClassName}
                         onClick={(event) => {
                           event.stopPropagation();
                           toggleOption(value);
@@ -150,12 +131,7 @@ export const MultiSelect = React.forwardRef<HTMLButtonElement, MultiSelectProps>
                   })}
                   {selectedValues.length > maxCount && (
                     <Badge
-                      className={cn(
-                        'text-foreground border-foreground/1 bg-transparent hover:bg-transparent',
-                        isAnimating ? 'animate-bounce' : '',
-                        multiSelectVariants({ variant }),
-                      )}
-                      style={{ animationDuration: `${animation}s` }}
+                      className={cn('text-foreground border-foreground/1 bg-transparent hover:bg-transparent', badgeClassName)}
                     >
                       {`+ ${selectedValues.length - maxCount} more`}
                     </Badge>

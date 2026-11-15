@@ -4,12 +4,10 @@ namespace App\Policies;
 
 use App\Models\SourceControl;
 use App\Models\User;
-use App\Traits\ChecksTokenProjectScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SourceControlPolicy
 {
-    use ChecksTokenProjectScope;
     use HandlesAuthorization;
 
     public function viewAny(User $user): bool
@@ -19,8 +17,7 @@ class SourceControlPolicy
 
     public function view(User $user, SourceControl $sourceControl): bool
     {
-        return $user->isAdmin() || ($user->id === $sourceControl->user_id
-            && $user->tokenAllowsProject($sourceControl->project_id));
+        return $user->isAdmin() || ($user->id === $sourceControl->user_id);
     }
 
     public function create(User $user): bool
@@ -30,8 +27,7 @@ class SourceControlPolicy
 
     public function update(User $user, SourceControl $sourceControl): bool
     {
-        return $user->isAdmin() || ($user->id === $sourceControl->user_id
-            && $user->tokenAllowsProject($sourceControl->project_id, write: true));
+        return $user->isAdmin() || ($user->id === $sourceControl->user_id);
     }
 
     public function delete(User $user, SourceControl $sourceControl): bool
@@ -40,7 +36,6 @@ class SourceControlPolicy
             return false;
         }
 
-        return $user->isAdmin() || ($user->id === $sourceControl->user_id
-            && $user->tokenAllowsProject($sourceControl->project_id, write: true));
+        return $user->isAdmin() || ($user->id === $sourceControl->user_id);
     }
 }

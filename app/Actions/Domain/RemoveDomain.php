@@ -18,6 +18,6 @@ class RemoveDomain
             ]);
         }
 
-        $domain->delete();
+        $domain->forceDelete();
     }
 }

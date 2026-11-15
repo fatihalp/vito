@@ -33,6 +33,25 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
         return false;
     }
 
+    public function getDatabaseSizes(): array
+    {
+        $output = $this->service->server->ssh()->exec(
+            view($this->getScriptView('get-database-sizes'), [
+                'databases' => $this->service->server->databases()->pluck('name')->all(),
+            ]),
+            'get-database-sizes',
+            timeout: 20,
+        );
+
+        $sizes = [];
+
+        foreach (array_filter(explode("\n", trim($output))) as $line) {
+            $sizes = array_replace($sizes, json_decode($line, true, flags: JSON_THROW_ON_ERROR));
+        }
+
+        return $sizes;
+    }
+
     public function databaseUserExists(Server $server, string $username, string $host, ?DatabaseUser $ignore = null): bool
     {
         return $server->databaseUsers()
@@ -183,7 +202,14 @@ class Postgresql extends AbstractDatabase implements HasLogs, SupportsNetworking
                 serviceLabel: 'PostgreSQL',
                 label: 'Service journal',
                 source: ServiceLog::SOURCE_JOURNAL,
-                target: 'postgresql.service',
+                target: 'postgresql@'.$this->service->version.'-main.service',
+            ),
+            new ServiceLog(
+                key: 'postgresql:server',
+                serviceLabel: 'PostgreSQL',
+                label: 'Database log',
+                source: ServiceLog::SOURCE_FILE,
+                target: '/var/log/postgresql/postgresql-'.$this->service->version.'-main.log',
             ),
         ];
     }

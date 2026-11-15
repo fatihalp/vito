@@ -5,9 +5,10 @@ namespace App\Actions\DatabaseReplica;
 use App\Http\Resources\DatabaseReplicaMetricResource;
 use App\Models\DatabaseReplica;
 use App\Models\DatabaseReplicaMetric;
-use Illuminate\Support\Collection;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use stdClass;
 
 class GetDatabaseReplicaMetrics
 {
@@ -15,41 +16,36 @@ class GetDatabaseReplicaMetrics
 
     private const MAX_POINTS = 240;
 
+    private const WORST_COLUMNS = ['lag_bytes', 'replay_delay_seconds', 'write_lag_ms', 'flush_lag_ms', 'replay_lag_ms', 'slot_retained_bytes'];
+
     public function get(DatabaseReplica $replica, array $input): array
     {
         $period = Validator::make($input, [
             'period' => ['sometimes', Rule::in(array_keys(self::PERIODS))],
         ])->validate()['period'] ?? '24h';
 
-        $metrics = $replica->metrics()
+        $bucketSeconds = (int) ceil(self::PERIODS[$period] * 60 / self::MAX_POINTS);
+
+        $buckets = $replica->metrics()
             ->where('created_at', '>=', now()->subMinutes(self::PERIODS[$period]))
-            ->orderBy('created_at')
+            ->selectRaw(
+                'MAX(id) as last_id, '.implode(', ', array_map(fn (string $column): string => "MAX({$column}) as {$column}", self::WORST_COLUMNS))
+                .", CAST(strftime('%s', created_at) / ? AS INTEGER) as bucket",
+                [$bucketSeconds],
+            )
+            ->groupByRaw('bucket')
+            ->orderBy('bucket')
+            ->toBase()
             ->get();
 
-        $size = max(1, (int) ceil($metrics->count() / self::MAX_POINTS));
+        $lastMetrics = DatabaseReplicaMetric::query()->findMany($buckets->pluck('last_id'))->keyBy('id');
 
         return [
             'period' => $period,
-            'metrics' => $metrics
-                ->chunk($size)
-                ->map(fn (Collection $bucket): array => $this->bucket($bucket))
-                ->values(),
-        ];
-    }
-
-    private function bucket(Collection $bucket): array
-    {
-        $last = $bucket->last();
-        $worst = fn (string $key): float|int|null => $bucket->whereNotNull($key)->max($key);
-
-        return [
-            ...DatabaseReplicaMetricResource::make($last)->resolve(),
-            'lag_bytes' => $worst('lag_bytes'),
-            'replay_delay_seconds' => $worst('replay_delay_seconds'),
-            'write_lag_ms' => $worst('write_lag_ms'),
-            'flush_lag_ms' => $worst('flush_lag_ms'),
-            'replay_lag_ms' => $worst('replay_lag_ms'),
-            'slot_retained_bytes' => $worst('slot_retained_bytes'),
+            'metrics' => $buckets->map(fn (stdClass $bucket): array => [
+                ...DatabaseReplicaMetricResource::make($lastMetrics[$bucket->last_id])->resolve(),
+                ...Arr::only((array) $bucket, self::WORST_COLUMNS),
+            ]),
         ];
     }
 }

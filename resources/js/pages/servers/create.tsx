@@ -572,6 +572,7 @@ export default function CreateServerPage({
 
   const createServer = () => {
     if (!roleConfirmed) {
+      toast.error('Select a server role before creating the server.');
       return;
     }
     form.post('/servers', {
@@ -1113,7 +1114,7 @@ export default function CreateServerPage({
                           }}
                           className={cn(
                             'rounded-lg border py-2 text-center text-xs font-medium capitalize transition-colors cursor-pointer',
-                            form.data.role === r
+                            roleConfirmed && form.data.role === r
                               ? 'border-primary bg-primary/10 text-primary font-semibold'
                               : 'border-border text-muted-foreground hover:bg-muted/50',
                           )}
@@ -1193,7 +1194,7 @@ export default function CreateServerPage({
                     {translateText('Next')} <ArrowRightIcon className="ml-1.5 size-4" />
                   </Button>
                 ) : (
-                  <Button type="button" onClick={createServer} disabled={form.processing || !roleConfirmed}>
+                  <Button type="button" onClick={createServer} disabled={form.processing}>
                     {form.processing && <LoaderCircle className="mr-1.5 animate-spin size-4" />}
                     {isExisting ? translateText("Connect Server") : translateText("Create Server")}
                   </Button>

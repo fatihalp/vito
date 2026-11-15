@@ -22,6 +22,10 @@ class GetSiteWarnings
 
         $warnings = [];
 
+        if ($site->isSuspended()) {
+            $warnings[] = ['key' => 'suspended'];
+        }
+
         $hostedDomains = $site->relationLoaded('hostedDomains') ? $site->hostedDomains : collect();
 
         $pendingDomains = $hostedDomains->where('status', HostedDomainStatus::PENDING);

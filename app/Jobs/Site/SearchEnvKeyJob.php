@@ -15,12 +15,17 @@ class SearchEnvKeyJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected User $user, protected string $key, protected string $searchId) {}
+    protected array $projectIds = [];
+
+    public function __construct(protected User $user, protected string $key, protected string $searchId, array $projectIds)
+    {
+        $this->projectIds = $projectIds;
+    }
 
     public function handle(): void
     {
         $this->run("env-search:{$this->searchId}", function (): void {
-            $results = app(SearchEnvKey::class)->search($this->user, $this->key);
+            $results = app(SearchEnvKey::class)->search($this->user, $this->key, $this->projectIds);
 
             Cache::put(
                 "env-search-result:{$this->searchId}",

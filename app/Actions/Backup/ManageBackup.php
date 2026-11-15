@@ -24,13 +24,10 @@ class ManageBackup
 
         $this->validate($server, $input);
 
-        $backupType = BackupType::from($input['type'] ?? BackupType::DATABASE->value);
-
         $backup = new Backup([
-            'type' => $backupType,
+            'type' => BackupType::DATABASE,
             'server_id' => $server->id,
-            'database_id' => $backupType === BackupType::DATABASE ? $input['database'] : null,
-            'path' => $backupType === BackupType::FILE ? $input['path'] : null,
+            'database_id' => $input['database'],
             'storage_id' => $input['storage'],
             'interval' => $input['interval'] == 'custom' ? $input['custom_interval'] : $input['interval'],
             'keep_backups' => $input['keep'],
@@ -51,7 +48,7 @@ class ManageBackup
             return;
         }
 
-        Validator::make($input, $this->scheduleRules())->validate();
+        Validator::make($input, $this->scheduleRules($input))->validate();
 
         $backup->interval = $input['interval'] == 'custom' ? $input['custom_interval'] : $input['interval'];
         $backup->keep_backups = $input['keep'];
@@ -98,44 +95,52 @@ class ManageBackup
 
     private function validate(Server $server, array $input): void
     {
-        $backupType = BackupType::from($input['type'] ?? BackupType::DATABASE->value);
-
-        $rules = array_merge($this->scheduleRules(), [
+        $rules = [
             'type' => [
                 'required',
-                Rule::in([BackupType::DATABASE->value, BackupType::FILE->value]),
+                Rule::in([BackupType::DATABASE->value]),
             ],
             'storage' => [
                 'required',
                 Rule::exists('storage_providers', 'id')
                     ->where(fn ($query) => $query->where('project_id', $server->project_id)->orWhereNull('project_id')),
             ],
-        ]);
+            ...$this->scheduleRules($input),
+        ];
 
-        if ($backupType === BackupType::DATABASE) {
-            $rules['database'] = [
-                'required',
-                Rule::exists('databases', 'id')
-                    ->where('server_id', $server->id)
-                    ->where('status', DatabaseStatus::READY),
-            ];
-        } else {
-            $rules['path'] = [
-                'required',
-                'string',
-                'min:1',
-            ];
-        }
+        $rules['database'] = [
+            'required',
+            Rule::exists('databases', 'id')
+                ->whereNull('deleted_at')
+                ->where('server_id', $server->id)
+                ->where('status', DatabaseStatus::READY),
+        ];
 
         Validator::make($input, $rules)->validate();
     }
 
-    private function scheduleRules(): array
+    private function scheduleRules(array $input): array
     {
-        return [
-            'keep' => ['required', 'integer', 'min:1'],
-            'interval' => ['required', Rule::in(array_keys(config('core.cronjob_intervals')))],
-            'custom_interval' => ['exclude_unless:interval,custom', 'required', 'string', new CronRule],
+        $rules = [
+            'keep' => [
+                'required',
+                'integer',
+                'min:1',
+            ],
+            'interval' => [
+                'required',
+                Rule::in(array_keys(config('core.cronjob_intervals'))),
+            ],
         ];
+
+        if (($input['interval'] ?? null) === 'custom') {
+            $rules['custom_interval'] = [
+                'required',
+                'string',
+                new CronRule,
+            ];
+        }
+
+        return $rules;
     }
 }

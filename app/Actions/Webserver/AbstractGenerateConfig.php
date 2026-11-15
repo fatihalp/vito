@@ -34,6 +34,8 @@ abstract class AbstractGenerateConfig
     
     abstract public function defaultTemplate(): string;
 
+    abstract protected function suspendedTemplate(): string;
+
     
     abstract protected function buildServerBlockKeys(bool $hasSsl, string $sslCertPath, string $sslKeyPath, Site $site): array;
 
@@ -63,6 +65,10 @@ abstract class AbstractGenerateConfig
 
     protected function getTemplate(Site $site): string
     {
+        if ($site->isSuspended()) {
+            return $this->suspendedTemplate();
+        }
+
         if ($site->vhost_template) {
             return $site->vhost_template;
         }
@@ -153,8 +159,7 @@ abstract class AbstractGenerateConfig
     protected function buildCommonData(Site $site, string $primaryDomain): array
     {
         $siteTypeData = $site->type()->vhostData();
-        $isOctane = (bool) data_get($site->type_data, 'octane', false);
-        $isPhp = ($siteTypeData['is_php'] ?? false) && ! $isOctane;
+        $isPhp = $siteTypeData['is_php'] ?? false;
 
         $phpEnabled = $isPhp && $site->vhost_template === null;
         $phpValueString = $phpEnabled ? $this->phpValueDirectives($site) : '';
@@ -170,8 +175,6 @@ abstract class AbstractGenerateConfig
             'is_php' => $isPhp,
             'is_reverse_proxy' => $siteTypeData['is_reverse_proxy'] ?? false,
             'is_load_balancer' => $siteTypeData['is_load_balancer'] ?? false,
-            'is_octane' => $isOctane,
-            'octane_port' => data_get($site->type_data, 'octane_port', 8000),
             'php_socket' => $isPhp ? $this->buildPhpSocket($site) : '',
             'php_value' => $phpValueString !== '',
             'php_value_string' => $phpValueString,
@@ -199,8 +202,6 @@ abstract class AbstractGenerateConfig
             $block['is_php'] = $data['is_php'];
             $block['is_reverse_proxy'] = $data['is_reverse_proxy'];
             $block['is_load_balancer'] = $data['is_load_balancer'];
-            $block['is_octane'] = $data['is_octane'];
-            $block['octane_port'] = $data['octane_port'];
             $block['php_socket'] = $data['php_socket'];
             $block['php_value'] = $data['php_value'];
             $block['port'] = $data['port'];

@@ -3,12 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Backup\CheckBackupHealth;
+use App\Actions\Projects\GetProjectScope;
+use App\Actions\Backup\GetBackupLogs;
 use App\Actions\Backup\ManageBackup;
 use App\Actions\Backup\RestoreToNewServer;
 use App\Actions\Backup\RunBackup;
 use App\Enums\BackupType;
 use App\Http\Resources\BackupFileResource;
 use App\Http\Resources\BackupResource;
+use App\Http\Resources\ServerLogResource;
 use App\Models\Backup;
 use App\Models\BackupMonitor;
 use App\Http\Resources\BackupMonitorResource;
@@ -16,6 +19,7 @@ use App\Models\BackupFile;
 use App\Models\NotificationChannel;
 use App\Models\PostgresCluster;
 use App\Models\Server;
+use App\Models\ServerLog;
 use App\Tables\BackupTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -37,11 +41,13 @@ class BackupController extends Controller
     {
         $this->authorize('view', user()->currentProject);
 
+        $query = Backup::query()->whereHas('server', fn ($servers) => $servers->whereIn('project_id', app(GetProjectScope::class)->ids(user())));
+
         return Inertia::render('backups/index', [
-            'backups' => BackupTable::make(user()->currentProject->backups())->simplePaginate(),
+            'backups' => BackupTable::make(clone $query)->simplePaginate(),
             'monitorServers' => $this->monitorServers(),
-            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->whereHas('server', fn ($query) => $query->where('project_id', user()->current_project_id))->orderBy('label')->get()),
-            'attention' => app(CheckBackupHealth::class)->attention(user()->currentProject->backups()),
+            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->whereHas('server', fn ($servers) => $servers->whereIn('project_id', app(GetProjectScope::class)->ids(user())))->orderBy('label')->get()),
+            'attention' => app(CheckBackupHealth::class)->attention(clone $query),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
         ]);
     }
@@ -74,7 +80,21 @@ class BackupController extends Controller
 
         return response()->json([
             'backup' => BackupResource::make($backup),
-            'files' => BackupFileResource::collection($backup->files()->with('server')->simplePaginate(config('web.pagination_size'))),
+            'files' => BackupFileResource::collection($backup->files()->with(['server', 'backup'])->simplePaginate(config('web.pagination_size'))),
+        ]);
+    }
+
+    #[Get('/servers/{server}/backups/{backup}/logs', name: 'backups.logs')]
+    public function logs(Server $server, Backup $backup): Response
+    {
+        abort_unless($backup->server_id === $server->id, 404);
+
+        $this->authorize('view', $backup);
+        $this->authorize('viewAny', [ServerLog::class, $server]);
+
+        return Inertia::render('backups/logs', [
+            'backup' => BackupResource::make($backup),
+            'logs' => ServerLogResource::collection(app(GetBackupLogs::class)->handle($backup)),
         ]);
     }
 

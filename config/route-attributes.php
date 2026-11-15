@@ -12,11 +12,11 @@ return [
             'prefix' => '',
             'middleware' => 'web',
             'patterns' => ['*Controller.php'],
-            'not_patterns' => ['API/*'],
+            'not_patterns' => ['Webhook/*'],
         ],
-        app_path('Http/Controllers/API') => [
+        app_path('Http/Controllers/Webhook') => [
             'prefix' => '',
-            'middleware' => 'api',
+            'middleware' => 'webhook',
             'patterns' => ['*Controller.php'],
             'not_patterns' => [],
         ],

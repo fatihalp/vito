@@ -6,7 +6,6 @@ import { MoreVerticalIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardRow, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Link } from '@inertiajs/react';
 
 interface FeaturesCardProps {
   title?: string;
@@ -67,9 +66,6 @@ export default function FeaturesCard({
         ) : (
           <CardRow className="flex-col items-center justify-center space-y-2">
             <span className="text-muted-foreground">{translateText("No available features")}</span>
-            <Link href={"/admin/plugins"} prefetch>
-              <Button variant="outline">{translateText("Explore Plugins")}</Button>
-            </Link>
           </CardRow>
         )}
       </CardContent>

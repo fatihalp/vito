@@ -10,6 +10,7 @@ use App\Models\Backup;
 use App\Notifications\BackupNeedsAttention;
 use App\Notifications\BackupRecovered;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -116,7 +117,7 @@ class CheckBackupHealth
         return $problems;
     }
 
-    public function attention(Relation $backups): array
+    public function attention(Relation|Builder $backups): array
     {
         return $backups->whereNotNull('backups.health')->with('server', 'database')->get()
             ->map(fn (Backup $backup): array => [

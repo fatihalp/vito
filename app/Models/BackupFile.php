@@ -199,27 +199,21 @@ class BackupFile extends AbstractModel
 
     public function tempPath(?Server $server = null): string
     {
-        $extension = $this->getBackupExtension();
-
-        return '/home/'.($server ?? $this->backup->server)->getSshUser().'/'.$this->name.$extension;
+        return '/home/'.($server ?? $this->backup->server)->getSshUser().'/'.$this->name.'.sql.gz';
     }
 
     public function path(?StorageProvider $storage = null): string
     {
         $storage ??= $this->backup->storage;
 
-        $backupName = $this->backup->type === BackupType::FILE
-            ? basename($this->backup->path)
-            : $this->backup->database->name;
-
-        $extension = $this->getBackupExtension();
+        $backupName = $this->backup->database->name;
 
         return match ($storage->provider) {
-            Dropbox::id() => '/'.$backupName.'/'.$this->name.$extension,
+            Dropbox::id() => '/'.$backupName.'/'.$this->name.'.sql.gz',
             S3::id(), FTP::id(), SFTP::id(), Local::id() => implode('/', [
                 rtrim((string) $storage->credentials['path'], '/'),
                 $backupName,
-                $this->name.$extension,
+                $this->name.'.sql.gz',
             ]),
             default => '',
         };
@@ -260,14 +254,5 @@ class BackupFile extends AbstractModel
         }
 
         $this->delete();
-    }
-
-    private function getBackupExtension(): string
-    {
-        if ($this->backup->type === BackupType::DATABASE) {
-            return '.sql.gz';
-        }
-
-        return '.tar.gz';
     }
 }

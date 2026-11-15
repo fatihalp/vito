@@ -28,7 +28,7 @@ trait HasRolePolicies
 
     protected function hasReadAccess(User $user, ?Project $project): bool
     {
-        if (! $project || ! $user->tokenAllowsProject($project->id)) {
+        if (! $project) {
             return false;
         }
 
@@ -45,7 +45,7 @@ trait HasRolePolicies
 
     protected function hasWriteAccess(User $user, ?Project $project): bool
     {
-        if (! $project || ! $user->tokenAllowsProject($project->id, write: true)) {
+        if (! $project) {
             return false;
         }
 
@@ -62,7 +62,7 @@ trait HasRolePolicies
 
     protected function hasOwnerAccess(User $user, ?Project $project): bool
     {
-        if (! $project || ! $user->tokenAllowsProject($project->id, write: true)) {
+        if (! $project) {
             return false;
         }
 

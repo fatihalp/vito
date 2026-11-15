@@ -4,7 +4,7 @@ namespace App\Providers;
 
 use App\DTOs\DynamicField;
 use App\DTOs\DynamicForm;
-use App\Plugins\RegisterSourceControl;
+use App\Registries\RegisterSourceControl;
 use App\SourceControlProviders\Github;
 use App\SourceControlProviders\GithubApp;
 use App\SourceControlProviders\Gitlab;

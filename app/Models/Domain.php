@@ -36,7 +36,7 @@ class Domain extends AbstractModel
         parent::boot();
 
         static::deleting(function (Domain $domain): void {
-            $domain->records()->delete();
+            $domain->records()->forceDelete();
         });
     }
 

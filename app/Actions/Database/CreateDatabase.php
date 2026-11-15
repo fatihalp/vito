@@ -77,6 +77,7 @@ class CreateDatabase
                 Rule::unique('database_users', 'username')->where('server_id', $server->id)->whereNull('deleted_at'),
             ],
             'password' => [
+                'required_with:username',
                 'nullable',
                 'string',
                 'min:6',

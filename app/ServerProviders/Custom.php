@@ -22,7 +22,7 @@ class Custom extends AbstractProvider
             'ip' => [
                 'required',
                 'ip',
-                Rule::unique('servers', 'ip'),
+                Rule::unique('servers', 'ip')->withoutTrashed(),
                 new RestrictedIPAddressesRule,
             ],
             'port' => [

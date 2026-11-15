@@ -3,7 +3,7 @@ import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Server } from '@/types/server';
 import { router, usePage } from '@inertiajs/react';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, ChevronsUpDownIcon, PlusIcon, ServerIcon } from 'lucide-react';
 import ServerSelect from '@/pages/servers/components/server-select';
@@ -14,11 +14,6 @@ export function ServerSwitch() {
   const translateText = useTranslate();
   const page = usePage<SharedData>();
   const [open, setOpen] = useState(false);
-  const [selected, setSelected] = useState<string>(page.props.server?.id?.toString() ?? '');
-
-  useEffect(() => {
-    setSelected(page.props.server?.id?.toString() ?? '');
-  }, [page.props.server?.id]);
 
   useEffect(() => {
     if (page.props.server) {
@@ -26,8 +21,7 @@ export function ServerSwitch() {
     }
   }, [page.props.auth.user.id, page.props.server]);
 
-  const handleServerChange = (value: string, server: Server) => {
-    setSelected(value);
+  const handleServerChange = (_value: string, server: Server) => {
     setOpen(false);
     serverHelper.storeServer(server, page.props.auth.user.id);
     router.visit(`/servers/${server.id}`);
@@ -56,7 +50,6 @@ export function ServerSwitch() {
       <CommandItem
         value="all-servers"
         onSelect={() => {
-          setSelected('');
           setOpen(false);
           router.visit(withQuery('/servers', { project: page.props.auth.projectScope }));
         }}
@@ -94,7 +87,7 @@ export function ServerSwitch() {
   return (
     <div className="flex items-center">
       <ServerSelect
-        value={selected}
+        value={page.props.server?.id?.toString() ?? ''}
         projectId="all"
         onValueChangeAdvanced={handleServerChange}
         trigger={trigger}

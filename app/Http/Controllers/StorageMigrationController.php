@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\StorageMigration\ManageStorageMigration;
 use App\Actions\StorageMigration\ManageStorageMigrationSettings;
 use App\Http\Resources\StorageMigrationItemResource;
@@ -36,13 +38,15 @@ class StorageMigrationController extends Controller
         $this->authorize('viewAny', [StorageMigration::class, user()->currentProject]);
 
         return Inertia::render('storage-migrations/index', [
-            'storageMigrations' => StorageMigrationTable::make(user()->currentProject->storageMigrations())->simplePaginate(),
+            'storageMigrations' => StorageMigrationTable::make(StorageMigration::query()->whereIn('project_id', app(GetProjectScope::class)->ids(user())))->simplePaginate(),
         ]);
     }
 
     #[Post('/', name: 'storage-migrations.store')]
     public function store(Request $request): RedirectResponse
     {
+        app(GetProjectScope::class)->projectId(user());
+
         $this->authorize('create', [StorageMigration::class, user()->currentProject]);
 
         app(ManageStorageMigration::class)->create(user()->currentProject, user(), $request->all());

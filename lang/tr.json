@@ -3332,5 +3332,19 @@
   "Manage how this site is built, served and deployed": "Sitenin build, sunum ve deploy ayarlarını yönetin",
   "Enabled (:count)": "Etkin (:count)",
   "The site will be removed from Pure. Its files and physical server will remain untouched.": "Site Pure üzerinden kaldırılacak. Dosyaları ve fiziksel sunucusu korunacak.",
-  "This worker is managed by its site and cannot be deleted independently.": "Bu worker site tarafından yönetilir ve bağımsız olarak silinemez."
+  "This worker is managed by its site and cannot be deleted independently.": "Bu worker site tarafından yönetilir ve bağımsız olarak silinemez.",
+  "New": "Yeni",
+  "suspended": "askıya alındı",
+  "Manage the built-in features available for your server": "Sunucunuzdaki yerleşik özellikleri yönetin",
+  "Manage the built-in features available for your site": "Sitenizdeki yerleşik özellikleri yönetin",
+  "Approx. size": "Yaklaşık boyut",
+  "Not measured": "Ölçülmedi",
+  "Estimating sizes...": "Boyutlar hesaplanıyor...",
+  "Waiting in queue...": "Sırada bekliyor...",
+  "Refresh estimates": "Tahminleri yenile",
+  "Database view": "Veritabanı görünümü",
+  "Size calculation failed. Previous results are preserved.": "Boyut hesabı başarısız. Önceki sonuçlar korunuyor.",
+  "Sizes have not been measured yet.": "Boyutlar henüz ölçülmedi.",
+  "Last measured: :date": "Son ölçüm: :date",
+  "Approximate sizes from PostgreSQL statistics, last updated by ANALYZE or VACUUM. Recent changes may not be reflected.": "PostgreSQL istatistiklerinden yaklaşık boyutlar; ANALYZE veya VACUUM ile güncellenir. Son değişiklikler yansımayabilir."
 }

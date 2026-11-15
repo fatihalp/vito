@@ -41,7 +41,7 @@ class Configuration extends Action
     {
         $this->validate($request);
 
-        $sharedResources = explode(',', trim($request->input('shared_resources')));
+        $sharedResources = Enable::parseSharedResources((string) $request->input('shared_resources'));
 
         $typeData = $this->site->type_data;
         $typeData['modern_deployment_shared_resources'] = $sharedResources;

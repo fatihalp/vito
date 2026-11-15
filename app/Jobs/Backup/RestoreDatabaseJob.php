@@ -3,6 +3,7 @@
 namespace App\Jobs\Backup;
 
 use App\Actions\Backup\BroadcastBackupUpdate;
+use App\Actions\Backup\RestoreBackup;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
 use App\Events\SocketEvent;
@@ -40,6 +41,9 @@ class RestoreDatabaseJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("database-{$this->database->id}", function () {
+            $this->database->refresh();
+            $this->backupFile->refresh();
+            app(RestoreBackup::class)->validate($this->backupFile, ['database' => $this->database->id]);
             
             $service = $this->database->server->database();
             

@@ -2,8 +2,8 @@
 
 namespace App\Actions\SiteStats;
 
+use App\Actions\CronJob\SyncCronJobs;
 use App\Enums\CronjobStatus;
-use App\Models\CronJob;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Services\LogAnalysis\GoAccess\GoAccess;
@@ -86,6 +86,6 @@ class SyncGoAccessServer
             $cron->update(['status' => CronjobStatus::READY]);
         }
 
-        $server->cron()->update('root', CronJob::crontab($server, 'root'));
+        app(SyncCronJobs::class)->write($server, 'root');
     }
 }

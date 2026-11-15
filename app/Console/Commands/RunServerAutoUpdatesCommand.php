@@ -20,7 +20,7 @@ class RunServerAutoUpdatesCommand extends Command
             ->where('status', ServerStatus::READY)
             ->where('auto_update', true)
             ->whereNotNull('auto_update_schedule')
-            ->chunk(50, function ($servers): void {
+            ->chunkById(50, function ($servers): void {
                 
                 foreach ($servers as $server) {
                     if (! CronExpression::isValidExpression((string) $server->auto_update_schedule)) {

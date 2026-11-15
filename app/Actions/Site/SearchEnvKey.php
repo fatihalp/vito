@@ -10,13 +10,14 @@ use Illuminate\Support\Facades\Validator;
 class SearchEnvKey
 {
 
-    public function search(User $user, string $key): array
+    public function search(User $user, string $key, array $projectIds): array
     {
         $validated = Validator::make(['key' => $key], [
             'key' => ['required', 'string', 'max:255', 'regex:/^[A-Za-z_][A-Za-z0-9_]*$/'],
         ])->validate();
 
         $sites = Site::query()
+            ->whereHas('server', fn ($query) => $query->whereIn('project_id', $user->allProjects()->whereIn('id', $projectIds)->pluck('id')))
             ->with('server')
             ->orderBy('domain')
             ->get();

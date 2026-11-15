@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Actions\Site\CountTodayLogErrors;
 use App\SiteTypes\AbstractProxiedSiteType;
 use App\SSH\OS\Composer;
 use Illuminate\Http\Request;
@@ -59,6 +60,7 @@ class SiteResource extends JsonResource
             'has_custom_vhost_template' => $this->vhost_template !== null,
             'modern_deployment' => $this->modernDeploymentEnabled(),
             'stats_enabled' => $this->statsEnabled(),
+            'suspended' => $this->isSuspended(),
             'is_proxied_site_type' => $this->typeOrNull() instanceof AbstractProxiedSiteType,
             'available_tooling_commands' => $this->availableToolingCommands(),
             'start_command' => $this->type_data['start_command'] ?? null,
@@ -70,6 +72,8 @@ class SiteResource extends JsonResource
                 'domains' => (int) ($this->hosted_domains_count ?? $this->hostedDomains_count ?? ($this->relationLoaded('hostedDomains') ? $this->hostedDomains->count() : $this->hostedDomains()->count())),
                 'workers' => (int) ($this->workers_count ?? ($this->relationLoaded('workers') ? $this->workers->count() : $this->workers()->count())),
                 'resources' => (int) ($this->resources_count ?? ($this->relationLoaded('resources') ? $this->resources->count() : $this->resources()->count())),
+                'cron_jobs' => (int) ($this->cron_jobs_count ?? $this->cronJobs()->count()),
+                'log_errors_today' => app(CountTodayLogErrors::class)->count($this->resource),
             ],
             'warnings' => $this->getWarnings(),
             'created_at' => $this->created_at,

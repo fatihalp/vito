@@ -16,6 +16,11 @@ class GenerateNginxConfig extends AbstractGenerateConfig
         return file_get_contents(resource_path('views/ssh/services/webserver/nginx/vhost.mustache'));
     }
 
+    protected function suspendedTemplate(): string
+    {
+        return file_get_contents(resource_path('views/ssh/services/webserver/nginx/suspended-vhost.mustache'));
+    }
+
     protected function buildServerBlockKeys(bool $hasSsl, string $sslCertPath, string $sslKeyPath, Site $site): array
     {
         return [
@@ -130,8 +135,6 @@ class GenerateNginxConfig extends AbstractGenerateConfig
             }
         }
 
-        $isOctane = (bool) data_get($site->type_data, 'octane', false);
-        $data['has_octane_map'] = $isOctane;
         $data['has_force_ssl_redirect'] = ! empty($this->forceSSLDomains);
         $data['force_ssl_domains'] = $this->forceSSLDomains;
 

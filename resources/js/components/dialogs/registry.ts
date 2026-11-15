@@ -3,7 +3,6 @@ import type { ComponentType } from 'react';
 import LogViewerDialog from './log-viewer-dialog';
 import ConfirmationDialog from './confirmation-dialog';
 const StorageProviderEditDialog = lazy(() => import('@/pages/storage-providers/components/edit-dialog'));
-const PluginLogsDialog = lazy(() => import('@/pages/plugins/components/logs-dialog'));
 const WorkerLogsDialog = lazy(() => import('@/pages/workers/components/logs-dialog'));
 const WorkerEnvDialog = lazy(() => import('@/pages/workers/components/env-dialog'));
 const CronJobForm = lazy(() => import('@/pages/cronjobs/components/form'));
@@ -72,7 +71,6 @@ export const dialogs = {
   logViewer: LogViewerDialog,
   confirm: ConfirmationDialog,
   storageProviderEdit: StorageProviderEditDialog,
-  pluginLogs: PluginLogsDialog,
   workerLogs: WorkerLogsDialog,
   workerEnv: WorkerEnvDialog,
   cronjobForm: CronJobForm,

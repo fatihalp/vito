@@ -5,6 +5,7 @@ namespace App\Actions\Site;
 use App\Enums\LoadBalancerMethod;
 use App\Models\LoadBalancerServer;
 use App\Models\Site;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 
@@ -15,25 +16,25 @@ class UpdateLoadBalancer
     {
         $this->validate($site, $input);
 
-        $site->loadBalancerServers()->delete();
+        DB::transaction(function () use ($site, $input): void {
+            $site->loadBalancerServers()->delete();
 
-        
-        $typeData = $site->type_data ?? [];
-        $typeData['method'] = $input['method'];
-        $site->update([
-            'type_data' => $typeData,
-        ]);
-
-        foreach ($input['servers'] as $server) {
-            $loadBalancerServer = new LoadBalancerServer([
-                'load_balancer_id' => $site->id,
-                'ip' => $server['ip'],
-                'port' => $server['port'],
-                'weight' => $server['weight'],
-                'backup' => (bool) $server['backup'],
+            $typeData = $site->type_data ?? [];
+            $typeData['method'] = $input['method'];
+            $site->update([
+                'type_data' => $typeData,
             ]);
-            $loadBalancerServer->save();
-        }
+
+            foreach ($input['servers'] as $server) {
+                LoadBalancerServer::query()->create([
+                    'load_balancer_id' => $site->id,
+                    'ip' => $server['ip'],
+                    'port' => $server['port'],
+                    'weight' => $server['weight'] ?? null,
+                    'backup' => (bool) $server['backup'],
+                ]);
+            }
+        });
 
         $site->webserver()->updateVHost($site);
     }

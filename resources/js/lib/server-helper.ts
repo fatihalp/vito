@@ -53,9 +53,6 @@ const serverHelper = {
     const recentServers = readRecentServers(userId, server.project_id).filter((item) => item.id !== server.id);
     writeRecentServers(userId, server.project_id, [recentServer, ...recentServers].slice(0, recentServersLimit));
   },
-  getRecentServers(userId: number, projectId: number, limit = 3): RecentServer[] {
-    return readRecentServers(userId, projectId).slice(0, limit);
-  },
   getAllRecentServers(userId: number, limit = 25): RecentServer[] {
     if (typeof window === 'undefined') {
       return [];

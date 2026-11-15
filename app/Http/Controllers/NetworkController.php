@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Projects\GetProjectScope;
+
 use App\Actions\Network\CreateNetwork;
 use App\Actions\Network\DeleteNetwork;
 use App\Actions\Network\SyncNetwork;
@@ -43,7 +45,7 @@ class NetworkController extends Controller
         $this->authorize('viewAny', [Network::class, $project]);
 
         return Inertia::render('networks/index', [
-            'networks' => NetworkTable::make($project->networks())->simplePaginate(),
+            'networks' => NetworkTable::make(Network::query()->whereIn('project_id', app(GetProjectScope::class)->ids(user())))->simplePaginate(),
             'servers' => $this->serversPayload($project),
         ]);
     }
@@ -51,6 +53,8 @@ class NetworkController extends Controller
     #[Post('/', name: 'networks.store')]
     public function store(Request $request): RedirectResponse
     {
+        app(GetProjectScope::class)->projectId(user());
+
         $project = user()->currentProject;
 
         $this->authorize('create', [Network::class, $project]);
@@ -152,6 +156,8 @@ class NetworkController extends Controller
     #[Post('/sync', name: 'networks.sync-providers')]
     public function syncProviders(): RedirectResponse
     {
+        app(GetProjectScope::class)->projectId(user());
+
         $project = user()->currentProject;
 
         $this->authorize('create', [Network::class, $project]);

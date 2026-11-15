@@ -4,12 +4,10 @@ namespace App\Policies;
 
 use App\Models\ServerProvider;
 use App\Models\User;
-use App\Traits\ChecksTokenProjectScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class ServerProviderPolicy
 {
-    use ChecksTokenProjectScope;
     use HandlesAuthorization;
 
     public function viewAny(User $user): bool
@@ -19,8 +17,7 @@ class ServerProviderPolicy
 
     public function view(User $user, ServerProvider $serverProvider): bool
     {
-        return $user->id === $serverProvider->user_id
-            && $user->tokenAllowsProject($serverProvider->project_id);
+        return $user->id === $serverProvider->user_id;
     }
 
     public function create(User $user): bool
@@ -30,13 +27,11 @@ class ServerProviderPolicy
 
     public function update(User $user, ServerProvider $serverProvider): bool
     {
-        return $user->id === $serverProvider->user_id
-            && $user->tokenAllowsProject($serverProvider->project_id, write: true);
+        return $user->id === $serverProvider->user_id;
     }
 
     public function delete(User $user, ServerProvider $serverProvider): bool
     {
-        return $user->id === $serverProvider->user_id
-            && $user->tokenAllowsProject($serverProvider->project_id, write: true);
+        return $user->id === $serverProvider->user_id;
     }
 }

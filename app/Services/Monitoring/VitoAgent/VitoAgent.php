@@ -79,7 +79,7 @@ class VitoAgent extends AbstractService
         $downloadUrl = sprintf(self::DOWNLOAD_URL, $this->service->version);
 
         $data = $this->data();
-        $data['url'] = route('api.servers.agent', [$this->service->server, $this->service->id]);
+        $data['url'] = route('webhooks.agent', [$this->service->server, $this->service->id]);
         $this->service->type_data = $data;
         $this->service->save();
         $this->service->refresh();

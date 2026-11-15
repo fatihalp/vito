@@ -1,5 +1,5 @@
 import { useTranslate } from '@/hooks/use-translate';
-import { withQuery } from '@/lib/url';
+import { readQueryParam, replaceQueryParams, withQuery } from '@/lib/url';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import axios from 'axios';
@@ -58,7 +58,7 @@ export default function ServiceLogs() {
           c.key.toLowerCase().split(':')[0] === serviceName ||
           c.service_label.toLowerCase() === serviceName,
       );
-      return { service: match?.service_label ?? '', key: '' };
+      return { service: match?.service_label ?? '', key: match?.key ?? '' };
     }
 
     return { service: '', key: '' };
@@ -66,8 +66,8 @@ export default function ServiceLogs() {
 
   const [selectedService, setSelectedService] = useState(initialSelection.service);
   const [selectedKey, setSelectedKey] = useState(initialSelection.key);
-  const [lines, setLines] = useState<LineOption>('500');
-  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [lines, setLines] = useState<LineOption>(() => LINE_OPTIONS.find((option) => option === readQueryParam(page.url, 'lines')) ?? '500');
+  const [autoRefresh, setAutoRefresh] = useState(() => readQueryParam(page.url, 'refresh') === '1');
   const [updatedAt, setUpdatedAt] = useState<string | null>(null);
   const [content, setContent] = useState<string>('');
   const [displayTarget, setDisplayTarget] = useState<string>('');
@@ -79,9 +79,8 @@ export default function ServiceLogs() {
   const selected = selectedKey ? itemsByKey[selectedKey] : undefined;
 
   useEffect(() => {
-    setSelectedService(initialSelection.service);
-    setSelectedKey(initialSelection.key);
-  }, [initialSelection.key, initialSelection.service]);
+    replaceQueryParams({ service: selectedService || null, key: selectedKey || null, lines: lines === '500' ? null : lines, refresh: autoRefresh ? '1' : null });
+  }, [selectedService, selectedKey, lines, autoRefresh]);
 
   const fetchLog = useCallback(() => {
     abortRef.current?.abort();
@@ -233,7 +232,7 @@ export default function ServiceLogs() {
                     noneFoundText="No matching service"
                     onValueChange={(service) => {
                       setSelectedService(service);
-                      setSelectedKey('');
+                      setSelectedKey(catalogue.find((log) => log.service_label === service)?.key ?? '');
                     }}
                   />
                 </div>

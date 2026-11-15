@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\UserRole;
-use App\Traits\HasTimezoneTimestamps;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -13,13 +12,10 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    use HasApiTokens;
     use HasFactory;
-    use HasTimezoneTimestamps;
     use Notifiable;
     use SoftDeletes;
     use TwoFactorAuthenticatable;
@@ -96,21 +92,9 @@ class User extends Authenticatable
     }
 
     
-    public function sourceControl(string $provider): HasOne
-    {
-        return $this->hasOne(SourceControl::class)->where('provider', $provider);
-    }
-
-    
     public function storageProviders(): HasMany
     {
         return $this->hasMany(StorageProvider::class);
-    }
-
-    
-    public function storageProvider(string $provider): HasOne
-    {
-        return $this->hasOne(StorageProvider::class)->where('provider', $provider);
     }
 
     public function dnsProviders(): HasMany
@@ -138,23 +122,6 @@ class User extends Authenticatable
     public function currentProject(): HasOne
     {
         return $this->HasOne(Project::class, 'id', 'current_project_id');
-    }
-
-    public function tokenProjectIds(): array
-    {
-        return $this->currentApiToken()?->getProjectIds() ?? [];
-    }
-
-    public function tokenAllowsProject(?int $projectId, bool $write = false): bool
-    {
-        return $this->currentApiToken()?->allowsProjectId($projectId, $write) ?? true;
-    }
-
-    private function currentApiToken(): ?PersonalAccessToken
-    {
-        $token = $this->currentAccessToken();
-
-        return $token instanceof PersonalAccessToken && $token->exists ? $token : null;
     }
 
     public function ensureHasDefaultProject(): Project

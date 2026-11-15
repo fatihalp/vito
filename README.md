@@ -44,7 +44,6 @@ discards local changes in the Vito directory, so preserve any intentional custom
 - Manages server's services
 - Deploy your SSH Keys to the server
 - Create and Manage cron jobs on the server
-- API
 - Plugins
 - Export and Import
 - Domains and DNS Management

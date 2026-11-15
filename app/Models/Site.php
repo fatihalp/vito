@@ -66,6 +66,7 @@ class Site extends AbstractModel
         'vhost_template',
         'vhost_generation_enabled',
         'verification_key',
+        'suspended_at',
     ];
 
     protected $with = ['isolatedUser'];
@@ -84,6 +85,7 @@ class Site extends AbstractModel
         'ssl_enabled' => 'boolean',
         'vhost_generation_enabled' => 'boolean',
         'status' => SiteStatus::class,
+        'suspended_at' => 'datetime',
     ];
 
     public static function boot(): void
@@ -122,6 +124,11 @@ class Site extends AbstractModel
     public function isReady(): bool
     {
         return $this->status === SiteStatus::READY;
+    }
+
+    public function isSuspended(): bool
+    {
+        return $this->suspended_at !== null;
     }
 
     public function isSelf(): bool
@@ -407,10 +414,8 @@ class Site extends AbstractModel
         }
 
         $isPhp = (bool) ($this->typeOrNull()?->vhostData()['is_php'] ?? false);
-        $isOctane = (bool) data_get($this->type_data, 'octane', false);
 
         return $isPhp
-            && ! $isOctane
             && $this->vhost_generation_enabled
             && $this->vhost_template === null;
     }
@@ -663,7 +668,7 @@ class Site extends AbstractModel
                 'workers',
                 'gitHook',
             ])
-            ->withCount(['hostedDomains', 'workers', 'resources'])
+            ->withCount(['hostedDomains', 'workers', 'resources', 'cronJobs'])
             ->withExists([
                 'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
             ]);
@@ -677,7 +682,7 @@ class Site extends AbstractModel
 
         return $this
             ->load(['hostedDomains.ssl', 'workers', 'gitHook'])
-            ->loadCount(['hostedDomains', 'workers', 'resources'])
+            ->loadCount(['hostedDomains', 'workers', 'resources', 'cronJobs'])
             ->loadExists([
                 'deployments as has_finished_deployment' => fn (Builder $q) => $q->where('status', DeploymentStatus::FINISHED),
             ]);

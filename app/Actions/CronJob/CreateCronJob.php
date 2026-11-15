@@ -11,6 +11,7 @@ use App\Models\Site;
 use App\ValidationRules\CronRule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Throwable;
 
 class CreateCronJob
 {
@@ -18,12 +19,21 @@ class CreateCronJob
     {
         Validator::make($input, self::rules($input, $server, $site))->validate();
 
+        app(SyncCronJobs::class)->sync($server, [$input['user']]);
+
         $cronJob = $server->cronJobs()->create([
             ...self::attributes($input, $site),
             'status' => CronjobStatus::CREATING,
         ]);
 
-        $server->cron()->update($cronJob->user, CronJob::crontab($server, $cronJob->user));
+        try {
+            app(SyncCronJobs::class)->write($server, $cronJob->user);
+        } catch (Throwable $e) {
+            $cronJob->delete();
+
+            throw $e;
+        }
+
         $cronJob->update(['status' => CronjobStatus::READY]);
 
         return $cronJob;

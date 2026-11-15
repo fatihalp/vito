@@ -28,7 +28,7 @@ class BackupTable extends Table
     protected function query(): void
     {
         $this->perPage = config('web.pagination_size');
-        $this->query->with(['server', 'storage', 'database', 'cluster', 'lastFile.server'])->latest();
+        $this->query->with(['server.databases', 'storage', 'database', 'cluster', 'lastFile.server', 'lastFile.backup', 'lastFullFile'])->latest();
     }
 
     protected function columns(): array
@@ -51,6 +51,9 @@ class BackupTable extends Table
                 ->value(fn (Backup $backup) => $backup->lastFile?->status->getText())
                 ->colorField('last_file_status_color')
                 ->fallback('-'),
+            DateTimeColumn::make('last_full_at', 'Last full backup')
+                ->value(fn (Backup $backup) => $backup->lastFullFile?->created_at)
+                ->fallback('Never'),
             BadgeColumn::make('state', 'Status')
                 ->value(fn (Backup $backup) => $backup->status?->getText() ?? ($backup->enabled ? 'enabled' : 'disabled'))
                 ->colorField('state_color'),

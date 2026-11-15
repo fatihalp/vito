@@ -15,7 +15,7 @@ class DisableCronJob
         app(SyncCronJobs::class)->sync($server, [$cronJob->user]);
 
         $cronJob->update(['status' => CronjobStatus::DISABLING]);
-        $server->cron()->update($cronJob->user, CronJob::crontab($server, $cronJob->user));
+        app(SyncCronJobs::class)->write($server, $cronJob->user);
         $cronJob->update(['status' => CronjobStatus::DISABLED]);
     }
 }

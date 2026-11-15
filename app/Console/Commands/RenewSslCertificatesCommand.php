@@ -18,6 +18,7 @@ class RenewSslCertificatesCommand extends Command
     {
         Ssl::query()
             ->with('server')
+            ->whereHas('server', fn ($query) => $query->withoutTrashed())
             ->where('type', SslType::LETSENCRYPT)
             ->where('is_wildcard', true)
             ->whereNotNull('server_id')

@@ -14,7 +14,6 @@ export function useSocketEvents(): { status: SocketStatus; reconnect: () => void
 
   const status = useSocketStore((s) => s.status);
   const connect = useSocketStore((s) => s.connect);
-  const disconnect = useSocketStore((s) => s.disconnect);
   const storeReconnect = useSocketStore((s) => s.reconnect);
   const switchProject = useSocketStore((s) => s.switchProject);
 
@@ -31,12 +30,6 @@ export function useSocketEvents(): { status: SocketStatus; reconnect: () => void
       switchProject(projectId);
     }
   }, [projectId, switchProject]);
-
-  useEffect(() => {
-    if (!auth) {
-      disconnect();
-    }
-  }, [auth, disconnect]);
 
   const reconnect = useCallback(() => {
     if (csrfRef.current) {

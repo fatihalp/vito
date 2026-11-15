@@ -312,11 +312,6 @@ class WebSocketServer
         $conn->end($response);
     }
 
-    public function getConnectionCount(): int
-    {
-        return count($this->connections);
-    }
-
     protected function pingConnections(): void
     {
         foreach ($this->connections as $connId => $entry) {

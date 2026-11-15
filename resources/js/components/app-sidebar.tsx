@@ -25,8 +25,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover';
 import React, { useRef, useState } from 'react';
-import RecentServersFlyout from '@/components/recent-servers-flyout';
-import RecentSitesNavFlyout from '@/components/recent-sites-nav-flyout';
 
 function NavFlyout({ children, content }: { children: React.ReactNode; content: React.ReactNode }) {
   const [open, setOpen] = useState(false);
@@ -83,10 +81,6 @@ export function AppSidebar({
   const navGroups = secondNavGroups ?? [{ title: '', items: secondNavItems ?? [] }];
   const hasSecondNav = navGroups.some((group) => group.items.length > 0);
 
-  const currentProject = page.props.auth?.currentProject;
-  const serversCount = currentProject?.servers_count;
-  const sitesCount = currentProject?.sites_count;
-
   const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
@@ -98,16 +92,12 @@ export function AppSidebar({
       title: 'Servers',
       href: withQuery('/servers', { project: page.props.auth.projectScope }),
       icon: ServerIcon,
-      badge: serversCount,
-      flyoutContent: <RecentServersFlyout />,
     },
     {
       title: 'Sites',
       href: withQuery('/sites', { project: page.props.auth.projectScope }),
       onlyActivePath: "/sites",
       icon: MousePointerClickIcon,
-      badge: sitesCount,
-      flyoutContent: <RecentSitesNavFlyout />,
     },
     {
       title: 'Users',
@@ -217,9 +207,6 @@ export function AppSidebar({
         </SidebarFooter>
       </Sidebar>
 
-      {}
-      {}
-      {}
       {hasSecondNav && (
         <Sidebar
           id="context-navigation"
@@ -326,11 +313,6 @@ export function AppSidebar({
                                 <a href={item.href} target="_blank" className="flex items-center w-full">
                                   {item.icon && <item.icon />}
                                   <span className="truncate">{translateText(item.title)}</span>
-                                  {item.badge !== undefined && (
-                                    <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
-                                      {item.badge}
-                                    </span>
-                                  )}
                                 </a>
                               ) : (
                                 <Link
@@ -340,11 +322,6 @@ export function AppSidebar({
                                 >
                                   {item.icon && <item.icon />}
                                   <span className="truncate">{translateText(item.title)}</span>
-                                  {item.badge !== undefined && (
-                                    <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
-                                      {item.badge}
-                                    </span>
-                                  )}
                                 </Link>
                               )}
                             </SidebarMenuButton>
@@ -360,11 +337,6 @@ export function AppSidebar({
                             <a href={item.href} target="_blank" className="flex items-center w-full">
                               {item.icon && <item.icon />}
                               <span className="truncate">{translateText(item.title)}</span>
-                              {item.badge !== undefined && (
-                                <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
-                                  {item.badge}
-                                </span>
-                              )}
                             </a>
                           ) : (
                             <Link
@@ -374,11 +346,6 @@ export function AppSidebar({
                             >
                               {item.icon && <item.icon />}
                               <span className="truncate">{translateText(item.title)}</span>
-                              {item.badge !== undefined && (
-                                <span className="ml-auto text-[11px] font-mono font-medium text-muted-foreground bg-muted/80 px-1.5 py-0.5 rounded-md group-data-[collapsible=icon]:hidden">
-                                  {item.badge}
-                                </span>
-                              )}
                             </Link>
                           )}
                         </SidebarMenuButton>

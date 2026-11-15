@@ -5,13 +5,11 @@ import {
   CloudIcon,
   CloudUploadIcon,
   CodeIcon,
-  CommandIcon,
   DatabaseIcon,
   GithubIcon,
   GlobeIcon,
   KeyIcon,
   NetworkIcon,
-  PlugIcon,
   SearchIcon,
   ShieldCheckIcon,
 } from 'lucide-react';
@@ -64,11 +62,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       icon: KeyIcon,
     },
     {
-      title: 'API Keys',
-      href: "/settings/api-keys",
-      icon: CommandIcon,
-    },
-    {
       title: 'Backups',
       href: "/backups",
       icon: CloudUploadIcon,
@@ -82,12 +75,6 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
       title: 'Domains',
       href: "/domains",
       icon: GlobeIcon,
-    },
-    {
-      title: 'Plugins',
-      href: "/admin/plugins",
-      icon: PlugIcon,
-      hidden: !isAdmin,
     },
     {
       title: 'GitHub App',

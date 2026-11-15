@@ -7,6 +7,7 @@ import { Link, router, usePage } from '@inertiajs/react';
 import { GlobeIcon, LogOut, PaletteIcon, Settings, ShieldCheckIcon } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
+import { useSocketStore } from '@/stores/socket-store';
 import { clearQueryClient } from '@/lib/query-client';
 import serverHelper from '@/lib/server-helper';
 import siteHelper from '@/lib/site-helper';
@@ -28,6 +29,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
     serverHelper.clearRecentServers(user.id);
     siteHelper.clearRecentSites(user.id);
     useBootstrapStore.getState().clear();
+    useSocketStore.getState().disconnect();
   };
 
   return (

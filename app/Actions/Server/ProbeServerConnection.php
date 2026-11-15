@@ -52,8 +52,10 @@ class ProbeServerConnection
                 $uptime = null;
             }
 
-            $server->status = ServerStatus::READY;
-            $server->save();
+            if ($server->status === ServerStatus::DISCONNECTED) {
+                $server->status = ServerStatus::READY;
+                $server->save();
+            }
 
             try {
                 $required = trim($server->ssh()->exec('if [ -f /var/run/reboot-required ]; then echo 1; else echo 0; fi', timeout: 10)) === '1';

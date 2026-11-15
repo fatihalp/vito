@@ -21,6 +21,7 @@ class DatabaseTable extends Table
     {
         return [
             LinkColumn::make('name', 'Name')->sortable()->route('databases.browse', ['server' => ':server_id', 'database' => ':id']),
+            TextColumn::make('size', __('Approx. size'))->fallback(__('Not measured')),
             TextColumn::make('charset', 'Charset')->sortable(),
             TextColumn::make('collation', 'Collation')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),

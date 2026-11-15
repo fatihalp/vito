@@ -50,5 +50,6 @@ export interface LatestCommit {
   commit_id?: string;
   commit_data?: Deployment['commit_data'];
   deployed?: boolean;
+  behind?: number | null;
   error?: string;
 }

@@ -140,7 +140,7 @@ class SyncNetworkServerJob implements ShouldQueue
 
         $projectId = $network->project_id;
         $memberId = $this->member->id;
-        NetworkServer::query()->whereKey($memberId)->where('status', NetworkServerStatus::LEAVING)->delete();
+        NetworkServer::query()->whereKey($memberId)->where('status', NetworkServerStatus::LEAVING)->forceDelete();
 
         SocketEvent::dispatch(new SocketEventDTO(
             projectId: $projectId,

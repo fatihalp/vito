@@ -11,7 +11,6 @@ enum BackupType: string implements HasTableDisplay, VitoEnum
     use TextIsValue;
 
     case DATABASE = 'database';
-    case FILE = 'file';
     case PGBACKREST = 'pgbackrest';
 
     public function getColor(): string

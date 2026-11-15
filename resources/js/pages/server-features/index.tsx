@@ -24,7 +24,7 @@ export default function ServerFeatures() {
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Features')} description={translateText("Your server has some features enabled by Pure or other plugins")} />
+          <Heading title={translateText('Features')} description={translateText('Manage the built-in features available for your server')} />
         </HeaderContainer>
 
         <FeaturesCard

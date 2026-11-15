@@ -5,7 +5,6 @@ namespace App\Jobs\Backup;
 use App\Actions\Backup\BroadcastBackupUpdate;
 use App\Actions\Backup\CheckBackupHealth;
 use App\Actions\Backup\ManagePgBackRest;
-use App\Actions\Backup\RunBackup;
 use App\DTOs\SocketEventDTO;
 use App\Enums\BackupFileStatus;
 use App\Enums\BackupType;
@@ -48,17 +47,9 @@ class RunJob implements ShouldQueue
                 return;
             }
 
-            if ($this->backup->type === BackupType::DATABASE) {
-                
-                $service = $this->backup->server->database();
-                
-                $databaseHandler = $service->handler();
-                $databaseHandler->runBackup($this->file);
-            }
-
-            if ($this->backup->type === BackupType::FILE) {
-                app(RunBackup::class)->compressAndUploadFile($this->file, $this->backup);
-            }
+            $service = $this->backup->server->database();
+            $databaseHandler = $service->handler();
+            $databaseHandler->runBackup($this->file);
 
             $this->file->status = BackupFileStatus::CREATED;
             $this->file->message = null;

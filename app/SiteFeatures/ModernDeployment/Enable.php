@@ -60,13 +60,7 @@ class Enable extends Action
 
         $this->ssh = $this->site->server->ssh($this->site->user);
 
-        $sharedResources = array_values(array_filter(array_map('trim', explode(',', (string) $request->input('shared_resources')))));
-
-        foreach ($sharedResources as $resource) {
-            if (preg_match('/^[A-Za-z0-9._\-\/]+$/', $resource) !== 1 || str_contains($resource, '..') || str_starts_with($resource, '/')) {
-                throw ValidationException::withMessages(['shared_resources' => __('Shared resource :resource must be a relative path without special characters.', ['resource' => $resource])]);
-            }
-        }
+        $sharedResources = self::parseSharedResources((string) $request->input('shared_resources'));
 
         $this->ssh->exec(view('ssh.modern-deployment.enable', [
             'site' => $this->site,
@@ -95,5 +89,18 @@ class Enable extends Action
             'shared_resources' => ['string', 'nullable'],
             'history' => ['required', 'integer', 'min:1'],
         ])->validate();
+    }
+
+    public static function parseSharedResources(string $input): array
+    {
+        $sharedResources = array_values(array_filter(array_map('trim', explode(',', $input))));
+
+        foreach ($sharedResources as $resource) {
+            if (preg_match('/^[A-Za-z0-9._\-\/]+$/', $resource) !== 1 || str_contains($resource, '..') || str_starts_with($resource, '/')) {
+                throw ValidationException::withMessages(['shared_resources' => __('Shared resource :resource must be a relative path without special characters.', ['resource' => $resource])]);
+            }
+        }
+
+        return $sharedResources;
     }
 }

@@ -2,23 +2,19 @@
 
 namespace App\Actions\DatabaseUpgrade;
 
-use App\Actions\Network\AddServersToNetwork;
 use App\Actions\Network\AttachProviderNetwork;
-use App\Actions\Network\CreateNetwork;
+use App\Actions\Network\ConnectServerPairToNetwork;
 use App\Actions\Network\DeleteNetwork;
 use App\Actions\Network\FindSharedNetwork;
-use App\Actions\Network\ManageNetworkFirewallRule;
-use App\Enums\NetworkServerStatus;
 use App\Enums\NetworkType;
 use App\Models\DatabaseUpgrade;
-use App\Models\Network;
 use App\Models\PostgresCluster;
 use App\Models\Server;
 use RuntimeException;
 
 class PrepareDatabaseUpgradeNetwork
 {
-    public function __construct(private FindSharedNetwork $networks) {}
+    public function __construct(private FindSharedNetwork $networks, private ConnectServerPairToNetwork $pair) {}
 
     public function prepare(DatabaseUpgrade $upgrade): bool
     {
@@ -31,40 +27,15 @@ class PrepareDatabaseUpgradeNetwork
 
         $network = $upgrade->network;
 
-        if ($this->networks->memberStatus($network, $target) === null) {
-            $joined = match (true) {
-                $network->type === NetworkType::PROVIDER => app(AttachProviderNetwork::class)->attach($source, $target, $this->name($upgrade), $network) !== null,
-                FindSharedNetwork::canAddServers($network) => app(AddServersToNetwork::class)->add($network, ['servers' => [$target->id]]) !== false,
-                default => false,
-            };
-
-            if (! $joined) {
-                throw new RuntimeException(__('Vito could not put :server on the private network :network: both servers must be at the same provider, account and network zone.', [
-                    'server' => $target->name,
-                    'network' => $network->name,
-                ]));
-            }
+        if (! $this->pair->join($network, $source, $target, $this->name($upgrade))) {
+            throw new RuntimeException(__('Vito could not put :server on the private network :network: both servers must be at the same provider, account and network zone.', [
+                'server' => $target->name,
+                'network' => $network->name,
+            ]));
         }
 
-        foreach ([$source, $target] as $server) {
-            $status = $this->networks->memberStatus($network, $server);
-
-            if ($status === NetworkServerStatus::FAILED) {
-                throw new RuntimeException(__('Connecting :server to the private network :network failed. Check the network logs.', [
-                    'server' => $server->name,
-                    'network' => $network->name,
-                ]));
-            }
-
-            if ($status !== NetworkServerStatus::ACTIVE || $upgrade->address($server) === null) {
-                return false;
-            }
-        }
-
-        if ($network->type === NetworkType::PROVIDER) {
-            foreach ([$source, $target] as $server) {
-                $server->ssh()->exec(view('ssh.postgres-cluster.private-interface', ['address' => $upgrade->address($server)]), 'postgres-private-interface');
-            }
+        if (! $this->pair->ready($network, $source, $target)) {
+            return false;
         }
 
         $upgrade->update(['configuration' => [
@@ -103,22 +74,10 @@ class PrepareDatabaseUpgradeNetwork
         $network ??= $this->networks->between($source, $target, $types);
 
         $owns = $network === null;
-        $network ??= $this->createWireGuard($upgrade, $source, $target);
+        $network ??= $this->pair->createWireGuard('pg-upgrade-'.$upgrade->id, $source, $target);
 
         $upgrade->update(['network_id' => $network->id, 'owns_network' => $owns]);
         $upgrade->setRelation('network', $network);
-    }
-
-    private function createWireGuard(DatabaseUpgrade $upgrade, Server $source, Server $target): Network
-    {
-        $network = app(CreateNetwork::class)->create($source->project, [
-            'name' => 'pg-upgrade-'.$upgrade->id,
-            'type' => 'wireguard',
-            'servers' => [$source->id, $target->id],
-        ]);
-        $network->firewallRules()->where('name', 'Allow all')->get()->each(fn ($rule) => app(ManageNetworkFirewallRule::class)->delete($rule));
-
-        return $network;
     }
 
     private function name(DatabaseUpgrade $upgrade): string

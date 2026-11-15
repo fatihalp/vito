@@ -130,6 +130,7 @@ class ServiceController extends Controller
             return redirect()->route('logs.services', [
                 'server' => $server->id,
                 'service' => $service->type,
+                'refresh' => 1,
             ])->with('success', __(":service is being {$action}ed.", [
                 'service' => $service->name,
             ]));
