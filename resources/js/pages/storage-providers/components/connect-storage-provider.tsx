@@ -19,7 +19,7 @@ import InputError from '@/components/ui/input-error';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import DynamicField from '@/components/ui/dynamic-field';
 import { useConfigs } from '@/stores/bootstrap-store';
 import { SharedData } from '@/types';
@@ -31,7 +31,7 @@ type StorageProviderForm = {
   global: boolean;
   app_key: string;
   app_secret: string;
-  [key: string]: any;
+  [key: string]: DynamicFieldValue;
 };
 
 const S3_PRESETS = [
@@ -237,7 +237,7 @@ export default function ConnectStorageProvider({
                 }}
               >
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder="Select a provider" />
+                  <SelectValue placeholder={'Select a provider'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -256,7 +256,7 @@ export default function ConnectStorageProvider({
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <Label className="text-xs font-semibold text-foreground">S3 Service Preset</Label>
-                  <span className="text-[11px] text-muted-foreground">Click to auto-fill endpoint &amp; region</span>
+                  <span className="text-[11px] text-muted-foreground">{"Click to auto-fill endpoint & region"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {S3_PRESETS.map((p) => (
@@ -330,7 +330,7 @@ export default function ConnectStorageProvider({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
               >
                 <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
-                <span>{showOptional ? 'Hide optional fields' : 'Show optional fields (Path, Global)'}</span>
+                <span>{showOptional ? "Hide optional fields" : "Show optional fields (Path, Global)"}</span>
               </button>
 
               {showOptional && (

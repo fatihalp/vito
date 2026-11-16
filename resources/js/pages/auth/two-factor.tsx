@@ -24,7 +24,7 @@ export default function TwoFactor() {
 
   return (
     <AuthLayout title="Two factor challenge" description="Please enter the two-factor authentication code to continue.">
-      <Head title="Confirm password" />
+      <Head title={'Confirm password'} />
 
       <form id="two-factor-form" onSubmit={submit}>
         <div className="grid gap-6">

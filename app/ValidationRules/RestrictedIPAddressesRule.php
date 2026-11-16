@@ -12,6 +12,6 @@ class RestrictedIPAddressesRule implements ValidationRule
         if (! in_array($value, config('core.restricted_ip_addresses'))) {
             return;
         }
-        $fail('IP address is restricted')->translate();
+        $fail('IP address is restricted');
     }
 }

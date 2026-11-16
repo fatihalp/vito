@@ -26,10 +26,7 @@ class PreparePostgresClusterNetwork
         $network = $cluster->network;
 
         if (! $this->pair->join($network, $primary, $node, $this->providerNetworkName($cluster))) {
-            throw new RuntimeException(__('The server :server is not on the private network :network used by this PostgreSQL cluster, and Vito cannot add it: it must be at the same provider, account and network zone.', [
-                'server' => $node->name,
-                'network' => $network->name,
-            ]));
+            throw new RuntimeException('The server '.$node->name.' is not on the private network '.$network->name.' used by this PostgreSQL cluster, and Vito cannot add it: it must be at the same provider, account and network zone.');
         }
 
         return $this->pair->ready($network, $primary, $node);

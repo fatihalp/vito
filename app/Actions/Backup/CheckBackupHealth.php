@@ -58,7 +58,7 @@ class CheckBackupHealth
     public function problems(Backup $backup): array
     {
         if ($backup->status === BackupStatus::FAILED) {
-            return ['setup' => __('Setting up this backup failed, so it is not running. Check the server logs, then save the backup again to retry.')];
+            return ['setup' => 'Setting up this backup failed, so it is not running. Check the server logs, then save the backup again to retry.'];
         }
 
         if ($backup->status !== null) {
@@ -72,12 +72,9 @@ class CheckBackupHealth
         $schedules = $backup->type === BackupType::PGBACKREST ? array_filter($configuration['schedules'] ?? []) : [$backup->interval];
 
         if ($finished?->status === BackupFileStatus::FAILED) {
-            $problems['failed'] = __('The last backup failed: :error', ['error' => Str::limit((string) $finished->message, 300)]);
+            $problems['failed'] = 'The last backup failed: '.(Str::limit((string) $finished->message, 300));
         } elseif (($expected = $this->missed($backup, $schedules, $succeeded)) !== null && $backup->files()->where('status', BackupFileStatus::CREATING)->doesntExist()) {
-            $problems['overdue'] = __('No backup has run since :since. The one due at :expected did not start.', [
-                'since' => $succeeded?->format('Y-m-d H:i T') ?? __('it was created'),
-                'expected' => $expected->format('Y-m-d H:i T'),
-            ]);
+            $problems['overdue'] = 'No backup has run since '.($succeeded?->format('Y-m-d H:i T') ?? 'it was created').'. The one due at '.($expected->format('Y-m-d H:i T')).' did not start.';
         }
 
         if ($backup->type !== BackupType::PGBACKREST) {
@@ -85,32 +82,30 @@ class CheckBackupHealth
         }
 
         if ($configuration['archive_failing'] ?? false) {
-            $problems['archiving'] = __('PostgreSQL is failing to archive WAL to S3, so point-in-time recovery is falling behind.');
+            $problems['archiving'] = 'PostgreSQL is failing to archive WAL to S3, so point-in-time recovery is falling behind.';
         }
 
         if (isset($configuration['wal_dropped_at']) && ($succeeded === null || $succeeded->lte(Carbon::parse($configuration['wal_dropped_at'])))) {
-            $problems['wal_gap'] = __('pgBackRest dropped WAL at :time because the archive queue was full, so point-in-time recovery has a gap until the next backup finishes.', [
-                'time' => Carbon::parse($configuration['wal_dropped_at'])->format('Y-m-d H:i T'),
-            ]);
+            $problems['wal_gap'] = 'pgBackRest dropped WAL at '.(Carbon::parse($configuration['wal_dropped_at'])->format('Y-m-d H:i T')).' because the archive queue was full, so point-in-time recovery has a gap until the next backup finishes.';
         }
 
         if ($configuration['last_backup_errors'] ?? false) {
-            $problems['integrity'] = __('pgBackRest found errors such as page checksum failures in the last backup, which can mean corrupted data. Run pgbackrest verify on the server and check PostgreSQL.');
+            $problems['integrity'] = 'pgBackRest found errors such as page checksum failures in the last backup, which can mean corrupted data. Run pgbackrest verify on the server and check PostgreSQL.';
         }
 
         if (($configuration['last_check_result'] ?? null) === 'failed') {
-            $problems['check'] = __('pgbackrest check failed, so WAL may not be reaching S3: :error', ['error' => Str::limit((string) ($configuration['last_check_error'] ?? ''), 300)]);
+            $problems['check'] = 'pgbackrest check failed, so WAL may not be reaching S3: '.(Str::limit((string) ($configuration['last_check_error'] ?? ''), 300));
         }
 
         if (($configuration['last_verify_result'] ?? null) === 'failed') {
-            $problems['verify'] = __('pgbackrest verify found a problem in the backup repository: :error', ['error' => Str::limit((string) ($configuration['last_verify_error'] ?? ''), 300)]);
+            $problems['verify'] = 'pgbackrest verify found a problem in the backup repository: '.(Str::limit((string) ($configuration['last_verify_error'] ?? ''), 300));
         }
 
         foreach (['check' => 'last_checked_at', 'verify' => 'last_verified_at'] as $task => $last) {
             $expected = $this->missed($backup, [$configuration[$task.'_schedule'] ?? null], isset($configuration[$last]) ? Carbon::parse($configuration[$last]) : null);
 
             if ($expected !== null && ! $this->pending($configuration, $task)) {
-                $problems[$task.'_overdue'] = __('pgbackrest :task has not run since it was due at :expected.', ['task' => $task, 'expected' => $expected->format('Y-m-d H:i T')]);
+                $problems[$task.'_overdue'] = 'pgbackrest '.$task.' has not run since it was due at '.($expected->format('Y-m-d H:i T')).'.';
             }
         }
 
@@ -123,7 +118,7 @@ class CheckBackupHealth
             ->map(fn (Backup $backup): array => [
                 'id' => $backup->id,
                 'server_id' => $backup->server_id,
-                'title' => __('Backup of :target on :server', ['target' => $backup->target() ?? '-', 'server' => $backup->server->name]),
+                'title' => 'Backup of '.($backup->target() ?? '-').' on '.$backup->server->name,
                 'problems' => array_values($backup->health['problems']),
             ])
             ->all();

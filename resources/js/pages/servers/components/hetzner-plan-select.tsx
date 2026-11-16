@@ -67,7 +67,7 @@ export default function HetznerPlanSelect({ value, onChange }: { value: string; 
         <DialogHeader className="border-b px-6 py-4">
           <DialogTitle>Hetzner Cloud Server</DialogTitle>
           <DialogDescription>
-            Germany/Finland pricing, excluding VAT and IPv4, from Hetzner's 15 June 2026 cloud price table.
+            {"Germany/Finland pricing, excluding VAT and IPv4, from Hetzner's 15 June 2026 cloud price table."}
           </DialogDescription>
           <div className="relative mt-2">
             <SearchIcon className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
@@ -84,7 +84,7 @@ export default function HetznerPlanSelect({ value, onChange }: { value: string; 
         <ScrollArea className="max-h-[60vh]">
           <div className="space-y-5 p-6">
             {groups.length === 0 ? (
-              <div className="text-muted-foreground py-8 text-center text-sm">No plans matching "{search}".</div>
+              <div className="text-muted-foreground py-8 text-center text-sm">{"No plans matching \""}{search}".</div>
             ) : (
               groups.map((group) => (
                 <section key={group} className="space-y-2">

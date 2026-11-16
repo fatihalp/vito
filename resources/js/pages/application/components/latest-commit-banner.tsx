@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import DateTime from '@/components/date-time';
 import moment from 'moment';
 import { AlertTriangleIcon, GitCommitHorizontalIcon, XIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -24,7 +25,7 @@ export default function LatestCommitBanner({
       <div className="text-muted-foreground flex items-center gap-3 border-t py-2 pr-3 pl-16 text-xs">
         <AlertTriangleIcon className="text-warning size-4 shrink-0" />
         <span className="truncate" title={latestCommit.error}>
-          Could not check {site.branch} for new commits: {latestCommit.error}
+          {`Could not check ${(site.branch ?? '')} for new commits: ${latestCommit.error}`}
         </span>
       </div>
     );
@@ -46,7 +47,7 @@ export default function LatestCommitBanner({
           <span className="text-info shrink-0 font-medium">New</span>
           {typeof latestCommit.behind === 'number' && latestCommit.behind > 0 && (
             <Badge variant="warning" className="shrink-0">
-              {latestCommit.behind} behind
+              {`${latestCommit.behind} behind`}
             </Badge>
           )}
           <CommitSummary commit={commit} />
@@ -57,13 +58,13 @@ export default function LatestCommitBanner({
             {commit.name && commit.date && <span aria-hidden="true">·</span>}
             {commit.date && (
               <span title={moment(commit.date).format('YYYY-MM-DD HH:mm:ss')}>
-                {merged ? 'Merged' : 'Committed'} {moment(commit.date).fromNow()}
+                {merged ? 'Merged' : 'Committed'} <DateTime date={commit.date} relative />
               </span>
             )}
           </div>
         )}
       </div>
-      <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label="Dismiss new commit notice" title="Not now">
+      <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label={'Dismiss new commit notice'} title={'Not now'}>
         <XIcon className="size-4" />
       </Button>
     </div>

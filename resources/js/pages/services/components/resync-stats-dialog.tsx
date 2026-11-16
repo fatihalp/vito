@@ -25,8 +25,7 @@ export default function ResyncStatsDialog({ service, open, onOpenChange }: { ser
         </DialogHeader>
         <div className="space-y-2 p-4">
           <p>
-            This re-writes the GoAccess processing scripts and per-site configs on the server and ensures the cron is in place. Run this after a Pure
-            update.
+            This re-writes the GoAccess processing scripts and per-site configs on the server and ensures the cron is in place. Run this after a Pure update.
           </p>
           {Object.entries(form.errors).map(([key, value]) => (
             <InputError key={key} message={value as string | undefined} />

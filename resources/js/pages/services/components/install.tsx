@@ -166,7 +166,7 @@ export default function InstallService({ name, children }: { name?: string; chil
           {filteredServices.length === 0 ? (
             <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground">
               <SearchIcon className="size-6 mb-1.5 opacity-40" />
-              <p className="text-xs font-medium">No services found matching "{search}"</p>
+              <p className="text-xs font-medium">{"No services found matching \""}{search}"</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 gap-2">
@@ -285,7 +285,7 @@ export default function InstallService({ name, children }: { name?: string; chil
                   Installing...
                 </>
               ) : (
-                'Install'
+                "Install"
               )}
             </Button>
           </div>

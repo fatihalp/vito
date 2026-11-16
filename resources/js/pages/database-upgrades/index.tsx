@@ -95,13 +95,11 @@ export default function DatabaseUpgrades() {
           <Card>
             <CardContent className="text-muted-foreground flex flex-col gap-2 p-4 text-sm">
               <p>
-                An upgrade creates a server with the PostgreSQL version you pick, copies the roles, schemas and rows of every database onto it, and then keeps
-                it in sync. {server.name} keeps serving reads and writes the whole time.
+                An upgrade creates a server with the PostgreSQL version you pick, copies the roles, schemas and rows of every database onto it, and then keeps it in sync. {server.name} keeps serving reads and writes the whole time.
               </p>
               <p>
                 When the new server has caught up, you press <span className="text-foreground font-medium">Finish</span>: Pure stops new writes on{' '}
-                {server.name}, waits for the last rows, copies the sequence values and stops the copy. Pointing your applications at the new server is then up
-                to you.
+                {server.name}, waits for the last rows, copies the sequence values and stops the copy. Pointing your applications at the new server is then up to you.
               </p>
             </CardContent>
           </Card>
@@ -114,17 +112,15 @@ export default function DatabaseUpgrades() {
                 <AlertTitle>{upgrade.target_server_name} holds every database and keeps up with the changes</AlertTitle>
                 <AlertDescription className="flex flex-col gap-2">
                   <span>
-                    Check the data on the new server, then finish the upgrade. Finishing stops writes on {upgrade.source_server_name}, disconnects its
-                    applications, waits for the last rows, copies the sequence values and stops the copy. {upgrade.source_server_name} stays read-only
-                    afterwards, so nothing writes to the old database by accident.
+                    Check the data on the new server, then finish the upgrade. Finishing stops writes on {upgrade.source_server_name}, disconnects its applications, waits for the last rows, copies the sequence values and stops the copy. {upgrade.source_server_name} stays read-only afterwards, so nothing writes to the old database by accident.
                   </span>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       size="sm"
                       onClick={() =>
                         dialog.confirm.open({
-                          title: `Switch to ${upgrade.target_server_name}`,
-                          description: `${upgrade.source_server_name} stops taking writes now and its applications are disconnected. Point them at ${upgrade.target_server_name} once this finishes.`,
+                          title: `Switch to ${((upgrade.target_server_name ?? '—'))}`,
+                          description: `${((upgrade.source_server_name ?? '—'))} stops taking writes now and its applications are disconnected. Point them at ${((upgrade.target_server_name ?? '—'))} once this finishes.`,
                           confirmLabel: 'Finish the upgrade',
                           method: 'post',
                           url: `/servers/${upgrade.source_server_id}/database-upgrades/${upgrade.id}/finish`,
@@ -141,7 +137,7 @@ export default function DatabaseUpgrades() {
 
             {upgrade.message && (
               <Alert variant={upgrade.state === 'failed' ? 'destructive' : 'default'}>
-                <AlertTitle>{upgrade.state === 'failed' ? 'The upgrade stopped' : 'Something needs attention'}</AlertTitle>
+                <AlertTitle>{upgrade.state === 'failed' ? "The upgrade stopped" : "Something needs attention"}</AlertTitle>
                 <AlertDescription>{upgrade.message}</AlertDescription>
               </Alert>
             )}
@@ -171,7 +167,7 @@ export default function DatabaseUpgrades() {
               <Card>
                 <CardContent className="flex flex-col gap-2 p-4 text-sm">
                   <div className="flex items-center justify-between gap-4">
-                    <span>{upgrade.step ?? 'Working…'}</span>
+                    <span>{upgrade.step ?? "Working…"}</span>
                     {upgrade.progress !== null && <span className="text-muted-foreground">{upgrade.progress}%</span>}
                   </div>
                   {upgrade.progress !== null && <Progress value={upgrade.progress} />}
@@ -198,7 +194,7 @@ export default function DatabaseUpgrades() {
                   <p className="font-medium">Activity</p>
                   {upgrade.target_server_id && (
                     <Button variant="outline" size="sm" onClick={showOutput} disabled={loadingOutput}>
-                      {loadingOutput ? 'Reading the copy output…' : 'Copy output'}
+                      {loadingOutput ? "Reading the copy output…" : "Copy output"}
                     </Button>
                   )}
                 </div>
@@ -231,7 +227,7 @@ export default function DatabaseUpgrades() {
                           key={log.id}
                           type="button"
                           className="flex items-center justify-between gap-4 rounded px-1 py-0.5 text-left hover:bg-accent"
-                          onClick={() => dialog.logViewer.open({ serverId: log.server_id, logId: log.id, title: `${log.name} on ${log.server_name ?? 'the server'}` })}
+                          onClick={() => dialog.logViewer.open({ serverId: log.server_id, logId: log.id, title: `${log.name} on ${(log.server_name ?? 'the server')}` })}
                         >
                           <span className="font-mono text-xs">{log.name}</span>
                           <span className="text-muted-foreground shrink-0 text-xs">
@@ -257,7 +253,7 @@ export default function DatabaseUpgrades() {
                   onClick={() =>
                     dialog.confirm.open({
                       title: 'Cancel the upgrade',
-                      description: `Pure stops the copy, removes the publications, the replication user and the pg_hba rule from ${upgrade.source_server_name}, and lets it take writes again. ${upgrade.target_server_name ?? 'The new server'} is kept; delete it yourself when you no longer need it.`,
+                      description: `Pure stops the copy, removes the publications, the replication user and the pg_hba rule from ${((upgrade.source_server_name ?? '—'))}, and lets it take writes again. ${(upgrade.target_server_name ?? 'The new server')} is kept; delete it yourself when you no longer need it.`,
                       confirmLabel: 'Cancel the upgrade',
                       method: 'post',
                       url: `/servers/${upgrade.source_server_id}/database-upgrades/${upgrade.id}/cancel`,

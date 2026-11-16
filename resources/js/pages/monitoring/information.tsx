@@ -160,7 +160,7 @@ export default function Information() {
                   <h3 className="text-xs font-semibold">Processor</h3>
                 </div>
                 <span className="text-[11px] text-muted-foreground font-mono">
-                  {info.total_processors} core{info.total_processors !== 1 ? 's' : ''}
+                  {info.total_processors === 1 ? `${info.total_processors} core` : `${info.total_processors} cores`}
                 </span>
               </div>
               <div className="p-3.5 space-y-0.5">
@@ -170,7 +170,7 @@ export default function Information() {
                     <CompactRow label="Vendor" value={firstProc.vendor} />
                     <CompactRow label="Speed" value={firstProc.speed} />
                     <CompactRow label="Cache" value={firstProc.cache} />
-                    <CompactRow label="Cores" value={`${info.total_processors} active`} />
+                    <CompactRow label={'Cores'} value={`${info.total_processors} active`} />
                   </>
                 ) : (
                   <p className="text-xs text-muted-foreground">No CPU data available.</p>
@@ -223,7 +223,7 @@ export default function Information() {
               <div className="rounded-md border shadow-2xs overflow-hidden">
                 <div className="bg-muted/30 flex items-center gap-2 border-b px-3.5 py-2">
                   <HardDriveIcon className="size-3.5 text-muted-foreground" />
-                  <h3 className="text-xs font-semibold">Storage &amp; Disks</h3>
+                  <h3 className="text-xs font-semibold">{"Storage & Disks"}</h3>
                 </div>
                 <div className="p-0 overflow-x-auto">
                   <table className="w-full text-xs">
@@ -281,7 +281,7 @@ export default function Information() {
                 onClick={() => copy(info.raw_report)}
               >
                 <ClipboardIcon className="size-3 mr-1" />
-                {copied ? 'Copied' : 'Copy'}
+                {copied ? "Copied" : "Copy"}
               </Button>
               <pre className="max-h-72 overflow-auto bg-muted/10 p-3 pt-8 font-mono text-[11px] leading-relaxed whitespace-pre-wrap text-foreground/80">
                 {info.raw_report}

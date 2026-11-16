@@ -57,7 +57,7 @@ export default function ServerIpForm({
         <Form id="server-ip-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="ip">{addRange ? 'IP Address (First)' : 'IP Address'}</Label>
+              <Label htmlFor="ip">{addRange ? "IP Address (First)" : "IP Address"}</Label>
               <Input type="text" id="ip" placeholder="e.g. 203.0.113.10" value={form.data.ip} onChange={(e) => form.setData('ip', e.target.value)} />
               <InputError message={form.errors.ip} />
             </FormField>

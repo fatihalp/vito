@@ -82,7 +82,7 @@ export default function NetworkPeers() {
                         })
                       }
                     >
-                      {disabled ? 'Enable' : 'Disable'}
+                      {disabled ? "Enable" : "Disable"}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem

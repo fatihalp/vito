@@ -32,8 +32,7 @@ export default function ReplicaLogs({ replica }: { replica: DatabaseReplica }) {
       <div className="flex flex-col gap-1">
         <h3 className="text-lg font-semibold">Logs</h3>
         <p className="text-muted-foreground text-sm">
-          Every command Pure runs for this replica is logged on the server it ran on: network, firewall, pg_hba.conf, pgBackRest and certificates. The
-          restore output comes straight from the restore process on the replica.
+          Every command Pure runs for this replica is logged on the server it ran on: network, firewall, pg_hba.conf, pgBackRest and certificates. The restore output comes straight from the restore process on the replica.
         </p>
       </div>
       <div className="flex flex-wrap gap-1" role="tablist">
@@ -45,7 +44,7 @@ export default function ReplicaLogs({ replica }: { replica: DatabaseReplica }) {
       </div>
       {tab === 'restore' && (
         <LogOutput>
-          {restore.isError ? 'Unable to load the restore output.' : restore.isLoading ? 'Loading...' : (restore.data ?? '')}
+          {restore.isError ? "Unable to load the restore output." : restore.isLoading ? "Loading..." : (restore.data ?? '')}
         </LogOutput>
       )}
       {tab === 'replica' && <Logs server={{ id: replica.replica_server_id } as Server} />}

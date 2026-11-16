@@ -21,7 +21,7 @@ export default function NetworkLogs() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Logs" description="Activity recorded against this network and the servers it runs on" />
+          <Heading title={'Logs'} description="Activity recorded against this network and the servers it runs on" />
         </HeaderContainer>
 
         <DataTable columns={networkLogColumns} paginatedData={logs} searchable sortable />

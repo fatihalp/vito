@@ -28,7 +28,7 @@ export default function MemoryView({ server, filter }: { server: Server; filter?
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile
-          label="Memory Usage"
+          label={'Memory Usage'}
           value={current?.memory_used_percent != null ? `${current.memory_used_percent.toFixed(2)}%` : 'N/A'}
           subtitle={latest ? `${kbToGb(latest.memory_used)} / ${kbToGb(latest.memory_total)} GB` : undefined}
         />

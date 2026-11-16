@@ -11,7 +11,7 @@ class DeleteSourceControl
     {
         if ($sourceControl->isGithubApp()) {
             throw ValidationException::withMessages([
-                'source_control' => __('GitHub App source controls cannot be deleted from Vito. Uninstall the app on GitHub instead.'),
+                'source_control' => 'GitHub App source controls cannot be deleted from Vito. Uninstall the app on GitHub instead.',
             ]);
         }
 

@@ -154,17 +154,17 @@ export default function PeerConfigDialog({
                   <AlertDescription>
                     <p>
                       {byo
-                        ? 'This peer uses a key you provided, so Pure never had its private key.'
-                        : 'This private key was concealed and cannot be shown again.'}{' '}
-                      Set the <span className="font-mono">PrivateKey</span> line below to the peer's own private key
-                      {byo ? '.' : ', or regenerate the peer keys to issue a new one.'}
+                        ? "This peer uses a key you provided, so Pure never had its private key."
+                        : "This private key was concealed and cannot be shown again."}{' '}
+                      Set the <span className="font-mono">PrivateKey</span> {"line below to the peer's own private key"}
+                      {byo ? '.' : ", or regenerate the peer keys to issue a new one."}
                     </p>
                   </AlertDescription>
                 </Alert>
               )}
 
               <section className="space-y-2">
-                <SectionHeader title="Configuration" hint="Updates as servers join or leave - reopen this any time.">
+                <SectionHeader title={'Configuration'} hint="Updates as servers join or leave - reopen this any time.">
                   <Button type="button" variant="outline" size="sm" onClick={() => copy(config, 'config', 'Configuration')}>
                     {copied === 'config' ? <CheckIcon /> : <CopyIcon />}
                     Copy
@@ -187,7 +187,7 @@ export default function PeerConfigDialog({
           {privateKey && !error && (
             <Button disabled={loading || concealing} onClick={conceal}>
               {concealing && <LoaderCircleIcon className="animate-spin" />}
-              I've saved the private key
+              {"I've saved the private key"}
             </Button>
           )}
         </DialogFooter>

@@ -21,8 +21,8 @@ export default function ServerBanners({ server }: { server: Server }) {
       description: 'The kernel or a critical package has been updated. Restart the server to complete the upgrade.',
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
-            Restart
+          <Link href={`/servers/${server.id}/restart`}>
+            Review restart
           </Link>
         </Button>
       ),
@@ -48,12 +48,12 @@ export default function ServerBanners({ server }: { server: Server }) {
     const updatesCount = updatesWarning.count;
     items.push({
       key: 'package-updates',
-      title: `${updatesCount} package ${updatesCount === 1 ? 'update' : 'updates'} available`,
+      title: updatesCount === 1 ? `${updatesCount} package update available` : `${updatesCount} package updates available`,
       description: <>Install pending OS package updates to keep this server patched.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={withQuery(`/servers/${server.id}/update`, { start: 1 })}>
-            Update
+          <Link href={`/servers/${server.id}/update`}>
+            Review updates
           </Link>
         </Button>
       ),
@@ -65,11 +65,11 @@ export default function ServerBanners({ server }: { server: Server }) {
     items.push({
       key: 'kernel-update',
       title: `Kernel update available`,
-      description: <>Install the pending kernel {kernelCount === 1 ? 'package' : 'packages'} and restart to apply the new kernel.</>,
+      description: <>Install the pending kernel {kernelCount === 1 ? "package" : "packages"} and restart to apply the new kernel.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel', start: 1 })}>
-            Update &amp; restart
+          <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel' })}>
+            Review kernel update
           </Link>
         </Button>
       ),
@@ -79,7 +79,7 @@ export default function ServerBanners({ server }: { server: Server }) {
   if (backupsWarning) {
     items.push({
       key: 'backups-need-attention',
-      title: `${backupsWarning.count} ${backupsWarning.count === 1 ? 'backup needs' : 'backups need'} attention`,
+      title: backupsWarning.count === 1 ? `${backupsWarning.count} backup needs attention` : `${backupsWarning.count} backups need attention`,
       description: 'A backup failed, stopped running on schedule, or pgBackRest reported a WAL or repository problem.',
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">

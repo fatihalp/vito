@@ -12,13 +12,14 @@ enum SshKeyStatus: string implements VitoEnum
     case ADDING = 'adding';
     case ADDED = 'added';
     case DELETING = 'deleting';
+    case FAILED = 'failed';
 
     public function getColor(): string
     {
         return match ($this) {
             self::ADDED => 'success',
             self::ADDING => 'warning',
-            self::DELETING => 'danger',
+            self::DELETING, self::FAILED => 'danger',
         };
     }
 }

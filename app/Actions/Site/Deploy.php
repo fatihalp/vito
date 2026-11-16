@@ -5,6 +5,7 @@ namespace App\Actions\Site;
 use App\DTOs\SocketEventDTO;
 use App\Enums\DeploymentStatus;
 use App\Enums\DeploymentTrigger;
+use App\Enums\SiteStatus;
 use App\Events\SocketEvent;
 use App\Exceptions\DeploymentScriptIsEmptyException;
 use App\Http\Resources\DeploymentResource;
@@ -14,6 +15,7 @@ use App\Models\ServerLog;
 use App\Models\Site;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 class Deploy
@@ -25,6 +27,12 @@ class Deploy
         DeploymentTrigger $trigger = DeploymentTrigger::MANUAL,
     ): Deployment
     {
+        if ($site->status === SiteStatus::PLANNED) {
+            throw ValidationException::withMessages([
+                'site' => 'This site is planned. Complete its runtime and deployment configuration before deploying.',
+            ]);
+        }
+
         $site->type()->assertReadyToDeploy();
 
         if ($site->sourceControl) {

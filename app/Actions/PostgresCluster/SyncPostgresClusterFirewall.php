@@ -69,7 +69,7 @@ class SyncPostgresClusterFirewall
         $rules = FirewallRule::query()->where('note', 'like', 'vito-pg:'.$cluster->id.':%')->get();
 
         if ($rules->contains(fn (FirewallRule $rule): bool => $rule->status === FirewallRuleStatus::FAILED)) {
-            throw new RuntimeException(__('Applying the PostgreSQL replication firewall rules on :server failed.', ['server' => $primary->name]));
+            throw new RuntimeException('Applying the PostgreSQL replication firewall rules on '.$primary->name.' failed.');
         }
 
         return $rules->every(fn (FirewallRule $rule): bool => $rule->status === FirewallRuleStatus::READY);

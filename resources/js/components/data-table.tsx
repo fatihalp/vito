@@ -221,7 +221,7 @@ export function DataTable<TData, TValue>({
         {searchable && (
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search..."
+              placeholder={'Search...'}
               className="max-w-sm"
               value={searchQuery}
               onChange={(e) => {
@@ -257,11 +257,11 @@ export function DataTable<TData, TValue>({
                           className="flex cursor-pointer items-center gap-2"
                           onClick={() => handleSort(sortKey)}
                         >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIndicator sortKey={sortKey} />
                         </button>
                       ) : (
-                        flexRender(header.column.columnDef.header, header.getContext())
+                        typeof header.column.columnDef.header === 'string' ? header.column.columnDef.header : flexRender(header.column.columnDef.header, header.getContext())
                       )}
                     </TableHead>
                   );

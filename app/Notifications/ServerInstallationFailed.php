@@ -11,19 +11,16 @@ class ServerInstallationFailed extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("Installation failed for server [:server] \nCheck your server's logs \n:logs", [
-            'server' => $this->server->name,
-            'logs' => url('/servers/'.$this->server->id.'/logs'),
-        ]);
+        return strtr("Installation failed for server [:server] \nCheck your server's logs \n:logs", [':server' => $this->server->name, ':logs' => url('/servers/'.$this->server->id.'/logs')]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->error()
-            ->subject(__('Server installation failed'))
-            ->line(__('Unfortunately, the installation of your server [:server] failed.', ['server' => $this->server->name]))
-            ->line(__('Check the server logs to find out what went wrong.'))
-            ->action(__('View logs'), url('/servers/'.$this->server->id.'/logs'));
+            ->subject('Server installation failed')
+            ->line('Unfortunately, the installation of your server ['.$this->server->name.'] failed.')
+            ->line('Check the server logs to find out what went wrong.')
+            ->action('View logs', url('/servers/'.$this->server->id.'/logs'));
     }
 }

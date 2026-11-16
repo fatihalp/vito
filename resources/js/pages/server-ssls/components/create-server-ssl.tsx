@@ -93,7 +93,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                 value={form.data.type}
               >
                 <SelectTrigger id="type">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="csr">CSR (Certificate Signing Request)</SelectItem>

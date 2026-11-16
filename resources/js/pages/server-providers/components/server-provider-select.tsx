@@ -27,7 +27,7 @@ export default function ServerProviderSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a provider'} />
+          <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a provider"} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

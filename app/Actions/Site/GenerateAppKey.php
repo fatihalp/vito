@@ -19,7 +19,7 @@ class GenerateAppKey
 
         if ($site->type !== Laravel::id() || $path !== $site->path.'/.env') {
             throw ValidationException::withMessages([
-                'env' => __('The application key can only be generated for the default .env file of Laravel sites.'),
+                'env' => 'The application key can only be generated for the default .env file of Laravel sites.',
             ]);
         }
 
@@ -29,7 +29,7 @@ class GenerateAppKey
             app(CheckAppDebug::class)->forget($site);
 
             throw ValidationException::withMessages([
-                'env' => __('The application key is already set. Refresh the page to update the warning.'),
+                'env' => 'The application key is already set. Refresh the page to update the warning.',
             ]);
         }
 

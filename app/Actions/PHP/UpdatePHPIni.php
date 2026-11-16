@@ -35,7 +35,7 @@ class UpdatePHPIni
         } catch (Throwable) {
             $this->deleteTempFile($tmpName);
             throw ValidationException::withMessages([
-                'ini' => __("Couldn't update php.ini (:type) file!", ['type' => $input['type']]),
+                'ini' => 'Couldn\'t update php.ini ('.$input['type'].') file!',
             ]);
         }
 

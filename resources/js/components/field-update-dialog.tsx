@@ -10,7 +10,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useForm } from '@inertiajs/react';
+import { InertiaFormProps, useForm } from '@inertiajs/react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { LoaderCircleIcon } from 'lucide-react';
 
@@ -21,7 +21,7 @@ interface FieldUpdateDialogProps {
   fieldName: string;
   url: string;
   trigger: ReactNode;
-  children: (form: any) => ReactNode;
+  children: (form: InertiaFormProps<Record<string, string>>) => ReactNode;
 }
 
 export default function FieldUpdateDialog({
@@ -54,7 +54,7 @@ export default function FieldUpdateDialog({
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription className={typeof description === 'string' && description === 'sr-only' ? 'sr-only' : undefined}>
-            {description !== 'sr-only' ? description : "Update field"}
+            {description === 'sr-only' ? 'Update field' : typeof description === 'string' ? description : description}
           </DialogDescription>
         </DialogHeader>
 

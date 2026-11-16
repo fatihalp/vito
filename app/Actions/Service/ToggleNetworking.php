@@ -52,13 +52,13 @@ class ToggleNetworking
 
         if (! $handler instanceof SupportsNetworking) {
             throw ValidationException::withMessages([
-                'service' => __('This service does not support networking.'),
+                'service' => 'This service does not support networking.',
             ]);
         }
 
         if (! in_array($service->status, SyncServiceStatus::SETTLED_STATUSES, true)) {
             throw ValidationException::withMessages([
-                'service' => __('Wait for the service to settle before changing its networking.'),
+                'service' => 'Wait for the service to settle before changing its networking.',
             ]);
         }
 

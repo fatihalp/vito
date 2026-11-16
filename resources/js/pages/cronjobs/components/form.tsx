@@ -139,8 +139,8 @@ export default function CronJobForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[calc(100dvh-2rem)] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{cronJob ? 'Edit' : 'Create'} cron job</DialogTitle>
-          <DialogDescription className="sr-only">{cronJob ? 'Edit' : 'Create new'} cron job</DialogDescription>
+          <DialogTitle>{cronJob ? "Edit" : "Create"} cron job</DialogTitle>
+          <DialogDescription className="sr-only">{cronJob ? "Edit" : "Create new"} cron job</DialogDescription>
         </DialogHeader>
         <Form id="cronjob-form" onSubmit={submit} className="min-h-0 overflow-y-auto p-4">
           <FormFields>
@@ -207,7 +207,7 @@ export default function CronJobForm({
               />
               <InputError message={form.errors.command} />
               {form.data.site_id !== '0' ? (
-                <p id="command-help" className="text-muted-foreground text-xs">Enter only the command. It runs from the selected site's directory.</p>
+                <p id="command-help" className="text-muted-foreground text-xs">{"Enter only the command. It runs from the selected site's directory."}</p>
               ) : (
                 <p id="command-help" className="text-muted-foreground text-xs leading-relaxed">
                   Select a site to run from its directory, or include the full path in your command.

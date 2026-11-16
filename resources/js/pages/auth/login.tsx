@@ -31,8 +31,8 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout title="Log in" showFooter={false}>
-      <Head title="Log in" />
+    <AuthLayout title={'Log in'} showFooter={false}>
+      <Head title={'Log in'} />
 
       <form onSubmit={submit}>
         <div className="grid gap-6">
@@ -62,7 +62,7 @@ export default function Login() {
               autoComplete="current-password"
               value={form.data.password}
               onChange={(e) => form.setData('password', e.target.value)}
-              placeholder="Password"
+              placeholder={'Password'}
             />
             <InputError message={form.errors.password} />
           </div>

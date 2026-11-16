@@ -18,7 +18,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useEffect } from 'react';
 import type { PhpVersions } from '@/types/php-versions';
 import { Badge } from '@/components/ui/badge';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
 
 type Page = {
@@ -31,14 +30,14 @@ type Page = {
   groupBy?: 'none' | 'project';
 };
 
-const nameCell = ({ row, value }: CellRenderProps) => {
+const NameCell = ({ row, value }: CellRenderProps) => {
   const status = String(row.status || '');
   const isUnreachable = status === 'disconnected' || row.is_disconnected === true;
   const isInstalling = status === 'installing';
   const isFailed = status === 'installation_failed';
   const isSelf = Boolean(row.is_self);
   const id = row.id as number;
-  const name = isSelf ? 'Pure server' : String(value || row.name || '');
+  const name = String(value || row.name || '');
   const sitesCount = typeof row.sites_count === 'number' ? row.sites_count : 0;
 
   return (
@@ -103,7 +102,7 @@ const metricCell = (threshold: number) =>
     const numeric = typeof value === 'number' ? value : null;
 
     if (numeric === null) {
-      return <span className="text-muted-foreground text-xs">—</span>;
+      return <span className="text-muted-foreground text-xs" title="Cloud pricing is not linked or could not be verified.">—</span>;
     }
 
     return (
@@ -113,9 +112,9 @@ const metricCell = (threshold: number) =>
     );
   };
 
-const cpuCell = metricCell(80);
-const ramCell = metricCell(85);
-const diskCell = metricCell(90);
+const CpuCell = metricCell(80);
+const RamCell = metricCell(85);
+const DiskCell = metricCell(90);
 
 const coresCell = ({ value }: CellRenderProps) => {
   const cores = typeof value === 'number' && value > 0 ? value : null;
@@ -135,7 +134,7 @@ type ServerCost = {
   region: string | null;
 };
 
-const costCell = ({ value }: CellRenderProps) => {
+const CostCell = ({ value }: CellRenderProps) => {
   const cost = (value as ServerCost | null) ?? null;
 
   if (!cost || !cost.formatted) {
@@ -144,7 +143,7 @@ const costCell = ({ value }: CellRenderProps) => {
 
   return (
     <div className="flex flex-col">
-      <span className="font-mono text-sm font-medium">{cost.formatted}</span>
+      <span className="font-mono text-sm font-medium" title="Monthly server plan before VAT. IPv4, backups and other extras are not included.">{cost.formatted}</span>
       {cost.plan && (
         <span className="text-muted-foreground text-[11px]">
           {cost.plan}{cost.region ? ` · ${cost.region}` : ''}
@@ -176,7 +175,7 @@ const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
   return GlobeIcon;
 };
 
-const roleCell = ({ row, value }: CellRenderProps) => {
+const RoleCell = ({ row, value }: CellRenderProps) => {
   const Icon = getRoleIcon(row.role_value, value ?? row.role);
   const displayText = String(value || row.role || 'App server');
 
@@ -213,7 +212,7 @@ const stageCell = ({ value }: CellRenderProps) => {
   );
 };
 
-const warningsCell = ({ row, value }: CellRenderProps) => {
+const WarningsCell = ({ row, value }: CellRenderProps) => {
   const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
 
   if (isUnreachable) {
@@ -229,37 +228,42 @@ const warningsCell = ({ row, value }: CellRenderProps) => {
 
   const formatWarningLabel = (w: { key: string; count?: number }) => {
     if (w.key === 'reboot_required') return 'Restart required';
-    if (w.key === 'updates_available') return `${w.count ?? ''} package ${w.count === 1 ? 'update' : 'updates'} available`;
+    if (w.key === 'updates_available') return w.count === 1 ? `${(w.count ?? 0)} package update available` : `${(w.count ?? 0)} package updates available`;
     if (w.key === 'kernel_update_available') return 'Kernel update available';
-    if (w.key === 'backups_need_attention') return `${w.count} ${w.count === 1 ? 'backup needs' : 'backups need'} attention`;
+    if (w.key === 'backups_need_attention') return w.count === 1 ? `${(w.count ?? 0)} backup needs attention` : `${(w.count ?? 0)} backups need attention`;
     return w.key;
   };
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
+    <Tooltip>
+      <TooltipTrigger asChild>
         <Button
           variant="ghost"
           size="sm"
           className="h-6 shrink-0 gap-1 px-1.5 text-warning/80 hover:text-warning"
-          aria-label={`${count} server ${count === 1 ? 'warning' : 'warnings'}`}
-          onClick={(event) => event.stopPropagation()}
+          aria-label={count === 1 ? `${count} server warning` : `${count} server warnings`}
+          onClick={(event) => {
+            event.stopPropagation();
+            router.visit(warnings.some((warning) => warning.key === 'updates_available' || warning.key === 'kernel_update_available')
+              ? `/servers/${row.id}/update`
+              : warnings.some((warning) => warning.key === 'reboot_required') ? `/servers/${row.id}/restart` : `/servers/${row.id}`);
+          }}
         >
           <TriangleAlertIcon className="size-3.5" />
           <span className="text-xs tabular-nums">{count}</span>
         </Button>
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-72 p-3" onClick={(event) => event.stopPropagation()}>
+      </TooltipTrigger>
+      <TooltipContent align="start" className="w-72 p-3">
         <p className="mb-2 text-xs font-medium">Server warnings</p>
         <ul className="text-muted-foreground flex flex-col gap-2 text-xs">
           {warnings.map((warning) => <li key={warning.key}>{formatWarningLabel(warning)}</li>)}
         </ul>
-      </PopoverContent>
-    </Popover>
+      </TooltipContent>
+    </Tooltip>
   );
 };
 
-const phpVersionsCell = ({ value, row }: CellRenderProps) => {
+const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
   const result = value as PhpVersions | null;
 
   if (!result) {
@@ -285,7 +289,7 @@ const phpVersionsCell = ({ value, row }: CellRenderProps) => {
           </Badge>
           {result.versions.map((version) => (
             <span key={version.installed} className="text-muted-foreground whitespace-nowrap text-xs">
-              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ' · End of support' : ''}
+              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ` · ${'End of support'}` : ''}
             </span>
           ))}
           {stale && <span className="text-muted-foreground text-xs">Cached result</span>}
@@ -293,7 +297,7 @@ const phpVersionsCell = ({ value, row }: CellRenderProps) => {
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
         <p>Compared with the latest patch release for each PHP branch.</p>
-        <p>{result.checked_at ? `Last successful check: ${new Date(result.checked_at).toLocaleString('en-US')}` : 'No successful checks yet.'}</p>
+        <p>{result.checked_at ? `Last successful check: ${(new Date(result.checked_at).toLocaleString('en-US'))}` : 'No successful checks yet.'}</p>
         {result.status === 'error' && <p>Unable to reach the server or PHP version source. Previous results are preserved.</p>}
       </TooltipContent>
     </Tooltip>
@@ -321,11 +325,11 @@ export default function Servers() {
 
   return (
     <Layout>
-      <Head title="Servers" />
+      <Head title={'Servers'} />
 
       <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <Heading title="Servers" />
+          <Heading title={'Servers'} />
           <div className="flex flex-wrap items-center gap-2">
             {advanced && <Button
               variant="outline"
@@ -339,7 +343,7 @@ export default function Servers() {
               Check versions
             </Button>}
             <Button asChild>
-              <Link href={"/servers/create"}>
+              <Link href="/servers/create">
                 <PlusIcon />
                 Create server
               </Link>
@@ -400,7 +404,7 @@ export default function Servers() {
                   }}
                 >
                   <SelectTrigger className="h-8 w-40" aria-label="Group servers by">
-                    <SelectValue placeholder="No grouping" />
+                    <SelectValue placeholder={'No grouping'} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">No grouping</SelectItem>
@@ -414,25 +418,25 @@ export default function Servers() {
             name: (props: CellRenderProps) => (
               <div className="flex min-w-0 flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  {nameCell(props)}
-                  {Array.isArray(props.row.warnings) && props.row.warnings.length > 0 && warningsCell({ ...props, value: props.row.warnings })}
+                  <NameCell {...props} />
+                  {Array.isArray(props.row.warnings) && props.row.warnings.length > 0 && <WarningsCell {...props} value={props.row.warnings} />}
                 </div>
                 {advanced && <span className="font-mono text-xs text-muted-foreground">{String(props.row.ip ?? '')}</span>}
                 {advanced && <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                  {roleCell({ ...props, value: props.row.role })}
+                  <RoleCell {...props} value={props.row.role} />
                   {stageCell({ ...props, value: props.row.stage })}
                 </div>}
               </div>
             ),
             cpu_cores: coresCell,
-            monthly_cost: (props: CellRenderProps) => <div className="flex flex-col gap-1">{costCell(props)}{coresCell({ ...props, value: props.row.cpu_cores })}</div>,
-            php_versions: phpVersionsCell,
-            cpu_usage_percent: cpuCell,
-            memory_used_percent: ramCell,
-            disk_used_percent: diskCell,
-            role: roleCell,
+            monthly_cost: (props: CellRenderProps) => <div className="flex flex-col gap-1"><CostCell {...props} />{coresCell({ ...props, value: props.row.cpu_cores })}</div>,
+            php_versions: (props: CellRenderProps) => <PhpVersionsCell {...props} />,
+            cpu_usage_percent: (props: CellRenderProps) => <CpuCell {...props} />,
+            memory_used_percent: (props: CellRenderProps) => <RamCell {...props} />,
+            disk_used_percent: (props: CellRenderProps) => <DiskCell {...props} />,
+            role: (props: CellRenderProps) => <RoleCell {...props} />,
             stage: stageCell,
-            warnings: warningsCell,
+            warnings: (props: CellRenderProps) => <WarningsCell {...props} />,
           }}
           onRowClick={(row: Row) => {
             const server = asRow<{ id: number }>(row, ['id']);

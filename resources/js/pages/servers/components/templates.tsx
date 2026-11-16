@@ -182,7 +182,7 @@ export default function ServerTemplates({
   const query = useQuery<ServerTemplate[]>({
     queryKey: ['server-templates'],
     queryFn: async () => {
-      return (await axios.get("/server-templates")).data?.templates || [];
+      return (await axios.get('/server-templates')).data?.templates || [];
     },
   });
 
@@ -215,8 +215,8 @@ export default function ServerTemplates({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button type="button" variant="outline" role="combobox" aria-expanded={open} className="w-[200px] justify-between">
-            {query.isFetching && 'Loading...'}
-            {!query.isFetching && (value ? value.name : 'Select template...')}
+            {query.isFetching && "Loading..."}
+            {!query.isFetching && (value ? value.name : "Select template...")}
             <ChevronsUpDownIcon className="opacity-50" />
           </Button>
         </PopoverTrigger>

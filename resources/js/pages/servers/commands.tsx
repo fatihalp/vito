@@ -151,7 +151,7 @@ export default function ServerCommands() {
       <Container className="space-y-5">
         <HeaderContainer>
           <Heading
-            title="Commands"
+            title={'Commands'}
             description="Audit log and command execution history on this server."
           />
 
@@ -241,8 +241,8 @@ export default function ServerCommands() {
                 <p className="text-sm font-medium text-foreground">No commands found</p>
                 <p className="text-xs text-muted-foreground">
                   {search
-                    ? 'No commands match your filter criteria.'
-                    : 'No command execution records were returned for this source.'}
+                    ? "No commands match your filter criteria."
+                    : "No command execution records were returned for this source."}
                 </p>
               </div>
             )}

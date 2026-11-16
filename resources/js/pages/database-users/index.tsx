@@ -39,7 +39,7 @@ export default function DatabaseUsers() {
             title={
               page.props.server.counts?.database_users !== undefined
                 ? `Users (${page.props.server.counts.database_users})`
-                : 'Users'
+                : "Users"
             }
           />
           <div className="flex items-center gap-2">
@@ -75,8 +75,7 @@ export default function DatabaseUsers() {
             <AlertTitle>This server is a PostgreSQL replica of {page.props.replicaOf.name}</AlertTitle>
             <AlertDescription>
               <p>
-                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Pure imports the list when
-                the replica is built; use Sync to refresh it.
+                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Pure imports the list when the replica is built; use Sync to refresh it.
               </p>
               {page.props.replicaOf.server_id && (
                 <Link href={`/servers/${page.props.replicaOf.server_id}/database/users`} className="text-foreground underline">

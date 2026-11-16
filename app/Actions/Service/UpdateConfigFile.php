@@ -21,7 +21,7 @@ class UpdateConfigFile
 
         if (! $configPath) {
             throw ValidationException::withMessages([
-                'config_name' => __('Config file not found'),
+                'config_name' => 'Config file not found',
             ]);
         }
 
@@ -50,7 +50,7 @@ class UpdateConfigFile
         } catch (Throwable) {
             $this->deleteTempFile($tmpName);
             throw ValidationException::withMessages([
-                'content' => __("Couldn't update config file!"),
+                'content' => 'Couldn\'t update config file!',
             ]);
         }
 
@@ -83,7 +83,7 @@ class UpdateConfigFile
         $configPaths = config("service.services.{$service->name}.config_paths", []);
         if (empty($configPaths)) {
             throw ValidationException::withMessages([
-                'config_paths' => __('This service has no config files defined'),
+                'config_paths' => 'This service has no config files defined',
             ]);
         }
     }

@@ -22,7 +22,7 @@ export default function Networking({ service }: { service: Service }) {
           })
         }
       >
-        {isRemoteOpen ? 'Close Remote Access' : 'Open to Remote'}
+        {isRemoteOpen ? "Close Remote Access" : "Open to Remote"}
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => dialog.serviceNetworking.open({ service })}>
         Networking Settings

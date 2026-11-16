@@ -33,7 +33,7 @@ class ServerTemplateController extends Controller
 
         app(ManageServerTemplate::class)->create(user(), $request->all());
 
-        return back()->with('success', __('Server template created successfully.'));
+        return back()->with('success', 'Server template created successfully.');
     }
 
     #[Put('/{id}', name: 'server-templates.update')]
@@ -45,7 +45,7 @@ class ServerTemplateController extends Controller
 
         app(ManageServerTemplate::class)->update($template, $request->all());
 
-        return back()->with('success', __('Server template updated successfully.'));
+        return back()->with('success', 'Server template updated successfully.');
     }
 
     #[Delete('/{id}', name: 'server-templates.destroy')]
@@ -57,6 +57,6 @@ class ServerTemplateController extends Controller
 
         $template->delete();
 
-        return back()->with('success', __('Server template deleted successfully.'));
+        return back()->with('success', 'Server template deleted successfully.');
     }
 }

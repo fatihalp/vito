@@ -3,6 +3,7 @@
 namespace App\SiteTypes;
 
 use App\DTOs\DynamicField;
+use App\Exceptions\ReverseProxyNotConfiguredException;
 use App\Models\Deployment;
 use App\Models\Site;
 use App\Models\SourceControl;
@@ -10,6 +11,13 @@ use App\ValidationRules\BranchExistsRule;
 
 class Blank extends AbstractProxiedSiteType
 {
+    public function assertReadyToDeploy(): void
+    {
+        if (empty($this->site->port)) {
+            throw new ReverseProxyNotConfiguredException('Please set a port before deploying this site.');
+        }
+    }
+
     public static function id(): string
     {
         return 'blank';
@@ -25,7 +33,6 @@ class Blank extends AbstractProxiedSiteType
         return new self(new Site(['type' => self::id()]));
     }
 
-    
     public static function formFields(): array
     {
         $shared = parent::sharedFormFields();

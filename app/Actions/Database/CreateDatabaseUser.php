@@ -60,7 +60,7 @@ class CreateDatabaseUser
                 'alpha_dash',
                 function (string $attribute, mixed $value, Closure $fail) use ($handler, $server, $host): void {
                     if ($handler->databaseUserExists($server, (string) $value, $host)) {
-                        $fail(__('A database user with this username and host already exists.'));
+                        $fail('A database user with this username and host already exists.');
                     }
                 },
             ],

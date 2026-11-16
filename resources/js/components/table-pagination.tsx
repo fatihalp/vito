@@ -60,8 +60,9 @@ export function TablePagination({
       <div className="text-muted-foreground flex items-center text-sm">
         {from && to && (
           <span>
-            Showing {from} to {to}
-            {total && ` of ${total}`} results
+            {total !== undefined && total !== null
+              ? `Showing ${from} to ${to} of ${total} results`
+              : `Showing ${from} to ${to}`}
           </span>
         )}
       </div>
@@ -88,7 +89,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(1)}
             disabled={currentPage <= 1 || disabled}
-            title="First page"
+            title={'First page'}
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
@@ -99,7 +100,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1 || disabled}
-            title="Previous page"
+            title={'Previous page'}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -140,7 +141,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={(lastPage ? currentPage >= lastPage : !hasNextLink) || disabled}
-            title="Next page"
+            title={'Next page'}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -151,7 +152,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(lastPage || currentPage + 1)}
             disabled={(lastPage ? currentPage >= lastPage : !hasLastLink) || disabled}
-            title="Last page"
+            title={'Last page'}
           >
             <ChevronsRight className="h-4 w-4" />
           </Button>

@@ -41,7 +41,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 function Field({ label, children }: { label: ReactNode; children: ReactNode }) {
   return (
     <div className="grid min-h-10 grid-cols-[8rem_minmax(0,1fr)] items-center gap-3 px-3 py-1.5 text-sm">
-      <span className="text-muted-foreground">{label}</span>
+      <span className="text-muted-foreground">{typeof label === 'string' ? label : label}</span>
       <div className="flex min-w-0 flex-wrap items-center gap-1.5">{children}</div>
     </div>
   );
@@ -76,7 +76,7 @@ export default function SiteSettings() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Settings" description="Manage how this site is built, served and deployed" />
+          <Heading title={'Settings'} description={'Manage how this site is built, served and deployed'} />
         </HeaderContainer>
 
         <SiteBanners site={site} />
@@ -231,7 +231,7 @@ export default function SiteSettings() {
           <Card className="border-destructive/50 flex-row flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex flex-col gap-0.5">
               <span className="text-sm font-medium">Delete site</span>
-              <span className="text-muted-foreground text-sm">Permanently deletes the site and its files from the server. Databases are kept. This cannot be undone.</span>
+              <span className="text-muted-foreground text-sm">The site will be removed from Pure. Its files and physical server will remain untouched.</span>
             </div>
             <DeleteSite site={site}>
               <Button variant="destructive" size="sm">

@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowRightIcon, CheckIcon, ChevronsUpDownIcon, ClipboardCheckIcon, ClipboardIcon, LoaderCircle, PlusIcon, ServerIcon, TrashIcon, TriangleAlertIcon } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Head, Link, useForm } from '@inertiajs/react';
 import React, { FormEventHandler, useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
@@ -36,6 +37,7 @@ import { useSocketListener } from '@/hooks/use-socket-events';
 import type { ServerRole } from '@/lib/server-roles';
 import Layout from '@/layouts/app/layout';
 import Container from '@/components/container';
+import { requestErrorMessage } from '@/lib/request-error';
 
 const STEPS = [
   { id: 'provider', label: 'Provider & Connection' },
@@ -63,6 +65,7 @@ type CreateServerForm = {
   os: string;
   ip: string;
   port: number;
+  ssh_user: string;
   region: string;
   plan: string;
   services: Service[];
@@ -166,7 +169,7 @@ function AddService() {
                 onValueChange={(value) => form.setData('version', value)}
               >
                 <SelectTrigger id="version">
-                  <SelectValue placeholder="Select a version" />
+                  <SelectValue placeholder={'Select a version'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -250,7 +253,7 @@ export default function CreateServerPage({
   const [copiedKey, setCopiedKey] = useState(false);
   const [providers, setProviders] = useState<ServerProvider[]>(() => {
     if (Array.isArray(initialProviders)) return initialProviders;
-    if (initialProviders && Array.isArray((initialProviders as any).data)) return (initialProviders as any).data;
+    if (initialProviders && Array.isArray(initialProviders.data)) return initialProviders.data;
     return [];
   });
 
@@ -273,6 +276,7 @@ export default function CreateServerPage({
     os: 'ubuntu_24',
     ip: '',
     port: 22,
+    ssh_user: 'root',
     region: '',
     plan: '',
     services: servicesForRole('app'),
@@ -349,6 +353,7 @@ export default function CreateServerPage({
         server_provider: 0,
         role: 'custom',
         services: servicesForRole('custom'),
+        ssh_user: 'root',
         region: '',
         plan: '',
       }));
@@ -389,14 +394,14 @@ export default function CreateServerPage({
 
   const fetchServerProviders = async () => {
     try {
-      const response = await axios.get<ServerProvider[]>("/settings/server-providers/json");
-      const list = Array.isArray(response.data) ? response.data : (response.data as any)?.data || [];
+      const response = await axios.get<ServerProvider[] | { data?: ServerProvider[] }>("/settings/server-providers/json");
+      const list = Array.isArray(response.data) ? response.data : response.data.data || [];
       setProviders(list);
       if (list.length > 0 && form.data.server_provider === 0) {
         handleProviderSelect(list[0]);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Could not fetch server providers');
+    } catch (error) {
+      toast.error(requestErrorMessage(error, 'Could not fetch server providers'));
     }
   };
 
@@ -406,8 +411,8 @@ export default function CreateServerPage({
         `/settings/server-providers/${serverProvider}/regions/${encodeURIComponent(String(region))}/plans`,
       );
       setPlans(res.data || {});
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Could not fetch plans');
+    } catch (error) {
+      toast.error(requestErrorMessage(error, 'Could not fetch plans'));
     }
   };
 
@@ -459,8 +464,8 @@ export default function CreateServerPage({
           void 0;
         }
       }
-    } catch (err: any) {
-      const msg = err.response?.data?.message || 'Could not fetch regions from provider';
+    } catch (error) {
+      const msg = requestErrorMessage(error, 'Could not fetch regions from provider');
       setRegions({});
       setRegionsError(msg);
       toast.error(msg);
@@ -522,6 +527,10 @@ export default function CreateServerPage({
         form.setError('port', 'Valid SSH port required');
         return false;
       }
+      if (isExisting && !form.data.ssh_user.trim()) {
+        form.setError('ssh_user', 'SSH user is required');
+        return false;
+      }
       return true;
     }
     if (!form.data.server_provider) {
@@ -566,7 +575,7 @@ export default function CreateServerPage({
     form.post('/servers', {
       onError: (errors) => {
         const keys = Object.keys(errors);
-        if (keys.some((k) => ['server_provider', 'region', 'plan', 'ip', 'port'].includes(k))) {
+        if (keys.some((k) => ['server_provider', 'region', 'plan', 'ip', 'port', 'ssh_user'].includes(k))) {
           setStep(0);
         } else if (keys.some((k) => ['name', 'stage'].includes(k))) {
           setStep(1);
@@ -580,13 +589,13 @@ export default function CreateServerPage({
 
   return (
     <Layout>
-      <Head title="Create server" />
+      <Head title={'Create server'} />
 
       <Container className="max-w-3xl py-8">
         <div className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Button variant="ghost" size="sm" asChild className="h-7 px-2 -ml-2 text-muted-foreground hover:text-foreground">
-              <Link href={"/servers"}>
+              <Link href="/servers">
                 <ArrowLeftIcon className="mr-1 size-3.5" />
                 Back to servers
               </Link>
@@ -640,6 +649,14 @@ export default function CreateServerPage({
 
           <Form id="create-server-form" onSubmit={submit} className="p-6 sm:p-8">
             <FormFields className="space-y-6">
+              {form.errors.provider && (
+                <Alert variant="destructive">
+                  <TriangleAlertIcon />
+                  <AlertTitle>Server connection failed</AlertTitle>
+                  <AlertDescription>{form.errors.provider}</AlertDescription>
+                </Alert>
+              )}
+
               {step === 0 && (
                 <div className="space-y-6">
                   <div className="space-y-2">
@@ -698,7 +715,7 @@ export default function CreateServerPage({
                                   className="w-full justify-between font-normal"
                                 >
                                   {providers.find((p) => p.id === form.data.server_provider)?.name ||
-                                    'Select cloud provider...'}
+                                    "Select cloud provider..."}
                                   <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
                                 </Button>
                               </PopoverTrigger>
@@ -747,7 +764,7 @@ export default function CreateServerPage({
                                   onClick={() => form.data.server_provider && fetchRegions(form.data.server_provider, form.data.provider)}
                                   disabled={regionLoading}
                                 >
-                                  {regionLoading ? <LoaderCircle className="size-3 animate-spin" /> : 'Retry'}
+                                  {regionLoading ? <LoaderCircle className="size-3 animate-spin" /> : "Retry"}
                                 </Button>
                                 <Button
                                   variant="ghost"
@@ -755,7 +772,7 @@ export default function CreateServerPage({
                                   asChild
                                   className="h-6 px-2 text-xs hover:bg-destructive/20 hover:text-destructive"
                                 >
-                                  <Link href={"/settings/server-providers"}>Settings</Link>
+                                  <Link href="/settings/server-providers">Settings</Link>
                                 </Button>
                               </div>
                             </div>
@@ -806,7 +823,7 @@ export default function CreateServerPage({
                                     className="w-full justify-between font-normal"
                                     disabled={form.data.server_provider === 0}
                                   >
-                                    {form.data.region ? regions[form.data.region] || form.data.region : 'Select region'}
+                                    {form.data.region ? regions[form.data.region] || form.data.region : "Select region"}
                                     <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
                                   </Button>
                                 </PopoverTrigger>
@@ -900,7 +917,7 @@ export default function CreateServerPage({
                                       ? plans[form.data.plan]
                                         ? normalizePlan(plans[form.data.plan]).label
                                         : form.data.plan
-                                      : 'Select plan'}
+                                      : "Select plan"}
                                     <ChevronsUpDownIcon className="ml-2 size-4 shrink-0 opacity-50" />
                                   </Button>
                                 </PopoverTrigger>
@@ -969,6 +986,23 @@ export default function CreateServerPage({
                           <InputError message={form.errors.port} />
                         </FormField>
                       </div>
+
+                      {isExisting && (
+                        <FormField>
+                          <Label htmlFor="ssh_user">SSH User</Label>
+                          <Input
+                            id="ssh_user"
+                            placeholder="e.g. deploy"
+                            value={form.data.ssh_user}
+                            onChange={(e) => form.setData('ssh_user', e.target.value)}
+                            autoComplete="username"
+                          />
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {"Use the account where you added Vito's public SSH key. Root is not required."}
+                          </p>
+                          <InputError message={form.errors.ssh_user} />
+                        </FormField>
+                      )}
 
                       {publicKey && (
                         <div className="space-y-1.5 rounded-xl border bg-muted/40 p-4">
@@ -1042,7 +1076,7 @@ export default function CreateServerPage({
               {step === 2 && (
                 <div className="space-y-5">
                   <div className="bg-muted/40 flex flex-wrap items-center gap-2 rounded-xl border p-3 text-xs">
-                    <span className="font-semibold text-foreground">{form.data.name || 'Unnamed'}</span>
+                    <span className="font-semibold text-foreground">{form.data.name || "Unnamed"}</span>
                     <span className="text-muted-foreground">•</span>
                     <span className="text-muted-foreground uppercase">{form.data.stage}</span>
                     <span className="text-muted-foreground">•</span>
@@ -1146,7 +1180,7 @@ export default function CreateServerPage({
                   </Button>
                 ) : (
                   <Button variant="outline" asChild disabled={form.processing}>
-                    <Link href={"/servers"}>Cancel</Link>
+                    <Link href="/servers">Cancel</Link>
                   </Button>
                 )}
               </div>
@@ -1159,7 +1193,7 @@ export default function CreateServerPage({
                 ) : (
                   <Button type="button" onClick={createServer} disabled={form.processing}>
                     {form.processing && <LoaderCircle className="mr-1.5 animate-spin size-4" />}
-                    {isExisting ? 'Connect Server' : 'Create Server'}
+                    {isExisting ? "Connect Server" : "Create Server"}
                   </Button>
                 )}
               </div>

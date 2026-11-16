@@ -65,9 +65,7 @@ export default function RestoreToServer({
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
               Pure creates a server at your provider (billed by the provider), installs the same operating system and PostgreSQL version as{' '}
-              {requirements?.source ?? 'the source'}, and restores the backup onto it. The copy is independent: it doesn't connect to the source, archive WAL or
-              take backups, and Pure removes the backup storage credentials from it when the restore finishes. It holds every database and user in the
-              backup.
+              {requirements?.source ?? "the source"}{", and restores the backup onto it. The copy is independent: it doesn't connect to the source, archive WAL or take backups, and Pure removes the backup storage credentials from it when the restore finishes. It holds every database and user in the backup."}
             </div>
 
             <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
@@ -77,7 +75,7 @@ export default function RestoreToServer({
               ) : (
                 <>
                   <p>
-                    <span className="font-medium">Storage: {requirements.storage_gb !== null ? `at least ${requirements.storage_gb} GB` : 'unknown'}.</span>{' '}
+                    <span className="font-medium">Storage: {requirements.storage_gb !== null ? `at least ${requirements.storage_gb} GB` : "unknown"}.</span>{' '}
                     {requirements.measured && requirements.database_size !== null
                       ? `The largest backed-up database is ${(requirements.database_size / 1073741824).toFixed(1)} GB when restored.`
                       : `Until a backup reports its database size, this is based on the disk ${requirements.source} uses.`}{' '}
@@ -85,13 +83,13 @@ export default function RestoreToServer({
                   </p>
                   <p>
                     <span className="font-medium">
-                      vCPU: {requirements.cores ?? 'unknown'} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : 'unknown'}
+                      vCPU: {requirements.cores ?? "unknown"} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : "unknown"}
                     </span>{' '}
                     or more, like {requirements.source}, so the restored database performs the same and its PostgreSQL settings fit.
                   </p>
                   <p>
                     <span className="font-medium">
-                      Processor: {requirements.architecture ?? 'same as the source'} · {requirements.os.replace('_', ' ')} · PostgreSQL {requirements.postgresql}
+                      Processor: {requirements.architecture ?? "same as the source"} · {requirements.os.replace('_', ' ')} · PostgreSQL {requirements.postgresql}
                     </span>
                     . PostgreSQL data files are only safe on the same processor architecture.
                   </p>

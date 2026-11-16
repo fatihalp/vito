@@ -29,11 +29,14 @@ import { Deployment, LatestCommit } from '@/types/deployment';
 import LatestCommitBanner from '@/pages/application/components/latest-commit-banner';
 import { DeploymentsSkeleton, WorkersCronJobsSkeleton } from '@/components/page-skeleton';
 
-function Detail({ icon: Icon, children }: { icon: LucideIcon; children: React.ReactNode }) {
+function Detail({ icon: Icon, label, children }: { icon: LucideIcon; label?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-3 text-sm font-medium">
       <Icon className="text-muted-foreground size-4 shrink-0" />
-      <div className="min-w-0 flex-1 break-words">{children}</div>
+      <div className="min-w-0 flex-1 break-words">
+        {label && <p className="text-muted-foreground text-xs">{label}</p>}
+        {children}
+      </div>
     </div>
   );
 }
@@ -145,7 +148,7 @@ export default function AppWithDeployment() {
             )}
 
             <Deferred data="deployments" fallback={<DeploymentsSkeleton />}>
-              <section aria-label="Deployments">
+              <section aria-label={'Deployments'}>
                 <Card>
                   <CardHeader className="gap-3 p-4">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -158,7 +161,7 @@ export default function AppWithDeployment() {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-foreground inline-flex min-w-0 items-center gap-1.5 font-medium hover:underline"
-                                title="Open repository"
+                                title={'Open repository'}
                               >
                                 <span className="truncate">{site.repository}</span>
                                 <ExternalLinkIcon className="size-3.5 shrink-0" />
@@ -193,7 +196,7 @@ export default function AppWithDeployment() {
                               <DeploymentScript
                                 site={site}
                                 script={page.props.buildScript ?? fallbackScript('build')}
-                                description="This script will build resources like composer and npm before release"
+                                description={'This script will build resources like composer and npm before release'}
                               >
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                   Build Script
@@ -202,7 +205,7 @@ export default function AppWithDeployment() {
                               <DeploymentScript
                                 site={site}
                                 script={page.props.preFlightScript ?? fallbackScript('pre-flight')}
-                                description="This script will be executed before release like migrations and optimizations"
+                                description={'This script will be executed before release like migrations and optimizations'}
                               >
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
                                   Pre Flight Script
@@ -214,7 +217,7 @@ export default function AppWithDeployment() {
                           <DeploymentScript
                             site={site}
                             script={page.props.deploymentScript ?? fallbackScript('default')}
-                            description="This script will be executed on every deployment."
+                            description={'This script will be executed on every deployment.'}
                           >
                             <Button variant="outline" className="gap-1.5 cursor-pointer">
                               <TerminalIcon className="size-4" />
@@ -240,7 +243,7 @@ export default function AppWithDeployment() {
                         <div className="flex items-center gap-2 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-warning">
                           <AlertTriangleIcon className="size-4 shrink-0" />
                           <span>
-                            This commit ({activeDeployment.commit_id_short || activeDeployment.commit_id}) has already been deployed in a previous release.
+                            {`This commit (${(activeDeployment.commit_id_short || activeDeployment.commit_id || '')}) has already been deployed in a previous release.`}
                           </span>
                         </div>
                       )}
@@ -256,7 +259,7 @@ export default function AppWithDeployment() {
                               onClick={() => setShowLog((prev) => !prev)}
                             >
                               {showLog ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
-                              <span>{showLog ? 'Hide log' : 'Show log'}</span>
+                              <span>{showLog ? "Hide log" : "Show log"}</span>
                             </Button>
 
                             <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs cursor-pointer">
@@ -272,7 +275,7 @@ export default function AppWithDeployment() {
                                 size="icon"
                                 className="size-8 cursor-pointer"
                                 onClick={() => setDismissed(true)}
-                                title="Dismiss"
+                                title={'Dismiss'}
                               >
                                 <XIcon className="size-3.5" />
                               </Button>
@@ -284,8 +287,8 @@ export default function AppWithDeployment() {
                       {showLog && (
                         <Card className="overflow-hidden border">
                           <LogOutput className="h-64 w-full rounded-none border-0 p-4 font-mono text-xs">
-                            {isLoading && 'Loading deployment output...'}
-                            {!isLoading && (content || (activeDeployment.status === 'deploying' ? 'Waiting for output...' : 'No output was recorded.'))}
+                            {isLoading && "Loading deployment output..."}
+                            {!isLoading && (content || (activeDeployment.status === 'deploying' ? "Waiting for output..." : "No output was recorded."))}
                           </LogOutput>
                         </Card>
                       )}
@@ -304,17 +307,20 @@ export default function AppWithDeployment() {
             </Deferred>
 
             <Deferred data={['overviewWorkers', 'overviewCronJobs']} fallback={<WorkersCronJobsSkeleton />}>
-              <section className="grid gap-4 md:grid-cols-2" aria-label="Site automation">
+              <section className="grid gap-4 md:grid-cols-2" aria-label={'Site automation'}>
                 <Card>
                   <CardHeader className="flex-row items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
                       <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
                         <ListEndIcon className="size-4" />
                       </div>
-                      <CardTitle>Services ({page.props.overviewWorkersCount ?? 0})</CardTitle>
+                      <div>
+                        <CardTitle>Background processes</CardTitle>
+                        <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewWorkersCount ?? 0} configured</p>
+                      </div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-8" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`} aria-label="Manage services">
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`} aria-label={'Manage services'}>
                         <SettingsIcon className="size-4" />
                       </Link>
                     </Button>
@@ -331,10 +337,10 @@ export default function AppWithDeployment() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">No services yet.</p>
+                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">{(page.props.overviewWorkersCount ?? 0) > 0 ? <Link className="underline" href={`/servers/${site.server_id}/sites/${site.id}/resources`}>Linked background processes are listed under Resources.</Link> : 'No background processes yet.'}</p>
                     )}
                     {(page.props.overviewWorkersCount ?? 0) > (page.props.overviewWorkers?.length ?? 0) && (
-                      <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewWorkersCount}</p>
+                      <p className="text-muted-foreground px-4 py-2 text-xs">{`Showing ${(page.props.overviewWorkers?.length ?? 0)} of ${page.props.overviewWorkersCount}`}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -345,10 +351,13 @@ export default function AppWithDeployment() {
                       <div className="bg-muted text-muted-foreground flex size-8 items-center justify-center rounded-lg">
                         <CalendarClockIcon className="size-4" />
                       </div>
-                      <CardTitle>Jobs ({page.props.overviewCronJobsCount ?? 0})</CardTitle>
+                      <div>
+                        <CardTitle>Scheduled jobs</CardTitle>
+                        <p className="text-muted-foreground mt-1 text-xs">{page.props.overviewCronJobsCount ?? 0} configured</p>
+                      </div>
                     </div>
                     <Button variant="ghost" size="icon" className="size-8" asChild>
-                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`} aria-label="Manage jobs">
+                      <Link href={`/servers/${site.server_id}/sites/${site.id}/cronjobs`} aria-label={'Manage jobs'}>
                         <SettingsIcon className="size-4" />
                       </Link>
                     </Button>
@@ -365,10 +374,10 @@ export default function AppWithDeployment() {
                         </div>
                       ))
                     ) : (
-                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">No jobs yet.</p>
+                      <p className="text-muted-foreground px-4 py-6 text-center text-sm">{(page.props.overviewCronJobsCount ?? 0) > 0 ? <Link className="underline" href={`/servers/${site.server_id}/sites/${site.id}/resources`}>Linked scheduled jobs are listed under Resources.</Link> : 'No scheduled jobs yet.'}</p>
                     )}
                     {(page.props.overviewCronJobsCount ?? 0) > (page.props.overviewCronJobs?.length ?? 0) && (
-                      <p className="text-muted-foreground px-4 py-2 text-xs">Showing 3 of {page.props.overviewCronJobsCount}</p>
+                      <p className="text-muted-foreground px-4 py-2 text-xs">{`Showing ${(page.props.overviewCronJobs?.length ?? 0)} of ${page.props.overviewCronJobsCount}`}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -386,7 +395,7 @@ export default function AppWithDeployment() {
                     checked={site.auto_deploy}
                     disabled={togglingAutoDeploy}
                     onCheckedChange={handleToggleAutoDeploy}
-                    aria-label="Toggle auto deploy"
+                    aria-label={'Toggle auto deploy'}
                   />
                 </div>
               )}
@@ -405,8 +414,8 @@ export default function AppWithDeployment() {
                       size="icon"
                       className="size-6 text-muted-foreground hover:text-foreground cursor-pointer shrink-0"
                       onClick={() => copyIp(page.props.server.ip)}
-                      aria-label="Copy IP address"
-                      title="Copy IP address"
+                      aria-label={'Copy IP address'}
+                      title={'Copy IP address'}
                     >
                       {copiedIp ? <CheckIcon className="size-3 text-success" /> : <CopyIcon className="size-3" />}
                     </Button>

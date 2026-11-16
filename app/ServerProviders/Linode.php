@@ -210,12 +210,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
                 ->map(function (array $type) use ($region, $capabilities): array {
                     $available = $this->planIsAvailable($type['class'] ?? '', $capabilities);
 
-                    $label = __('server_providers.plan', [
-                        'name' => $type['label'],
-                        'cpu' => $type['vcpus'],
-                        'memory' => $type['memory'],
-                        'disk' => intdiv((int) $type['disk'], 1024),
-                    ]);
+                    $label = 'server_providers.plan';
 
                     if ($available) {
                         $price = $this->planMonthlyPrice($type, $region);
@@ -330,7 +325,7 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
         }
 
         if (! $create->ok()) {
-            $msg = __('Failed to create server on Linode');
+            $msg = 'Failed to create server on Linode';
             $errors = $create->json('errors') ?? [];
             if (count($errors) > 0) {
                 $msg = $errors[0]['reason'];

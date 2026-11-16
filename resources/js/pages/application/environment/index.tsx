@@ -3,7 +3,7 @@ import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useQueryFlag, useQueryState } from '@/hooks/use-query-state';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import { Button } from '@/components/ui/button';
@@ -377,7 +377,7 @@ function EnvironmentEditorContent() {
                 className="h-9 gap-1.5 cursor-pointer text-xs"
               >
                 <HistoryIcon className="size-3.5" />
-                <span>{showHistory ? 'Back to Editor' : 'History'}</span>
+                <span>{showHistory ? "Back to Editor" : "History"}</span>
               </Button>
             )}
 
@@ -397,7 +397,7 @@ function EnvironmentEditorContent() {
                 ) : (
                   <SlidersHorizontalIcon className="size-3.5" />
                 )}
-                <span>{mode === 'variables' ? 'Classic Editor' : 'Variables Mode'}</span>
+                <span>{mode === 'variables' ? "Classic Editor" : "Variables Mode"}</span>
               </Button>
             )}
 
@@ -451,8 +451,7 @@ function EnvironmentEditorContent() {
             <div className="flex items-start sm:items-center gap-2.5">
               <AlertTriangleIcon className="size-4 text-neutral-600 dark:text-neutral-400 shrink-0 mt-0.5 sm:mt-0" />
               <div>
-                Duplicate keys detected: <span className="font-mono font-semibold">{Array.from(duplicateKeys).join(', ')}</span>.
-                You can save anyway, but applications will typically only evaluate the last defined value.
+                Duplicate keys detected: <span className="font-mono font-semibold">{Array.from(duplicateKeys).join(', ')}</span>. You can save anyway, but applications will typically only evaluate the last defined value.
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -463,7 +462,7 @@ function EnvironmentEditorContent() {
                 onClick={() => setFilterDuplicatesOnly(!filterDuplicatesOnly)}
                 className="h-7 text-xs bg-background/80 hover:bg-background border-neutral-500/30 cursor-pointer"
               >
-                {filterDuplicatesOnly ? 'Show all variables' : `Filter duplicates (${duplicateKeys.size})`}
+                {filterDuplicatesOnly ? "Show all variables" : `Filter duplicates (${duplicateKeys.size})`}
               </Button>
               <Button
                 type="button"
@@ -513,7 +512,6 @@ function EnvironmentEditorContent() {
                       setRawContent(value ?? '');
                       setRawDirty(true);
                     }}
-                    theme="vs-dark"
                     options={{
                       fontSize: 14,
                       lineNumbers: 'on',
@@ -583,7 +581,7 @@ function EnvironmentEditorContent() {
                 </div>
               ) : filteredVariables.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground text-sm">
-                  {searchFilter ? 'No variables match your filter.' : 'This file has no variables.'}
+                  {searchFilter ? "No variables match your filter." : "This file has no variables."}
                 </div>
               ) : (
                 <fieldset disabled={isSwitching || canEdit === false} className="flex flex-col gap-3 py-2">
@@ -619,7 +617,7 @@ function EnvironmentEditorContent() {
                               variant="outline"
                               onClick={generateAppKey}
                               disabled={generatingKey || isDirty}
-                              title={isDirty ? 'Save or discard your changes first' : 'Run php artisan key:generate'}
+                              title={isDirty ? "Save or discard your changes first" : "Run php artisan key:generate"}
                               className="shrink-0"
                             >
                               {generatingKey ? <LoaderCircleIcon className="size-4 animate-spin" /> : <KeyRoundIcon className="size-4" />}
@@ -678,7 +676,7 @@ function EnvironmentEditorContent() {
                             #{idx + 1}: {displayVal}
                           </span>
                           <span className="text-[10px] shrink-0 uppercase tracking-wider font-sans font-medium">
-                            {isLast ? 'Effective value' : 'Overridden'}
+                            {isLast ? "Effective value" : "Overridden"}
                           </span>
                         </div>
                       );
@@ -698,7 +696,7 @@ function EnvironmentEditorContent() {
                 }}
                 className="cursor-pointer"
               >
-                Review & Edit Duplicates
+                {"Review & Edit Duplicates"}
               </Button>
               <Button
                 type="button"

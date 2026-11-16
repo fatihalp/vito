@@ -59,7 +59,7 @@ export default function ToolingTable({ site, tools, installedVersions, statuses,
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="text-muted-foreground py-6 text-center">
-                  No tools match "{query}".
+                  {"No tools match \""}{query}".
                 </TableCell>
               </TableRow>
             ) : (
@@ -160,7 +160,7 @@ function ToolingRow({
             aria-busy={installing}
             aria-label={installing ? `Installing ${tool.label}` : undefined}
           >
-            {installing || submittingInstall ? <LoaderCircleIcon className="size-4 animate-spin" /> : 'Install'}
+            {installing || submittingInstall ? <LoaderCircleIcon className="size-4 animate-spin" /> : "Install"}
           </Button>
           {required ? (
             <Tooltip>
@@ -201,8 +201,7 @@ function ToolingRow({
             <div className="space-y-2 p-4 text-sm">
               {siblingCount > 0 && (
                 <p>
-                  This isolated user is shared with <strong>{siblingCount}</strong> other site{siblingCount === 1 ? '' : 's'}. Uninstalling will
-                  affect them all.
+                  {siblingCount === 1 ? `This isolated user is shared with ${siblingCount} other site. Uninstalling will affect them all.` : `This isolated user is shared with ${siblingCount} other sites. Uninstalling will affect them all.`}
                 </p>
               )}
               <p>Are you sure you want to uninstall {tool.label}?</p>

@@ -62,7 +62,7 @@ export default function PgBackRestRestore({
             <p className="text-muted-foreground text-sm">
               {file
                 ? `Leave empty to restore the database as it was when backup ${file.name} finished.`
-                : 'Leave empty to restore the latest backup and replay all archived WAL up to the most recent change.'}
+                : "Leave empty to restore the latest backup and replay all archived WAL up to the most recent change."}
             </p>
           </div>
 
@@ -74,8 +74,7 @@ export default function PgBackRestRestore({
           <div className="flex flex-col gap-2">
             <h3 className="text-sm font-medium">On another server</h3>
             <p className="text-muted-foreground text-sm">
-              Use a server with PostgreSQL {file?.database_version ?? 'of the same major version'}. Install pgBackRest, copy /etc/pgbackrest/pgbackrest.conf from
-              this server and set pg1-path to that server's data directory. --archive-mode=off stops the copy from archiving WAL into this backup's repository.
+              Use a server with PostgreSQL {file?.database_version ?? "of the same major version"}{". Install pgBackRest, copy /etc/pgbackrest/pgbackrest.conf from this server and set pg1-path to that server's data directory. --archive-mode=off stops the copy from archiving WAL into this backup's repository."}
             </p>
             <Commands commands={restore(' --archive-mode=off')} />
           </div>

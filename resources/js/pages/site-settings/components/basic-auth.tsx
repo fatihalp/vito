@@ -95,7 +95,7 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
                 <div className="space-y-1">
                   <Label htmlFor="basic-auth-enabled">Enable Basic Auth</Label>
                   <p className="text-muted-foreground text-sm">
-                    {hasUsers ? 'Require credentials to access the site.' : 'Add at least one user to enable.'}
+                    {hasUsers ? "Require credentials to access the site." : "Add at least one user to enable."}
                   </p>
                 </div>
                 <Switch
@@ -120,7 +120,7 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
                     </div>
                     <div className="flex-1">
                       <PasswordInput
-                        placeholder={u.existing ? 'Leave blank to keep current' : 'password'}
+                        placeholder={u.existing ? "Leave blank to keep current" : "password"}
                         value={u.password}
                         onChange={(e) => setUser(i, { password: e.target.value })}
                       />

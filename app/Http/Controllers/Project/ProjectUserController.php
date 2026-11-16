@@ -42,7 +42,7 @@ class ProjectUserController extends Controller
 
         app(InviteToProject::class)->invite($project, $request->input());
 
-        return back()->with('success', __('The user has been added to the project.'));
+        return back()->with('success', 'The user has been added to the project.');
     }
 
     #[Post('/quick-create', name: 'projects.users.quick-create')]
@@ -69,6 +69,6 @@ class ProjectUserController extends Controller
 
         app(RemoveUserFromProject::class)->remove($project, user(), $id);
 
-        return back()->with('success', __('The user has been removed.'));
+        return back()->with('success', 'The user has been removed.');
     }
 }

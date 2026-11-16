@@ -18,6 +18,7 @@ export interface SiteResource {
   storage_provider: StorageProvider | null;
   environment?: Record<string, string>;
   environment_keys: string[];
+  secrets_redacted?: boolean;
   created_at: string;
   updated_at: string;
 }

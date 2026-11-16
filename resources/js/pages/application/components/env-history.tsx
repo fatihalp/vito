@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { DiffEditor } from '@monaco-editor/react';
+import { DiffEditor } from '@/components/ui/code-editor';
 import { HistoryIcon, LoaderCircleIcon, RotateCcwIcon } from 'lucide-react';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
@@ -123,7 +123,7 @@ export default function EnvHistory({
                     <Badge variant={version.source_color}>{version.source}</Badge>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {version.user_name ?? 'System'} · <DateTime date={version.created_at} relative />
+                    {version.user_name ?? "System"} · <DateTime date={version.created_at} relative />
                   </span>
                   {version.restored_from_id && (
                     <span className="text-xs text-muted-foreground">Restored from #{version.restored_from_id}</span>
@@ -163,7 +163,6 @@ export default function EnvHistory({
                 language="dotenv"
                 original={content.data}
                 modified={current}
-                theme="vs-dark"
                 options={{ readOnly: true, fontSize: 14, automaticLayout: true, renderSideBySide: true, wordWrap: 'on' }}
               />
             )

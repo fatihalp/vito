@@ -34,12 +34,12 @@ class AddChannel
 
                 if ($channel->provider === Email::id()) {
                     throw ValidationException::withMessages([
-                        'email' => __('Could not connect! Make sure you configured `.env` file correctly.'),
+                        'email' => 'Could not connect! Make sure you configured `.env` file correctly.',
                     ]);
                 }
 
                 throw ValidationException::withMessages([
-                    'provider' => __('Could not connect'),
+                    'provider' => 'Could not connect',
                 ]);
             }
         } catch (Exception $e) {

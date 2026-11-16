@@ -136,7 +136,7 @@ export function ProjectSelect({
             {header && <div className="bg-popover sticky top-0 z-10 border-b">{header}</div>}
             {projects.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
-                {isFetching ? 'Searching...' : query === '' ? 'Start typing to search projects' : 'No projects found.'}
+                {isFetching ? "Searching..." : query === '' ? "Start typing to search projects" : "No projects found."}
               </div>
             ) : (
               <CommandGroup>

@@ -22,10 +22,10 @@ export default function SshKeys() {
 
   return (
     <SettingsLayout>
-      <Head title="SSH Keys" />
+      <Head title={'SSH Keys'} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="SSH Keys" />
+          <Heading title={'SSH Keys'} />
           <div className="flex items-center gap-2">
             <AddSshKey>
               <Button>

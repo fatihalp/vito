@@ -48,8 +48,8 @@ export default function NetworkFirewallRuleForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{rule ? 'Edit' : 'Create'} firewall rule</DialogTitle>
-          <DialogDescription className="sr-only">{rule ? 'Edit' : 'Create new'} network firewall rule</DialogDescription>
+          <DialogTitle>{rule ? "Edit" : "Create"} firewall rule</DialogTitle>
+          <DialogDescription className="sr-only">{rule ? "Edit" : "Create new"} network firewall rule</DialogDescription>
         </DialogHeader>
         <Form id="network-firewall-rule-form" onSubmit={submit} className="p-4">
           <FormFields>

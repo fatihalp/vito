@@ -54,7 +54,7 @@ class ConnectDropbox
             session()->forget(self::SESSION_KEY);
 
             throw ValidationException::withMessages([
-                'provider' => __('Dropbox authorization was cancelled.'),
+                'provider' => 'Dropbox authorization was cancelled.',
             ]);
         }
 
@@ -63,7 +63,7 @@ class ConnectDropbox
 
         if (! is_array($pending) || ! hash_equals((string) ($pending['state'] ?? ''), (string) $request->query('state'))) {
             throw ValidationException::withMessages([
-                'provider' => __('Invalid Dropbox authorization state.'),
+                'provider' => 'Invalid Dropbox authorization state.',
             ]);
         }
 

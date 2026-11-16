@@ -31,7 +31,7 @@ export function ServerSwitch() {
         value="create-server"
         onSelect={() => {
           setOpen(false);
-          router.visit("/servers/create");
+          router.visit('/servers/create');
         }}
         className="gap-0 cursor-pointer"
       >
@@ -65,7 +65,7 @@ export function ServerSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Switch server. Current server: ${page.props.server?.name ?? 'none'}`}
+      aria-label={`Switch server. Current server: ${(page.props.server?.name ?? 'none')}`}
     >
       {page.props.server ? (
         <>

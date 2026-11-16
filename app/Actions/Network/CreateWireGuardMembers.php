@@ -22,7 +22,7 @@ class CreateWireGuardMembers
 
             if ($ip === null) {
                 throw ValidationException::withMessages([
-                    'servers' => __('The network address block is full.'),
+                    'servers' => 'The network address block is full.',
                 ]);
             }
 

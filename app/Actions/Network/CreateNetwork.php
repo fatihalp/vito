@@ -110,7 +110,7 @@ class CreateNetwork
                 ->where('cidr_canonical', $canonical)
                 ->exists()) {
                 throw ValidationException::withMessages([
-                    'cidr' => __('This CIDR is already used by another network in this project.'),
+                    'cidr' => 'This CIDR is already used by another network in this project.',
                 ]);
             }
         }

@@ -59,7 +59,7 @@ function Actions({ worker }: { worker: Worker }) {
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           {locked ? (
-            <BootstrapLockedItem label="Edit" />
+            <BootstrapLockedItem label={'Edit'} />
           ) : (
             <DropdownMenuItem onSelect={() => dialog.workerForm.open({ serverId: worker.server_id, worker })}>Edit</DropdownMenuItem>
           )}
@@ -69,7 +69,7 @@ function Actions({ worker }: { worker: Worker }) {
           <WorkerLogs worker={worker} />
           <WorkerEnvironment worker={worker} />
           <DropdownMenuSeparator />
-          {locked ? <BootstrapLockedItem label="Delete" destructive /> : <Delete worker={worker} />}
+          {locked ? <BootstrapLockedItem label={'Delete'} destructive /> : <Delete worker={worker} />}
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

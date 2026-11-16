@@ -43,7 +43,7 @@ export default function CommitsBehindCell({ serverId, siteId }: { serverId: numb
   ) : behind === 0 ? (
     <Badge variant="success">Up to date</Badge>
   ) : (
-    <Badge variant="warning">{behind} behind</Badge>
+    <Badge variant="warning">{`${behind} behind`}</Badge>
   );
 
   const hint = error
@@ -51,8 +51,8 @@ export default function CommitsBehindCell({ serverId, siteId }: { serverId: numb
     : behind === null || behind === undefined
       ? 'No successful deployment yet.'
       : behind === 0
-        ? `The deployed commit is the latest on ${query.data?.branch}.`
-        : `${behind} new ${behind === 1 ? 'commit' : 'commits'} on ${query.data?.branch} since the last deployment.`;
+        ? `The deployed commit is the latest on ${(query.data?.branch ?? '')}.`
+        : behind === 1 ? `${behind} new commit on ${(query.data?.branch ?? '')} since the last deployment.` : `${behind} new commits on ${(query.data?.branch ?? '')} since the last deployment.`;
 
   return (
     <Tooltip>

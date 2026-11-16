@@ -22,7 +22,7 @@ export default function ConfirmPassword() {
 
   return (
     <AuthLayout title="Confirm your password" description="This is a secure area of the application. Please confirm your password before continuing.">
-      <Head title="Confirm password" />
+      <Head title={'Confirm password'} />
 
       <form id="confirm-password-form" onSubmit={submit}>
         <div className="grid gap-6">
@@ -33,7 +33,7 @@ export default function ConfirmPassword() {
               type="password"
               name="password"
               required
-              placeholder="Password"
+              placeholder={'Password'}
               autoComplete="current-password"
               value={form.data.password}
               autoFocus

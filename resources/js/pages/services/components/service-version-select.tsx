@@ -39,7 +39,7 @@ export default function ServiceVersionSelect({
   return (
     <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
       <SelectTrigger {...props}>
-        <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a version'} />
+        <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a version"} />
       </SelectTrigger>
       <SelectContent>
         {isEmpty ? (

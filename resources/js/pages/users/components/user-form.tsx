@@ -46,13 +46,13 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className={user ? 'max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-6xl' : 'max-h-[90vh] grid-rows-[auto_minmax(0,1fr)_auto] sm:max-w-2xl'} onCloseAutoFocus={(event) => event.preventDefault()}>
         <DialogHeader className="p-6">
-          <DialogTitle>{user ? 'Edit user' : 'Create user'}</DialogTitle>
-          <DialogDescription>{user ? `${user.name} · ${user.email}` : 'Create an account and configure its security settings.'}</DialogDescription>
+          <DialogTitle>{user ? "Edit user" : "Create user"}</DialogTitle>
+          <DialogDescription>{user ? `${user.name} · ${user.email}` : "Create an account and configure its security settings."}</DialogDescription>
         </DialogHeader>
         <Form id="user-form" onSubmit={submit} className="overflow-y-auto p-6">
           <div className={user ? 'grid gap-6 lg:grid-cols-2' : 'grid gap-6'}>
             <section className="flex flex-col gap-5 rounded-lg border p-5">
-              <h3 className="font-semibold">Account & security</h3>
+              <h3 className="font-semibold">{"Account & security"}</h3>
               <FormFields className="gap-5">
                 <FormField>
                   <Label htmlFor="name">Name</Label>
@@ -65,13 +65,13 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
                   <InputError message={form.errors.email} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="password">{user ? 'New password' : 'Password'}</Label>
+                  <Label htmlFor="password">{user ? "New password" : "Password"}</Label>
                   <Input type="password" id="password" autoComplete="new-password" required={!user} minLength={8}
                     pattern={String.raw`(?=.*\p{Lu})(?=.*[\p{P}\p{S}]).{8,}`} aria-describedby="user-password-hint"
                     title="Use at least 8 characters, an uppercase letter and a special character."
                     value={form.data.password} onChange={(event) => form.setData('password', event.target.value)} />
                   <InputError message={form.errors.password} />
-                  <p id="user-password-hint" className="text-muted-foreground text-xs">At least 8 characters, one uppercase letter and one special character.{user && ' Leave blank to keep the current password.'}</p>
+                  <p id="user-password-hint" className="text-muted-foreground text-xs">At least 8 characters, one uppercase letter and one special character.{user && " Leave blank to keep the current password."}</p>
                 </FormField>
                 <FormField>
                   <div className="flex items-center justify-between gap-4 rounded-md bg-muted/40 p-3">
@@ -87,7 +87,7 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
             </section>
             {user && (
               <section className="flex flex-col gap-5 rounded-lg border p-5">
-                <h3 className="font-semibold">Activity & login details</h3>
+                <h3 className="font-semibold">{"Activity & login details"}</h3>
                 <dl className="grid gap-5 sm:grid-cols-2">
                   {([
                     ['Password last set / changed', user.password_changed_at],
@@ -97,11 +97,11 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
                   ] as const).map(([label, date]) => (
                     <div key={label} className="flex flex-col gap-1.5">
                       <dt className="text-muted-foreground text-xs">{label}</dt>
-                      <dd className="text-sm font-medium">{date ? <DateTime date={date} /> : 'Not recorded'}</dd>
+                      <dd className="text-sm font-medium">{date ? <DateTime date={date} /> : "Not recorded"}</dd>
                     </div>
                   ))}
-                  <div className="flex flex-col gap-1.5"><dt className="text-muted-foreground text-xs">Last login browser</dt><dd className="text-sm font-medium">{user.last_login_browser || 'Not recorded'}</dd></div>
-                  <div className="flex flex-col gap-1.5"><dt className="text-muted-foreground text-xs">Last login language</dt><dd className="text-sm font-medium">{user.last_login_language || 'Not recorded'}</dd></div>
+                  <div className="flex flex-col gap-1.5"><dt className="text-muted-foreground text-xs">Last login browser</dt><dd className="text-sm font-medium">{user.last_login_browser || "Not recorded"}</dd></div>
+                  <div className="flex flex-col gap-1.5"><dt className="text-muted-foreground text-xs">Last login language</dt><dd className="text-sm font-medium">{user.last_login_language || "Not recorded"}</dd></div>
                 </dl>
                 <p className="text-muted-foreground text-xs">Login details are captured on successful sign-in. Activity timestamps are updated at most once per minute. Older password changes may not have been recorded.</p>
                 {user.last_login_user_agent && (
@@ -115,7 +115,7 @@ export default function UserForm({ user, open, onOpenChange }: { user?: User; op
           </div>
           <section className="flex flex-col gap-5 rounded-lg border p-5">
             <div className="flex flex-col gap-1">
-              <h3 className="font-semibold">Access & permissions</h3>
+              <h3 className="font-semibold">{"Access & permissions"}</h3>
               <p className="text-muted-foreground text-sm">Choose full system access or access to selected projects.</p>
             </div>
             <FormField>

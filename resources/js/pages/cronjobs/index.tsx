@@ -1,3 +1,4 @@
+import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { PaginatedData } from '@/types';
@@ -113,7 +114,7 @@ export default function CronJobIndex() {
                 <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[10px] font-medium">Recommended</span>
               </div>
               <p className="text-muted-foreground text-xs">
-                Run scheduled artisan commands seamlessly by adding Laravel's official scheduler (
+                {"Run scheduled artisan commands seamlessly by adding Laravel's official scheduler ("}
                 <code className="font-mono text-[11px]">* * * * * php artisan schedule:run</code>).
               </p>
             </div>
@@ -133,6 +134,8 @@ export default function CronJobIndex() {
             </Button>
           </div>
         )}
+
+        <RuntimeProcesses kind="scheduler" />
 
         <DataTable columns={columns(page.props.site, page.props.sites)} paginatedData={page.props.cronjobs} />
       </Container>

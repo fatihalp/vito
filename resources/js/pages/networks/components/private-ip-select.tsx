@@ -73,7 +73,7 @@ export default function PrivateIpSelect({
       <div className="flex items-center gap-2">
         <Select value={value ? String(value) : ''} onValueChange={(v) => onValueChange(Number(v))} disabled={disabled || !serverId}>
           <SelectTrigger className="flex-1">
-            <SelectValue placeholder={serverId ? 'Select a private IP' : 'Select a server first'} />
+            <SelectValue placeholder={serverId ? "Select a private IP" : "Select a server first"} />
           </SelectTrigger>
           <SelectContent>
             {ips.length === 0 ? (
@@ -83,21 +83,21 @@ export default function PrivateIpSelect({
                 {ips.map((ip) => (
                   <SelectItem key={ip.id} value={String(ip.id)}>
                     {ip.ip}
-                    {ip.is_primary ? ' (primary)' : ''}
+                    {ip.is_primary ? " (primary)" : ''}
                   </SelectItem>
                 ))}
               </SelectGroup>
             )}
           </SelectContent>
         </Select>
-        <Button variant="outline" type="button" aria-label="Refresh" disabled={disabled || refreshing || !serverId} onClick={refresh}>
+        <Button variant="outline" type="button" aria-label={'Refresh'} disabled={disabled || refreshing || !serverId} onClick={refresh}>
           <RefreshCw className={refreshing ? 'animate-spin' : ''} />
         </Button>
       </div>
       {primaryChosen && (
         <Alert>
           <TriangleAlertIcon />
-          <AlertDescription>This is the server&apos;s primary IP. Make sure you intend to use it for this network.</AlertDescription>
+          <AlertDescription>{"This is the server's primary IP. Make sure you intend to use it for this network."}</AlertDescription>
         </Alert>
       )}
     </div>

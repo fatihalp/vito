@@ -93,8 +93,8 @@ export default function RuleForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{firewallRule ? 'Edit' : 'Create'} firewall rule</DialogTitle>
-          <DialogDescription className="sr-only">{firewallRule ? 'Edit' : 'Create new'} firewall rule</DialogDescription>
+          <DialogTitle>{firewallRule ? "Edit" : "Create"} firewall rule</DialogTitle>
+          <DialogDescription className="sr-only">{firewallRule ? "Edit" : "Create new"} firewall rule</DialogDescription>
         </DialogHeader>
         <Form id="firewall-rule-form" onSubmit={submit} className="p-4">
           <FormFields>
@@ -108,7 +108,7 @@ export default function RuleForm({
               <Label htmlFor="type">Type</Label>
               <Select onValueChange={(value) => form.setData('type', value)} value={form.data.type}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -196,9 +196,7 @@ export default function RuleForm({
                     <InfoIcon />
                     <AlertDescription>
                       <p>
-                        The mask sets how many IP addresses this rule covers. Use <code>{form.data.source.includes(':') ? '128' : '32'}</code> for
-                        just this one IP, <code>{form.data.source.includes(':') ? '64' : '24'}</code> for its whole local network, and smaller numbers
-                        to cover even more. Lower number = wider range.
+                        The mask sets how many IP addresses this rule covers. Use <code>{form.data.source.includes(':') ? '128' : '32'}</code> for just this one IP, <code>{form.data.source.includes(':') ? '64' : '24'}</code> for its whole local network, and smaller numbers to cover even more. Lower number = wider range.
                       </p>
                     </AlertDescription>
                   </Alert>

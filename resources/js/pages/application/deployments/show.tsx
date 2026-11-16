@@ -20,6 +20,7 @@ import { Head, Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
 import { ArrowLeftIcon, CheckIcon, CopyIcon, DownloadIcon, RotateCcwIcon, TerminalIcon } from 'lucide-react';
 import moment from 'moment';
+import DateTime from '@/components/date-time';
 
 const FULL_LOG = -1;
 
@@ -69,7 +70,7 @@ export default function DeploymentShow() {
 
   return (
     <ServerLayout>
-      <Head title={`Deployment #${deployment.id} - ${site.domain}`} />
+      <Head title={`${"Deployment"} #${deployment.id} - ${site.domain}`} />
 
       <Container className="flex flex-col gap-3 py-4 lg:h-[calc(100vh-80px)] lg:min-h-[36rem]">
         <SiteBanners site={site} />
@@ -99,7 +100,7 @@ export default function DeploymentShow() {
               </span>
               {elapsedSeconds != null && <span className="tabular-nums">· {formatDuration(elapsedSeconds)}</span>}
               {actor && <span>· {actor}</span>}
-              <span title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>· {moment(deployment.created_at).fromNow()}</span>
+              <span title={moment(deployment.created_at).format('YYYY-MM-DD HH:mm:ss')}>· <DateTime date={deployment.created_at} relative /></span>
               {deployment.commit_id && (
                 <span className="inline-flex items-center gap-0.5">
                   ·
@@ -185,7 +186,7 @@ export default function DeploymentShow() {
                   <TerminalIcon className="size-4" /> No deployment output was recorded.
                 </span>
               )}
-              {!isLoading && !error && deployment.log && (selectedOutput || (deploying ? 'Waiting for output...' : 'No output was recorded.'))}
+              {!isLoading && !error && deployment.log && (selectedOutput || deploying ? 'Waiting for output...' : 'No output was recorded.')}
             </LogOutput>
           </Card>
         </div>

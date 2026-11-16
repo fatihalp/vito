@@ -72,13 +72,13 @@ class ManageDatabaseReplica
     {
         if ($replica->cluster->status !== PostgresClusterStatus::ACTIVE) {
             throw ValidationException::withMessages([
-                'replica' => __('The cluster is failing over. Finish or continue the failover before rebuilding replicas.'),
+                'replica' => 'The cluster is failing over. Finish or continue the failover before rebuilding replicas.',
             ]);
         }
 
         if (! in_array($replica->status, [DatabaseReplicaStatus::READY, DatabaseReplicaStatus::FAILED, DatabaseReplicaStatus::NEEDS_REBUILD], true)) {
             throw ValidationException::withMessages([
-                'replica' => __('Only a ready, failed or fenced replica can be rebuilt.'),
+                'replica' => 'Only a ready, failed or fenced replica can be rebuilt.',
             ]);
         }
 
@@ -176,12 +176,12 @@ class ManageDatabaseReplica
         try {
             $output = $replica->replication()->seedOutput();
         } catch (SSHError $e) {
-            return __('Vito could not read the restore output from :server: :error', ['server' => $replica->replica->name, 'error' => $e->getMessage()]);
+            return 'Vito could not read the restore output from '.$replica->replica->name.': '.$e->getMessage();
         }
 
         return $output !== '' && ! str_contains($output, '-- No entries --')
             ? $output
-            : __('The restore on :server has not written any output yet.', ['server' => $replica->replica->name]);
+            : 'The restore on '.$replica->replica->name.' has not written any output yet.';
     }
 
     public function monitorSeed(DatabaseReplica $replica): bool
@@ -199,7 +199,7 @@ class ManageDatabaseReplica
         if ($state !== 'succeeded') {
             $reason = $state === 'failed' ? $unit->failureReason() : '';
             $unit->cleanup();
-            $this->fail($replica, $reason !== '' ? $reason : __('The seed process on the replica stopped before it finished, for example because the server restarted.'));
+            $this->fail($replica, $reason !== '' ? $reason : 'The seed process on the replica stopped before it finished, for example because the server restarted.');
 
             return true;
         }
@@ -226,7 +226,7 @@ class ManageDatabaseReplica
     {
         if ($replica->status->isBusy() || $replica->cluster->status !== PostgresClusterStatus::ACTIVE) {
             throw ValidationException::withMessages([
-                'replica' => __('Wait for the current operation on this cluster to finish.'),
+                'replica' => 'Wait for the current operation on this cluster to finish.',
             ]);
         }
 
@@ -247,23 +247,16 @@ class ManageDatabaseReplica
             if (! ($replica->configuration['detach_unreachable'] ?? false)) {
                 $replica->update(['configuration' => [...($replica->configuration ?? []), 'detach_unreachable' => true]]);
 
-                throw new RuntimeException(__('Vito could not reach :server to stop replication and archiving there: :error. If the server is gone for good, delete the replica again to remove it anyway, and make sure it never starts PostgreSQL with this configuration.', [
-                    'server' => $replica->replica->name,
-                    'error' => $e->getMessage(),
-                ]));
+                throw new RuntimeException('Vito could not reach '.$replica->replica->name.' to stop replication and archiving there: '.$e->getMessage().'. If the server is gone for good, delete the replica again to remove it anyway, and make sure it never starts PostgreSQL with this configuration.');
             }
 
-            ServerLog::log($replica->replica, 'database-replica-detach-failed', __('The replica was removed without reaching the server: :error', ['error' => $e->getMessage()]));
+            ServerLog::log($replica->replica, 'database-replica-detach-failed', 'The replica was removed without reaching the server: '.$e->getMessage());
         }
 
         try {
             $replication->teardownPrimary();
         } catch (Throwable $e) {
-            ServerLog::log($cluster->primary, 'database-replica-teardown-failed', __('Remove the replication slot :slot and role :role on this server: :error', [
-                'slot' => $replica->slot_name,
-                'role' => $replica->username,
-                'error' => $e->getMessage(),
-            ]));
+            ServerLog::log($cluster->primary, 'database-replica-teardown-failed', 'Remove the replication slot '.$replica->slot_name.' and role '.$replica->username.' on this server: '.$e->getMessage());
         }
 
         $member = $cluster->owns_network ? $cluster->network?->servers()->where('server_id', $replica->replica_server_id)->first() : null;
@@ -362,17 +355,14 @@ class ManageDatabaseReplica
     public function candidateIssue(Server $primary, Server $candidate): ?string
     {
         return match (true) {
-            $candidate->id === $primary->id => __('This is the primary.'),
-            $candidate->project_id !== $primary->project_id => __('In another project.'),
-            ! $candidate->isReady() => __('Not ready.'),
-            $candidate->database()?->name !== 'postgresql' => __('No PostgreSQL service. Install PostgreSQL on it first.'),
-            (int) $candidate->database()->version !== (int) $primary->database()?->version => __('Runs PostgreSQL :version, the primary runs :primary.', [
-                'version' => $candidate->database()->version,
-                'primary' => $primary->database()?->version,
-            ]),
-            PostgresCluster::forServer($candidate) !== null => __('Already belongs to a PostgreSQL cluster.'),
-            $candidate->databases()->exists() => __('Holds databases, which a replica would replace.'),
-            $candidate->backups()->exists() => __('Has backups of its own.'),
+            $candidate->id === $primary->id => 'This is the primary.',
+            $candidate->project_id !== $primary->project_id => 'In another project.',
+            ! $candidate->isReady() => 'Not ready.',
+            $candidate->database()?->name !== 'postgresql' => 'No PostgreSQL service. Install PostgreSQL on it first.',
+            (int) $candidate->database()->version !== (int) $primary->database()?->version => 'Runs PostgreSQL '.$candidate->database()->version.', the primary runs '.($primary->database()?->version).'.',
+            PostgresCluster::forServer($candidate) !== null => 'Already belongs to a PostgreSQL cluster.',
+            $candidate->databases()->exists() => 'Holds databases, which a replica would replace.',
+            $candidate->backups()->exists() => 'Has backups of its own.',
             default => null,
         };
     }
@@ -382,7 +372,7 @@ class ManageDatabaseReplica
         $server = $replica->replica;
 
         if ($server->status === ServerStatus::INSTALLATION_FAILED) {
-            throw new RuntimeException(__('Installing :server failed. Check its logs, then delete this replica and create it again.', ['server' => $server->name]));
+            throw new RuntimeException('Installing '.$server->name.' failed. Check its logs, then delete this replica and create it again.');
         }
 
         if ($server->isReady()) {
@@ -390,7 +380,7 @@ class ManageDatabaseReplica
         }
 
         if ($replica->created_at->lt(now()->subHours(2))) {
-            throw new RuntimeException(__('The server :server was not ready within two hours.', ['server' => $server->name]));
+            throw new RuntimeException('The server '.$server->name.' was not ready within two hours.');
         }
 
         if ($replica->status !== DatabaseReplicaStatus::WAITING_FOR_SERVER) {
@@ -427,10 +417,10 @@ class ManageDatabaseReplica
 
         $cluster = PostgresCluster::forServer($primary);
         $error = match (true) {
-            $primary->database()?->name !== 'postgresql' => __('Replicas need a PostgreSQL service on the primary server.'),
-            $cluster !== null && $cluster->primary_server_id !== $primary->id => __('This server is a replica. Create replicas from the primary of its cluster.'),
-            $cluster !== null && $cluster->status !== PostgresClusterStatus::ACTIVE => __('The cluster is failing over, try again when it finishes.'),
-            $cluster?->backup?->status === BackupStatus::FAILED => __('The pgBackRest backup of this server failed to set up. Fix it before adding replicas.'),
+            $primary->database()?->name !== 'postgresql' => 'Replicas need a PostgreSQL service on the primary server.',
+            $cluster !== null && $cluster->primary_server_id !== $primary->id => 'This server is a replica. Create replicas from the primary of its cluster.',
+            $cluster !== null && $cluster->status !== PostgresClusterStatus::ACTIVE => 'The cluster is failing over, try again when it finishes.',
+            $cluster?->backup?->status === BackupStatus::FAILED => 'The pgBackRest backup of this server failed to set up. Fix it before adding replicas.',
             default => null,
         };
 
@@ -459,7 +449,7 @@ class ManageDatabaseReplica
         Validator::make($input, [
             'confirmation' => ['required', 'string', Rule::in([$replicaServer->name])],
         ], [
-            'confirmation.in' => __('Type :server exactly to confirm that all PostgreSQL data on it is replaced.', ['server' => $replicaServer->name]),
+            'confirmation.in' => 'Type '.$replicaServer->name.' exactly to confirm that all PostgreSQL data on it is replaced.',
         ])->validate();
 
         return $replicaServer;

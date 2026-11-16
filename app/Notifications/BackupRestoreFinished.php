@@ -12,9 +12,11 @@ class BackupRestoreFinished extends AbstractNotification
 
     public function rawText(): string
     {
+        ['source' => $source, 'server' => $server, 'error' => $error, 'link' => $link] = $this->replacements();
+
         return $this->restore->status === BackupRestoreStatus::COMPLETED
-            ? __("The backup of [:source] was restored to the new server [:server].\n:link", $this->replacements())
-            : __("Restoring the backup of [:source] to the new server [:server] failed:\n:error\n:link", $this->replacements());
+            ? "The backup of [{$source}] was restored to the new server [{$server}].\n{$link}"
+            : "Restoring the backup of [{$source}] to the new server [{$server}] failed:\n{$error}\n{$link}";
     }
 
     public function toEmail(object $notifiable): MailMessage
@@ -23,9 +25,9 @@ class BackupRestoreFinished extends AbstractNotification
 
         return (new MailMessage)
             ->{$completed ? 'success' : 'error'}()
-            ->subject($completed ? __('Backup restored to :server', ['server' => $this->replacements()['server']]) : __('Backup restore failed'))
+            ->subject($completed ? 'Backup restored to '.$this->replacements()['server'] : 'Backup restore failed')
             ->line($this->rawText())
-            ->action(__('View restores'), $this->replacements()['link']);
+            ->action('View restores', $this->replacements()['link']);
     }
 
     private function replacements(): array
@@ -34,7 +36,7 @@ class BackupRestoreFinished extends AbstractNotification
 
         return [
             'source' => $backup->server->name,
-            'server' => $this->restore->server?->name ?? __('deleted server'),
+            'server' => $this->restore->server?->name ?? 'deleted server',
             'error' => (string) $this->restore->message,
             'link' => url('/servers/'.$backup->server_id.'/backups/'.$backup->id.'/files'),
         ];

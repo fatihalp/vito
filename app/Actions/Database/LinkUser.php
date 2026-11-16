@@ -29,7 +29,7 @@ class LinkUser
             ->whereIn('name', $input['databases'])
             ->count();
         if (count($input['databases']) !== $dbs) {
-            throw ValidationException::withMessages(['databases' => __('Databases not found!')]);
+            throw ValidationException::withMessages(['databases' => 'Databases not found!']);
         }
 
         

@@ -48,7 +48,7 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
           <TooltipTrigger asChild>
             <TriangleAlertIcon className="text-warning size-4" />
           </TooltipTrigger>
-          <TooltipContent>Doesn&apos;t match Pure&apos;s setting - open Networking to reapply.</TooltipContent>
+          <TooltipContent>{"Doesn't match Pure's setting - open Networking to reapply."}</TooltipContent>
         </Tooltip>
       )}
       {intentWithoutObservation && (

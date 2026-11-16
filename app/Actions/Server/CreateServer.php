@@ -2,9 +2,8 @@
 
 namespace App\Actions\Server;
 
-use Throwable;
-use App\Jobs\Server\InstallJob;
 use App\Enums\ServerRole;
+use App\Jobs\Server\InstallJob;
 use App\Models\Project;
 use App\Models\Server;
 use App\Models\ServerProvider;
@@ -17,12 +16,12 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class CreateServer
 {
     protected Server $server;
 
-    
     public function create(User $creator, Project $project, array $input): Server
     {
         $this->validate($project, $input);
@@ -61,19 +60,14 @@ class CreateServer
 
             $this->server->provider_data = $this->server->provider()->data($input);
 
-            
             $this->server->save();
 
-            
             $this->server->provider()->create();
 
-            
             $this->createServices($input);
 
-            
             dispatch(new InstallJob($this->server))->onQueue('ssh');
 
-            
             $this->server->refresh();
 
             return $this->server;
@@ -135,6 +129,7 @@ class CreateServer
             'ssh_user' => [
                 'nullable',
                 'string',
+                'regex:/^[A-Za-z0-9_-]+$/',
             ],
             'services' => [
                 'array',
@@ -165,28 +160,29 @@ class CreateServer
                 $serviceTypes = collect($input['services'] ?? [])->pluck('type');
                 foreach ($role->requiredServiceTypes() as $type) {
                     if (! $serviceTypes->contains($type)) {
-                        $validator->errors()->add('services', __('The selected server type requires a :service service.', ['service' => $type]));
+                        $validator->errors()->add('services', 'The selected server type requires a '.$type.' service.');
                     }
                 }
             })
             ->validate();
     }
 
-    
     private function providerRules(array $input): array
     {
-        if (
-            ! isset($input['provider']) ||
-            ! isset($input['server_provider']) ||
-            ! config('server-provider.providers.'.$input['provider']) ||
-            in_array($input['provider'], [Custom::id(), Existing::id()])
-        ) {
+        if (! isset($input['provider'])) {
+            return [];
+        }
+        $isStoredProvider = ! in_array($input['provider'], [Custom::id(), Existing::id()]);
+        if ($isStoredProvider && ! isset($input['server_provider'])) {
+            return [];
+        }
+        if (! config('server-provider.providers.'.$input['provider'])) {
             return [];
         }
 
         $server = new Server([
             'provider' => $input['provider'],
-            'provider_id' => $input['server_provider'],
+            'provider_id' => $input['server_provider'] ?? null,
         ]);
 
         return $server->provider()->createRules($input);

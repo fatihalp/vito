@@ -11,6 +11,7 @@ import { SSL } from '@/types/ssl';
 import { Domain } from '@/types/domain';
 import { useRealtime } from '@/hooks/use-socket-events';
 import { Button } from '@/components/ui/button';
+import DetectedCertificates from '@/pages/server-ssls/components/detected-certificates';
 import CreateServerSsl from '@/pages/server-ssls/components/create-server-ssl';
 
 export default function ServerSsls() {
@@ -20,7 +21,7 @@ export default function ServerSsls() {
     domains: Domain[];
   }>();
 
-  const [ssls] = useRealtime<SSL>(page.props.ssls, 'ssl', { server_id: page.props.server.id, site_id: null });
+  const [ssls] = useRealtime<SSL>(page.props.ssls, 'ssl', { server_id: page.props.server.id });
 
   return (
     <ServerLayout>
@@ -28,7 +29,7 @@ export default function ServerSsls() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="SSL" description="Global Server level SSL management for Custom or Wildcard certificates" />
+          <Heading title={'SSL certificates'} description="Certificates registered for this server and its applications. Review expiry dates and open the application's Domains page to manage a site certificate." />
           <div className="flex items-center gap-2">
             <CreateServerSsl server={page.props.server} domains={page.props.domains}>
               <Button>Add</Button>
@@ -37,6 +38,7 @@ export default function ServerSsls() {
         </HeaderContainer>
 
         <DataTable columns={columns} paginatedData={ssls} />
+        <DetectedCertificates serverId={page.props.server.id} />
       </Container>
     </ServerLayout>
   );

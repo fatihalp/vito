@@ -270,7 +270,7 @@ export default function ServiceLogs() {
                     ))}
                   </SelectContent>
                 </Select>
-                <Button variant="outline" size="icon" onClick={fetchLog} disabled={!selectedKey || isLoading} title="Refresh" aria-label="Refresh">
+                <Button variant="outline" size="icon" onClick={fetchLog} disabled={!selectedKey || isLoading} title={'Refresh'} aria-label={'Refresh'}>
                   {isLoading ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCwIcon />}
                 </Button>
                 <Button
@@ -278,8 +278,8 @@ export default function ServiceLogs() {
                   size="icon"
                   onClick={downloadLog}
                   disabled={!selectedKey || isDownloading}
-                  title="Download"
-                  aria-label="Download log"
+                  title={'Download'}
+                  aria-label={'Download log'}
                 >
                   {isDownloading ? <LoaderCircleIcon className="animate-spin" /> : <DownloadIcon />}
                 </Button>
@@ -287,8 +287,8 @@ export default function ServiceLogs() {
                   <Button
                     variant="outline"
                     size="icon"
-                    title="Clear log"
-                    aria-label="Clear log"
+                    title={'Clear log'}
+                    aria-label={'Clear log'}
                     onClick={() => dialog.confirm.open({
                       title: 'Clear log',
                       description: `Clear all contents of ${selected.display_target}? This cannot be undone. The file and its permissions are preserved.`,
@@ -303,7 +303,7 @@ export default function ServiceLogs() {
                     <EraserIcon />
                   </Button>
                 ) : (
-                  <Button variant="outline" size="icon" disabled title="Journal logs cannot be cleared" aria-label="Clear log">
+                  <Button variant="outline" size="icon" disabled title="Journal logs cannot be cleared" aria-label={'Clear log'}>
                     <EraserIcon />
                   </Button>
                 )}
@@ -312,7 +312,7 @@ export default function ServiceLogs() {
 
             <CardContent className="p-0">
               <div className="bg-muted/40 text-muted-foreground flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3 text-xs">
-                <span className="min-w-0 font-mono break-all">{displayTarget || selected?.display_target || 'No log selected'}</span>
+                <span className="min-w-0 font-mono break-all">{displayTarget || selected?.display_target || "No log selected"}</span>
                 {updatedAt && <span className="shrink-0">Updated <DateTime date={updatedAt} /></span>}
               </div>
               <ServiceLogViewer key={selectedKey} isLoading={isLoading} error={error} hasSelection={!!selectedKey} content={content} />

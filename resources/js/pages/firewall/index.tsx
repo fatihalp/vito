@@ -70,7 +70,7 @@ export default function Firewall() {
             <div>
               <h2 className="text-base font-medium">Private network rules</h2>
               <p className="text-muted-foreground text-sm">
-                These rules are applied by the private networks this server belongs to. They are read-only here &mdash; edit them from the network.
+                These rules are applied by the private networks this server belongs to. They are read-only here — edit them from the network.
               </p>
             </div>
             <VitoTable tableData={page.props.networkRules} />

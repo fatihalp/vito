@@ -41,7 +41,7 @@ class RestoreToNewServer
 
         if ($backup->type !== BackupType::PGBACKREST || $backup->status !== null || $oldest === null) {
             throw ValidationException::withMessages([
-                'backup' => __('Only a ready pgBackRest backup with at least one finished backup can be restored to a new server.'),
+                'backup' => 'Only a ready pgBackRest backup with at least one finished backup can be restored to a new server.',
             ]);
         }
 
@@ -54,7 +54,7 @@ class RestoreToNewServer
             'backup_file_id' => ['nullable', 'required_if:target,backup', Rule::exists('backup_files', 'id')->where('backup_id', $backup->id)->where('status', BackupFileStatus::CREATED->value)],
             'target_time' => ['nullable', 'required_if:target,time', 'date', 'before:now', 'after:'.$oldest->toDateTimeString()],
         ], [
-            'target_time.after' => __('The oldest backup started at :time, so the restore point must be later.', ['time' => $oldest->toDateTimeString()]),
+            'target_time.after' => 'The oldest backup started at '.$oldest->toDateTimeString().', so the restore point must be later.',
         ])->validate();
 
         $requirements = $this->requirements($backup);
@@ -71,7 +71,7 @@ class RestoreToNewServer
             'target' => $validated['target'],
             'target_time' => $validated['target'] === 'time' ? $validated['target_time'] : null,
             'status' => BackupRestoreStatus::WAITING_FOR_SERVER,
-            'step' => __('Creating and installing the server'),
+            'step' => 'Creating and installing the server',
         ]);
 
         dispatch(new RestoreToNewServerJob($restore))->onQueue('ssh')->delay(now()->addMinute());
@@ -81,15 +81,15 @@ class RestoreToNewServer
 
     public function start(BackupRestore $restore): void
     {
-        $server = $restore->server ?? throw new RuntimeException(__('The new server was deleted.'));
+        $server = $restore->server ?? throw new RuntimeException('The new server was deleted.');
 
         if ($server->status === ServerStatus::INSTALLATION_FAILED) {
-            throw new RuntimeException(__('Installing the new server failed. Check its logs, then delete it and restore again.'));
+            throw new RuntimeException('Installing the new server failed. Check its logs, then delete it and restore again.');
         }
 
         if ($server->status !== ServerStatus::READY) {
             if ($restore->created_at->lt(now()->subHours(2))) {
-                throw new RuntimeException(__('The new server was not ready within two hours.'));
+                throw new RuntimeException('The new server was not ready within two hours.');
             }
 
             return;
@@ -101,21 +101,21 @@ class RestoreToNewServer
         $expected = (int) ($restore->file?->database_version ?? $backup->files()->where('status', BackupFileStatus::CREATED)->latest('id')->value('database_version'));
 
         if ($restore->target === 'backup' && $restore->file?->status !== BackupFileStatus::CREATED) {
-            throw new RuntimeException(__('The chosen backup expired before the server was ready. Restore the latest backup or a point in time instead.'));
+            throw new RuntimeException('The chosen backup expired before the server was ready. Restore the latest backup or a point in time instead.');
         }
 
         if ($expected !== 0 && $expected !== $version) {
-            throw new RuntimeException(__('The new server runs PostgreSQL :version, but the backup is from PostgreSQL :expected.', ['version' => $version, 'expected' => $expected]));
+            throw new RuntimeException('The new server runs PostgreSQL '.$version.', but the backup is from PostgreSQL '.$expected.'.');
         }
 
-        $restore->update(['status' => BackupRestoreStatus::RESTORING, 'step' => __('Installing pgBackRest')]);
+        $restore->update(['status' => BackupRestoreStatus::RESTORING, 'step' => 'Installing pgBackRest']);
         $server->ssh()->exec(view('ssh.pgbackrest.install-package'), 'pgbackrest-install');
         $backup->pgBackRest()->writeConfig($server, $postgres['data_directory'], $postgres['port']);
 
         [$options, $label] = match ($restore->target) {
-            'backup' => ['--set='.escapeshellarg($restore->file->name).' --type=immediate --target-action=promote', __('backup :name', ['name' => $restore->file->name])],
-            'time' => ['--type=time --target='.escapeshellarg($restore->target_time->utc()->format('Y-m-d H:i:sP')).' --target-action=promote', __('the state at :time UTC', ['time' => $restore->target_time->utc()->toDateTimeString()])],
-            default => ['', __('the latest backup and all archived WAL')],
+            'backup' => ['--set='.escapeshellarg($restore->file->name).' --type=immediate --target-action=promote', 'backup '.$restore->file->name],
+            'time' => ['--type=time --target='.escapeshellarg($restore->target_time->utc()->format('Y-m-d H:i:sP')).' --target-action=promote', 'the state at '.$restore->target_time->utc()->toDateTimeString().' UTC'],
+            default => ['', 'the latest backup and all archived WAL'],
         };
 
         $this->unit($restore)->start(view('ssh.pgbackrest.restore', [
@@ -127,7 +127,7 @@ class RestoreToNewServer
             'label' => $label,
         ])->render(), 'Vito pgBackRest restore');
 
-        $restore->update(['step' => __('Restoring :label', ['label' => $label])]);
+        $restore->update(['step' => 'Restoring '.$label]);
     }
 
     public function monitor(BackupRestore $restore): bool
@@ -144,10 +144,10 @@ class RestoreToNewServer
 
         if ($state !== 'succeeded') {
             $reason = $state === 'missing'
-                ? __('The restore on the new server stopped before it finished, for example because the server restarted.')
+                ? 'The restore on the new server stopped before it finished, for example because the server restarted.'
                 : $unit->failureReason();
             $unit->cleanup();
-            $this->fail($restore, $reason !== '' ? $reason : __('The restore failed.'));
+            $this->fail($restore, $reason !== '' ? $reason : 'The restore failed.');
 
             return true;
         }
@@ -175,6 +175,6 @@ class RestoreToNewServer
 
     private function unit(BackupRestore $restore): TransientUnit
     {
-        return new TransientUnit($restore->server ?? throw new RuntimeException(__('The new server was deleted.')), 'vito-pgbackrest-restore-'.$restore->id);
+        return new TransientUnit($restore->server ?? throw new RuntimeException('The new server was deleted.'), 'vito-pgbackrest-restore-'.$restore->id);
     }
 }

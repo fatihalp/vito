@@ -67,7 +67,7 @@ class Manage
 
         if (! $service->handler()->canBeManaged()) {
             throw ValidationException::withMessages([
-                'service' => __('This service cannot be managed.'),
+                'service' => 'This service cannot be managed.',
             ]);
         }
     }

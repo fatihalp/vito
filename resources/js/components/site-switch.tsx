@@ -58,7 +58,7 @@ export function SiteSwitch() {
           if (s) {
             router.visit(`/servers/${s.id}/sites/create`);
           } else {
-            router.visit("/sites/create");
+            router.visit('/sites/create');
           }
         }}
         className="gap-0 cursor-pointer"
@@ -77,7 +77,7 @@ export function SiteSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Search all sites. Current site: ${currentSite?.domain ?? 'none'}`}
+      aria-label={`Search all sites. Current site: ${(currentSite?.domain ?? 'none')}`}
     >
       {currentSite ? (
         <>

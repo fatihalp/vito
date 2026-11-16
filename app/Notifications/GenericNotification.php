@@ -16,7 +16,7 @@ class GenericNotification extends AbstractNotification
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__('Notification'))
+            ->subject('Notification')
             ->line($this->message);
     }
 }

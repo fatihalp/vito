@@ -16,7 +16,7 @@ function Actions({ invitation }: { invitation: ProjectUser }) {
         size="sm"
         onClick={() =>
           dialog.confirm.open({
-            title: `Reject invitation to ${invitation.project_name}`,
+            title: `Reject invitation to ${((invitation.project_name ?? '—'))}`,
             description: 'Are you sure you want to reject joining this project?',
             variant: 'destructive',
             confirmLabel: 'Reject',
@@ -31,7 +31,7 @@ function Actions({ invitation }: { invitation: ProjectUser }) {
       <Button size="sm" asChild>
         <Link href={`/settings/projects/${invitation.project_id}/invitations/accept`}>
           <CheckIcon />
-          Accept & join
+          {"Accept & join"}
         </Link>
       </Button>
     </div>

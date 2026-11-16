@@ -33,7 +33,7 @@ class MonitorPgBackRestJob implements ShouldQueue
                 $finished = app(ManagePgBackRest::class)->monitor($this->file);
             } catch (SSHError $e) {
                 if ($this->errors >= 30) {
-                    app(ManagePgBackRest::class)->fail($this->file, __('Vito could not reach the server to check this backup: :error', ['error' => $e->getMessage()]));
+                    app(ManagePgBackRest::class)->fail($this->file, 'Vito could not reach the server to check this backup: '.$e->getMessage());
 
                     return;
                 }

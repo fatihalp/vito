@@ -51,7 +51,7 @@ class ManageStorageMigrationDatabase
 
         if (! $server->isReady() || ! $handler instanceof SupportsNetworking) {
             throw ValidationException::withMessages([
-                'server_id' => __('Select a ready server with a MySQL, MariaDB or PostgreSQL service.'),
+                'server_id' => 'Select a ready server with a MySQL, MariaDB or PostgreSQL service.',
             ]);
         }
 
@@ -59,7 +59,7 @@ class ManageStorageMigrationDatabase
 
         if (! extension_loaded($extension)) {
             throw ValidationException::withMessages([
-                'server_id' => __('Install the :extension PHP extension on the Vito server to use this database.', ['extension' => $extension]),
+                'server_id' => 'Install the '.$extension.' PHP extension on the Vito server to use this database.',
             ]);
         }
 
@@ -67,7 +67,7 @@ class ManageStorageMigrationDatabase
 
         if ($vitoIp !== null && ! $handler->networkingEnabled() && ! in_array($service->status, SyncServiceStatus::SETTLED_STATUSES, true)) {
             throw ValidationException::withMessages([
-                'server_id' => __('Wait for the database service to settle before using it.'),
+                'server_id' => 'Wait for the database service to settle before using it.',
             ]);
         }
 
@@ -155,11 +155,11 @@ class ManageStorageMigrationDatabase
             $firewallStatus = $storageMigration->firewallRule?->status;
 
             if (! $handler instanceof SupportsNetworking) {
-                throw new RuntimeException(__('The scan database of this storage migration is no longer available.'));
+                throw new RuntimeException('The scan database of this storage migration is no longer available.');
             }
 
             if ($service->status === ServiceStatus::FAILED || $handler->networkingFailed() || $firewallStatus === FirewallRuleStatus::FAILED) {
-                throw new RuntimeException(__('Could not open access to the scan database on :server.', ['server' => $server->name]));
+                throw new RuntimeException('Could not open access to the scan database on '.$server->name.'.');
             }
 
             if ((! $server->is_self && ! $handler->networkingEnabled())
@@ -242,7 +242,7 @@ class ManageStorageMigrationDatabase
 
         if (! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_RES_RANGE)) {
             throw ValidationException::withMessages([
-                'server_id' => __('Could not determine which IP address Vito uses to reach this server.'),
+                'server_id' => 'Could not determine which IP address Vito uses to reach this server.',
             ]);
         }
 

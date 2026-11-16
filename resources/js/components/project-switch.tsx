@@ -64,10 +64,10 @@ export function ProjectSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={`Switch project. Current project: ${isAllProjects ? 'All Projects' : (currentProject?.name ?? 'none')}`}
+      aria-label={`Switch project. Current project: ${(isAllProjects ? 'All Projects' : (currentProject?.name ?? 'none'))}`}
     >
       <Layers3Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? 'All Projects' : currentProject?.name}</span>
+      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? "All Projects" : currentProject?.name}</span>
       <ChevronsUpDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
     </Button>
   );

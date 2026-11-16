@@ -61,7 +61,7 @@ export default function CleanupCommandsDialog({ open, onOpenChange, commands, se
           </Button>
           <Button onClick={copyCommands} disabled={!commands}>
             {copied ? <CheckIcon className="size-4" /> : <CopyIcon className="size-4" />}
-            <span>{copied ? 'Copied' : 'Copy Commands'}</span>
+            <span>{copied ? "Copied" : "Copy Commands"}</span>
           </Button>
         </DialogFooter>
       </DialogContent>

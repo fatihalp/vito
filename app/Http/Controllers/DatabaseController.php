@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Database\CreateDatabase;
+use App\Actions\Database\BrowsePostgresDatabase;
 use App\Actions\Database\RefreshDatabaseSizes;
 use App\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
@@ -25,6 +26,31 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class DatabaseController extends Controller
 {
+    #[Get('/{database}/browse', name: 'databases.browse')]
+    public function browse(Server $server, Database $database): Response
+    {
+        $this->authorize('browse', [$database, $server]);
+
+        return Inertia::render('databases/browse', [
+            'databaseName' => $database->name,
+            'dataUrl' => url("/servers/{$server->id}/database/{$database->id}/browse/data"),
+            'backUrl' => url("/servers/{$server->id}/database"),
+        ]);
+    }
+
+    #[Get('/{database}/browse/data', name: 'databases.browse.data')]
+    public function browseData(
+        Request $request,
+        Server $server,
+        Database $database,
+        BrowsePostgresDatabase $action,
+    ): JsonResponse {
+        $this->authorize('browse', [$database, $server]);
+
+        return response()
+            ->json($action->database($database, $request->query()))
+            ->header('Cache-Control', 'no-store, private');
+    }
 
     #[Get('/', name: 'databases')]
     public function index(Server $server): Response

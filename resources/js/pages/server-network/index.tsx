@@ -58,9 +58,9 @@ export default function ServerNetwork() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Network" description="Here you can manage the IP addresses configured on the server" />
+          <Heading title={'Network'} description="Here you can manage the IP addresses configured on the server" />
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" aria-label="Refresh" disabled={refreshing} onClick={refresh}>
+            <Button variant="outline" size="icon" aria-label={'Refresh'} disabled={refreshing} onClick={refresh}>
               <RefreshCwIcon className={refreshing ? 'animate-spin' : undefined} />
             </Button>
             <Button onClick={() => dialog.serverIpForm.open({ serverId: page.props.server.id, interfaces: page.props.interfaces })}>
@@ -90,7 +90,7 @@ export default function ServerNetwork() {
                   {member.connected === null ? (
                     <Badge variant={member.status_color}>{member.status}</Badge>
                   ) : (
-                    <Badge variant={member.connected ? 'success' : 'danger'}>{member.connected ? 'connected' : 'no recent handshake'}</Badge>
+                    <Badge variant={member.connected ? 'success' : 'danger'}>{member.connected ? "connected" : "no recent handshake"}</Badge>
                   )}
                 </span>
               </div>

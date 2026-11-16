@@ -43,7 +43,7 @@ interface SiteResourceDiagramProps {
   dnsProviders?: DNSProvider[];
   workersCount?: number;
   cronJobsCount?: number;
-  domainProxyStatus?: Record<string, boolean>;
+  domainProxyStatus?: Record<string, boolean | null>;
   defaultOpen?: boolean;
   collapsible?: boolean;
 }
@@ -109,7 +109,9 @@ export default function SiteResourceDiagram({
   const hasCloudflare = Boolean(connectedCloudflare);
   const anyConnectedDns = dnsProviders.some((p) => p.connected);
 
-  const isPrimaryProxied = Boolean(domainProxyStatus[site.domain]);
+  const primaryProxyStatus = domainProxyStatus[site.domain];
+  const isPrimaryProxied = primaryProxyStatus === true;
+  const primaryProxyKnown = typeof primaryProxyStatus === 'boolean';
 
   const customDomains = hostedDomains.filter(
     (hd) => hd.domain.toLowerCase() !== site.domain.toLowerCase() && hd.type !== 'primary',
@@ -132,7 +134,7 @@ export default function SiteResourceDiagram({
               : 'bg-muted-foreground/40',
           )}
         />
-        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare') : anyConnectedDns ? 'DNS' : 'Direct'}
+        {hasCloudflare ? (isPrimaryProxied ? "Cloudflare (Proxied)" : 'Cloudflare') : anyConnectedDns ? 'DNS' : "Provider not linked"}
       </span>
 
       <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40 font-mono">
@@ -143,7 +145,7 @@ export default function SiteResourceDiagram({
       {attachedResourcesCount > 0 && (
         <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[11px] font-medium bg-muted/50 text-muted-foreground border border-border/40">
           <DatabaseIcon className="size-2.5" />
-          {attachedResourcesCount} {attachedResourcesCount === 1 ? 'resource' : 'resources'}
+          {attachedResourcesCount} {attachedResourcesCount === 1 ? "resource" : "resources"}
         </span>
       )}
 
@@ -214,7 +216,7 @@ export default function SiteResourceDiagram({
                 className="h-7 gap-1 px-2 text-xs text-muted-foreground hover:text-foreground"
               >
                 <LayersIcon className="size-3" />
-                <span>{isDetailed ? 'Overview mode' : 'Detailed mode'}</span>
+                <span>{isDetailed ? "Overview mode" : "Detailed mode"}</span>
               </Button>
             )}
 
@@ -270,7 +272,7 @@ export default function SiteResourceDiagram({
                               : 'bg-muted-foreground/40',
                           )}
                         />
-                        {hasCloudflare ? (isPrimaryProxied ? 'Cloudflare (Proxied)' : 'Cloudflare (DNS Only)') : anyConnectedDns ? 'DNS' : 'Direct'}
+                        {hasCloudflare ? (!primaryProxyKnown ? "Cloudflare (Not checked)" : isPrimaryProxied ? "Cloudflare (Proxied)" : "Cloudflare (DNS Only)") : anyConnectedDns ? 'DNS' : "Provider not linked"}
                         <SettingsIcon className="size-2.5 opacity-60 ml-0.5" />
                       </button>
                     </div>
@@ -296,11 +298,13 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
-                            ? 'Active (Cloudflare)'
+                          {!primaryProxyKnown
+                            ? "Not checked"
+                            : isPrimaryProxied
+                            ? "Active (Cloudflare)"
                             : hasCloudflare
-                            ? 'DNS Only'
-                            : 'Origin Shield'}
+                            ? "DNS Only"
+                            : "Not verified"}
                         </span>
                       </div>
 
@@ -313,7 +317,7 @@ export default function SiteResourceDiagram({
                       >
                         <span className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
                           <RadioIcon className="size-3 text-muted-foreground/70" />
-                          <span>CDN &amp; Routing</span>
+                          <span>{"CDN & Routing"}</span>
                         </span>
                         <span className="flex items-center gap-1 text-[11px] font-medium text-foreground">
                           <span
@@ -322,11 +326,13 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
-                            ? 'Edge Proxied'
+                          {!primaryProxyKnown
+                            ? "Not checked"
+                            : isPrimaryProxied
+                            ? "Edge Proxied"
                             : hasCloudflare
-                            ? 'DNS Only'
-                            : 'Direct (80/443)'}
+                            ? "DNS Only"
+                            : "Proxy not verified"}
                         </span>
                       </div>
 
@@ -348,11 +354,13 @@ export default function SiteResourceDiagram({
                               isPrimaryProxied || site.ssl_enabled ? 'bg-neutral-500' : 'bg-muted-foreground/50',
                             )}
                           />
-                          {isPrimaryProxied
+                          {!primaryProxyKnown
+                            ? "Not checked"
+                            : isPrimaryProxied
                             ? 'Edge SSL + Origin'
                             : site.ssl_enabled
                             ? 'Origin HTTPS'
-                            : 'Disabled'}
+                            : "Disabled"}
                         </span>
                       </div>
                     </div>
@@ -393,7 +401,7 @@ export default function SiteResourceDiagram({
                         {hasCloudflare ? (
                           <button
                             type="button"
-                            disabled={togglingDomain === site.domain}
+                            disabled={togglingDomain === site.domain || !primaryProxyKnown}
                             onClick={(e) => handleToggleProxy(e, site.domain, isPrimaryProxied)}
                             className={cn(
                               'flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors border cursor-pointer',
@@ -402,7 +410,7 @@ export default function SiteResourceDiagram({
                                 : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
                               togglingDomain === site.domain && 'opacity-60 pointer-events-none',
                             )}
-                            title={isPrimaryProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                            title={!primaryProxyKnown ? "Sync DNS records to verify proxy status" : isPrimaryProxied ? "Cloudflare Proxy & Security Active" : "Cloudflare proxy disabled"}
                           >
                             {togglingDomain === site.domain ? (
                               <LoaderCircleIcon className="size-2.5 animate-spin" />
@@ -411,17 +419,19 @@ export default function SiteResourceDiagram({
                             ) : (
                               <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                             )}
-                            <span>{isPrimaryProxied ? 'Protected' : 'DNS only'}</span>
+                            <span>{!primaryProxyKnown ? "Not checked" : isPrimaryProxied ? "Protected" : "DNS only"}</span>
                           </button>
                         ) : (
-                          <span className="text-[10px] font-mono text-muted-foreground">Direct</span>
+                          <span className="text-[10px] font-mono text-muted-foreground">Not checked</span>
                         )}
                       </div>
 
                       {customDomains.length > 0 ? (
                         <div className="space-y-1 pt-1 border-t border-border/30">
                           {customDomains.map((hd) => {
-                            const isProxied = Boolean(domainProxyStatus[hd.domain]);
+                            const proxyStatus = domainProxyStatus[hd.domain];
+                            const isProxied = proxyStatus === true;
+                            const isKnown = typeof proxyStatus === 'boolean';
                             const isUpdating = togglingDomain === hd.domain;
 
                             return (
@@ -433,7 +443,7 @@ export default function SiteResourceDiagram({
                                 {hasCloudflare ? (
                                   <button
                                     type="button"
-                                    disabled={isUpdating}
+                                    disabled={isUpdating || !isKnown}
                                     onClick={(e) => handleToggleProxy(e, hd.domain, isProxied)}
                                     className={cn(
                                       'flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium transition-colors border cursor-pointer',
@@ -442,7 +452,7 @@ export default function SiteResourceDiagram({
                                         : 'bg-muted/40 text-muted-foreground border-border/50 hover:text-foreground hover:bg-muted',
                                       isUpdating && 'opacity-60 pointer-events-none',
                                     )}
-                                    title={isProxied ? 'Cloudflare Proxy & Security Active' : 'DNS Only (Direct Origin)'}
+                                    title={!isKnown ? "Sync DNS records to verify proxy status" : isProxied ? "Cloudflare Proxy & Security Active" : "Cloudflare proxy disabled"}
                                   >
                                     {isUpdating ? (
                                       <LoaderCircleIcon className="size-2.5 animate-spin" />
@@ -451,7 +461,7 @@ export default function SiteResourceDiagram({
                                     ) : (
                                       <ShieldAlertIcon className="size-2.5 text-muted-foreground" />
                                     )}
-                                    <span>{isProxied ? 'Protected' : 'DNS only'}</span>
+                                    <span>{!isKnown ? "Not checked" : isProxied ? "Protected" : "DNS only"}</span>
                                   </button>
                                 ) : (
                                   <span
@@ -533,7 +543,7 @@ export default function SiteResourceDiagram({
                     </div>
                     <span className="flex items-center gap-1 text-[11px] font-mono text-muted-foreground">
                       <span className="size-1.5 rounded-full bg-neutral-500" />
-                      {site.status || 'Ready'}
+                      {site.status || "Ready"}
                     </span>
                   </div>
 
@@ -586,7 +596,7 @@ export default function SiteResourceDiagram({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Layers3Icon className="size-4 text-muted-foreground" />
-                      <span className="text-xs font-semibold text-foreground">Queues & Cron</span>
+                      <span className="text-xs font-semibold text-foreground">{"Queues & Cron"}</span>
                     </div>
                     <span className="size-1.5 rounded-full bg-neutral-500" />
                   </div>
@@ -608,7 +618,7 @@ export default function SiteResourceDiagram({
                         </Link>
                         <button
                           type="button"
-                          aria-label="Create worker"
+                          aria-label={'Create worker'}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -635,7 +645,7 @@ export default function SiteResourceDiagram({
                         </Link>
                         <button
                           type="button"
-                          aria-label="Create cron job"
+                          aria-label={'Create cron job'}
                           onClick={(e) => {
                             e.preventDefault();
                             e.stopPropagation();
@@ -651,11 +661,11 @@ export default function SiteResourceDiagram({
                     <div className="mt-2 flex items-center justify-between border-t border-border/40 pt-1.5 text-[11px] text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Link href={`/servers/${server.id}/sites/${site.id}/workers`} className="hover:text-foreground hover:underline">
-                          {workersCount} {workersCount === 1 ? 'Worker' : 'Workers'}
+                          {workersCount} {workersCount === 1 ? 'Worker' : "Workers"}
                         </Link>
                         <button
                           type="button"
-                          aria-label="Create worker"
+                          aria-label={'Create worker'}
                           onClick={() => dialog.workerForm.open({ serverId: server.id, site })}
                           className="hover:bg-accent hover:text-foreground rounded p-0.5 cursor-pointer"
                         >
@@ -664,11 +674,11 @@ export default function SiteResourceDiagram({
                       </span>
                       <span className="flex items-center gap-1">
                         <Link href={`/servers/${server.id}/sites/${site.id}/cronjobs`} className="hover:text-foreground hover:underline">
-                          {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : 'Crons'}
+                          {cronJobsCount} {cronJobsCount === 1 ? 'Cron' : "Crons"}
                         </Link>
                         <button
                           type="button"
-                          aria-label="Create cron job"
+                          aria-label={'Create cron job'}
                           onClick={() => dialog.cronjobForm.open({ serverId: server.id, site })}
                           className="hover:bg-accent hover:text-foreground rounded p-0.5 cursor-pointer"
                         >
@@ -708,7 +718,7 @@ export default function SiteResourceDiagram({
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="text-xs font-semibold text-foreground">Database</span>
                           <span className="text-[11px] text-muted-foreground font-normal truncate">
-                            {dbResource.server?.name || dbResource.server?.ip || 'Attached'}
+                            {dbResource.server?.name || dbResource.server?.ip || "Attached"}
                           </span>
                         </div>
                       </div>
@@ -730,7 +740,7 @@ export default function SiteResourceDiagram({
                             <span>Server</span>
                           </span>
                           <span className="font-mono text-[11px] font-medium text-foreground">
-                            {dbResource.server?.name || dbResource.server?.ip || 'Local'}
+                            {dbResource.server?.name || dbResource.server?.ip || "Local"}
                           </span>
                         </div>
 
@@ -741,7 +751,7 @@ export default function SiteResourceDiagram({
                           </span>
                           <span className="flex items-center gap-1 text-[11px] font-medium text-foreground">
                             <span className="size-1.5 rounded-full bg-neutral-500" />
-                            {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
+                            {dbResource.status === 'ready' ? "Connected" : dbResource.status}
                           </span>
                         </div>
                       </div>
@@ -771,7 +781,7 @@ export default function SiteResourceDiagram({
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="text-xs font-semibold text-foreground">Cache</span>
                           <span className="text-[11px] text-muted-foreground font-normal truncate">
-                            {cacheResource.server?.name || cacheResource.server?.ip || 'Attached'}
+                            {cacheResource.server?.name || cacheResource.server?.ip || "Attached"}
                           </span>
                         </div>
                       </div>
@@ -793,7 +803,7 @@ export default function SiteResourceDiagram({
                             <span>Server</span>
                           </span>
                           <span className="font-mono text-[11px] font-medium text-foreground">
-                            {cacheResource.server?.name || cacheResource.server?.ip || 'Local'}
+                            {cacheResource.server?.name || cacheResource.server?.ip || "Local"}
                           </span>
                         </div>
 
@@ -804,7 +814,7 @@ export default function SiteResourceDiagram({
                           </span>
                           <span className="flex items-center gap-1 text-[11px] font-medium text-foreground">
                             <span className="size-1.5 rounded-full bg-neutral-500" />
-                            {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
+                            {cacheResource.status === 'ready' ? "Connected" : cacheResource.status}
                           </span>
                         </div>
                       </div>
@@ -834,7 +844,7 @@ export default function SiteResourceDiagram({
                         <div className="flex items-center gap-1.5 truncate">
                           <span className="text-xs font-semibold text-foreground">Storage</span>
                           <span className="text-[11px] text-muted-foreground font-normal truncate">
-                            {storageResource.storage_provider?.name || 'Attached'}
+                            {storageResource.storage_provider?.name || "Attached"}
                           </span>
                         </div>
                       </div>
@@ -856,7 +866,7 @@ export default function SiteResourceDiagram({
                             <span>Provider</span>
                           </span>
                           <span className="font-mono text-[11px] font-medium text-foreground">
-                            {storageResource.storage_provider?.name || 'S3 Storage'}
+                            {storageResource.storage_provider?.name || "S3 Storage"}
                           </span>
                         </div>
 
@@ -867,7 +877,7 @@ export default function SiteResourceDiagram({
                           </span>
                           <span className="flex items-center gap-1 text-[11px] font-medium text-foreground">
                             <span className="size-1.5 rounded-full bg-neutral-500" />
-                            {storageResource.status === 'ready' ? 'Connected' : storageResource.status}
+                            {storageResource.status === 'ready' ? "Connected" : storageResource.status}
                           </span>
                         </div>
                       </div>

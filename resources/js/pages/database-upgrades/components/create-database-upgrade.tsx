@@ -75,9 +75,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
         <Form id="create-database-upgrade-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
-              Pure creates a server at your provider (billed by the provider), installs the PostgreSQL version you pick, and copies every database, role and
-              schema of {requirements?.source ?? server.name} onto it with logical replication. {requirements?.source ?? server.name} keeps serving reads and
-              writes the whole time, and you decide when to switch over.
+              Pure creates a server at your provider (billed by the provider), installs the PostgreSQL version you pick, and copies every database, role and schema of {requirements?.source ?? server.name} onto it with logical replication. {requirements?.source ?? server.name} keeps serving reads and writes the whole time, and you decide when to switch over.
             </div>
 
             {error && (
@@ -100,7 +98,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   </p>
                   <p>
                     <span className="font-medium">
-                      vCPU: {requirements.cores ?? 'unknown'} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : 'unknown'}
+                      vCPU: {requirements.cores ?? "unknown"} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : "unknown"}
                     </span>{' '}
                     or more, like {requirements.source}. Any processor architecture works: the rows are copied, not the data files.
                   </p>
@@ -146,7 +144,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   {form.data.mode === 'seeded'
                     ? `Pure restores the backup of ${requirements.source} onto the new server, upgrades that copy to the version you pick, and then replays only the changes made since. For a large database this turns days of copying into hours, and the old server is never read for it — the rows come from the backup repository.`
                     : requirements.seed.available
-                      ? 'Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster.'
+                      ? "Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster."
                       : `Every row travels over the private network. ${requirements.seed.reason}`}
                 </p>
                 <InputError message={form.errors.mode} />
@@ -160,10 +158,10 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   <SelectValue
                     placeholder={
                       versions === null
-                        ? 'Reading the current version…'
+                        ? "Reading the current version…"
                         : versions.versions.length === 0
                           ? `PostgreSQL ${versions.version} is already the newest`
-                          : 'Select a version'
+                          : "Select a version"
                     }
                   />
                 </SelectTrigger>
@@ -201,8 +199,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   </SelectContent>
                 </Select>
                 <p className="text-muted-foreground text-sm">
-                  For example {requirements.tables_without_key.slice(0, 3).join(', ')}. REPLICA IDENTITY FULL makes PostgreSQL write the whole old row for
-                  updates on those tables while the copy runs, and costs nothing once it is over.
+                  For example {requirements.tables_without_key.slice(0, 3).join(', ')}. REPLICA IDENTITY FULL makes PostgreSQL write the whole old row for updates on those tables while the copy runs, and costs nothing once it is over.
                 </p>
                 <InputError message={form.errors.replica_identity} />
               </FormField>
@@ -219,9 +216,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   onChange={(e) => form.setData('wal_keep_gb', e.target.value)}
                 />
                 <p className="text-muted-foreground text-sm">
-                  Until the new server has applied everything, {requirements.source} keeps the WAL it still needs. This caps it: if the new server falls
-                  further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away
-                  from. The default is a quarter of its free disk.
+                  Until the new server has applied everything, {requirements.source} keeps the WAL it still needs. This caps it: if the new server falls further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away from. The default is a quarter of its free disk.
                 </p>
                 <InputError message={form.errors.wal_keep_gb} />
               </FormField>
@@ -234,8 +229,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   <Label htmlFor="upgrade-restart">Restart PostgreSQL on {requirements.source} once</Label>
                 </div>
                 <p className="text-muted-foreground text-sm">
-                  Logical replication needs wal_level = logical and {requirements.required_slots} replication slots, which only apply after a restart. Pure
-                  restarts PostgreSQL once, early in the upgrade, and open connections are dropped at that moment.
+                  Logical replication needs wal_level = logical and {requirements.required_slots} replication slots, which only apply after a restart. Pure restarts PostgreSQL once, early in the upgrade, and open connections are dropped at that moment.
                 </p>
                 <InputError message={form.errors.restart} />
               </FormField>

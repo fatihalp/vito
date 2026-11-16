@@ -78,8 +78,7 @@ export default function SiteStats() {
               <CardContent className="text-muted-foreground p-6 text-sm">
                 {!statsEnabled ? (
                   <>
-                    Statistics are <span className="text-foreground font-medium">disabled</span> for this site. Enable them from the site's Settings
-                    page.
+                    Statistics are <span className="text-foreground font-medium">disabled</span> {"for this site. Enable them from the site's Settings page."}
                   </>
                 ) : (
                   <>
@@ -155,7 +154,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
               </SelectContent>
             </Select>
           )}
-          <Button variant="outline" onClick={refresh} disabled={refreshing} aria-label="Refresh">
+          <Button variant="outline" onClick={refresh} disabled={refreshing} aria-label={'Refresh'}>
             <RefreshCwIcon className={refreshing ? 'animate-spin' : ''} />
             <span className="hidden lg:block">Refresh</span>
           </Button>
@@ -199,7 +198,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
           <h3 className="text-foreground text-base font-medium">Growth (monthly)</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatsChart
-              title="Visitors"
+              title={'Visitors'}
               value={formatNumber(data.summary.reduce((t, m) => t + m.visitors, 0))}
               color="var(--color-chart-1)"
               dataKey="visitors"
@@ -209,7 +208,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
               valueFormatter={(v) => formatNumber(Number(v))}
             />
             <StatsChart
-              title="Hits"
+              title={'Hits'}
               value={formatNumber(data.summary.reduce((t, m) => t + m.hits, 0))}
               color="var(--color-chart-2)"
               dataKey="hits"
@@ -241,8 +240,8 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
             </div>
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <StatCard title="Visitors" value={formatNumber(detail.totals.visitors)} />
-                <StatCard title="Hits" value={formatNumber(detail.totals.hits)} />
+                <StatCard title={'Visitors'} value={formatNumber(detail.totals.visitors)} />
+                <StatCard title={'Hits'} value={formatNumber(detail.totals.hits)} />
                 <StatCard title="Bandwidth" value={formatBytes(detail.totals.bandwidth)} />
               </div>
               <StatsChart

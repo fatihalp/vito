@@ -145,8 +145,8 @@ export default function WorkerForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{worker ? 'Edit' : 'Create'} worker</DialogTitle>
-          <DialogDescription className="sr-only">{worker ? 'Edit' : 'Create new'} worker</DialogDescription>
+          <DialogTitle>{worker ? "Edit" : "Create"} worker</DialogTitle>
+          <DialogDescription className="sr-only">{worker ? "Edit" : "Create new"} worker</DialogDescription>
         </DialogHeader>
         <Form id="worker-form" onSubmit={submit} className="p-4">
           <FormFields>
@@ -223,10 +223,10 @@ export default function WorkerForm({
                 id="directory"
                 value={form.data.directory}
                 onChange={(e) => form.setData('directory', e.target.value)}
-                placeholder={site ? site.path : '/path/to/directory (optional)'}
+                placeholder={site ? site.path : "/path/to/directory (optional)"}
               />
               <p className="text-muted-foreground text-xs">
-                {site ? `Optional. Leave blank to run in the site root directory (${site.path}).` : 'Optional. Leave blank to run in the default directory.'}
+                {site ? `Optional. Leave blank to run in the site root directory (${site.path}).` : "Optional. Leave blank to run in the default directory."}
               </p>
               <InputError message={form.errors.directory} />
             </FormField>
@@ -240,15 +240,15 @@ export default function WorkerForm({
                   disabled={targetServersQuery.isFetching}
                 >
                   <SelectTrigger id="target_server_id">
-                    <SelectValue placeholder={targetServersQuery.isFetching ? 'Loading...' : 'Select where this worker runs'} />
+                    <SelectValue placeholder={targetServersQuery.isFetching ? "Loading..." : "Select where this worker runs"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="__home__">{page.props.server.name} (this site's server)</SelectItem>
+                      <SelectItem value="__home__">{page.props.server.name} {"(this site's server)"}</SelectItem>
                       {targetServers.map((candidate) => (
                         <SelectItem key={candidate.id} value={candidate.id.toString()} disabled={!candidate.has_process_manager}>
                           {candidate.name} · {candidate.ip}
-                          {!candidate.has_process_manager ? ' (no process manager installed)' : ''}
+                          {!candidate.has_process_manager ? " (no process manager installed)" : ''}
                         </SelectItem>
                       ))}
                     </SelectGroup>
@@ -258,14 +258,13 @@ export default function WorkerForm({
                 {runningExternally && (
                   <Alert>
                     <AlertDescription>
-                      The site's code will be synced to this server (cloned, dependencies installed) before the worker starts, and kept up to date
-                      on every deploy.
+                      {"The site's code will be synced to this server (cloned, dependencies installed) before the worker starts, and kept up to date on every deploy."}
                     </AlertDescription>
                   </Alert>
                 )}
                 {targetServers.length === 0 && !targetServersQuery.isFetching && (
                   <p className="text-muted-foreground text-xs">
-                    No dedicated queue servers in this project yet. Create one with the "Queue" role to run workers elsewhere.
+                    {"No dedicated queue servers in this project yet. Create one with the \"Queue\" role to run workers elsewhere."}
                   </p>
                 )}
               </FormField>

@@ -61,7 +61,7 @@ export default function ServiceLogViewer({ content, isLoading, error, hasSelecti
                 <SelectContent>
                   <SelectItem value="all">All levels</SelectItem>
                   <SelectItem value="error">Errors</SelectItem>
-                  {['warning', 'notice', 'info', 'debug', 'trace', 'unknown'].map((value) => <SelectItem key={value} value={value}>{value === 'unknown' ? 'Unclassified' : value[0].toUpperCase() + value.slice(1)}</SelectItem>)}
+                  {['warning', 'notice', 'info', 'debug', 'trace', 'unknown'].map((value) => <SelectItem key={value} value={value}>{value === 'unknown' ? "Unclassified" : value[0].toUpperCase() + value.slice(1)}</SelectItem>)}
                 </SelectContent>
               </Select>
               <Select value={order} onValueChange={setOrder}>
@@ -80,7 +80,7 @@ export default function ServiceLogViewer({ content, isLoading, error, hasSelecti
       {!hasSelection || (!content && isLoading) || !entries.length ? (
         <div className="text-muted-foreground flex min-h-80 items-center justify-center gap-2 p-6 text-center text-sm" role="status">
           {isLoading && <LoaderCircleIcon className="size-4 animate-spin" />}
-          {!hasSelection ? 'Choose a service and log to get started.' : isLoading ? 'Loading log…' : error ? 'Refresh to try again.' : 'This log is empty.'}
+          {!hasSelection ? "Choose a service and log to get started." : isLoading ? "Loading log…" : error ? "Refresh to try again." : "This log is empty."}
         </div>
       ) : (
         <ScrollArea className="h-[65vh] min-h-80 w-full">
@@ -91,7 +91,7 @@ export default function ServiceLogViewer({ content, isLoading, error, hasSelecti
           ) : (
             <div className="divide-y">
               <div className="bg-muted/30 text-muted-foreground hidden gap-4 px-4 py-2 text-xs font-medium sm:flex">
-                <span className="w-60 shrink-0">Date & time / Level</span>
+                <span className="w-60 shrink-0">{"Date & time / Level"}</span>
                 <span>Message</span>
               </div>
               {filtered.map((entry) => (
@@ -101,7 +101,7 @@ export default function ServiceLogViewer({ content, isLoading, error, hasSelecti
                       <ChevronRightIcon aria-hidden="true" className="text-muted-foreground mt-0.5 size-4 shrink-0 transition-transform group-open:rotate-90" />
                       <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-start">
                         {entry.timestamp ? <time className="font-mono text-xs tabular-nums">{entry.timestamp}</time> : <span className="text-muted-foreground text-xs">Timestamp unavailable</span>}
-                        <Badge variant={ERROR_LEVELS.includes(entry.level) ? 'danger' : entry.level === 'warning' ? 'warning' : entry.level === 'info' ? 'info' : 'outline'} className="uppercase">{entry.level === 'unknown' ? 'Unclassified' : entry.level}</Badge>
+                        <Badge variant={ERROR_LEVELS.includes(entry.level) ? 'danger' : entry.level === 'warning' ? 'warning' : entry.level === 'info' ? 'info' : 'outline'} className="uppercase">{entry.level === 'unknown' ? "Unclassified" : entry.level}</Badge>
                       </div>
                     </div>
                     <div className="flex min-w-0 flex-1 flex-col gap-1">

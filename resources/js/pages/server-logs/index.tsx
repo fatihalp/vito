@@ -34,7 +34,7 @@ export default function ServerLogs() {
         <HeaderContainer>
           <Heading
             title={page.props.title}
-            description={page.props.remote ? 'View custom log files from this server.' : 'View operation events and command output recorded by Pure.'}
+            description={page.props.remote ? "View custom log files from this server." : "View operation events and command output recorded by Pure."}
           />
           <div className="flex items-center gap-2">
             {page.props.remote && (

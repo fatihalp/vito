@@ -34,7 +34,7 @@ function ToggleEnabled({ backup }: { backup: Backup }) {
 
   return (
     <DropdownMenuItem onClick={submit} disabled={form.processing}>
-      {backup.enabled ? 'Disable' : 'Enable'}
+      {backup.enabled ? "Disable" : "Enable"}
     </DropdownMenuItem>
   );
 }

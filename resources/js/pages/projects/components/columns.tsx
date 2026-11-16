@@ -33,7 +33,7 @@ export function ProjectActions({ project }: { project: Project }) {
         <DropdownMenuItem onSelect={() => dialog.projectForm.open({ project })}>Edit</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => dialog.projectUsers.open({ project })}>
           <UsersIcon className="size-3.5 mr-2" />
-          <span>{project.role === 'user' ? 'View access' : 'Manage access'}</span>
+          <span>{project.role === 'user' ? "View access" : "Manage access"}</span>
         </DropdownMenuItem>
         {project.role !== 'owner' && (
           <DropdownMenuItem

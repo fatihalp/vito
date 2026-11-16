@@ -38,7 +38,7 @@ export function AppHeader({
               <Link href={`${"/settings/projects"}#invitations`}>
                 <MailIcon className="size-4" />
                 <span className="hidden sm:inline">
-                  {page.props.auth.pendingInvitationsCount} {page.props.auth.pendingInvitationsCount === 1 ? 'invitation' : 'invitations'}
+                  {page.props.auth.pendingInvitationsCount} {page.props.auth.pendingInvitationsCount === 1 ? "invitation" : "invitations"}
                 </span>
                 <span className="sm:hidden">{page.props.auth.pendingInvitationsCount}</span>
               </Link>
@@ -53,13 +53,13 @@ export function AppHeader({
                   className="size-8"
                   onClick={socketReconnect}
                   disabled={socketStatus === 'connecting'}
-                  aria-label={socketStatus === 'connecting' ? 'Connecting to WebSocket' : 'WebSocket disconnected, click to reconnect'}
+                  aria-label={socketStatus === 'connecting' ? "Connecting to WebSocket" : "WebSocket disconnected, click to reconnect"}
                 >
                   {socketStatus === 'connecting' ? <WifiIcon className="size-4 animate-pulse" /> : <WifiOffIcon className="size-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {socketStatus === 'connecting' ? 'Connecting to WebSocket...' : 'WebSocket connection failed. Click to retry.'}
+                {socketStatus === 'connecting' ? "Connecting to WebSocket..." : "WebSocket connection failed. Click to retry."}
               </TooltipContent>
             </Tooltip>
           )}

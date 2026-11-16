@@ -77,7 +77,7 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
           <SheetTitle>Migrate storage</SheetTitle>
-          <SheetDescription>Copies everything under the source storage's path to the target, including data not created by Pure. New backups switch to the target immediately.</SheetDescription>
+          <SheetDescription>{"Copies everything under the source storage's path to the target, including data not created by Pure. New backups switch to the target immediately."}</SheetDescription>
         </SheetHeader>
         <Form id="create-storage-migration-form" onSubmit={submit} className="p-4">
           <FormFields>
@@ -144,9 +144,7 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                 }}
               />
               <div className="text-muted-foreground text-sm">
-                Discovered objects and their transfer status are stored here instead of Pure's own database. Pure creates a database user for this
-                migration. For another server, Pure also opens the database port to the Pure server, which restarts the database service if remote
-                access is off.
+                {"Discovered objects and their transfer status are stored here instead of Pure's own database. Pure creates a database user for this migration. For another server, Pure also opens the database port to the Pure server, which restarts the database service if remote access is off."}
               </div>
               <InputError message={form.errors.server_id} />
             </FormField>

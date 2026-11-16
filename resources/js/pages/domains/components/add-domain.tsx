@@ -73,7 +73,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
 
   const fetchProviders = async () => {
     try {
-      const response = await axios.get("/settings/dns-providers/json");
+      const response = await axios.get('/settings/dns-providers/json');
       setDNSProviders(response.data as DNSProvider[]);
     } catch (error) {
       toast.error(errorMessage(error, 'Failed to fetch DNS providers.'));
@@ -129,7 +129,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
                   </SelectContent>
                 </Select>
                 <ConnectDNSProvider onProviderAdded={fetchProviders}>
-                  <Button variant="outline" aria-label="Connect DNS Provider">
+                  <Button variant="outline" aria-label={'Connect DNS Provider'}>
                     <WifiIcon />
                   </Button>
                 </ConnectDNSProvider>
@@ -145,7 +145,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
                   disabled={!form.data.dns_provider_id || loadingDomains}
                 >
                   <SelectTrigger id="provider_domain_id">
-                    <SelectValue placeholder={loadingDomains ? 'Loading domains...' : 'Select a domain'} />
+                    <SelectValue placeholder={loadingDomains ? "Loading domains..." : "Select a domain"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>

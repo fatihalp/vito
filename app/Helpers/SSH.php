@@ -32,7 +32,6 @@ class SSH
 
     protected ?string $asUser = null;
 
-    
     protected array $variables = [];
 
     protected string $publicKey;
@@ -57,7 +56,6 @@ class SSH
         return $this;
     }
 
-    
     private function ensureLog(?string $log, ?int $siteId = null): void
     {
         if (! $this->log instanceof ServerLog && $log) {
@@ -69,7 +67,6 @@ class SSH
         }
     }
 
-    
     private function ensureSftp(): SFTP
     {
         if (! $this->connection instanceof SFTP) {
@@ -83,10 +80,17 @@ class SSH
         return $this->connection;
     }
 
-    
     protected function writeOutput(string $chunk): void
     {
         $this->log?->write($chunk);
+    }
+
+    private function abortWhenOutputExceeds(int $size, int $limit): void
+    {
+        if ($size > ($limit > 0 ? $limit : static::MAX_OUTPUT_BYTES)) {
+            $this->disconnect();
+            throw new RuntimeException('Remote output exceeded its size limit');
+        }
     }
 
     public function setLog(?ServerLog $log): self
@@ -110,7 +114,6 @@ class SSH
         return $this;
     }
 
-    
     public function variables(array $variables): self
     {
         $this->variables = $variables;
@@ -118,10 +121,8 @@ class SSH
         return $this;
     }
 
-    
     public function connect(bool $sftp = false): void
     {
-        
         $ip = $this->server->is_self ? '127.0.0.1' : $this->server->ip;
         if (str($ip)->contains(':')) {
             $ip = '['.$ip.']';
@@ -146,8 +147,15 @@ class SSH
         }
     }
 
-    
-    public function exec(string|View $command, string $log = '', ?int $siteId = null, int $timeout = 0): string
+    public function exec(
+        string|View $command,
+        string $log = '',
+        ?int $siteId = null,
+        ?bool $stream = false,
+        ?callable $streamCallback = null,
+        int $timeout = 0,
+        int $outputLimit = 0,
+    ): string
     {
         $this->ensureLog($log, $siteId);
 
@@ -177,26 +185,27 @@ class SSH
             }
 
             $this->connection->setTimeout($timeout);
-            $output = '';
-            $bytes = 0;
-            $this->connection->exec($command, function (string $out) use (&$output, &$bytes): bool {
-                $bytes += strlen($out);
-                if ($bytes > static::MAX_OUTPUT_BYTES) {
-                    return true;
-                }
+            if ($stream === true) {
+                $received = 0;
+                $this->connection->exec($command, function ($output) use ($streamCallback, $outputLimit, &$received) {
+                    $received += strlen($output);
+                    $this->abortWhenOutputExceeds($received, $outputLimit);
+                    $this->writeOutput($output);
 
+                    return $streamCallback($output);
+                });
+
+                return '';
+            }
+            $output = '';
+            $this->connection->exec($command, function (string $out) use (&$output, $outputLimit): bool {
+                $this->abortWhenOutputExceeds(strlen($output) + strlen($out), $outputLimit);
                 $this->writeOutput($out);
 
                 $output .= $out;
 
                 return false;
             });
-            if ($bytes > static::MAX_OUTPUT_BYTES) {
-                throw new SSHCommandError(
-                    message: 'SSH command output exceeded '.static::MAX_OUTPUT_BYTES.' bytes and was stopped',
-                    log: $this->log
-                );
-            }
             if ($this->connection->getExitStatus() !== 0 || Str::contains($output, 'VITO_SSH_ERROR')) {
                 throw new SSHCommandError(
                     message: 'SSH command failed with an error',
@@ -218,7 +227,6 @@ class SSH
         }
     }
 
-    
     public function upload(string $local, string $remote, ?string $owner = null, ?string $log = null, ?int $siteId = null, string $permission = '644'): void
     {
         $this->ensureLog($log, $siteId);
@@ -245,7 +253,6 @@ class SSH
         ));
     }
 
-    
     public function download(string $local, string $remote, ?string $log = null, ?int $siteId = null): void
     {
         $this->ensureLog($log, $siteId);
@@ -254,13 +261,11 @@ class SSH
         $sftp->get($remote, $local);
     }
 
-    
     public function write(string $remotePath, string|View $content, ?string $owner = null, ?string $log = null, ?int $siteId = null): void
     {
         $tmpName = Str::random(10).strtotime('now');
 
         try {
-            
             $storageDisk = Storage::disk('local');
             $storageDisk->put($tmpName, $content);
             $tmpRemotePath = '/tmp/'.$tmpName;
@@ -283,7 +288,6 @@ class SSH
         }
     }
 
-    
     public function disconnect(): void
     {
         if ($this->connection instanceof SSH2) {
@@ -292,7 +296,6 @@ class SSH
         }
     }
 
-    
     public function __destruct()
     {
         $this->disconnect();

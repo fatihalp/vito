@@ -108,14 +108,14 @@ export default function LogOutput({ className, children }: { className?: string;
               variant="outline"
               size="icon"
               className="bg-accent! absolute right-4 bottom-4 z-10"
-              aria-label={autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}
+              aria-label={autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}
               aria-pressed={autoScroll}
               onClick={() => setAutoScroll(!autoScroll)}
             >
               <ArrowDown className={cn('h-4 w-4', autoScroll && 'animate-bounce')} />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="left">{autoScroll ? 'Disable auto-scroll' : 'Enable auto-scroll'}</TooltipContent>
+          <TooltipContent side="left">{autoScroll ? "Disable auto-scroll" : "Enable auto-scroll"}</TooltipContent>
         </Tooltip>
       )}
     </div>

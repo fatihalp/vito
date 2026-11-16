@@ -135,7 +135,7 @@ function WorkerLogContent() {
 
   return (
     <>
-      <Head title={`Logs · ${worker.name || worker.command} - ${server.name}`} />
+      <Head title={`Logs · ${(worker.name || worker.command)} - ${server.name}`} />
 
       <Container className="gap-3 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -259,7 +259,7 @@ function WorkerLogContent() {
                   size="sm"
                   onClick={() => setAutoRefresh(!autoRefresh)}
                   className="h-7 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                  title={autoRefresh ? 'Disable auto-refresh' : 'Enable auto-refresh'}
+                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                 >
                   <span className={cn('size-1.5 rounded-full', autoRefresh ? 'bg-neutral-500 animate-pulse' : 'bg-muted-foreground/40')} />
                   <span>Auto-refresh</span>
@@ -272,7 +272,7 @@ function WorkerLogContent() {
                 onClick={() => query.refetch()}
                 disabled={query.isFetching}
                 className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                title="Refresh"
+                title={'Refresh'}
               >
                 <RefreshCwIcon className={cn('size-3.5', query.isFetching && 'animate-spin')} />
               </Button>
@@ -294,7 +294,7 @@ function WorkerLogContent() {
 
           {activeTab === 'output' ? (
             <LogOutput className="h-[calc(100vh-230px)] min-h-[500px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
-              {query.isLoading && 'Loading worker logs...'}
+              {query.isLoading && "Loading worker logs..."}
               {query.isError && <span className="text-destructive">Failed to load worker logs.</span>}
               {!query.isLoading && !query.isError && (query.data?.logs || (
                 <span className="text-muted-foreground flex items-center gap-2">
@@ -322,7 +322,7 @@ function WorkerLogContent() {
                             {item.description || `Worker ${item.type}`}
                           </span>
                           <span className="text-[11px] text-muted-foreground">
-                            {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : 'by System')}
+                            {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : "by System")}
                           </span>
                         </div>
                       </div>

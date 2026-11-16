@@ -25,7 +25,7 @@ export default function SiteFeatures() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Features" description="Manage the built-in features available for your site" />
+          <Heading title={'Features'} description={'Manage the built-in features available for your site'} />
         </HeaderContainer>
 
         <SiteBanners site={page.props.site} />

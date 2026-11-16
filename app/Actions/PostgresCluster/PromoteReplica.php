@@ -34,7 +34,7 @@ class PromoteReplica
     {
         if (! config('database-replication.failover_enabled')) {
             throw ValidationException::withMessages([
-                'replica' => __('Failover is turned off on this Vito installation.'),
+                'replica' => 'Failover is turned off on this Vito installation.',
             ]);
         }
 
@@ -42,14 +42,14 @@ class PromoteReplica
             'force' => ['sometimes', 'boolean'],
             'confirmation' => ['required', 'string', Rule::in([$candidate->replica->name])],
         ], [
-            'confirmation.in' => __('Type the replica server name exactly to confirm the failover.'),
+            'confirmation.in' => 'Type the replica server name exactly to confirm the failover.',
         ])->validate();
         $force = (bool) ($validated['force'] ?? false);
         $cluster = $candidate->cluster;
 
         if ($cluster->status !== PostgresClusterStatus::ACTIVE || $candidate->status !== DatabaseReplicaStatus::READY) {
             throw ValidationException::withMessages([
-                'replica' => __('Only a ready replica of an active cluster can be promoted.'),
+                'replica' => 'Only a ready replica of an active cluster can be promoted.',
             ]);
         }
 
@@ -57,7 +57,7 @@ class PromoteReplica
 
         if (! $force && ($candidate->health === DatabaseReplicaHealth::CRITICAL || ($lag !== null && $lag >= config('database-replication.lag_critical_mb') * 1048576))) {
             throw ValidationException::withMessages([
-                'force' => __('This replica is critical or far behind, so recent commits may be lost. Confirm to promote it anyway.'),
+                'force' => 'This replica is critical or far behind, so recent commits may be lost. Confirm to promote it anyway.',
             ]);
         }
 
@@ -93,7 +93,7 @@ class PromoteReplica
 
         if ($cluster->status !== PostgresClusterStatus::FAILING_OVER || ! isset($cluster->failover['error'])) {
             throw ValidationException::withMessages([
-                'cluster' => __('There is no stopped failover to continue.'),
+                'cluster' => 'There is no stopped failover to continue.',
             ]);
         }
 
@@ -120,10 +120,7 @@ class PromoteReplica
                 app(FencePostgresNode::class)->fence($oldPrimary);
             } catch (SSHError $e) {
                 if (! $state['force']) {
-                    throw new PostgresFailoverAborted(__('Vito could not reach the old primary :server to stop it: :error. If it is down, fail over again and confirm that it is down.', [
-                        'server' => $oldPrimary->name,
-                        'error' => $e->getMessage(),
-                    ]));
+                    throw new PostgresFailoverAborted('Vito could not reach the old primary '.$oldPrimary->name.' to stop it: '.$e->getMessage().'. If it is down, fail over again and confirm that it is down.');
                 }
 
                 $fenced = false;
@@ -170,10 +167,7 @@ class PromoteReplica
             $candidate?->update(['status' => DatabaseReplicaStatus::READY, 'message' => $e->getMessage()]);
         } else {
             $cluster->update(['failover' => [...$state, 'error' => Str::limit($e->getMessage(), 1000)]]);
-            $candidate?->update(['message' => __('Failover stopped at step ":step": :error. Fix the cause and continue the failover.', [
-                'step' => $state['step'],
-                'error' => Str::limit($e->getMessage(), 500),
-            ])]);
+            $candidate?->update(['message' => 'Failover stopped at step "'.$state['step'].'": '.(Str::limit($e->getMessage(), 500)).'. Fix the cause and continue the failover.']);
 
             if ($candidate !== null) {
                 Notifier::send($candidate->replica, new DatabaseReplicaFailed($candidate));
@@ -203,8 +197,8 @@ class PromoteReplica
             ...app(ManageDatabaseReplica::class)->credentials(),
             'max_slot_wal_keep_size_gb' => $state['max_slot_wal_keep_size_gb'],
             'message' => $state['fenced']
-                ? __('This server was the primary before :server was promoted. Rebuild it to add it back as a replica.', ['server' => $newPrimary->name])
-                : __('Vito could not reach this server during failover, so it was not stopped. Make sure PostgreSQL is not running here, then rebuild it as a replica.'),
+                ? 'This server was the primary before '.$newPrimary->name.' was promoted. Rebuild it to add it back as a replica.'
+                : 'Vito could not reach this server during failover, so it was not stopped. Make sure PostgreSQL is not running here, then rebuild it as a replica.',
             'configuration' => [
                 'replica' => ['data_directory' => $state['old_pg_path'], 'port' => $state['old_pg_port'], 'version_num' => (int) $oldPrimary->database()?->version * 10000],
                 'rebuild' => true,
@@ -226,7 +220,7 @@ class PromoteReplica
             ->each(function (DatabaseReplica $replica) use ($newPrimary): void {
                 $replica->update(['configuration' => [...$replica->configuration, 'primary' => $replica->replication()->configurePrimary()]]);
                 $replica->replication()->repoint();
-                $replica->update(['message' => __('Re-pointed to the new primary :server.', ['server' => $newPrimary->name])]);
+                $replica->update(['message' => 'Re-pointed to the new primary '.$newPrimary->name.'.']);
                 dispatch(new CheckDatabaseReplicaJob($replica))->onQueue('ssh-checks')->delay(now()->addMinutes(2));
             });
 

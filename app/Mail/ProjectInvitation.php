@@ -24,6 +24,6 @@ class ProjectInvitation extends Mailable
             ->markdown('mail.project-invitation', [
                 'acceptUrl' => route('projects'),
             ])
-            ->subject(__('Added to :project in Pure', ['project' => $this->project->name]));
+            ->subject('Added to '.$this->project->name.' in Pure');
     }
 }

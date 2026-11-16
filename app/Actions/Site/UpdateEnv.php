@@ -49,13 +49,13 @@ class UpdateEnv
 
         if (! $hasEnv && ! $hasVariables) {
             throw ValidationException::withMessages([
-                'env' => __('Either raw content or variables must be provided.'),
+                'env' => 'Either raw content or variables must be provided.',
             ]);
         }
 
         if ($hasEnv && $hasVariables) {
             throw ValidationException::withMessages([
-                'env' => __('Provide either raw content or variables, not both.'),
+                'env' => 'Provide either raw content or variables, not both.',
             ]);
         }
 
@@ -88,13 +88,13 @@ class UpdateEnv
 
         if (trim($content) === '') {
             throw ValidationException::withMessages([
-                'env' => __('The .env file cannot be emptied.'),
+                'env' => 'The .env file cannot be emptied.',
             ]);
         }
 
         if (strlen($content) > OS::READ_LIMIT) {
             throw ValidationException::withMessages([
-                'env' => __('The .env file can be at most :bytes bytes.', ['bytes' => OS::READ_LIMIT]),
+                'env' => 'The .env file can be at most '.OS::READ_LIMIT.' bytes.',
             ]);
         }
 
@@ -162,7 +162,7 @@ class UpdateEnv
 
             if ($isEmpty && isset($secretKeys[$key])) {
                 throw ValidationException::withMessages([
-                    'variables' => __('Could not read the current .env file from the server to preserve secret values. Please try again.'),
+                    'variables' => 'Could not read the current .env file from the server to preserve secret values. Please try again.',
                 ]);
             }
         }

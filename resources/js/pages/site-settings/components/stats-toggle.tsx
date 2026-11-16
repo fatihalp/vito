@@ -32,8 +32,8 @@ export default function StatsToggle({ site, children }: { site: Site; children: 
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{enabled ? 'Disable statistics' : 'Enable statistics'}</DialogTitle>
-          <DialogDescription className="sr-only">{enabled ? 'Disable' : 'Enable'} site statistics</DialogDescription>
+          <DialogTitle>{enabled ? "Disable statistics" : "Enable statistics"}</DialogTitle>
+          <DialogDescription className="sr-only">{enabled ? "Disable" : "Enable"} site statistics</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 p-4 text-sm">
           {enabled ? (
@@ -54,7 +54,7 @@ export default function StatsToggle({ site, children }: { site: Site; children: 
           <Button variant={enabled ? 'destructive' : 'default'} disabled={form.processing} onClick={submit}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            {enabled ? 'Disable' : 'Enable'}
+            {enabled ? "Disable" : "Enable"}
           </Button>
         </DialogFooter>
       </DialogContent>

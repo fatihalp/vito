@@ -59,7 +59,7 @@ class ManageStorageMigration
         $this->withScanDatabase($storageMigration, function () use ($storageMigration): void {
             if ($this->hasUncopiedBackupFiles($storageMigration)) {
                 throw ValidationException::withMessages([
-                    'status' => __('Some backup files still exist only on the source storage. Retry the failed items before deleting this migration.'),
+                    'status' => 'Some backup files still exist only on the source storage. Retry the failed items before deleting this migration.',
                 ]);
             }
 
@@ -78,13 +78,13 @@ class ManageStorageMigration
                 $ready = app(ManageStorageMigrationDatabase::class)->refreshAccess($storageMigration);
             } catch (SSHError $e) {
                 throw ValidationException::withMessages([
-                    'status' => __('Vito cannot reach the scan database server :server over SSH: :error', ['server' => $server->name, 'error' => $e->getMessage()]),
+                    'status' => 'Vito cannot reach the scan database server '.$server->name.' over SSH: '.$e->getMessage(),
                 ]);
             }
 
             if (! $ready) {
                 throw ValidationException::withMessages([
-                    'status' => __('Vito now connects from a different IP address, so it is updating the firewall of the scan database on :server. Try again in a minute.', ['server' => $server->name]),
+                    'status' => 'Vito now connects from a different IP address, so it is updating the firewall of the scan database on '.$server->name.'. Try again in a minute.',
                 ]);
             }
         }
@@ -99,7 +99,7 @@ class ManageStorageMigration
             ManageStorageMigrationDatabase::forgetAccessCheck($storageMigration);
 
             throw ValidationException::withMessages([
-                'status' => __('Vito cannot reach the scan database on :server. Check that PostgreSQL or MySQL is running there and that its firewall allows Vito, then try again.', ['server' => $server?->name ?? __('the Vito server')]),
+                'status' => 'Vito cannot reach the scan database on '.($server?->name ?? 'the Vito server').'. Check that PostgreSQL or MySQL is running there and that its firewall allows Vito, then try again.',
             ]);
         }
     }
@@ -111,7 +111,7 @@ class ManageStorageMigration
         ])->validate();
 
         if (! $storageMigration->status->isOpen()) {
-            throw ValidationException::withMessages(['worker_count' => __('This migration has already finished.')]);
+            throw ValidationException::withMessages(['worker_count' => 'This migration has already finished.']);
         }
 
         $storageMigration->update($validated);
@@ -156,7 +156,7 @@ class ManageStorageMigration
 
             if (! $migration->status->isOpen() || ($phase === 'scan' && $migration->scan_completed_at !== null)) {
                 throw ValidationException::withMessages([
-                    'phase' => __('This phase has already finished.'),
+                    'phase' => 'This phase has already finished.',
                 ]);
             }
 
@@ -190,7 +190,7 @@ class ManageStorageMigration
     {
         if (! $storageMigration->status->isOpen()) {
             throw ValidationException::withMessages([
-                'status' => __('This migration has already finished.'),
+                'status' => 'This migration has already finished.',
             ]);
         }
 
@@ -210,7 +210,7 @@ class ManageStorageMigration
     {
         if (! in_array($storageMigration->status, [StorageMigrationStatus::PARTIAL, StorageMigrationStatus::FAILED], true)) {
             throw ValidationException::withMessages([
-                'status' => __('Only a partially failed migration can be retried.'),
+                'status' => 'Only a partially failed migration can be retried.',
             ]);
         }
 
@@ -280,26 +280,26 @@ class ManageStorageMigration
         foreach (['source_storage_id' => $source, 'target_storage_id' => $target] as $field => $provider) {
             if ($provider->user_id !== $user->id) {
                 throw ValidationException::withMessages([
-                    $field => __('You do not have access to the selected storage provider.'),
+                    $field => 'You do not have access to the selected storage provider.',
                 ]);
             }
 
             if ($provider->provider !== S3::id()) {
                 throw ValidationException::withMessages([
-                    $field => __('Only S3-compatible storage providers can be migrated.'),
+                    $field => 'Only S3-compatible storage providers can be migrated.',
                 ]);
             }
         }
 
         if (! $source->provider()->canRead($source->credentials)) {
             throw ValidationException::withMessages([
-                'source_storage_id' => __('Could not verify read access to this storage provider.'),
+                'source_storage_id' => 'Could not verify read access to this storage provider.',
             ]);
         }
 
         if (! $target->provider()->connect($target->credentials)) {
             throw ValidationException::withMessages([
-                'target_storage_id' => __('Could not verify write access to this storage provider.'),
+                'target_storage_id' => 'Could not verify write access to this storage provider.',
             ]);
         }
 
@@ -311,7 +311,7 @@ class ManageStorageMigration
 
         if ($hasOpenMigration) {
             throw ValidationException::withMessages([
-                'source_storage_id' => __('A migration between these providers is already in progress.'),
+                'source_storage_id' => 'A migration between these providers is already in progress.',
             ]);
         }
     }

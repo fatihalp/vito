@@ -14,7 +14,7 @@ class CreateGithubAppManually
     {
         if (GithubApp::query()->exists()) {
             throw ValidationException::withMessages([
-                'github_app' => __('A GitHub App is already configured for this instance.'),
+                'github_app' => 'A GitHub App is already configured for this instance.',
             ]);
         }
 
@@ -32,21 +32,21 @@ class CreateGithubAppManually
         $slug = $this->extractSlug($htmlUrl);
         if ($slug === null) {
             throw ValidationException::withMessages([
-                'html_url' => __('The app page URL must look like https://github.com/apps/<slug>.'),
+                'html_url' => 'The app page URL must look like https://github.com/apps/<slug>.',
             ]);
         }
 
         $privateKey = trim((string) $input['private_key']);
         if (! str_contains($privateKey, 'BEGIN') || ! str_contains($privateKey, 'PRIVATE KEY')) {
             throw ValidationException::withMessages([
-                'private_key' => __('The private key must be a PEM-formatted RSA private key.'),
+                'private_key' => 'The private key must be a PEM-formatted RSA private key.',
             ]);
         }
 
         $resource = openssl_pkey_get_private($privateKey);
         if ($resource === false) {
             throw ValidationException::withMessages([
-                'private_key' => __('The private key could not be parsed.'),
+                'private_key' => 'The private key could not be parsed.',
             ]);
         }
 

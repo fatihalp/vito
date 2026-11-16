@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DNSProvider } from '@/types/dns-provider';
 import DynamicField from '@/components/ui/dynamic-field';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import { useConfigs } from '@/stores/bootstrap-store';
 
 export default function DnsProviderEditDialog({
@@ -26,7 +26,7 @@ export default function DnsProviderEditDialog({
   const configs = useConfigs()!;
   const editFields: DynamicFieldConfig[] = configs.dns_provider.providers[dnsProvider.provider]?.edit_form ?? [];
 
-  const form = useForm<{ name: string; global: boolean; [key: string]: any }>({
+  const form = useForm<{ name: string; global: boolean; [key: string]: DynamicFieldValue }>({
     name: dnsProvider.name,
     global: dnsProvider.global,
   });

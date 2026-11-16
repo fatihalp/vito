@@ -530,7 +530,7 @@ class VitoSite extends PHPSite
         $log->write("\n$ {$command}\n");
 
         if (preg_match('/(^|[;&|]\s*)sudo\b/', $command) === 1) {
-            throw new RuntimeException(__('Commands from vito.json run as the site user; sudo is not allowed: :command', ['command' => $command]));
+            throw new RuntimeException('Commands from vito.json run as the site user; sudo is not allowed: '.$command);
         }
 
         $ssh = $this->site->server->ssh($this->site->user);

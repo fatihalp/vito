@@ -16,19 +16,14 @@ class ServerAutoUpdateCompleted extends AbstractNotification
 
     public function rawText(): string
     {
-        $text = __('Automatic update completed for server [:server]. Packages upgraded: :count', [
-            'server' => $this->server->name,
-            'count' => $this->upgraded,
-        ]);
+        $text = 'Automatic update completed for server ['.$this->server->name.']. Packages upgraded: '.$this->upgraded;
 
         if ($this->kernelUpdatesRemaining > 0) {
-            $text .= "\n".__('Kernel updates available: :count (not applied automatically)', [
-                'count' => $this->kernelUpdatesRemaining,
-            ]);
+            $text .= "\n".'Kernel updates available: '.$this->kernelUpdatesRemaining.' (not applied automatically)';
         }
 
         if ($this->rebootRequired) {
-            $text .= "\n".__('This server needs to be rebooted to finish applying updates.');
+            $text .= "\n".'This server needs to be rebooted to finish applying updates.';
         }
 
         return $text;
@@ -38,22 +33,20 @@ class ServerAutoUpdateCompleted extends AbstractNotification
     {
         $message = (new MailMessage)
             ->success()
-            ->subject(__('Automatic update completed'))
-            ->line(__('Vito automatically applied package updates to your server [:server].', [
-                'server' => $this->server->name,
-            ]))
-            ->line(__('Packages upgraded: :count', ['count' => $this->upgraded]));
+            ->subject('Automatic update completed')
+            ->line('Vito automatically applied package updates to your server ['.$this->server->name.'].')
+            ->line('Packages upgraded: '.$this->upgraded);
 
         if ($this->kernelUpdatesRemaining > 0) {
             $message
-                ->line(__('Kernel updates available: :count', ['count' => $this->kernelUpdatesRemaining]))
-                ->line(__('Kernel updates are not applied automatically — you can apply them from the server\'s page (this requires a reboot).'));
+                ->line('Kernel updates available: '.$this->kernelUpdatesRemaining)
+                ->line('Kernel updates are not applied automatically — you can apply them from the server\'s page (this requires a reboot).');
         }
 
         if ($this->rebootRequired) {
-            $message->line(__('This server needs to be rebooted to finish applying updates.'));
+            $message->line('This server needs to be rebooted to finish applying updates.');
         }
 
-        return $message->action(__('View server'), url('/servers/'.$this->server->id));
+        return $message->action('View server', url('/servers/'.$this->server->id));
     }
 }

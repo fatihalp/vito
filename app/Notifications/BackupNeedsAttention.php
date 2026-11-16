@@ -11,28 +11,20 @@ class BackupNeedsAttention extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("The backup of :target on server [:server] needs attention:\n:problems\n:link", [
-            'target' => $this->backup->target() ?? '-',
-            'server' => $this->backup->server->name,
-            'problems' => collect($this->problems)->map(fn (string $problem): string => '- '.$problem)->implode("\n"),
-            'link' => url('/servers/'.$this->backup->server_id.'/backups/'.$this->backup->id.'/files'),
-        ]);
+        return strtr("The backup of :target on server [:server] needs attention:\n:problems\n:link", [':target' => $this->backup->target() ?? '-', ':server' => $this->backup->server->name, ':problems' => collect($this->problems)->map(fn (string $problem): string => '- '.$problem)->implode("\n"), ':link' => url('/servers/'.$this->backup->server_id.'/backups/'.$this->backup->id.'/files')]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         $mail = (new MailMessage)
             ->error()
-            ->subject(__('Backup needs attention on :server', ['server' => $this->backup->server->name]))
-            ->line(__('The backup of :target on your server [:server] needs attention.', [
-                'target' => $this->backup->target() ?? '-',
-                'server' => $this->backup->server->name,
-            ]));
+            ->subject('Backup needs attention on '.$this->backup->server->name)
+            ->line('The backup of '.($this->backup->target() ?? '-').' on your server ['.$this->backup->server->name.'] needs attention.');
 
         foreach ($this->problems as $problem) {
             $mail->line($problem);
         }
 
-        return $mail->action(__('View backup'), url('/servers/'.$this->backup->server_id.'/backups/'.$this->backup->id.'/files'));
+        return $mail->action('View backup', url('/servers/'.$this->backup->server_id.'/backups/'.$this->backup->id.'/files'));
     }
 }

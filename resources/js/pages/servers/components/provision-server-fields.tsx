@@ -130,7 +130,7 @@ export default function ProvisionServerFields({
         <Label>Region</Label>
         <Select value={data.region} onValueChange={selectRegion} disabled={Object.keys(regions).length === 0}>
           <SelectTrigger>
-            <SelectValue placeholder="Select a region" />
+            <SelectValue placeholder={'Select a region'} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(regions).map(([key, label]) => (

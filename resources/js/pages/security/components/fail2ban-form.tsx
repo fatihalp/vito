@@ -49,7 +49,7 @@ export default function Fail2banForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{isInstalled ? 'Configure Fail2ban' : 'Install Fail2ban'}</DialogTitle>
+          <DialogTitle>{isInstalled ? "Configure Fail2ban" : "Install Fail2ban"}</DialogTitle>
           <DialogDescription>Protect SSH from brute-force attacks by banning repeated failed logins.</DialogDescription>
         </DialogHeader>
         <Form id="fail2ban-form" onSubmit={submit} className="p-4">
@@ -91,7 +91,7 @@ export default function Fail2banForm({
                 onChange={(e) => form.setData('ignoreip', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                Space-separated IPs/CIDRs that are never banned. Localhost and Pure&apos;s own address are always allowed.
+                {"Space-separated IPs/CIDRs that are never banned. Localhost and Pure's own address are always allowed."}
               </p>
               <InputError message={form.errors.ignoreip} />
             </FormField>
@@ -103,7 +103,7 @@ export default function Fail2banForm({
           </DialogClose>
           <Button form="fail2ban-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {isInstalled ? 'Save' : 'Install'}
+            {isInstalled ? "Save" : "Install"}
           </Button>
         </DialogFooter>
       </DialogContent>

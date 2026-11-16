@@ -44,8 +44,8 @@ class Email extends AbstractNotificationChannel
         try {
             $message = (new MailMessage)
                 ->success()
-                ->subject(__('Email notifications connected'))
-                ->line(__('This confirms that email notifications are now connected for your Vito instance.'));
+                ->subject('Email notifications connected')
+                ->line('This confirms that email notifications are now connected for your Vito instance.');
             Mail::to($this->data()['email'])->send(
                 new NotificationMail($message->subject, $message->render())
             );

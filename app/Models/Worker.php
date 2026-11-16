@@ -12,9 +12,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Worker extends AbstractModel
 {
-    
     use HasFactory;
-
     use SoftDeletes;
 
     protected $fillable = [
@@ -57,13 +55,11 @@ class Worker extends AbstractModel
         return $value;
     }
 
-    
     public function server(): BelongsTo
     {
         return $this->belongsTo(Server::class)->withTrashed();
     }
 
-    
     public function site(): BelongsTo
     {
         return $this->belongsTo(Site::class);
@@ -104,7 +100,6 @@ class Worker extends AbstractModel
         return $this->getLogDirectory().'/'.$this->id.'.log';
     }
 
-    
     public function environmentMap(): array
     {
         $map = [];
@@ -116,7 +111,6 @@ class Worker extends AbstractModel
         return $map;
     }
 
-    
     public function effectiveEnvironment(): array
     {
         $base = $this->environmentMap();

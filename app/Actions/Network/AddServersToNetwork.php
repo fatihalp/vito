@@ -29,7 +29,7 @@ class AddServersToNetwork
     {
         if ($network->type === NetworkType::PROVIDER) {
             throw ValidationException::withMessages([
-                'servers' => __('Members of a provider-managed network are synced from the provider.'),
+                'servers' => 'Members of a provider-managed network are synced from the provider.',
             ]);
         }
 

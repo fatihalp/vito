@@ -240,7 +240,7 @@ export default function TwoFactor() {
             <AlertDescription>
               <div className="flex items-center gap-2">
                 <XCircleIcon className="text-danger size-4" />
-                Two factor authentication is <strong>not</strong> enabled
+                <strong>Two factor authentication is not enabled</strong>
               </div>
             </AlertDescription>
           </Alert>

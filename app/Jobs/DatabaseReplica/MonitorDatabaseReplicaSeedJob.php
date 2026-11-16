@@ -33,7 +33,7 @@ class MonitorDatabaseReplicaSeedJob implements ShouldQueue
                 $finished = app(ManageDatabaseReplica::class)->monitorSeed($this->replica);
             } catch (SSHError $e) {
                 if ($this->errors >= config('database-replication.seed_monitor_failures')) {
-                    app(ManageDatabaseReplica::class)->fail($this->replica, __('Vito could not reach the replica server to check the seed: :error', ['error' => $e->getMessage()]));
+                    app(ManageDatabaseReplica::class)->fail($this->replica, 'Vito could not reach the replica server to check the seed: '.$e->getMessage());
 
                     return;
                 }

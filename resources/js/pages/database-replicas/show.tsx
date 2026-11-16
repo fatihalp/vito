@@ -52,7 +52,7 @@ export default function ShowDatabaseReplica() {
 
   return (
     <ServerLayout>
-      <Head title={`Replica ${replica.replica_server_name}`} />
+      <Head title={`Replica ${((replica.replica_server_name ?? '—'))}`} />
 
       <Container>
         <HeaderContainer>

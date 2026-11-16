@@ -18,11 +18,11 @@ class RemoveUserFromProject
         }
 
         if ($membership->role === UserRole::OWNER) {
-            throw ValidationException::withMessages(['user' => __('You cannot remove the project owner.')]);
+            throw ValidationException::withMessages(['user' => 'You cannot remove the project owner.']);
         }
 
         if ($membership->user_id === $actor->id || ($membership->email !== null && $membership->email === $actor->email)) {
-            throw ValidationException::withMessages(['user' => __('You cannot remove yourself from the project.')]);
+            throw ValidationException::withMessages(['user' => 'You cannot remove yourself from the project.']);
         }
 
         $membership->delete();

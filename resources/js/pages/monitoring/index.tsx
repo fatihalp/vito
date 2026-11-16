@@ -26,7 +26,7 @@ export default function Monitoring() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Monitoring" description="Here you can see your server's metrics" />
+          <Heading title={'Monitoring'} description="Here you can see your server's metrics" />
           <div className="flex items-center gap-2">
             <Filter value={filter} onValueChange={setFilter} />
             <Actions server={page.props.server} />

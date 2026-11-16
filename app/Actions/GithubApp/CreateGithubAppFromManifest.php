@@ -14,7 +14,7 @@ class CreateGithubAppFromManifest
     {
         if (GithubApp::query()->exists()) {
             throw ValidationException::withMessages([
-                'github_app' => __('A GitHub App is already configured for this instance.'),
+                'github_app' => 'A GitHub App is already configured for this instance.',
             ]);
         }
 
@@ -33,10 +33,7 @@ class CreateGithubAppFromManifest
             $message = (string) ($response->json('message') ?? '');
 
             throw ValidationException::withMessages([
-                'github_app' => __('Failed to convert manifest (HTTP :status):status_message.', [
-                    'status' => $response->status(),
-                    'status_message' => $message !== '' ? ' '.$message : '',
-                ]),
+                'github_app' => 'Failed to convert manifest (HTTP '.$response->status().')'.($message !== '' ? ' '.$message : '').'.',
             ]);
         }
 

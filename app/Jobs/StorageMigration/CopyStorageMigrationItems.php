@@ -244,8 +244,8 @@ class CopyStorageMigrationItems implements ShouldQueue
                     'status' => $finalPass ? StorageMigrationItemStatus::FAILED : StorageMigrationItemStatus::PENDING,
                     'copied_bytes' => null,
                     'error' => $size === null
-                        ? __('Verification failed: the object was not found on the target after copying.')
-                        : __('Verification failed: the object on the target has a different size.'),
+                        ? 'Verification failed: the object was not found on the target after copying.'
+                        : 'Verification failed: the object on the target has a different size.',
                 ]);
             StorageMigration::whereKey($this->storageMigration->id)->incrementEach([
                 'items_copied' => -1,
@@ -400,7 +400,7 @@ class CopyStorageMigrationItems implements ShouldQueue
             }
 
             if ($existing !== null && ! $this->storageMigration->overwrite) {
-                $this->failItem($item, __('An object already exists at the target path and overwrite is disabled.'), permanent: true);
+                $this->failItem($item, 'An object already exists at the target path and overwrite is disabled.', permanent: true);
 
                 return;
             }

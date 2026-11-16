@@ -240,7 +240,7 @@ export default function DeploymentProgress({
         </div>
       </div>
 
-      {deploying && <Progress value={percent} aria-label="Deployment progress" className="h-1.5" />}
+      {deploying && <Progress value={percent} aria-label={'Deployment progress'} className="h-1.5" />}
 
       {steps.length > 0 && showSteps && (
         <div className="divide-y divide-border/60 overflow-hidden">

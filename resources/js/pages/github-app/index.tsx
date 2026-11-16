@@ -79,8 +79,7 @@ export default function GithubAppIndex() {
             <AlertTriangleIcon />
             <AlertTitle>Pure is not publicly reachable</AlertTitle>
             <AlertDescription>
-              Webhook events from GitHub cannot reach this instance. Installs and uninstalls will be detected on the 4-hour sync (or by clicking the
-              Sync button below).
+              Webhook events from GitHub cannot reach this instance. Installs and uninstalls will be detected on the 4-hour sync (or by clicking the Sync button below).
             </AlertDescription>
           </Alert>
         )}
@@ -103,7 +102,7 @@ export default function GithubAppIndex() {
                       <div className="flex items-center gap-3">
                         <GithubIcon className="h-4 w-4" />
                         <span className="font-medium">{sc.github_app?.account_login || sc.name}</span>
-                        <Badge variant="outline">{sc.github_app?.account_type || 'Account'}</Badge>
+                        <Badge variant="outline">{sc.github_app?.account_type || "Account"}</Badge>
                         {sc.global ? <Badge variant="success">global</Badge> : <Badge variant="danger">project</Badge>}
                       </div>
                       {sc.github_app?.html_url && (
@@ -135,8 +134,7 @@ function CreateAppCard({ manifest, manualSetup }: { manifest: Manifest; manualSe
           <div>
             <h3 className="text-sm font-medium">No GitHub App configured</h3>
             <p className="text-muted-foreground text-sm">
-              Create a GitHub App for this Pure instance. The automatic flow works when Pure is reachable on a real public domain; for local
-              development use the manual flow.
+              Create a GitHub App for this Pure instance. The automatic flow works when Pure is reachable on a real public domain; for local development use the manual flow.
             </p>
           </div>
 
@@ -148,8 +146,7 @@ function CreateAppCard({ manifest, manualSetup }: { manifest: Manifest; manualSe
 
             <TabsContent value="automatic" className="space-y-4 pt-4">
               <p className="text-muted-foreground text-sm">
-                We&apos;ll send a pre-filled manifest to GitHub. GitHub creates the app, generates credentials, and redirects you back here. Requires
-                a publicly reachable hostname (not <code>.test</code> / <code>.localhost</code>).
+                {"We'll send a pre-filled manifest to GitHub. GitHub creates the app, generates credentials, and redirects you back here. Requires a publicly reachable hostname (not"} <code>.test</code> / <code>.localhost</code>).
               </p>
               <form method="post" action={manifest.submit_url}>
                 <input type="hidden" name="manifest" value={manifest.manifest} />
@@ -243,7 +240,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
           </div>
 
           <div className="bg-muted/40 space-y-2 rounded-md border p-3 text-sm">
-            <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">Permissions &amp; events</div>
+            <div className="text-muted-foreground text-xs font-medium tracking-wider uppercase">{"Permissions & events"}</div>
             <ul className="ml-5 list-disc space-y-1">
               <li>
                 Repository → Contents: <strong>Read-only</strong>
@@ -259,14 +256,12 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
               </li>
             </ul>
             <p className="text-muted-foreground pt-1 text-xs">
-              <strong>Installation</strong> and <strong>installation repositories</strong> events are delivered automatically to every GitHub App with
-              a webhook URL — they aren&apos;t in the &ldquo;Subscribe to events&rdquo; list and don&apos;t need to be selected. Pure uses these to
-              keep installed accounts and repositories in sync.
+              <strong>Installation</strong> and <strong>installation repositories</strong> {"events are delivered automatically to every GitHub App with a webhook URL — they aren't in the “Subscribe to events” list and don't need to be selected. Pure uses these to keep installed accounts and repositories in sync."}
             </p>
           </div>
 
           <p className="text-muted-foreground text-sm">
-            After saving, on the new app&apos;s settings page generate a <strong>Client secret</strong>, then scroll to <strong>Private keys</strong>{' '}
+            {"After saving, on the new app's settings page generate a"} <strong>Client secret</strong>, then scroll to <strong>Private keys</strong>{' '}
             and <strong>Generate a private key</strong> (downloads as a .pem file). Note the <strong>App ID</strong> from the top of the page.
           </p>
         </div>
@@ -308,7 +303,7 @@ function ManualSetupForm({ manualSetup }: { manualSetup: ManualSetup }) {
                 onChange={(e) => form.setData('html_url', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                From the address bar on the app&apos;s settings page — e.g. https://github.com/apps/vito-yourhost.
+                {"From the address bar on the app's settings page — e.g. https://github.com/apps/vito-yourhost."}
               </p>
               <InputError message={form.errors.html_url} />
             </FormField>
@@ -387,7 +382,7 @@ function ConfiguredCard({ app, installPath }: { app: GithubAppData; installPath:
         <CardRow>
           <span>Install on a GitHub organization</span>
           {installPath && (
-            <a href={"/admin/github-app/install"}>
+            <a href="/admin/github-app/install">
               <Button>
                 <GithubIcon />
                 Install
@@ -446,8 +441,7 @@ function RemoveButton() {
         <DialogHeader>
           <DialogTitle>Remove GitHub App</DialogTitle>
           <DialogDescription>
-            This clears the local app config. You should also delete the app on GitHub if you don&apos;t plan to reuse it. Installations with attached
-            sites cannot be removed.
+            {"This clears the local app config. You should also delete the app on GitHub if you don't plan to reuse it. Installations with attached sites cannot be removed."}
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

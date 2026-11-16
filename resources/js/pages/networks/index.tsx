@@ -19,11 +19,11 @@ export default function Networks() {
 
   return (
     <SettingsLayout>
-      <Head title="Networks" />
+      <Head title={'Networks'} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Networks" />
+          <Heading title={'Networks'} />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

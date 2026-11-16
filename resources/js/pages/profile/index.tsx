@@ -18,8 +18,8 @@ export default function Profile() {
 
   if (mustChangePassword) {
     return (
-      <AuthLayout title="Change your password" description="Set a new password before continuing to your account." showFooter={false}>
-        <Head title="Change your password" />
+      <AuthLayout title={'Change your password'} description={'Set a new password before continuing to your account.'} showFooter={false}>
+        <Head title={'Change your password'} />
         <UpdatePassword />
         <Button variant="outline" className="w-full" asChild>
           <Link href="/logout" method="post" as="button">Log out</Link>
@@ -30,10 +30,10 @@ export default function Profile() {
 
   return (
     <SettingsLayout>
-      <Head title="Profile settings" />
+      <Head title={'Profile settings'} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="Profile settings" description="Manage your profile settings." />
+          <Heading title={'Profile settings'} description={'Manage your profile settings.'} />
           <div className="flex items-center gap-2">
           </div>
         </div>

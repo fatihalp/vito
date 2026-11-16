@@ -28,10 +28,7 @@ class PrepareDatabaseUpgradeNetwork
         $network = $upgrade->network;
 
         if (! $this->pair->join($network, $source, $target, $this->name($upgrade))) {
-            throw new RuntimeException(__('Vito could not put :server on the private network :network: both servers must be at the same provider, account and network zone.', [
-                'server' => $target->name,
-                'network' => $network->name,
-            ]));
+            throw new RuntimeException('Vito could not put '.$target->name.' on the private network '.$network->name.': both servers must be at the same provider, account and network zone.');
         }
 
         if (! $this->pair->ready($network, $source, $target)) {

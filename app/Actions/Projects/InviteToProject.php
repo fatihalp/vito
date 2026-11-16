@@ -31,7 +31,7 @@ class InviteToProject
             ]);
         } catch (UniqueConstraintViolationException) {
             throw ValidationException::withMessages([
-                'user_id' => __('This user is already a member of this project.'),
+                'user_id' => 'This user is already a member of this project.',
             ]);
         }
 
@@ -69,7 +69,7 @@ class InviteToProject
                     if ($project->users()->where(function ($users) use ($user): void {
                         $users->where('user_id', $user->id)->orWhere('email', $user->email);
                     })->exists()) {
-                        $fail(__('This user is already a member of this project.'));
+                        $fail('This user is already a member of this project.');
                     }
                 },
             ],

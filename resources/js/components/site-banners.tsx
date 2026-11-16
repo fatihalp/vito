@@ -22,7 +22,7 @@ function GenerateAppKeyButton({ site }: { site: Site }) {
         disabled={form.processing}
         onClick={() => form.post(`/servers/${site.server_id}/sites/${site.id}/env/generate-key`, { preserveScroll: true })}
       >
-        {form.processing ? 'Generating...' : 'Generate Key'}
+        {form.processing ? "Generating..." : "Generate Key"}
       </Button>
       {form.errors.env && <p role="alert" className="text-destructive max-w-64 text-sm">{form.errors.env}</p>}
     </div>
@@ -80,8 +80,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
             <DialogHeader>
               <DialogTitle>Retry site installation?</DialogTitle>
               <DialogDescription>
-                This will re-run the installation for <strong>{site.domain}</strong>. Steps that already completed (isolated user, vhost, cloned
-                repository, deployed key) will be detected and skipped.
+                This will re-run the installation for <strong>{site.domain}</strong>. Steps that already completed (isolated user, vhost, cloned repository, deployed key) will be detected and skipped.
               </DialogDescription>
             </DialogHeader>
 
@@ -136,7 +135,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
                   );
                 }}
               >
-                {submitting ? 'Retrying...' : 'Retry installation'}
+                {submitting ? "Retrying..." : "Retry installation"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -215,7 +214,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   if (pendingDomainsWarning && pendingDomainsWarning.key === 'pending_domains') {
     items.push({
       key: 'pending-domains',
-      title: `${pendingDomainsWarning.count} pending ${pendingDomainsWarning.count === 1 ? 'domain' : 'domains'}`,
+      title: pendingDomainsWarning.count === 1 ? `${pendingDomainsWarning.count} pending domain` : `${pendingDomainsWarning.count} pending domains`,
       description: (
         <>
           We could not confirm that <strong>{pendingDomainsWarning.domains.join(', ')}</strong> {pendingDomainsWarning.count === 1 ? 'is' : 'are'}{' '}
@@ -236,11 +235,11 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
     const daysLeft = Math.max(0, Math.ceil((new Date(sslExpiringWarning.earliest_expiry).getTime() - Date.now()) / 86400000));
     items.push({
       key: 'ssl-expiring',
-      title: `${sslExpiringWarning.count} SSL ${sslExpiringWarning.count === 1 ? 'certificate' : 'certificates'} expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`,
+      title: `${sslExpiringWarning.count} SSL ${(sslExpiringWarning.count === 1 ? 'certificate' : 'certificates')} expiring in ${daysLeft} ${(daysLeft === 1 ? 'day' : 'days')}`,
       description: (
         <>
           SSL certificates for <strong>{sslExpiringWarning.domains.join(', ')}</strong>{' '}
-          {daysLeft === 0 ? 'expire today.' : `will expire in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}.`}
+          {daysLeft === 0 ? 'expire today.' : daysLeft === 1 ? `will expire in ${daysLeft} day.` : `will expire in ${daysLeft} days.`}
         </>
       ),
       action: (
@@ -256,31 +255,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   if (vhostWarning) {
     items.push({
       key: 'vhost-disabled',
-      title: 'VHost generation is disabled',
-      description: (
-        <>
-          Automatic VHost generation has been disabled. Changes to SSL, domains, or redirects will not update the VHost config. Review your template
-          on the{' '}
-          <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`} className="underline">
-            Settings page
-          </Link>{' '}
-          before re-enabling.
-        </>
-      ),
+      severity: 'info',
+      title: 'Existing webserver configuration is preserved',
+      description: 'Vito is not generating this site’s webserver configuration. This does not mean the site or HTTPS is offline. Review the existing configuration before enabling automatic management.',
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            router.patch(
-              `/servers/${site.server_id}/sites/${site.id}/settings/vhost-generation`,
-              { vhost_generation_enabled: true },
-              { preserveScroll: true, onError: (errors) => toast.error(Object.values(errors)[0]) },
-            );
-          }}
-        >
-          Re-enable
-        </Button>
+        <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`}>
+          <Button variant="outline" size="sm">Review settings</Button>
+        </Link>
       ),
     });
   }
@@ -291,8 +272,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'PHP settings are not applied',
       description: (
         <>
-          This site has custom PHP settings, but a custom VHost template is in use so they are not written to the server. Add the directives to your
-          template manually, or reset the template to apply them automatically.
+          This site has custom PHP settings, but a custom VHost template is in use so they are not written to the server. Add the directives to your template manually, or reset the template to apply them automatically.
         </>
       ),
       action: (
@@ -311,8 +291,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'Site needs first deploy',
       description: (
         <>
-          Customise your deploy script if needed, then deploy this site to bring it online. The application worker is created on the first successful
-          deploy.
+          Customise your deploy script if needed, then deploy this site to bring it online. The application worker is created on the first successful deploy.
         </>
       ),
       action: (
@@ -331,8 +310,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'Composer dependencies were not installed',
       description: (
         <>
-          The site was set up, but installing Composer dependencies failed (often a PHP version mismatch with a locked package). Fix your deploy
-          script if needed, then deploy — this also installs dependencies.
+          The site was set up, but installing Composer dependencies failed (often a PHP version mismatch with a locked package). Fix your deploy script if needed, then deploy — this also installs dependencies.
         </>
       ),
       action: (
@@ -358,12 +336,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
     items.push({
       key: 'app-debug-enabled',
       title: 'APP_DEBUG is not disabled on this production server',
-      description: (
-        <>
-          This server's environment stage is <strong>Production</strong>, but <code>APP_DEBUG</code> is missing or not set to <code>false</code> in
-          this site's <code>.env</code>. Leaving debug mode on in production can leak sensitive data in error pages.
-        </>
-      ),
+      description: "This server's environment stage is Production, but APP_DEBUG is missing or not set to false in this site's .env file. Leaving debug mode on in production can leak sensitive data in error pages.",
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/environment`}>
           <Button variant="outline" size="sm">

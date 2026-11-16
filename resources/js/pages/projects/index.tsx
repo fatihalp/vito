@@ -60,7 +60,7 @@ function ProjectCard({ project }: { project: Project }) {
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="secondary" className="rounded-full capitalize">{project.role}</Badge>
             <Badge variant="secondary" className="rounded-full" title={members.map((user) => user.name || user.email).join(', ')}>
-              {members.length} {members.length === 1 ? 'member' : 'members'}
+              {members.length} {members.length === 1 ? "member" : "members"}
             </Badge>
             {project.role !== 'owner' && owner && (
               <Badge variant="outline" className="max-w-full gap-1 rounded-full">
@@ -74,7 +74,7 @@ function ProjectCard({ project }: { project: Project }) {
         <div className="flex items-center justify-between gap-3 border-t border-border/50 bg-muted/30 px-3 py-1.5">
           <CollapsibleTrigger asChild>
             <Button variant="ghost" size="sm" className="group -ml-2 h-7 gap-2 text-xs" aria-label={`Show resources for ${project.name}`}>
-              {resourceCount} {resourceCount === 1 ? 'resource' : 'resources'}
+              {resourceCount} {resourceCount === 1 ? "resource" : "resources"}
               <ChevronDownIcon className="size-4 transition-transform group-data-[state=open]:rotate-180" />
             </Button>
           </CollapsibleTrigger>
@@ -107,11 +107,11 @@ export default function Projects() {
 
   return (
     <Layout>
-      <Head title="Projects" />
+      <Head title={'Projects'} />
 
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="Projects" />
+          <Heading title={'Projects'} />
           <div className="flex items-center gap-2">
             <Button onClick={() => dialog.projectForm.open({})}>
               <PlusIcon />

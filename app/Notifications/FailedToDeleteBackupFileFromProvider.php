@@ -18,11 +18,8 @@ class FailedToDeleteBackupFileFromProvider extends AbstractNotification
     {
         return (new MailMessage)
             ->error()
-            ->subject(__('Failed to delete backup file'))
-            ->line(__('We couldn\'t delete the backup file [:file] from :provider.', [
-                'file' => $this->backupFile->name,
-                'provider' => $this->backupFile->backup->storage->provider,
-            ]))
-            ->line(__('Please check your storage provider and remove it manually.'));
+            ->subject('Failed to delete backup file')
+            ->line(strtr('We couldn\'t delete the backup file [:file] from :provider.', [':file' => $this->backupFile->name, ':provider' => $this->backupFile->backup->storage->provider]))
+            ->line('Please check your storage provider and remove it manually.');
     }
 }
