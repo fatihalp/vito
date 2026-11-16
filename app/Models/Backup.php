@@ -94,7 +94,7 @@ class Backup extends AbstractModel
     {
         return match ($this->type) {
             BackupType::DATABASE => $this->database?->name,
-            BackupType::PGBACKREST => $this->server?->databases->pluck('name')->implode(', ') ?: __('PostgreSQL cluster'),
+            BackupType::PGBACKREST => $this->server?->databases->pluck('name')->implode(', ') ?: 'PostgreSQL cluster',
         };
     }
 

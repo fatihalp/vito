@@ -85,7 +85,7 @@ class ManageNetworkFirewallRule
             'protocol' => [$isRange ? 'required' : 'nullable', 'in:tcp,udp'],
             'port' => ['nullable', new PortOrPortRangeRule],
         ], [
-            'protocol.required' => __('A protocol is required when the port is a range, because ufw rejects a multi-port rule without one.'),
+            'protocol.required' => 'A protocol is required when the port is a range, because ufw rejects a multi-port rule without one.',
         ])->validate();
     }
 }

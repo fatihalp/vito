@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useState, FormEventHandler, useEffect, useMemo } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -79,7 +78,6 @@ export default function CreateSitePage({
 }: {
   server?: Server;
 }) {
-  const translateText = useTranslate();
   const page = usePage<SharedData & { server?: Server }>();
   const server = propServer || page.props.server;
   const isServerContext = Boolean(server && !server.is_self);
@@ -309,7 +307,7 @@ export default function CreateSitePage({
 
   return (
     <PageLayout>
-      <Head title={translateText('Create site')} />
+      <Head title={'Create site'} />
 
       <Container className="max-w-3xl py-8">
         <div className="mb-6">
@@ -317,15 +315,15 @@ export default function CreateSitePage({
             <Button variant="ghost" size="sm" asChild className="h-7 px-2 -ml-2 text-muted-foreground hover:text-foreground">
               <Link href={backRoute}>
                 <ArrowLeftIcon className="mr-1 size-3.5" />
-                {translateText("Back to sites")}
+                Back to sites
               </Link>
             </Button>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">{translateText("Create a new site")}</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Create a new site</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {step === 1
-              ? translateText("Select the type of site you want to create. Each type has different configurations and features.")
-              : translateText("Configure repository, runtime, and domain settings for your new site.")}
+              ? "Select the type of site you want to create. Each type has different configurations and features."
+              : "Configure repository, runtime, and domain settings for your new site."}
           </p>
         </div>
 
@@ -335,7 +333,7 @@ export default function CreateSitePage({
               {!server && (
                 <div className="p-6 pb-2 border-b bg-muted/20">
                   <FormField>
-                    <Label htmlFor="server">{translateText("Target Server")}</Label>
+                    <Label htmlFor="server">Target Server</Label>
                     <ServerSelect
                       value={form.data.server}
                       excludeSelf
@@ -366,7 +364,7 @@ export default function CreateSitePage({
                             </span>
                             {type === 'vito' && (
                               <Badge variant="outline" className="text-[10px] py-0 bg-primary/10 text-primary border-primary/30">
-                                {translateText("Auto-Detect")}
+                                Auto-Detect
                               </Badge>
                             )}
                           </div>
@@ -380,7 +378,7 @@ export default function CreateSitePage({
 
               <div className="p-4 sm:p-5 border-t bg-muted/20 flex items-center justify-between">
                 <Button variant="outline" asChild>
-                  <Link href={backRoute}>{translateText('Cancel')}</Link>
+                  <Link href={backRoute}>Cancel</Link>
                 </Button>
               </div>
             </div>
@@ -395,7 +393,7 @@ export default function CreateSitePage({
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-foreground">
-                      {isVitoType ? translateText("Install with Pure Config") : `Install a ${selectedTypeLabel} application`}
+                      {isVitoType ? "Install with Pure Config" : `Install a ${selectedTypeLabel} application`}
                     </h2>
                   </div>
                 </div>
@@ -408,7 +406,7 @@ export default function CreateSitePage({
                   className="gap-1.5 text-xs cursor-pointer"
                 >
                   <ArrowLeftIcon className="size-3.5" />
-                  <span>{translateText("Change type")}</span>
+                  <span>Change type</span>
                 </Button>
               </div>
 
@@ -417,7 +415,7 @@ export default function CreateSitePage({
                   {generalErrors.length > 0 && (
                     <Alert variant="destructive">
                       <TriangleAlertIcon />
-                      <AlertTitle>{translateText("Site could not be created")}</AlertTitle>
+                      <AlertTitle>Site could not be created</AlertTitle>
                       <AlertDescription>
                         {generalErrors.map(([key, message]) => (
                           <p key={key} className="whitespace-pre-line">
@@ -432,7 +430,7 @@ export default function CreateSitePage({
                     <>
                       {server === undefined && (
                         <FormField>
-                          <Label htmlFor="server">{translateText('Server')}</Label>
+                          <Label htmlFor="server">Server</Label>
                           <ServerSelect
                             value={form.data.server}
                             excludeSelf
@@ -446,7 +444,7 @@ export default function CreateSitePage({
                         <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1.4fr] items-end gap-2 sm:gap-3">
                           <FormField className="w-full">
                             <Label htmlFor="source_control" className="text-xs">
-                              {translateText("Source control provider")}
+                              Source control provider
                             </Label>
                             <SourceControlSelect
                               id="source_control"
@@ -463,7 +461,7 @@ export default function CreateSitePage({
 
                           <FormField className="w-full">
                             <Label htmlFor="repository" className="text-xs">
-                              {translateText('Repository')}
+                              Repository
                             </Label>
                             <SelectRepo
                               sourceControlId={form.data.source_control}
@@ -491,14 +489,14 @@ export default function CreateSitePage({
                       {vitoScanning && (
                         <div className="flex items-center gap-2.5 text-xs text-muted-foreground p-3.5 rounded-xl border border-primary/20 bg-primary/5">
                           <LoaderCircleIcon className="size-4 animate-spin text-primary shrink-0" />
-                          <span>{translateText("Scanning repository for vito.json configuration...")}</span>
+                          <span>Scanning repository for vito.json configuration...</span>
                         </div>
                       )}
 
                       {!vitoScanning && form.data.repository && vitoDetected && !vitoDetected.exists && (
                         <Alert variant="destructive">
                           <TriangleAlertIcon className="size-4" />
-                          <AlertTitle>{translateText("vito.json not found")}</AlertTitle>
+                          <AlertTitle>vito.json not found</AlertTitle>
                           <AlertDescription>
                             {vitoDetected.error || `Could not find vito.json or .vito.json in ${form.data.repository} (${form.data.branch || 'main'}). Please verify that the file exists in the repository root.`}
                           </AlertDescription>
@@ -512,7 +510,7 @@ export default function CreateSitePage({
                               <div className="flex items-center gap-2">
                                 <CheckCircle2Icon className="size-4 text-neutral-500" />
                                 <span className="text-xs font-semibold text-foreground">
-                                  {translateText("vito.json recognized (")}{vitoDetected.path})
+                                  vito.json recognized ({vitoDetected.path})
                                 </span>
                               </div>
                               <Badge variant="outline" className="text-[11px] uppercase font-mono">
@@ -527,15 +525,15 @@ export default function CreateSitePage({
                                 </div>
                               )}
                               <div className="bg-background/80 rounded p-2 border">
-                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">{translateText("Web Dir")}</div>
+                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">Web Dir</div>
                                 <div className="font-mono text-foreground">{vitoDetected.config.web_directory || 'public'}</div>
                               </div>
                               <div className="bg-background/80 rounded p-2 border">
-                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">{translateText('Commands')}</div>
-                                <div className="font-mono text-foreground">{vitoDetected.config.commands?.length ?? 0} {translateText("step(s)")}</div>
+                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">Commands</div>
+                                <div className="font-mono text-foreground">{vitoDetected.config.commands?.length ?? 0} step(s)</div>
                               </div>
                               <div className="bg-background/80 rounded p-2 border">
-                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">{translateText("Crons / Workers")}</div>
+                                <div className="text-[10px] uppercase font-semibold text-muted-foreground">Crons / Workers</div>
                                 <div className="font-mono text-foreground">
                                   {(vitoDetected.config.crons?.length ?? 0) + (vitoDetected.config.workers?.length ?? 0)}
                                 </div>
@@ -558,7 +556,7 @@ export default function CreateSitePage({
                     <>
                       {server === undefined && (
                         <FormField>
-                          <Label htmlFor="server">{translateText('Server')}</Label>
+                          <Label htmlFor="server">Server</Label>
                           <ServerSelect
                             value={form.data.server}
                             excludeSelf
@@ -582,7 +580,7 @@ export default function CreateSitePage({
                           <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto_1.4fr] items-end gap-2 sm:gap-3">
                             <FormField className="w-full">
                               <Label htmlFor="source_control" className="text-xs">
-                                {translateText("Source control provider")}
+                                Source control provider
                               </Label>
                               <SourceControlSelect
                                 id="source_control"
@@ -599,7 +597,7 @@ export default function CreateSitePage({
 
                             <FormField className="w-full">
                               <Label htmlFor="repository" className="text-xs">
-                                {translateText('Repository')}
+                                Repository
                               </Label>
                               <SelectRepo
                                 sourceControlId={form.data.source_control}
@@ -627,7 +625,7 @@ export default function CreateSitePage({
 
                       {isPhpType && (
                         <FormField>
-                          <Label htmlFor="php_version">{translateText('PHP version')}</Label>
+                          <Label htmlFor="php_version">PHP version</Label>
                           <ServiceVersionSelect
                             id="php_version"
                             service="php"
@@ -651,10 +649,10 @@ export default function CreateSitePage({
                             <ChevronRightIcon
                               className={cn('size-3.5 transition-transform duration-200', showAdvanced && 'rotate-90')}
                             />
-                            <span>{translateText("Advanced Settings")}</span>
+                            <span>Advanced Settings</span>
                             {hasAdvancedErrors && (
                               <Badge variant="destructive" className="text-[10px] px-1.5 py-0 h-4">
-                                {translateText('Error')}
+                                Error
                               </Badge>
                             )}
                           </button>
@@ -672,12 +670,12 @@ export default function CreateSitePage({
 
                 <div className="pt-4 border-t flex items-center justify-between">
                   <Button type="button" variant="outline" onClick={() => setStep(1)} disabled={form.processing}>
-                    <ArrowLeftIcon className="mr-1.5 size-4" /> {translateText('Back')}
+                    <ArrowLeftIcon className="mr-1.5 size-4" /> Back
                   </Button>
 
                   <Button type="submit" disabled={form.processing}>
                     {form.processing && <LoaderCircleIcon className="mr-1.5 size-4 animate-spin" />}
-                    {translateText('Create site')}
+                    Create site
                   </Button>
                 </div>
               </Form>

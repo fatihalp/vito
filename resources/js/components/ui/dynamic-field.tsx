@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { InputHTMLAttributes, useEffect, useState } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -33,9 +32,8 @@ const toolIdsOf = (config: DynamicFieldConfig): string[] =>
   Array.isArray(config.options) ? config.options : config.options ? Object.values(config.options) : [];
 
 export default function DynamicField({ value, onChange, config, error, form, inheritedVersionTools = [] }: DynamicFieldProps) {
-  const translateText = useTranslate();
   const defaultLabel = config.name.replaceAll('_', ' ');
-  const label = translateText(config?.label || defaultLabel);
+  const label = config?.label || defaultLabel;
   const [initialValue, setInitialValue] = useState(false);
   const catalogue = useConfigs()?.tooling ?? [];
 
@@ -60,13 +58,13 @@ export default function DynamicField({ value, onChange, config, error, form, inh
       <FormField>
         <Alert>
           {!Array.isArray(config.options) && config.options?.type === 'warning' && <TriangleAlertIcon className="text-warning!" />}
-          {config.label && <AlertTitle>{translateText(config.label)}</AlertTitle>}
+          {config.label && <AlertTitle>{config.label}</AlertTitle>}
           <AlertDescription className="whitespace-pre-line">
-            {translateText(config.description ?? '')}
+            {config.description ?? ''}
             {config.link && (
               <span className="block mt-2">
                 <a href={config.link.url} target="_blank" rel="noreferrer" className="text-primary font-medium underline inline-flex items-center gap-1">
-                  {translateText(config.link.label)} &rarr;
+                  {config.link.label} &rarr;
                 </a>
               </span>
             )}
@@ -83,7 +81,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
         <div className="flex items-center space-x-2">
           <Switch id={`switch-${config.name}`} defaultChecked={value as boolean} onCheckedChange={onChange} />
           <Label htmlFor={`switch-${config.name}`}>{label}</Label>
-          {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+          {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
           <InputError message={error} />
         </div>
       </FormField>
@@ -99,20 +97,20 @@ export default function DynamicField({ value, onChange, config, error, form, inh
         </Label>
         <Select defaultValue={value as string} onValueChange={onChange}>
           <SelectTrigger id={`field-${config.name}`}>
-            <SelectValue placeholder={config.placeholder ? translateText(config.placeholder) : translateText('Select :label', { label })} />
+            <SelectValue placeholder={config.placeholder ? config.placeholder : `Select ${label}`} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
               {Array.isArray(config.options) &&
                 config.options.map((item) => (
                   <SelectItem key={`${config.name}-${item}`} value={item}>
-                    {translateText(item)}
+                    {item}
                   </SelectItem>
                 ))}
             </SelectGroup>
           </SelectContent>
         </Select>
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -129,11 +127,11 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           name={config.name}
           id={`field-${config.name}`}
           defaultValue={(value as string) || ''}
-          placeholder={config.placeholder ? translateText(config.placeholder) : undefined}
+          placeholder={config.placeholder ? config.placeholder : undefined}
           onChange={(e) => onChange(e.target.value)}
           className={config.className}
         />
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -151,7 +149,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           name={config.name}
           id={`field-${config.name}`}
           defaultValue={(value as string) || ''}
-          placeholder={config.placeholder ? translateText(config.placeholder) : undefined}
+          placeholder={config.placeholder ? config.placeholder : undefined}
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
           data-1p-ignore="true"
@@ -160,7 +158,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           data-form-type="other"
           spellCheck={false}
         />
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -176,7 +174,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           name={config.name}
           id={`field-${config.name}`}
           defaultValue={(value as string) || ''}
-          placeholder={config.placeholder ? translateText(config.placeholder) : undefined}
+          placeholder={config.placeholder ? config.placeholder : undefined}
           onChange={(e) => onChange(e.target.value)}
           autoComplete="new-password"
           data-1p-ignore="true"
@@ -185,7 +183,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           data-form-type="other"
           spellCheck={false}
         />
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -200,7 +198,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
         <Label htmlFor={`field-${config.name}`}>{label}</Label>
         <Select value={(value as string) || versions[0] || ''} onValueChange={onChange}>
           <SelectTrigger id={`field-${config.name}`}>
-            <SelectValue placeholder={translateText('Select :label', { label })} />
+            <SelectValue placeholder={`Select ${label}`} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -212,7 +210,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
             </SelectGroup>
           </SelectContent>
         </Select>
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -240,7 +238,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           }}
         >
           <SelectTrigger id={`field-${config.name}`}>
-            <SelectValue placeholder={translateText('Select :label', { label })} />
+            <SelectValue placeholder={`Select ${label}`} />
           </SelectTrigger>
           <SelectContent>
             <SelectGroup>
@@ -252,14 +250,14 @@ export default function DynamicField({ value, onChange, config, error, form, inh
             </SelectGroup>
           </SelectContent>
         </Select>
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
         {showVersion && (
           <div className="flex flex-col gap-2 pt-2">
-            <Label htmlFor={`field-${versionKey}`}>{descriptor.label} {translateText('Version')}</Label>
+            <Label htmlFor={`field-${versionKey}`}>{descriptor.label} Version</Label>
             <Select value={versionValue} onValueChange={(v) => form.setData(versionKey, v)}>
               <SelectTrigger id={`field-${versionKey}`}>
-                <SelectValue placeholder={translateText('Select :label version', { label: descriptor.label })} />
+                <SelectValue placeholder={`Select ${descriptor.label} version`} />
               </SelectTrigger>
               <SelectContent>
                 <SelectGroup>
@@ -285,7 +283,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
           {label}
         </Label>
         <ServerProviderSelect value={value as string} onValueChange={(value) => onChange(value)} />
-        {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+        {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
         <InputError message={error} />
       </FormField>
     );
@@ -293,7 +291,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
 
   const props: InputHTMLAttributes<HTMLInputElement> = {};
   if (config?.placeholder) {
-    props.placeholder = translateText(config.placeholder);
+    props.placeholder = config.placeholder;
   }
 
   return (
@@ -315,7 +313,7 @@ export default function DynamicField({ value, onChange, config, error, form, inh
         spellCheck={false}
         {...props}
       />
-      {config.description && <p className="text-muted-foreground text-xs">{translateText(config.description ?? '')}</p>}
+      {config.description && <p className="text-muted-foreground text-xs">{config.description ?? ''}</p>}
       <InputError message={error} />
     </FormField>
   );

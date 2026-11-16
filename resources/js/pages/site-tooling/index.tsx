@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useRef } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -19,7 +18,6 @@ import { toast } from 'sonner';
 import { ToolingDescriptor } from '@/types';
 
 export default function SiteTooling() {
-  const translateText = useTranslate();
   const page = usePage<{ server: Server; site: Site } & SiteToolingProps>();
   const site = useRealtimeRecord<Site>(page.props.site, 'site')!;
 
@@ -59,11 +57,11 @@ export default function SiteTooling() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Tooling - :value", { value: site.domain })} />
+      <Head title={`Tooling - ${site.domain}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Tooling')} description={translateText("Manage developer tooling installed for isolated user :value.", { value: isolated_user })} />
+          <Heading title={'Tooling'} description={`Manage developer tooling installed for isolated user ${isolated_user}.`} />
         </HeaderContainer>
 
         <SiteBanners site={site} />
@@ -73,7 +71,7 @@ export default function SiteTooling() {
             <TriangleAlertIcon className="text-warning!" />
             <AlertDescription className="block">
               <p>
-                {translateText("Changing settings will affect all sites sharing the same isolated user (")}<strong>{isolated_user}</strong>{translateText("). Changes could break other sites.")}
+                Changing settings will affect all sites sharing the same isolated user (<strong>{isolated_user}</strong>). Changes could break other sites.
               </p>
               <div className="mt-3 flex flex-wrap items-center gap-2">
                 <Badge variant="success">{site.domain}</Badge>

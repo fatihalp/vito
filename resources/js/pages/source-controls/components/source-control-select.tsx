@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -19,7 +18,6 @@ export default function SourceControlSelect({
   onValueChange: (value: string) => void;
   serverId?: number;
 } & SelectTriggerProps) {
-  const translateText = useTranslate();
   const query = useQuery<SourceControl[]>({
     queryKey: ['sourceControl', serverId],
     queryFn: async () => {
@@ -33,7 +31,7 @@ export default function SourceControlSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? translateText("Loading...") : translateText("Select a provider")}>{selected?.name}</SelectValue>
+          <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a provider"}>{selected?.name}</SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

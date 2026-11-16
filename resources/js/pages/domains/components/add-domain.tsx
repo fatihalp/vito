@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { LoaderCircle, GlobeIcon, RefreshCw, WifiIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -30,7 +29,6 @@ type Domain = {
 };
 
 export default function AddDomain({ children }: { children: ReactNode }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [availableDomains, setAvailableDomains] = useState<Domain[]>([]);
   const [loadingDomains, setLoadingDomains] = useState(false);
@@ -108,17 +106,17 @@ export default function AddDomain({ children }: { children: ReactNode }) {
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{translateText('Add Domain')}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Add a domain from your DNS provider")}</DialogDescription>
+          <DialogTitle>Add Domain</DialogTitle>
+          <DialogDescription className="sr-only">Add a domain from your DNS provider</DialogDescription>
         </DialogHeader>
         <Form id="add-domain-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="dns_provider_id">{translateText('DNS Provider')}</Label>
+              <Label htmlFor="dns_provider_id">DNS Provider</Label>
               <div className="flex items-center gap-2">
                 <Select value={form.data.dns_provider_id} onValueChange={selectProvider}>
                   <SelectTrigger id="dns_provider_id">
-                    <SelectValue placeholder={translateText("Select a DNS provider")} />
+                    <SelectValue placeholder="Select a DNS provider" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -131,7 +129,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
                   </SelectContent>
                 </Select>
                 <ConnectDNSProvider onProviderAdded={fetchProviders}>
-                  <Button variant="outline" aria-label={translateText('Connect DNS Provider')}>
+                  <Button variant="outline" aria-label={'Connect DNS Provider'}>
                     <WifiIcon />
                   </Button>
                 </ConnectDNSProvider>
@@ -139,7 +137,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
               <InputError message={form.errors.dns_provider_id} />
             </FormField>
             <FormField>
-              <Label htmlFor="provider_domain_id">{translateText('Domain')}</Label>
+              <Label htmlFor="provider_domain_id">Domain</Label>
               <div className="flex items-center gap-2">
                 <Select
                   value={form.data.provider_domain_id}
@@ -147,7 +145,7 @@ export default function AddDomain({ children }: { children: ReactNode }) {
                   disabled={!form.data.dns_provider_id || loadingDomains}
                 >
                   <SelectTrigger id="provider_domain_id">
-                    <SelectValue placeholder={loadingDomains ? translateText("Loading domains...") : translateText("Select a domain")} />
+                    <SelectValue placeholder={loadingDomains ? "Loading domains..." : "Select a domain"} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -175,12 +173,12 @@ export default function AddDomain({ children }: { children: ReactNode }) {
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button type="button" onClick={submit} disabled={form.processing || !form.data.dns_provider_id || !form.data.provider_domain_id}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Add Domain')}
+            Add Domain
           </Button>
         </DialogFooter>
       </DialogContent>

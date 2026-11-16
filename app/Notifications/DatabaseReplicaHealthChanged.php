@@ -12,26 +12,14 @@ class DatabaseReplicaHealthChanged extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("PostgreSQL replica [:replica] of [:primary] is :health (was :previous).\n:reasons\n:link", [
-            'replica' => $this->replica->replica->name,
-            'primary' => $this->replica->primary->name,
-            'health' => $this->replica->health->getText(),
-            'previous' => $this->previous->getText(),
-            'reasons' => implode("\n", $this->replica->health_reasons ?? []),
-            'link' => $this->link(),
-        ]);
+        return strtr("PostgreSQL replica [:replica] of [:primary] is :health (was :previous).\n:reasons\n:link", [':replica' => $this->replica->replica->name, ':primary' => $this->replica->primary->name, ':health' => $this->replica->health->getText(), ':previous' => $this->previous->getText(), ':reasons' => implode("\n", $this->replica->health_reasons ?? []), ':link' => $this->link()]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject(__('PostgreSQL replica is :health', ['health' => $this->replica->health->getText()]))
-            ->line(__('The PostgreSQL replica [:replica] of your server [:primary] changed from :previous to :health.', [
-                'replica' => $this->replica->replica->name,
-                'primary' => $this->replica->primary->name,
-                'previous' => $this->previous->getText(),
-                'health' => $this->replica->health->getText(),
-            ]));
+            ->subject('PostgreSQL replica is '.$this->replica->health->getText())
+            ->line('The PostgreSQL replica ['.$this->replica->replica->name.'] of your server ['.$this->replica->primary->name.'] changed from '.$this->previous->getText().' to '.$this->replica->health->getText().'.');
 
         if ($this->replica->health !== DatabaseReplicaHealth::HEALTHY) {
             $message->error();
@@ -41,7 +29,7 @@ class DatabaseReplicaHealthChanged extends AbstractNotification
             $message->line($reason);
         }
 
-        return $message->action(__('View replica'), $this->link());
+        return $message->action('View replica', $this->link());
     }
 
     private function link(): string

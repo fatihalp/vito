@@ -19,7 +19,7 @@ class GetConfigFile
 
         if (! $configPath) {
             throw ValidationException::withMessages([
-                'config_name' => __('Config file not found'),
+                'config_name' => 'Config file not found',
             ]);
         }
 
@@ -50,7 +50,7 @@ class GetConfigFile
         $configPaths = config("service.services.{$service->name}.config_paths", []);
         if (empty($configPaths)) {
             throw ValidationException::withMessages([
-                'config_paths' => __('This service has no config files defined'),
+                'config_paths' => 'This service has no config files defined',
             ]);
         }
     }

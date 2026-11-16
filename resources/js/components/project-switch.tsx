@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { type SharedData } from '@/types';
 import { type Project } from '@/types/project';
@@ -11,7 +10,6 @@ import { ProjectSelect } from '@/components/project-select';
 import { CommandGroup, CommandItem } from '@/components/ui/command';
 
 export function ProjectSwitch() {
-  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const { auth } = page.props;
   const isAllProjects = auth.projectScope === 'all';
@@ -36,7 +34,7 @@ export function ProjectSwitch() {
     <CommandGroup>
       <CommandItem value="all-projects" onSelect={handleAllProjects}>
         <Layers3Icon />
-        {translateText('All Projects')}
+        All Projects
         <CheckIcon className={selected === 'all' ? 'ml-auto opacity-100' : 'ml-auto opacity-0'} />
       </CommandItem>
     </CommandGroup>
@@ -54,7 +52,7 @@ export function ProjectSwitch() {
       >
         <div className="flex items-center">
           <PlusIcon size={5} />
-          <span className="ml-2">{translateText('Create new project')}</span>
+          <span className="ml-2">Create new project</span>
         </div>
       </CommandItem>
     </CommandGroup>
@@ -66,10 +64,10 @@ export function ProjectSwitch() {
       className="px-1!"
       role="combobox"
       aria-expanded={open}
-      aria-label={translateText("Switch project. Current project: :value", { value: isAllProjects ? 'All Projects' : (currentProject?.name ?? 'none') })}
+      aria-label={`Switch project. Current project: ${(isAllProjects ? 'All Projects' : (currentProject?.name ?? 'none'))}`}
     >
       <Layers3Icon className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? translateText("All Projects") : currentProject?.name}</span>
+      <span className="hidden max-w-36 truncate sm:flex">{isAllProjects ? "All Projects" : currentProject?.name}</span>
       <ChevronsUpDownIcon className="size-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
     </Button>
   );

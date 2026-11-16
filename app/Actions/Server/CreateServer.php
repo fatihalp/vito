@@ -160,7 +160,7 @@ class CreateServer
                 $serviceTypes = collect($input['services'] ?? [])->pluck('type');
                 foreach ($role->requiredServiceTypes() as $type) {
                     if (! $serviceTypes->contains($type)) {
-                        $validator->errors()->add('services', __('The selected server type requires a :service service.', ['service' => $type]));
+                        $validator->errors()->add('services', 'The selected server type requires a '.$type.' service.');
                     }
                 }
             })

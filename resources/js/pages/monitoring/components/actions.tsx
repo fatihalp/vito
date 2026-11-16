@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { usePage } from '@inertiajs/react';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function Actions({ server }: { server: Server }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const page = usePage<{ dataRetention: string }>();
 
@@ -15,13 +13,13 @@ export default function Actions({ server }: { server: Server }) {
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="p-0">
-          <span className="sr-only">{translateText('Open menu')}</span>
+          <span className="sr-only">Open menu</span>
           <MoreHorizontalIcon />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onSelect={() => dialog.dataRetention.open({ server, dataRetention: page.props.dataRetention })}>
-          {translateText('Data retention')}
+          Data retention
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
@@ -29,7 +27,7 @@ export default function Actions({ server }: { server: Server }) {
           onSelect={() =>
             dialog.confirm.open({
               title: 'Reset metrics',
-              description: translateText("Are you sure you want to reset metrics? This will delete all existing monitoring metrics data for server :value and cannot be undone.", { value: server.name }),
+              description: `Are you sure you want to reset metrics? This will delete all existing monitoring metrics data for server ${server.name} and cannot be undone.`,
               variant: 'destructive',
               confirmLabel: 'Reset',
               method: 'delete',
@@ -37,7 +35,7 @@ export default function Actions({ server }: { server: Server }) {
             })
           }
         >
-          {translateText('Reset')}
+          Reset
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

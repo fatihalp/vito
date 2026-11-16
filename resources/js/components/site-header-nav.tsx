@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -62,7 +61,6 @@ function isActive(currentPath: string, item: SiteNavItem): boolean {
 }
 
 export function SiteHeaderNav() {
-  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const initialSite = page.props.site;
   const initialServer = page.props.server;
@@ -100,7 +98,7 @@ export function SiteHeaderNav() {
   const otherActive = otherItems.some((item) => isActive(currentPath, item));
 
   return (
-    <nav aria-label={translateText("Site navigation")} className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-2">
+    <nav aria-label="Site navigation" className="bg-muted/30 flex h-11 shrink-0 items-center gap-1 overflow-x-auto border-b px-2">
       <Tooltip>
         <TooltipTrigger asChild>
           <Link
@@ -114,7 +112,7 @@ export function SiteHeaderNav() {
           </Link>
         </TooltipTrigger>
         <TooltipContent side="bottom">
-          {translateText("Back to server ·")} {server.ip} · {server.status}
+          Back to server · {server.ip} · {server.status}
         </TooltipContent>
       </Tooltip>
 
@@ -132,7 +130,7 @@ export function SiteHeaderNav() {
             asChild
           >
             <Link href={item.href} aria-current={active ? 'page' : undefined}>
-              <span>{translateText(item.title)}</span>
+              <span>{item.title}</span>
               {typeof item.count === 'number' && item.count > 0 && (
                 <span className="text-muted-foreground ml-1 text-xs">({item.count})</span>
               )}
@@ -148,7 +146,7 @@ export function SiteHeaderNav() {
             size="sm"
             className={cn('relative shrink-0 rounded-none px-3', otherActive && 'text-foreground after:bg-primary after:absolute after:inset-x-2 after:bottom-[-7px] after:h-0.5')}
           >
-            {translateText('Others')}
+            Others
             <ChevronDownIcon />
           </Button>
         </DropdownMenuTrigger>
@@ -160,7 +158,7 @@ export function SiteHeaderNav() {
                 aria-current={isActive(currentPath, item) ? 'page' : undefined}
                 className={cn(isActive(currentPath, item) && 'bg-accent font-medium')}
               >
-                {translateText(item.title)}
+                {item.title}
               </Link>
             </DropdownMenuItem>
           ))}
@@ -170,7 +168,7 @@ export function SiteHeaderNav() {
       <div className="ml-auto flex shrink-0 items-center gap-2 pl-2">
         {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
         <Button variant="outline" size="icon" className="size-8" asChild>
-          <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={translateText('Open site')}>
+          <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={'Open site'}>
             <ExternalLinkIcon className="size-3.5" />
           </a>
         </Button>

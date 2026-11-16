@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import type { InertiaTableData } from '@forjedio/inertia-table-react';
@@ -19,7 +18,6 @@ import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 
 export default function DeploymentsIndex() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -69,10 +67,10 @@ export default function DeploymentsIndex() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Deployments - :value", { value: site.domain })} />
+      <Head title={`Deployments - ${site.domain}`} />
       <Container className="flex flex-col gap-5">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <Heading title={translateText('Deployments')} description={translateText("Complete deployment history for :value.", { value: site.domain })} />
+          <Heading title={'Deployments'} description={`Complete deployment history for ${site.domain}.`} />
           <Deploy site={site} />
         </div>
 
@@ -90,12 +88,12 @@ export default function DeploymentsIndex() {
                     onClick={() => setShowLog((prev) => !prev)}
                   >
                     {showLog ? <ChevronUpIcon className="size-3.5" /> : <ChevronDownIcon className="size-3.5" />}
-                    <span>{showLog ? translateText("Hide log") : translateText("Show log")}</span>
+                    <span>{showLog ? "Hide log" : "Show log"}</span>
                   </Button>
 
                   <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 text-xs cursor-pointer">
                     <Link href={`/servers/${server.id}/sites/${site.id}/deployments/${activeDeployment.id}`}>
-                      <span>{translateText('Details')}</span>
+                      <span>Details</span>
                       <ExternalLinkIcon className="size-3.5" />
                     </Link>
                   </Button>
@@ -106,8 +104,8 @@ export default function DeploymentsIndex() {
                       size="icon"
                       className="size-8 cursor-pointer"
                       onClick={() => setDismissed(true)}
-                      aria-label={translateText('Dismiss')}
-                      title={translateText('Dismiss')}
+                      aria-label={'Dismiss'}
+                      title={'Dismiss'}
                     >
                       <XIcon className="size-4" />
                     </Button>
@@ -119,8 +117,8 @@ export default function DeploymentsIndex() {
             {showLog && (
               <Card className="overflow-hidden border">
                 <LogOutput className="h-64 w-full rounded-none border-0 p-4 font-mono text-xs">
-                  {isLoading && translateText("Loading deployment output...")}
-                  {!isLoading && (content || (activeDeployment.status === 'deploying' ? translateText("Waiting for output...") : translateText("No output was recorded.")))}
+                  {isLoading && "Loading deployment output..."}
+                  {!isLoading && (content || (activeDeployment.status === 'deploying' ? "Waiting for output..." : "No output was recorded."))}
                 </LogOutput>
               </Card>
             )}

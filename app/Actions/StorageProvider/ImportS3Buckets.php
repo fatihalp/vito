@@ -39,7 +39,7 @@ class ImportS3Buckets
 
         if ($unknownBuckets !== []) {
             throw ValidationException::withMessages([
-                'buckets' => __('One or more selected buckets are not available to this token.'),
+                'buckets' => 'One or more selected buckets are not available to this token.',
             ]);
         }
 
@@ -108,7 +108,7 @@ class ImportS3Buckets
         } catch (RuntimeException) {
             throw ValidationException::withMessages([
                 'provider' => $provider->connectionError()
-                    ?? __('Couldn\'t connect to the provider.'),
+                    ?? 'Couldn\'t connect to the provider.',
             ]);
         }
     }

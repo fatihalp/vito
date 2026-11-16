@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { LoaderCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -39,7 +38,6 @@ export default function ConnectDNSProvider({
   onProviderAdded?: () => void;
   children: ReactNode;
 }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const configs = useConfigs()!;
@@ -80,13 +78,13 @@ export default function ConnectDNSProvider({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{translateText("Connect to DNS provider")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Connect to a new DNS provider")}</DialogDescription>
+          <DialogTitle>Connect to DNS provider</DialogTitle>
+          <DialogDescription className="sr-only">Connect to a new DNS provider</DialogDescription>
         </DialogHeader>
         <Form id="create-dns-provider-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="provider">{translateText('Provider')}</Label>
+              <Label htmlFor="provider">Provider</Label>
               <Select
                 value={form.data.provider}
                 onValueChange={(value) => {
@@ -95,7 +93,7 @@ export default function ConnectDNSProvider({
                 }}
               >
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder={translateText('Select a provider')} />
+                  <SelectValue placeholder={'Select a provider'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -113,7 +111,7 @@ export default function ConnectDNSProvider({
               <InputError message={form.errors.provider} />
             </FormField>
             <FormField>
-              <Label htmlFor="name">{translateText("Profile Name")}</Label>
+              <Label htmlFor="name">Profile Name</Label>
               <Input type="text" name="name" id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -132,7 +130,7 @@ export default function ConnectDNSProvider({
             <FormField>
               <div className="flex items-center space-x-3">
                 <Checkbox id="global" name="global" checked={form.data.global} onClick={() => form.setData('global', !form.data.global)} />
-                <Label htmlFor="global">{translateText('Is global (accessible in all projects)')}</Label>
+                <Label htmlFor="global">Is global (accessible in all projects)</Label>
               </div>
               <InputError message={form.errors.global} />
             </FormField>
@@ -141,12 +139,12 @@ export default function ConnectDNSProvider({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Connect')}
+            Connect
           </Button>
         </DialogFooter>
       </DialogContent>

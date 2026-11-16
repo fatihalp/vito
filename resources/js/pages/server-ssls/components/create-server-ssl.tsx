@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useState } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -32,7 +31,6 @@ type CreateForm = {
 };
 
 export default function CreateServerSsl({ server, domains, children }: { server: Server; domains: Domain[]; children: ReactNode }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const page = usePage<SharedData>();
 
@@ -77,13 +75,13 @@ export default function CreateServerSsl({ server, domains, children }: { server:
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="w-full lg:max-w-lg">
         <SheetHeader>
-          <SheetTitle>{translateText("Create SSL")}</SheetTitle>
-          <SheetDescription>{translateText("Add a new server-level SSL certificate.")}</SheetDescription>
+          <SheetTitle>Create SSL</SheetTitle>
+          <SheetDescription>Add a new server-level SSL certificate.</SheetDescription>
         </SheetHeader>
         <Form id="create-server-ssl-form" className="p-4" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="type">{translateText('Type')}</Label>
+              <Label htmlFor="type">Type</Label>
               <Select
                 onValueChange={(value) => {
                   if (value === 'letsencrypt' && !form.data.email) {
@@ -95,12 +93,12 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                 value={form.data.type}
               >
                 <SelectTrigger id="type">
-                  <SelectValue placeholder={translateText('Select type')} />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="csr">CSR (Certificate Signing Request)</SelectItem>
-                  <SelectItem value="custom">{translateText("Custom Certificate")}</SelectItem>
-                  <SelectItem value="letsencrypt">{translateText("Wildcard Certificate (LetsEncrypt)")}</SelectItem>
+                  <SelectItem value="custom">Custom Certificate</SelectItem>
+                  <SelectItem value="letsencrypt">Wildcard Certificate (LetsEncrypt)</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={form.errors.type} />
@@ -108,7 +106,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
             {form.data.type === 'custom' && (
               <>
                 <FormField>
-                  <Label htmlFor="certificate">{translateText("Certificate (PEM)")}</Label>
+                  <Label htmlFor="certificate">Certificate (PEM)</Label>
                   <Textarea
                     id="certificate"
                     name="certificate"
@@ -134,7 +132,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.private_key} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="ca">{translateText("CA Bundle (optional)")}</Label>
+                  <Label htmlFor="ca">CA Bundle (optional)</Label>
                   <Textarea
                     id="ca"
                     name="ca"
@@ -151,13 +149,13 @@ export default function CreateServerSsl({ server, domains, children }: { server:
             {form.data.type === 'letsencrypt' && (
               <>
                 <FormField>
-                  <Label htmlFor="domain_id">{translateText('Domain')}</Label>
+                  <Label htmlFor="domain_id">Domain</Label>
                   <p className="text-muted-foreground text-xs">
-                    {translateText("Only domains managed by Pure with a DNS provider are available, as wildcard SSL requires DNS verification.")}
+                    Only domains managed by Pure with a DNS provider are available, as wildcard SSL requires DNS verification.
                   </p>
                   <Select onValueChange={(value) => form.setData('domain_id', value)} value={form.data.domain_id}>
                     <SelectTrigger id="domain_id">
-                      <SelectValue placeholder={translateText("Select domain")} />
+                      <SelectValue placeholder="Select domain" />
                     </SelectTrigger>
                     <SelectContent>
                       {domains.map((domain) => (
@@ -170,7 +168,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.domain_id} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="wildcard_email">{translateText('Email')}</Label>
+                  <Label htmlFor="wildcard_email">Email</Label>
                   <Input
                     type="email"
                     id="wildcard_email"
@@ -186,7 +184,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
             {form.data.type === 'csr' && (
               <>
                 <FormField>
-                  <Label htmlFor="common_name">{translateText("Common Name (Domain)")}</Label>
+                  <Label htmlFor="common_name">Common Name (Domain)</Label>
                   <Input
                     type="text"
                     id="common_name"
@@ -198,7 +196,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.common_name} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="organization">{translateText("Organization")}</Label>
+                  <Label htmlFor="organization">Organization</Label>
                   <Input
                     type="text"
                     id="organization"
@@ -210,7 +208,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.organization} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="organizational_unit">{translateText("Organizational Unit (optional)")}</Label>
+                  <Label htmlFor="organizational_unit">Organizational Unit (optional)</Label>
                   <Input
                     type="text"
                     id="organizational_unit"
@@ -222,7 +220,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.organizational_unit} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="city">{translateText("City / Locality")}</Label>
+                  <Label htmlFor="city">City / Locality</Label>
                   <Input
                     type="text"
                     id="city"
@@ -234,7 +232,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.city} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="state">{translateText("State / Province")}</Label>
+                  <Label htmlFor="state">State / Province</Label>
                   <Input
                     type="text"
                     id="state"
@@ -246,7 +244,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.state} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="country">{translateText("Country (2-letter code)")}</Label>
+                  <Label htmlFor="country">Country (2-letter code)</Label>
                   <Input
                     type="text"
                     id="country"
@@ -260,7 +258,7 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.country} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="email">{translateText("Email (optional)")}</Label>
+                  <Label htmlFor="email">Email (optional)</Label>
                   <Input
                     type="email"
                     id="email"
@@ -272,10 +270,10 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.email} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="key_size">{translateText("Key Size")}</Label>
+                  <Label htmlFor="key_size">Key Size</Label>
                   <Select onValueChange={(value) => form.setData('key_size', value)} value={form.data.key_size}>
                     <SelectTrigger id="key_size">
-                      <SelectValue placeholder={translateText("Select key size")} />
+                      <SelectValue placeholder="Select key size" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="2048">2048 bits</SelectItem>
@@ -285,12 +283,12 @@ export default function CreateServerSsl({ server, domains, children }: { server:
                   <InputError message={form.errors.key_size} />
                 </FormField>
                 <FormField>
-                  <Label htmlFor="passphrase">{translateText("Passphrase (optional)")}</Label>
+                  <Label htmlFor="passphrase">Passphrase (optional)</Label>
                   <Input
                     type="password"
                     id="passphrase"
                     name="passphrase"
-                    placeholder={translateText("Leave empty for no passphrase")}
+                    placeholder="Leave empty for no passphrase"
                     value={form.data.passphrase}
                     onChange={(e) => form.setData('passphrase', e.target.value)}
                   />
@@ -303,11 +301,11 @@ export default function CreateServerSsl({ server, domains, children }: { server:
         <SheetFooter>
           <div className="flex items-center gap-2">
             <Button type="submit" form="create-server-ssl-form" disabled={form.processing}>
-              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />} {translateText('Create')}
+              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />} Create
             </Button>
             <SheetClose asChild>
               <Button variant="outline" disabled={form.processing}>
-                {translateText('Cancel')}
+                Cancel
               </Button>
             </SheetClose>
           </div>

@@ -530,7 +530,7 @@ class Site extends AbstractModel
             || ! str_starts_with($path, $this->path.'/')
         ) {
             throw ValidationException::withMessages([
-                'path' => __('The path must be within the site directory.'),
+                'path' => 'The path must be within the site directory.',
             ]);
         }
 

@@ -35,7 +35,7 @@ class GetCiRunLog
             && $log['cursor'] >= $requestedCursor
             && $log['cursor'] <= 17825792;
         if (! $isValidLog) {
-            throw ValidationException::withMessages(['ci' => __('The runner returned invalid log data.')]);
+            throw ValidationException::withMessages(['ci' => 'The runner returned invalid log data.']);
         }
 
         return ['text' => $log['text'], 'cursor' => $log['cursor']];

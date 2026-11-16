@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useRef, useState } from 'react';
 import {
   Dialog,
@@ -46,7 +45,6 @@ export default function CreateDatabase({
   onDatabaseCreated?: () => void;
   children: ReactNode;
 }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [charsets, setCharsets] = useState<string[]>([]);
   const [collations, setCollations] = useState<string[]>([]);
@@ -133,13 +131,13 @@ export default function CreateDatabase({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{translateText("Create database")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Create new database")}</DialogDescription>
+          <DialogTitle>Create database</DialogTitle>
+          <DialogDescription className="sr-only">Create new database</DialogDescription>
         </DialogHeader>
         <Form className="p-4" id="create-database-form" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -147,7 +145,7 @@ export default function CreateDatabase({
               <Label htmlFor="charset">Charset</Label>
               <Select onValueChange={handleCharsetChange} value={form.data.charset}>
                 <SelectTrigger id="charset">
-                  <SelectValue placeholder={translateText("Select charset")} />
+                  <SelectValue placeholder="Select charset" />
                 </SelectTrigger>
                 <SelectContent>
                   {charsets.map((charset) => (
@@ -166,7 +164,7 @@ export default function CreateDatabase({
                 items={collations.map((collation) => ({ value: collation, label: collation }))}
                 value={form.data.collation}
                 onValueChange={(value) => form.setData('collation', value)}
-                placeholder={translateText("Select collation")}
+                placeholder="Select collation"
                 searchText="Search collations..."
                 noneFoundText="No collations found."
               />
@@ -175,13 +173,13 @@ export default function CreateDatabase({
             <FormField>
               <div className="flex items-center space-x-3">
                 <Checkbox id="user" name="user" checked={form.data.user} onClick={() => form.setData('user', !form.data.user)} />
-                <Label htmlFor="user">{translateText("Link user to database")}</Label>
+                <Label htmlFor="user">Link user to database</Label>
               </div>
               <InputError message={form.errors.user} />
             </FormField>
             {form.data.user && (
               <FormField>
-                <Label htmlFor="existing_user_id">{translateText("Database User")}</Label>
+                <Label htmlFor="existing_user_id">Database User</Label>
                 <DatabaseUserSelect
                   serverId={server}
                   value={form.data.existing_user_id}
@@ -196,12 +194,12 @@ export default function CreateDatabase({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Create')}
+            Create
           </Button>
         </DialogFooter>
       </DialogContent>

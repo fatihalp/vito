@@ -43,7 +43,7 @@ class GetPHPIni
 
         if (! isset($input['version']) || ! in_array($input['version'], $server->installedPHPVersions())) {
             throw ValidationException::withMessages(
-                ['version' => __('This version is not installed')]
+                ['version' => 'This version is not installed']
             );
         }
     }

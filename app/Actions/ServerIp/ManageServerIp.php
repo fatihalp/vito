@@ -64,7 +64,7 @@ class ManageServerIp
     {
         if ($address->status !== IpAddressStatus::CONFIGURED) {
             throw ValidationException::withMessages([
-                'ip' => __('Only a configured IP address can be made primary.'),
+                'ip' => 'Only a configured IP address can be made primary.',
             ]);
         }
 
@@ -99,13 +99,13 @@ class ManageServerIp
     {
         if (! $address->is_managed) {
             throw ValidationException::withMessages([
-                'ip' => __('Only manually added IP addresses can be removed.'),
+                'ip' => 'Only manually added IP addresses can be removed.',
             ]);
         }
 
         if ($address->is_primary) {
             throw ValidationException::withMessages([
-                'ip' => __('The primary IP address cannot be removed. Make another address primary first.'),
+                'ip' => 'The primary IP address cannot be removed. Make another address primary first.',
             ]);
         }
 
@@ -136,7 +136,7 @@ class ManageServerIp
                 function (string $attribute, mixed $value, Closure $fail) use ($input): void {
                     $ip = $input['ip'] ?? null;
                     if (is_string($ip) && ! str_contains($ip, ':') && (int) $value > 32) {
-                        $fail(__('The prefix length must not be greater than 32 for an IPv4 address.'));
+                        $fail('The prefix length must not be greater than 32 for an IPv4 address.');
                     }
                 },
             ],
@@ -167,19 +167,19 @@ class ManageServerIp
             }
 
             if (strlen($start) !== strlen($end)) {
-                $fail(__('The first and last address must be the same IP version.'));
+                $fail('The first and last address must be the same IP version.');
 
                 return;
             }
 
             if (strcmp($start, $end) > 0) {
-                $fail(__('The first address must not be greater than the last address.'));
+                $fail('The first address must not be greater than the last address.');
 
                 return;
             }
 
             if ($this->rangeCount($start, $end) > self::MAX_RANGE) {
-                $fail(__('The range is too large; at most :max addresses can be added at once.', ['max' => self::MAX_RANGE]));
+                $fail('The range is too large; at most '.self::MAX_RANGE.' addresses can be added at once.');
             }
         };
     }

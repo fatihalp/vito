@@ -13,7 +13,7 @@ class DeleteWorker
     {
         if ($worker->isSiteBootstrap()) {
             throw ValidationException::withMessages([
-                'name' => __('This worker is managed by its site and cannot be deleted independently.'),
+                'name' => 'This worker is managed by its site and cannot be deleted independently.',
             ]);
         }
 

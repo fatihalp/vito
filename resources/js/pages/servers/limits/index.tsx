@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useEffect, useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -37,7 +36,6 @@ type PageProps = {
 const NGINX_PRESETS = ['100M', '210M', '500M', '1G'];
 
 export default function ServerLimits() {
-  const translateText = useTranslate();
   const { server, limits } = usePage<PageProps>().props;
   const isOffline = server.status === 'disconnected';
 
@@ -103,11 +101,11 @@ export default function ServerLimits() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Limits - :value", { value: server.name })} />
+      <Head title={`Limits - ${server.name}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText("Limits")} description={translateText("Upload and request body limits for Nginx and PHP.")} />
+          <Heading title="Limits" description="Upload and request body limits for Nginx and PHP." />
         </HeaderContainer>
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
@@ -152,7 +150,7 @@ export default function ServerLimits() {
                     disabled={!limits.has_nginx || isOffline || nginxForm.processing}
                   >
                     {nginxForm.processing && <LoaderCircleIcon className="mr-1.5 size-4 animate-spin" />}
-                    {translateText('Save')}
+                    Save
                   </Button>
                 </div>
               </form>
@@ -187,7 +185,7 @@ export default function ServerLimits() {
             </CardHeader>
             <CardContent className="p-6 pt-2">
               {limits.php_versions.length === 0 ? (
-                <p className="text-sm text-muted-foreground py-4">{translateText("No PHP service installed.")}</p>
+                <p className="text-sm text-muted-foreground py-4">No PHP service installed.</p>
               ) : (
                 <form onSubmit={submitPhp} className="space-y-4">
                   <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -253,12 +251,12 @@ export default function ServerLimits() {
                       disabled={isOffline || phpForm.processing}
                       onClick={setRecommendedPhp}
                     >
-                      {translateText("Set 210M / 220M")}
+                      Set 210M / 220M
                     </Button>
 
                     <Button type="submit" size="sm" disabled={isOffline || phpForm.processing}>
                       {phpForm.processing && <LoaderCircleIcon className="mr-1.5 size-4 animate-spin" />}
-                      {translateText('Save')}
+                      Save
                     </Button>
                   </div>
                 </form>

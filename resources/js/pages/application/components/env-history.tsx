@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
@@ -31,7 +30,6 @@ export default function EnvHistory({
   hasUnsavedChanges: boolean;
   onRestored: () => void;
 }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
@@ -69,7 +67,7 @@ export default function EnvHistory({
 
   const restore = (version: EnvVersion) => {
     dialog.confirm.open({
-      title: translateText("Restore version #:value?", { value: version.id }),
+      title: `Restore version #${version.id}?`,
       description: hasUnsavedChanges
         ? 'The .env file on the server will be replaced with this version. Your unsaved changes in the editor will be discarded.'
         : 'The .env file on the server will be replaced with this version. The current content stays in the history.',
@@ -103,7 +101,7 @@ export default function EnvHistory({
         ) : versions.data.length === 0 ? (
           <div className="flex flex-col items-center gap-2 p-8 text-center text-sm text-muted-foreground">
             <HistoryIcon className="size-6" />
-            {translateText("No versions recorded yet. A version is saved every time the .env file is changed from Pure.")}
+            No versions recorded yet. A version is saved every time the .env file is changed from Pure.
           </div>
         ) : (
           <ul className="flex flex-col">
@@ -120,15 +118,15 @@ export default function EnvHistory({
                   <div className="flex items-center justify-between gap-2">
                     <span className="font-medium">
                       #{version.id}
-                      {index === 0 && <span className="ml-2 text-xs text-muted-foreground">{translateText("latest")}</span>}
+                      {index === 0 && <span className="ml-2 text-xs text-muted-foreground">latest</span>}
                     </span>
                     <Badge variant={version.source_color}>{version.source}</Badge>
                   </div>
                   <span className="text-xs text-muted-foreground">
-                    {version.user_name ?? translateText("System")} · <DateTime date={version.created_at} relative />
+                    {version.user_name ?? "System"} · <DateTime date={version.created_at} relative />
                   </span>
                   {version.restored_from_id && (
-                    <span className="text-xs text-muted-foreground">{translateText("Restored from #")}{version.restored_from_id}</span>
+                    <span className="text-xs text-muted-foreground">Restored from #{version.restored_from_id}</span>
                   )}
                 </button>
               </li>
@@ -141,11 +139,11 @@ export default function EnvHistory({
         {selected && (
           <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-muted/30 px-4 py-2.5">
             <span className="text-xs text-muted-foreground">
-              {translateText("Left: version #")}{selected.id} (<DateTime date={selected.created_at} />{translateText(") · Right: current file")}
+              Left: version #{selected.id} (<DateTime date={selected.created_at} />) · Right: current file
             </span>
             <Button type="button" size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={() => restore(selected)}>
               <RotateCcwIcon className="size-3.5" />
-              {translateText("Restore this version")}
+              Restore this version
             </Button>
           </div>
         )}

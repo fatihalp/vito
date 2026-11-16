@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ export default function ServerConfigDialog({
   memberId: number;
   name: string;
 }) {
-  const translateText = useTranslate();
   const [data, setData] = useState<{ config: string; status: string | null } | null>(null);
   const [error, setError] = useState('');
 
@@ -43,15 +41,15 @@ export default function ServerConfigDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{translateText("WireGuard on")} {name}</DialogTitle>
-          <DialogDescription>{translateText("The live connection status and the configuration Pure wrote. The private key never leaves the server.")}</DialogDescription>
+          <DialogTitle>WireGuard on {name}</DialogTitle>
+          <DialogDescription>The live connection status and the configuration Pure wrote. The private key never leaves the server.</DialogDescription>
         </DialogHeader>
 
         <div className="max-h-[65vh] space-y-6 overflow-y-auto p-4">
           {!data && !error && (
             <div className="text-muted-foreground flex items-center gap-2 py-6 text-sm">
               <LoaderCircleIcon className="size-4 animate-spin" />
-              {translateText("Loading…")}
+              Loading…
             </div>
           )}
 
@@ -67,15 +65,15 @@ export default function ServerConfigDialog({
           {data && (
             <>
               <section className="space-y-2">
-                <p className="text-sm font-medium">{translateText("Live status (wg show)")}</p>
+                <p className="text-sm font-medium">Live status (wg show)</p>
                 {data.status !== null ? (
-                  <pre className="bg-muted/50 max-h-64 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed">{data.status || translateText("The interface is not up.")}</pre>
+                  <pre className="bg-muted/50 max-h-64 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed">{data.status || "The interface is not up."}</pre>
                 ) : (
-                  <p className="text-muted-foreground text-sm">{translateText("Pure could not reach the server to read the live status.")}</p>
+                  <p className="text-muted-foreground text-sm">Pure could not reach the server to read the live status.</p>
                 )}
               </section>
               <section className="space-y-2">
-                <p className="text-sm font-medium">{translateText('Configuration')}</p>
+                <p className="text-sm font-medium">Configuration</p>
                 <pre className="bg-muted/50 max-h-64 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed">{data.config}</pre>
               </section>
             </>
@@ -84,7 +82,7 @@ export default function ServerConfigDialog({
 
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Close')}</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import React, { useId, useState } from 'react';
 import { EyeIcon, EyeOffIcon, LockIcon, TrashIcon, UnlockIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ interface EnvVariableRowProps {
 }
 
 export default function EnvVariableRow({ variable, onChange, onDelete, revealable = false, error, duplicate, action }: EnvVariableRowProps) {
-  const translateText = useTranslate();
   const [showValue, setShowValue] = useState(false);
   const hintId = useId();
   const isMultiLine = variable.value.includes('\n');
@@ -60,7 +58,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               data-1p-ignore="true"
               data-lpignore="true"
               data-bwignore="true"
-              placeholder={translateText('Enter new value to change...')}
+              placeholder={'Enter new value to change...'}
               className="h-9 w-full pr-10"
             />
             <button
@@ -70,7 +68,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
                 hasNewValue ? 'text-muted-foreground hover:text-foreground' : 'text-muted-foreground/50 pointer-events-none',
               )}
               onClick={() => hasNewValue && setShowValue(true)}
-              aria-label={translateText('Show value')}
+              aria-label={'Show value'}
               disabled={!hasNewValue}
             >
               <EyeIcon className="size-4" aria-hidden="true" />
@@ -81,12 +79,12 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
 
       return (
         <div className="relative min-h-9 flex-1">
-          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={translateText('Enter new value to change...')} className="w-full pr-10" disabled={isManaged} />
+          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={'Enter new value to change...'} className="w-full pr-10" disabled={isManaged} />
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center"
             onClick={() => setShowValue(false)}
-            aria-label={translateText('Hide value')}
+            aria-label={'Hide value'}
           >
             <EyeOffIcon className="size-4" aria-hidden="true" />
           </button>
@@ -108,21 +106,21 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
               data-1p-ignore="true"
               data-lpignore="true"
               data-bwignore="true"
-              placeholder={isMultiLine ? translateText("Reveal to edit this value") : translateText("Enter value...")}
-              title={isMultiLine ? translateText("This value spans several lines. Reveal it to edit.") : undefined}
+              placeholder={isMultiLine ? "Reveal to edit this value" : "Enter value..."}
+              title={isMultiLine ? "This value spans several lines. Reveal it to edit." : undefined}
               aria-describedby={isMultiLine ? hintId : undefined}
               className="h-9 w-full pr-10"
             />
             {isMultiLine && (
               <span id={hintId} className="sr-only">
-                {translateText("This value spans several lines. Reveal it to edit.")}
+                This value spans several lines. Reveal it to edit.
               </span>
             )}
             <button
               type="button"
               className="text-muted-foreground hover:text-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center"
               onClick={() => setShowValue(true)}
-              aria-label={translateText('Show value')}
+              aria-label={'Show value'}
             >
               <EyeIcon className="size-4" aria-hidden="true" />
             </button>
@@ -132,12 +130,12 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
 
       return (
         <div className="relative min-h-9 flex-1">
-          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={translateText('Enter value...')} className="w-full pr-10" disabled={isManaged} />
+          <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={'Enter value...'} className="w-full pr-10" disabled={isManaged} />
           <button
             type="button"
             className="text-muted-foreground hover:text-foreground absolute top-0 right-0 flex h-9 w-9 items-center justify-center"
             onClick={() => setShowValue(false)}
-            aria-label={translateText('Hide value')}
+            aria-label={'Hide value'}
           >
             <EyeOffIcon className="size-4" aria-hidden="true" />
           </button>
@@ -148,7 +146,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
     
     return (
       <div className="min-h-9 flex-1">
-        <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={translateText('Enter value...')} className="w-full" disabled={isManaged} />
+        <AutoGrowTextarea value={variable.value} onChange={handleValueChange} placeholder={'Enter value...'} className="w-full" disabled={isManaged} />
       </div>
     );
   };
@@ -171,7 +169,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
             {variable.isSecret ? <LockIcon className="size-4" /> : <UnlockIcon className="size-4" />}
           </Button>
         </TooltipTrigger>
-        <TooltipContent>{variable.isSecret ? translateText("Secret (click to make normal)") : translateText("Normal (click to make secret)")}</TooltipContent>
+        <TooltipContent>{variable.isSecret ? "Secret (click to make normal)" : "Normal (click to make secret)"}</TooltipContent>
       </Tooltip>
     );
   };
@@ -206,7 +204,7 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
           {isManaged ? (
             <div className="pointer-events-none absolute top-0 right-1.5 flex h-9 items-center">
               <Badge variant="info" className="text-[10px] px-1.5 py-0.5 leading-none whitespace-nowrap">
-                {translateText("Managed by")} {variable.managedBy}
+                Managed by {variable.managedBy}
               </Badge>
             </div>
           ) : isExisting && variable.isSecret && !revealable ? (
@@ -216,20 +214,20 @@ export default function EnvVariableRow({ variable, onChange, onDelete, revealabl
                   <LockIcon className="size-4" />
                 </div>
               </TooltipTrigger>
-              <TooltipContent>{translateText("This is a secret variable")}</TooltipContent>
+              <TooltipContent>This is a secret variable</TooltipContent>
             </Tooltip>
           ) : null}
         </div>
         {hasError && <p className="text-destructive mt-1 text-xs">{error}</p>}
         {duplicate && !hasError && (
           <p className={cn('mt-0.5 text-[11px] flex items-center gap-1.5', duplicate.isEffective ? 'text-neutral-600 dark:text-neutral-400 font-medium' : 'text-muted-foreground')}>
-            <span>{translateText("Duplicate #")}{duplicate.index}</span>
+            <span>Duplicate #{duplicate.index}</span>
             {duplicate.isEffective ? (
               <span className="rounded bg-neutral-500/15 text-neutral-700 dark:text-neutral-300 px-1 py-0.2 text-[10px] font-semibold">
-                {translateText("Active")}
+                Active
               </span>
             ) : (
-              <span className="text-[10px] opacity-75">{translateText("Overridden")}</span>
+              <span className="text-[10px] opacity-75">Overridden</span>
             )}
           </p>
         )}

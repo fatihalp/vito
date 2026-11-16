@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent, useState } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -22,7 +21,6 @@ export default function ServerIpForm({
   serverId: number;
   interfaces?: string[];
 }) {
-  const translateText = useTranslate();
   const [customMask, setCustomMask] = useState(false);
   const [addRange, setAddRange] = useState(false);
   const form = useForm<{
@@ -53,20 +51,20 @@ export default function ServerIpForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{translateText("Add IP address")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Add an IP address to this server")}</DialogDescription>
+          <DialogTitle>Add IP address</DialogTitle>
+          <DialogDescription className="sr-only">Add an IP address to this server</DialogDescription>
         </DialogHeader>
         <Form id="server-ip-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="ip">{addRange ? translateText("IP Address (First)") : translateText("IP Address")}</Label>
+              <Label htmlFor="ip">{addRange ? "IP Address (First)" : "IP Address"}</Label>
               <Input type="text" id="ip" placeholder="e.g. 203.0.113.10" value={form.data.ip} onChange={(e) => form.setData('ip', e.target.value)} />
               <InputError message={form.errors.ip} />
             </FormField>
 
             {addRange && (
               <FormField>
-                <Label htmlFor="ip_last">{translateText("IP Address (Last)")}</Label>
+                <Label htmlFor="ip_last">IP Address (Last)</Label>
                 <Input
                   type="text"
                   id="ip_last"
@@ -81,17 +79,17 @@ export default function ServerIpForm({
             <FormField>
               <div className="flex items-center gap-3">
                 <Checkbox id="add_range" checked={addRange} onCheckedChange={(checked) => setAddRange(checked === true)} />
-                <Label htmlFor="add_range">{translateText("Add range")}</Label>
+                <Label htmlFor="add_range">Add range</Label>
               </div>
-              <p className="text-muted-foreground text-xs">{translateText("Add every address between the first and last (inclusive) as its own row.")}</p>
+              <p className="text-muted-foreground text-xs">Add every address between the first and last (inclusive) as its own row.</p>
             </FormField>
 
             <FormField>
-              <Label htmlFor="interface">{translateText("Interface")}</Label>
+              <Label htmlFor="interface">Interface</Label>
               {interfaces.length > 0 ? (
                 <Select onValueChange={(value) => form.setData('interface', value)} value={form.data.interface}>
                   <SelectTrigger id="interface" className="w-full">
-                    <SelectValue placeholder={translateText("Select interface")} />
+                    <SelectValue placeholder="Select interface" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
@@ -118,16 +116,16 @@ export default function ServerIpForm({
             <FormField>
               <div className="flex items-center gap-3">
                 <Checkbox id="custom_mask" checked={customMask} onCheckedChange={(checked) => setCustomMask(checked === true)} />
-                <Label htmlFor="custom_mask">{translateText("Set a custom subnet mask")}</Label>
+                <Label htmlFor="custom_mask">Set a custom subnet mask</Label>
               </div>
               <p className="text-muted-foreground text-xs">
-                {translateText("Defaults to")} <code>/32</code> {translateText("for IPv4 and")} <code>/64</code> {translateText("for IPv6. Only change this if the address belongs to a specific subnet.")}
+                Defaults to <code>/32</code> for IPv4 and <code>/64</code> for IPv6. Only change this if the address belongs to a specific subnet.
               </p>
             </FormField>
 
             {customMask && (
               <FormField>
-                <Label htmlFor="prefix_length">{translateText("Subnet mask (prefix length)")}</Label>
+                <Label htmlFor="prefix_length">Subnet mask (prefix length)</Label>
                 <Input
                   type="text"
                   id="prefix_length"
@@ -142,11 +140,11 @@ export default function ServerIpForm({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Close')}</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
           <Button form="server-ip-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { FormField } from '@/components/ui/form';
@@ -63,7 +62,6 @@ export default function ProvisionServerFields({
   onFitChange?: (fit: PlanFit) => void;
   warningSuffix?: string;
 }) {
-  const translateText = useTranslate();
   const [providers, setProviders] = useState<ServerProvider[]>([]);
   const [regions, setRegions] = useState<Record<string, string>>({});
   const [plans, setPlans] = useState<Record<string, Plan>>({});
@@ -106,16 +104,16 @@ export default function ProvisionServerFields({
   return (
     <>
       <FormField>
-        <Label htmlFor="provision-name">{translateText("Server name")}</Label>
+        <Label htmlFor="provision-name">Server name</Label>
         <Input id="provision-name" value={data.name} onChange={(e) => setData({ name: e.target.value })} />
         <InputError message={errors.name} />
       </FormField>
 
       <FormField>
-        <Label>{translateText('Provider')}</Label>
+        <Label>Provider</Label>
         <Select value={data.server_provider} onValueChange={selectProvider}>
           <SelectTrigger>
-            <SelectValue placeholder={translateText("Select a server provider")} />
+            <SelectValue placeholder="Select a server provider" />
           </SelectTrigger>
           <SelectContent>
             {providers.map((provider) => (
@@ -129,10 +127,10 @@ export default function ProvisionServerFields({
       </FormField>
 
       <FormField>
-        <Label>{translateText('Region')}</Label>
+        <Label>Region</Label>
         <Select value={data.region} onValueChange={selectRegion} disabled={Object.keys(regions).length === 0}>
           <SelectTrigger>
-            <SelectValue placeholder={translateText('Select a region')} />
+            <SelectValue placeholder={'Select a region'} />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(regions).map(([key, label]) => (
@@ -149,7 +147,7 @@ export default function ProvisionServerFields({
         <Label>Plan</Label>
         <Select value={data.plan} onValueChange={(plan) => setData({ plan })} disabled={Object.keys(plans).length === 0}>
           <SelectTrigger>
-            <SelectValue placeholder={translateText("Select a plan")} />
+            <SelectValue placeholder="Select a plan" />
           </SelectTrigger>
           <SelectContent>
             {Object.entries(plans).map(([name, plan]) => {
@@ -166,7 +164,7 @@ export default function ProvisionServerFields({
         </Select>
         {selected && selected.warnings.length > 0 && (
           <p className="text-warning text-sm">
-            {translateText("This plan has")} {selected.warnings.join(' and ')}. {warningSuffix ?? `The new server may be slower than ${requirements?.source ?? 'the source'}.`}
+            This plan has {selected.warnings.join(' and ')}. {warningSuffix ?? `The new server may be slower than ${requirements?.source ?? 'the source'}.`}
           </p>
         )}
         <InputError message={errors.plan} />

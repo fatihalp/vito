@@ -1,5 +1,4 @@
-import { useTranslate } from '@/hooks/use-translate';
-import { type ComponentProps, Fragment, ReactNode, useEffect, useMemo } from 'react';
+import { Fragment, ReactNode, useEffect, useMemo } from 'react';
 import { useTable, type InertiaTableData, type InertiaTableProps, type CellRenderProps } from '@forjedio/inertia-table-react';
 import { Link, router } from '@inertiajs/react';
 import { SOCKET_EVENT, type SocketEventData } from '@/stores/socket-store';
@@ -43,11 +42,6 @@ function resolveHref(display: CellRenderProps['displays'][number], row: CellRend
   return `${url.pathname}${url.search}${url.hash}`;
 }
 
-function TranslatedBadge({ children, ...props }: ComponentProps<typeof Badge> & { children: string }) {
-  const translateText = useTranslate();
-  return <Badge {...props}>{translateText(children)}</Badge>;
-}
-
 function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderProps & { defaultRender: () => ReactNode }): ReactNode {
   if (displays.length === 1 && displays[0].type === 'badge') {
     if (value == null || value === '') {
@@ -55,7 +49,7 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
     }
     const display = displays[0];
     const color = display.color_field ? (row[display.color_field] as string) : display.variant;
-    return <TranslatedBadge variant={(color ?? 'default') as 'default'}>{String(value)}</TranslatedBadge>;
+    return <Badge variant={(color ?? 'default') as 'default'}>{String(value)}</Badge>;
   }
 
   if (displays.some((d) => d.type === 'link')) {
@@ -74,7 +68,6 @@ function vitoCellRenderer({ row, value, displays, defaultRender }: CellRenderPro
 }
 
 export function VitoTable({ tableData, children, modal, isFetching, showPagination = true, toolbar, groupBy, reloadOnly, fitContent = false, columnWidths, toolbarClassName, ...props }: VitoTableProps) {
-  const translateText = useTranslate();
   const orderedTableData = useMemo(() => {
     const rawCols = tableData?.columns ?? [];
     let cols = orderTableColumns(rawCols, (column) => column.name);
@@ -167,8 +160,8 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
           {orderedTableData.searchable && (
             <>
               <Input
-                placeholder={translateText('Search...')}
-                aria-label={translateText("Search table")}
+                placeholder={'Search...'}
+                aria-label="Search table"
                 className={cn('max-w-sm', toolbar && 'min-w-48 flex-1')}
                 value={searchTerm}
                 onChange={(e) => onSearch(e.target.value)}
@@ -202,7 +195,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                     >
                       {colDef.sortable ? (
                         <button type="button" className="flex cursor-pointer items-center gap-2" onClick={() => onSort(colDef.sort_key)}>
-                          {typeof colDef.header === 'string' ? translateText(colDef.header) : colDef.header}
+                          {typeof colDef.header === 'string' ? colDef.header : colDef.header}
                           {sortState.active ? (
                             sortState.direction === 'asc' ? (
                               <ChevronUpIcon className="text-muted-foreground inline-block h-4 w-4" />
@@ -214,7 +207,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                           )}
                         </button>
                       ) : (
-                        typeof colDef.header === 'string' ? translateText(colDef.header) : colDef.header
+                        typeof colDef.header === 'string' ? colDef.header : colDef.header
                       )}
                     </TableHead>
                   );
@@ -327,7 +320,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
             ) : (
               <TableRow>
                 <TableCell colSpan={columns.length} className="h-24 text-center">
-                  {translateText('No results.')}
+                  No results.
                 </TableCell>
               </TableRow>
             )}

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Action } from '@/pages/services/components/action';
@@ -12,7 +11,6 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Link } from '@inertiajs/react';
 
 export default function ServiceActions({ service }: { service: Service }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   return (
     <div className="flex items-center gap-2">
@@ -44,7 +42,7 @@ export default function ServiceActions({ service }: { service: Service }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/servers/${service.server_id}/limits`}>
-                  {translateText("Configure limits")}
+                  Configure limits
                 </Link>
               </DropdownMenuItem>
             </>
@@ -62,24 +60,24 @@ export default function ServiceActions({ service }: { service: Service }) {
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link href={`/servers/${service.server_id}/limits`}>
-                  {translateText("Configure limits")}
+                  Configure limits
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => dialog.phpExtensions.open({ service })}>
-                {translateText("Extensions")}
+                Extensions
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => dialog.phpIni.open({ service, type: 'fpm' })}>
-                {translateText("Edit FPM ini")}
+                Edit FPM ini
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => dialog.phpIni.open({ service, type: 'cli' })}>
-                {translateText("Edit CLI ini")}
+                Edit CLI ini
               </DropdownMenuItem>
               {!service.is_default && (
                 <DropdownMenuItem
                   onSelect={() =>
                     dialog.confirm.open({
                       title: 'Make default CLI',
-                      description: translateText("Are you sure you want to make PHP :value the default CLI?", { value: service.version }),
+                      description: `Are you sure you want to make PHP ${service.version} the default CLI?`,
                       confirmLabel: 'Save',
                       method: 'post',
                       url: `/servers/${service.server_id}/php/${service.id}/default-cli`,
@@ -87,7 +85,7 @@ export default function ServiceActions({ service }: { service: Service }) {
                     })
                   }
                 >
-                  {translateText("Make default CLI")}
+                  Make default CLI
                 </DropdownMenuItem>
               )}
             </>

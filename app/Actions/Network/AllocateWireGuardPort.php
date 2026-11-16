@@ -27,7 +27,7 @@ class AllocateWireGuardPort
 
             if ($port > 65535) {
                 throw ValidationException::withMessages([
-                    'port' => __('No free WireGuard port is available for the selected servers.'),
+                    'port' => 'No free WireGuard port is available for the selected servers.',
                 ]);
             }
         }

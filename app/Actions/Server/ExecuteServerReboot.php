@@ -55,7 +55,7 @@ class ExecuteServerReboot
 
         if (preg_match('/^[a-f0-9-]{36}$/', $bootId) !== 1) {
             throw ValidationException::withMessages([
-                'server' => __('Could not verify the server before restarting.'),
+                'server' => 'Could not verify the server before restarting.',
             ]);
         }
 

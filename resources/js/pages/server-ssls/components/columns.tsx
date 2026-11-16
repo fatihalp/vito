@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
@@ -14,7 +13,6 @@ import { Link } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 
 function Delete({ ssl }: { ssl: SSL }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -31,7 +29,7 @@ function Delete({ ssl }: { ssl: SSL }) {
         })
       }
     >
-      {translateText('Delete')}
+      Delete
     </DropdownMenuItem>
   );
 }

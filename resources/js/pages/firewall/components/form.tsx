@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent, useState } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -27,7 +26,6 @@ export default function RuleForm({
   serverId: number;
   firewallRule?: FirewallRule;
 }) {
-  const translateText = useTranslate();
   const form = useForm<{
     name: string;
     type: string;
@@ -95,27 +93,27 @@ export default function RuleForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{firewallRule ? translateText("Edit") : translateText("Create")} {translateText('firewall rule')}</DialogTitle>
-          <DialogDescription className="sr-only">{firewallRule ? translateText("Edit") : translateText("Create new")} {translateText('firewall rule')}</DialogDescription>
+          <DialogTitle>{firewallRule ? "Edit" : "Create"} firewall rule</DialogTitle>
+          <DialogDescription className="sr-only">{firewallRule ? "Edit" : "Create new"} firewall rule</DialogDescription>
         </DialogHeader>
         <Form id="firewall-rule-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="type">{translateText('Type')}</Label>
+              <Label htmlFor="type">Type</Label>
               <Select onValueChange={(value) => form.setData('type', value)} value={form.data.type}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText('Select type')} />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="allow">{translateText("Allow")}</SelectItem>
-                    <SelectItem value="deny">{translateText("Deny")}</SelectItem>
+                    <SelectItem value="allow">Allow</SelectItem>
+                    <SelectItem value="deny">Deny</SelectItem>
                   </SelectGroup>
                 </SelectContent>
               </Select>
@@ -123,10 +121,10 @@ export default function RuleForm({
             </FormField>
 
             <FormField>
-              <Label htmlFor="protocol">{translateText("Protocol")}</Label>
+              <Label htmlFor="protocol">Protocol</Label>
               <Select onValueChange={(value) => form.setData('protocol', value)} value={form.data.protocol}>
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("Select protocol")} />
+                  <SelectValue placeholder="Select protocol" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -148,7 +146,7 @@ export default function RuleForm({
                 onChange={(e) => form.setData('port', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                {translateText("Enter a single port (e.g.")} <code>8080</code>{translateText(") or a range (e.g.")} <code>3000:3010</code>{translateText("). Ranges are inclusive.")}
+                Enter a single port (e.g. <code>8080</code>) or a range (e.g. <code>3000:3010</code>). Ranges are inclusive.
               </p>
               <InputError message={form.errors.port} />
             </FormField>
@@ -156,7 +154,7 @@ export default function RuleForm({
             <FormField>
               <div className="flex items-center space-x-3">
                 <Checkbox id="source_any" checked={form.data.source_any} onClick={() => form.setData('source_any', !form.data.source_any)} />
-                <Label htmlFor="source_any">{translateText("Any source")}</Label>
+                <Label htmlFor="source_any">Any source</Label>
               </div>
             </FormField>
 
@@ -186,7 +184,7 @@ export default function RuleForm({
             {!form.data.source_any && firewallRule && (
               <>
                 <FormField>
-                  <Label htmlFor="source">{translateText("Source")}</Label>
+                  <Label htmlFor="source">Source</Label>
                   <Input type="text" id="source" value={form.data.source} onChange={(e) => changeSource(e.target.value)} />
                   <InputError message={form.errors.source} />
                 </FormField>
@@ -198,7 +196,7 @@ export default function RuleForm({
                     <InfoIcon />
                     <AlertDescription>
                       <p>
-                        {translateText("The mask sets how many IP addresses this rule covers. Use")} <code>{form.data.source.includes(':') ? '128' : '32'}</code> {translateText("for just this one IP,")} <code>{form.data.source.includes(':') ? '64' : '24'}</code> {translateText("for its whole local network, and smaller numbers to cover even more. Lower number = wider range.")}
+                        The mask sets how many IP addresses this rule covers. Use <code>{form.data.source.includes(':') ? '128' : '32'}</code> for just this one IP, <code>{form.data.source.includes(':') ? '64' : '24'}</code> for its whole local network, and smaller numbers to cover even more. Lower number = wider range.
                       </p>
                     </AlertDescription>
                   </Alert>
@@ -210,11 +208,11 @@ export default function RuleForm({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Close')}</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
           <Button form="firewall-rule-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

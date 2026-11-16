@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode, useState } from 'react';
 import { ChevronDownIcon, InfoIcon, TriangleAlertIcon } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -14,14 +13,13 @@ export interface BannerItem {
 }
 
 export function BannerRow({ item }: { item: BannerItem }) {
-  const translateText = useTranslate();
   const Icon = item.severity === 'info' ? InfoIcon : TriangleAlertIcon;
   return (
     <div className="flex flex-wrap items-start gap-3 px-4 py-3">
       <Icon className={`h-4 w-4 shrink-0 ${item.severity === 'info' ? 'text-sky-600 dark:text-sky-400' : 'text-warning'}`} />
       <div className="min-w-0 flex-1 basis-64 text-sm leading-relaxed">
-        <p className="font-medium">{translateText(item.title)}</p>
-        <div className="text-muted-foreground">{typeof item.description === 'string' ? translateText(item.description) : item.description}</div>
+        <p className="font-medium">{item.title}</p>
+        <div className="text-muted-foreground">{typeof item.description === 'string' ? item.description : item.description}</div>
       </div>
       {item.action && <div className="shrink-0">{item.action}</div>}
     </div>
@@ -29,7 +27,6 @@ export function BannerRow({ item }: { item: BannerItem }) {
 }
 
 export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; summaryLabel?: (count: number) => string }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   if (items.length === 0) return null;
@@ -45,7 +42,7 @@ export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; su
     );
   }
 
-  const label = warningCount === 0 ? translateText(items.length === 1 ? ':count site note' : ':count site notes', { count: items.length }) : summaryLabel ? summaryLabel(warningCount) : translateText(':count warnings require your attention', { count: warningCount });
+  const label = warningCount === 0 ? items.length === 1 ? `${items.length} site note` : `${items.length} site notes` : summaryLabel ? summaryLabel(warningCount) : `${warningCount} warnings require your attention`;
 
   return (
     <Collapsible open={open} onOpenChange={setOpen}>
@@ -71,12 +68,11 @@ export function WarningsBlock({ items, summaryLabel }: { items: BannerItem[]; su
 }
 
 export function WarningsPopover({ items }: { items: BannerItem[] }) {
-  const translateText = useTranslate();
   if (items.length === 0) return null;
 
   const warningCount = items.filter((item) => item.severity !== 'info').length;
   const Icon = warningCount > 0 ? TriangleAlertIcon : InfoIcon;
-  const label = warningCount > 0 ? translateText(warningCount === 1 ? ':count site warning' : ':count site warnings', { count: warningCount }) : translateText(items.length === 1 ? ':count site note' : ':count site notes', { count: items.length });
+  const label = warningCount > 0 ? warningCount === 1 ? `${warningCount} site warning` : `${warningCount} site warnings` : items.length === 1 ? `${items.length} site note` : `${items.length} site notes`;
 
   return (
     <Popover>

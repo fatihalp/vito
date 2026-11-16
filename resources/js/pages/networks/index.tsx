@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -12,7 +11,6 @@ import { useDialog } from '@/hooks/use-dialog';
 import { NetworkServerOption } from '@/types/network';
 
 export default function Networks() {
-  const translateText = useTranslate();
   const page = usePage<{
     networks: InertiaTableData;
     servers: NetworkServerOption[];
@@ -21,11 +19,11 @@ export default function Networks() {
 
   return (
     <SettingsLayout>
-      <Head title={translateText('Networks')} />
+      <Head title={'Networks'} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Networks')} />
+          <Heading title={'Networks'} />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
@@ -41,11 +39,11 @@ export default function Networks() {
               }
             >
               <RefreshCwIcon />
-              <span className="hidden lg:block">{translateText('Sync')}</span>
+              <span className="hidden lg:block">Sync</span>
             </Button>
             <Button onClick={() => dialog.networkCreate.open({ servers: page.props.servers })}>
               <PlusIcon />
-              <span className="hidden lg:block">{translateText('Create')}</span>
+              <span className="hidden lg:block">Create</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -55,9 +53,9 @@ export default function Networks() {
           actions={(row: Row) => (
             <div className="flex items-center gap-2">
               <Button variant="outline" size="sm" className="h-7 px-2 text-xs gap-1" asChild>
-                <Link href={`/networks/${row.id}`} aria-label={translateText("View network")} prefetch>
+                <Link href={`/networks/${row.id}`} aria-label="View network" prefetch>
                   <EyeIcon className="size-3.5" />
-                  <span>{translateText('Manage')}</span>
+                  <span>Manage</span>
                 </Link>
               </Button>
             </div>

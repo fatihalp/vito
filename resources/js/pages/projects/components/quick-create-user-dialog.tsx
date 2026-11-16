@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -43,7 +42,6 @@ export default function QuickCreateUserDialog({
   defaultEmail?: string;
   onUserCreated?: (user: { id: number; name: string; email: string }) => void;
 }) {
-  const translateText = useTranslate();
   const queryClient = useQueryClient();
   const [name, setName] = useState('');
   const [email, setEmail] = useState(defaultEmail);
@@ -122,9 +120,9 @@ export default function QuickCreateUserDialog({
               <UserPlusIcon className="size-4" />
             </div>
             <div>
-              <DialogTitle>{translateText("Quick create user")}</DialogTitle>
+              <DialogTitle>Quick create user</DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground mt-0.5">
-                {translateText("Create a new Pure account and immediately add them to this project.")}
+                Create a new Pure account and immediately add them to this project.
               </DialogDescription>
             </div>
           </div>
@@ -134,7 +132,7 @@ export default function QuickCreateUserDialog({
           <FormFields className="space-y-3">
             <FormField>
               <Label htmlFor="quick-user-name" className="text-xs font-medium">
-                {translateText("Full Name")}
+                Full Name
               </Label>
               <Input
                 id="quick-user-name"
@@ -149,7 +147,7 @@ export default function QuickCreateUserDialog({
 
             <FormField>
               <Label htmlFor="quick-user-email" className="text-xs font-medium">
-                {translateText("Email Address")}
+                Email Address
               </Label>
               <Input
                 id="quick-user-email"
@@ -166,7 +164,7 @@ export default function QuickCreateUserDialog({
             <FormField>
               <div className="flex items-center justify-between">
                 <Label htmlFor="quick-user-password" className="text-xs font-medium">
-                  {translateText('Password')}
+                  Password
                 </Label>
                 <button
                   type="button"
@@ -174,14 +172,14 @@ export default function QuickCreateUserDialog({
                   className="text-[11px] text-primary hover:underline flex items-center gap-1 cursor-pointer"
                 >
                   <RefreshCwIcon className="size-3" />
-                  <span>{translateText("Generate")}</span>
+                  <span>Generate</span>
                 </button>
               </div>
               <PasswordInput
                 id="quick-user-password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder={translateText("Minimum 8 characters")}
+                placeholder="Minimum 8 characters"
                 className="h-9 text-xs"
                 required
               />
@@ -190,7 +188,7 @@ export default function QuickCreateUserDialog({
 
             <FormField>
               <Label htmlFor="quick-user-role" className="text-xs font-medium">
-                {translateText("Instance Role")}
+                Instance Role
               </Label>
               <Select value={role} onValueChange={(val: 'user' | 'admin') => setRole(val)}>
                 <SelectTrigger id="quick-user-role" className="h-9 text-xs">
@@ -199,10 +197,10 @@ export default function QuickCreateUserDialog({
                 <SelectContent>
                   <SelectGroup>
                     <SelectItem value="user" className="text-xs">
-                      {translateText("Standard User")}
+                      Standard User
                     </SelectItem>
                     <SelectItem value="admin" className="text-xs">
-                      {translateText("Instance Admin")}
+                      Instance Admin
                     </SelectItem>
                   </SelectGroup>
                 </SelectContent>
@@ -215,7 +213,7 @@ export default function QuickCreateUserDialog({
         <DialogFooter className="p-4 pt-2 border-t bg-muted/10 flex items-center justify-between">
           <DialogClose asChild>
             <Button type="button" variant="outline" size="sm" className="text-xs">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button
@@ -226,7 +224,7 @@ export default function QuickCreateUserDialog({
             className="text-xs"
           >
             {loading && <LoaderCircleIcon className="mr-1.5 size-3.5 animate-spin" />}
-            {translateText("Create & Select")}
+            {"Create & Select"}
           </Button>
         </DialogFooter>
       </DialogContent>

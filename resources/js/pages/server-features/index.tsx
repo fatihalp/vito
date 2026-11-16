@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { Server, ServerFeature } from '@/types/server';
 import Container from '@/components/container';
@@ -9,7 +8,6 @@ import FeaturesCard from '@/components/features-card';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function ServerFeatures() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     features: {
@@ -20,15 +18,15 @@ export default function ServerFeatures() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Features - :value", { value: page.props.server.name })} />
+      <Head title={`Features - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Features')} description={translateText('Manage the built-in features available for your server')} />
+          <Heading title={'Features'} description={'Manage the built-in features available for your server'} />
         </HeaderContainer>
 
         <FeaturesCard
-          title={translateText("Server features")}
+          title="Server features"
           features={page.props.features}
           onActionSelect={(featureId, actionId, action) => 
             dialog.serverFeatureAction.open({ server: page.props.server, featureId, actionId, action })

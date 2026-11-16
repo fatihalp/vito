@@ -33,13 +33,13 @@ class RestoreBackup
     {
         if ($backupFile->backup->type !== BackupType::DATABASE) {
             throw ValidationException::withMessages([
-                'backup' => __('Only database dump backups can be restored here.'),
+                'backup' => 'Only database dump backups can be restored here.',
             ]);
         }
 
         if (! $backupFile->isAvailable() || $backupFile->status === BackupFileStatus::RESTORING) {
             throw ValidationException::withMessages([
-                'backup' => __('This backup file cannot be restored in its current state.'),
+                'backup' => 'This backup file cannot be restored in its current state.',
             ]);
         }
 

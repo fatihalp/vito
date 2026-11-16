@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
@@ -8,14 +7,12 @@ import { Redirect } from '@/types/redirect';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Edit({ redirect }: { redirect: Redirect }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
-  return <DropdownMenuItem onSelect={() => dialog.redirectEdit.open({ redirect })}>{translateText('Edit')}</DropdownMenuItem>;
+  return <DropdownMenuItem onSelect={() => dialog.redirectEdit.open({ redirect })}>Edit</DropdownMenuItem>;
 }
 
 function Delete({ redirect }: { redirect: Redirect }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -32,7 +29,7 @@ function Delete({ redirect }: { redirect: Redirect }) {
         })
       }
     >
-      {translateText('Delete')}
+      Delete
     </DropdownMenuItem>
   );
 }

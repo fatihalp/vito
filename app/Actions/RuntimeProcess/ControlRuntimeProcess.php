@@ -17,7 +17,7 @@ class ControlRuntimeProcess
 
         if ($process->status === RuntimeProcessStatus::MASKED) {
             throw ValidationException::withMessages([
-                'runtime' => __('This process is masked. Its isolation must be reviewed before starting it.'),
+                'runtime' => 'This process is masked. Its isolation must be reviewed before starting it.',
             ]);
         }
 

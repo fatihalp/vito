@@ -26,7 +26,7 @@ class PostgresReplication
         ));
 
         if (! isset($values['DATA_DIRECTORY'], $values['PORT'], $values['VERSION_NUM']) || $values['DATA_DIRECTORY'] === '') {
-            throw new SSHCommandError(__('Could not read the PostgreSQL settings of :server.', ['server' => $server->name]));
+            throw new SSHCommandError('Could not read the PostgreSQL settings of '.$server->name.'.');
         }
 
         return [

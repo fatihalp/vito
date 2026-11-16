@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
 import { Domain } from '@/types/domain';
@@ -9,7 +8,6 @@ import { router } from '@inertiajs/react';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Remove({ domain }: { domain: Domain }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -17,8 +15,8 @@ function Remove({ domain }: { domain: Domain }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: translateText("Remove :value", { value: domain.domain }),
-          description: translateText("Are you sure you want to remove :value from Pure? This will only remove the domain from Pure, not from your DNS provider.", { value: domain.domain }),
+          title: `Remove ${domain.domain}`,
+          description: `Are you sure you want to remove ${domain.domain} from Pure? This will only remove the domain from Pure, not from your DNS provider.`,
           variant: 'destructive',
           confirmLabel: 'Remove',
           method: 'delete',
@@ -26,7 +24,7 @@ function Remove({ domain }: { domain: Domain }) {
         })
       }
     >
-      {translateText('Remove')}
+      Remove
     </DropdownMenuItem>
   );
 }

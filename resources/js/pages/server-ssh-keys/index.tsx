@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -31,7 +30,6 @@ type PageProps = {
 };
 
 export default function SshKeys() {
-  const translateText = useTranslate();
   const page = usePage<PageProps>();
   const server = page.props.server;
   const dialog = useDialog();
@@ -49,8 +47,8 @@ export default function SshKeys() {
 
   const deleteKey = (key: DeployedKeyRow) => {
     dialog.confirm.open({
-      title: translateText("Remove :value from :value2?", { value: key.name, value2: server.name }),
-      description: translateText("This key will be removed from authorized_keys for user \":value\" on :value2 and will no longer be able to authenticate.", { value: key.deployment_user || server.ssh_user, value2: server.name }),
+      title: `Remove ${key.name} from ${server.name}?`,
+      description: `This key will be removed from authorized_keys for user "${(key.deployment_user || server.ssh_user)}" on ${server.name} and will no longer be able to authenticate.`,
       variant: 'destructive',
       confirmLabel: 'Remove key',
       method: 'delete',
@@ -60,13 +58,13 @@ export default function SshKeys() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("SSH Keys - :value", { value: server.name })} />
+      <Head title={`SSH Keys - ${server.name}`} />
       <Container className="space-y-6">
         <HeaderContainer>
           <div>
-            <Heading title={translateText('SSH Keys')} />
+            <Heading title={'SSH Keys'} />
             <p className="text-muted-foreground text-xs">
-              {translateText("Manage authorized SSH keys for")} {server.name} ({server.ip}).
+              Manage authorized SSH keys for {server.name} ({server.ip}).
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -74,7 +72,7 @@ export default function SshKeys() {
             <DeployKey>
               <Button size="sm" className="gap-1.5">
                 <PlusIcon className="size-3.5" />
-                {translateText('Deploy SSH key')}
+                Deploy SSH key
               </Button>
             </DeployKey>
           </div>
@@ -82,9 +80,9 @@ export default function SshKeys() {
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-foreground">{translateText("Authorized SSH Keys")}</h3>
+            <h3 className="text-sm font-semibold text-foreground">Authorized SSH Keys</h3>
             <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-              {deployedKeys.length} {translateText("registered")}
+              {deployedKeys.length} registered
             </Badge>
           </div>
 
@@ -105,7 +103,7 @@ export default function SshKeys() {
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-semibold text-sm text-foreground truncate">{key.name}</span>
                             <Badge variant={key.deployment_status === 'added' ? 'outline' : 'destructive'}>
-                              {key.deployment_status === 'added' ? translateText("Confirmed") : key.deployment_status === 'failed' ? translateText("Could not confirm") : translateText("Pending verification")}
+                              {key.deployment_status === 'added' ? "Confirmed" : key.deployment_status === 'failed' ? "Could not confirm" : "Pending verification"}
                             </Badge>
                             <Badge variant="outline" className="font-mono text-xs gap-1 font-normal">
                               <UserIcon className="size-3" />
@@ -115,12 +113,12 @@ export default function SshKeys() {
                           <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
                             {key.owner && (
                               <span>
-                                {translateText("Owner:")} <span className="text-foreground font-medium">{key.owner}</span>
+                                Owner: <span className="text-foreground font-medium">{key.owner}</span>
                               </span>
                             )}
-                            {key.created_at && <span>{translateText("Added")} {key.created_at}</span>}
+                            {key.created_at && <span>Added {key.created_at}</span>}
                             {key.deployment_status && key.deployment_status !== 'added' && (
-                              <span>{translateText("Check the SSH user and connection, then retry the operation. Access may still be active.")}</span>
+                              <span>Check the SSH user and connection, then retry the operation. Access may still be active.</span>
                             )}
                           </div>
                         </div>
@@ -132,10 +130,10 @@ export default function SshKeys() {
                           size="sm"
                           className="h-8 text-xs gap-1.5 font-mono"
                           onClick={() => copyCommand(keyCmd)}
-                          title={translateText("Copy SSH command")}
+                          title="Copy SSH command"
                         >
                           <CopyIcon className="size-3.5" />
-                          {translateText("Copy ssh")}
+                          Copy ssh
                         </Button>
 
                         <Button
@@ -143,8 +141,8 @@ export default function SshKeys() {
                           size="icon"
                           className="size-8 text-muted-foreground hover:text-destructive"
                           onClick={() => deleteKey(key)}
-                          aria-label={translateText("Remove :value from server", { value: key.name })}
-                          title={translateText("Remove from server")}
+                          aria-label={`Remove ${key.name} from server`}
+                          title="Remove from server"
                         >
                           <TrashIcon className="size-3.5" />
                         </Button>
@@ -160,14 +158,14 @@ export default function SshKeys() {
                 <div className="bg-muted/60 text-muted-foreground flex size-12 items-center justify-center rounded-full mb-3">
                   <KeyRoundIcon className="size-6" />
                 </div>
-                <h4 className="text-sm font-semibold text-foreground mb-1">{translateText("No SSH keys deployed yet")}</h4>
+                <h4 className="text-sm font-semibold text-foreground mb-1">No SSH keys deployed yet</h4>
                 <p className="text-xs text-muted-foreground max-w-sm mb-4">
-                  {translateText("Deploy an SSH key to enable passwordless authentication and connect securely from your terminal.")}
+                  Deploy an SSH key to enable passwordless authentication and connect securely from your terminal.
                 </p>
                 <DeployKey>
                   <Button size="sm" className="gap-1.5">
                     <PlusIcon className="size-3.5" />
-                    {translateText('Deploy SSH key')}
+                    Deploy SSH key
                   </Button>
                 </DeployKey>
               </CardContent>
@@ -184,11 +182,11 @@ export default function SshKeys() {
               >
                 {page.props.sshKeys.links.prev ? (
                   <Link href={page.props.sshKeys.links.prev}>
-                    <ChevronLeftIcon className="mr-1 size-3.5" /> {translateText('Previous')}
+                    <ChevronLeftIcon className="mr-1 size-3.5" /> Previous
                   </Link>
                 ) : (
                   <span>
-                    <ChevronLeftIcon className="mr-1 size-3.5" /> {translateText('Previous')}
+                    <ChevronLeftIcon className="mr-1 size-3.5" /> Previous
                   </span>
                 )}
               </Button>
@@ -200,11 +198,11 @@ export default function SshKeys() {
               >
                 {page.props.sshKeys.links.next ? (
                   <Link href={page.props.sshKeys.links.next}>
-                    {translateText('Next')} <ChevronRightIcon className="ml-1 size-3.5" />
+                    Next <ChevronRightIcon className="ml-1 size-3.5" />
                   </Link>
                 ) : (
                   <span>
-                    {translateText('Next')} <ChevronRightIcon className="ml-1 size-3.5" />
+                    Next <ChevronRightIcon className="ml-1 size-3.5" />
                   </span>
                 )}
               </Button>

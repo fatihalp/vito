@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import ServerOfflineBanner from '@/components/server-offline-banner';
 import { withQuery } from '@/lib/url';
 import { Button } from '@/components/ui/button';
@@ -7,7 +6,6 @@ import { BannerItem, WarningsBlock } from '@/components/banners';
 import { Link } from '@inertiajs/react';
 
 export default function ServerBanners({ server }: { server: Server }) {
-  const translateText = useTranslate();
   const warnings: ServerWarning[] = server.warnings ?? [];
   const items: BannerItem[] = [];
 
@@ -24,7 +22,7 @@ export default function ServerBanners({ server }: { server: Server }) {
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
           <Link href={`/servers/${server.id}/restart`}>
-            {translateText("Review restart")}
+            Review restart
           </Link>
         </Button>
       ),
@@ -35,11 +33,11 @@ export default function ServerBanners({ server }: { server: Server }) {
     items.push({
       key: 'server-updating',
       title: 'Package update in progress',
-      description: <>{translateText("Pure is applying package updates to this server. You can monitor the progress and view live console logs.")}</>,
+      description: <>Pure is applying package updates to this server. You can monitor the progress and view live console logs.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
           <Link href={`/servers/${server.id}/update`}>
-            {translateText("View progress")}
+            View progress
           </Link>
         </Button>
       ),
@@ -50,12 +48,12 @@ export default function ServerBanners({ server }: { server: Server }) {
     const updatesCount = updatesWarning.count;
     items.push({
       key: 'package-updates',
-      title: translateText(updatesCount === 1 ? ':count package update available' : ':count package updates available', { count: updatesCount }),
-      description: <>{translateText("Install pending OS package updates to keep this server patched.")}</>,
+      title: updatesCount === 1 ? `${updatesCount} package update available` : `${updatesCount} package updates available`,
+      description: <>Install pending OS package updates to keep this server patched.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
           <Link href={`/servers/${server.id}/update`}>
-            {translateText("Review updates")}
+            Review updates
           </Link>
         </Button>
       ),
@@ -67,11 +65,11 @@ export default function ServerBanners({ server }: { server: Server }) {
     items.push({
       key: 'kernel-update',
       title: `Kernel update available`,
-      description: <>{translateText("Install the pending kernel")} {kernelCount === 1 ? translateText("package") : translateText("packages")} {translateText("and restart to apply the new kernel.")}</>,
+      description: <>Install the pending kernel {kernelCount === 1 ? "package" : "packages"} and restart to apply the new kernel.</>,
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
           <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel' })}>
-            {translateText("Review kernel update")}
+            Review kernel update
           </Link>
         </Button>
       ),
@@ -81,11 +79,11 @@ export default function ServerBanners({ server }: { server: Server }) {
   if (backupsWarning) {
     items.push({
       key: 'backups-need-attention',
-      title: translateText(backupsWarning.count === 1 ? ':count backup needs attention' : ':count backups need attention', { count: backupsWarning.count }),
+      title: backupsWarning.count === 1 ? `${backupsWarning.count} backup needs attention` : `${backupsWarning.count} backups need attention`,
       description: 'A backup failed, stopped running on schedule, or pgBackRest reported a WAL or repository problem.',
       action: (
         <Button variant="outline" size="sm" asChild className="cursor-pointer">
-          <Link href={`/servers/${server.id}/backups`}>{translateText("View backups")}</Link>
+          <Link href={`/servers/${server.id}/backups`}>View backups</Link>
         </Button>
       ),
     });
@@ -97,7 +95,7 @@ export default function ServerBanners({ server }: { server: Server }) {
   return (
     <div className="flex flex-col gap-3">
       {server.status === 'disconnected' && <ServerOfflineBanner server={server} />}
-      <WarningsBlock items={items} summaryLabel={(count) => translateText(':count server warnings require your attention', { count })} />
+      <WarningsBlock items={items} summaryLabel={(count) => `${count} server warnings require your attention`} />
     </div>
   );
 }

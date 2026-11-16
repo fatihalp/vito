@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { ConfigPath, Service } from '@/types/service';
 import { FormEvent } from 'react';
@@ -23,7 +22,6 @@ export default function ServiceConfigFileDialog({
   service: Service;
   configPath: ConfigPath;
 }) {
-  const translateText = useTranslate();
   const form = useForm<{
     content: string;
     config_name: string;
@@ -59,9 +57,9 @@ export default function ServiceConfigFileDialog({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-5xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>{translateText('Edit')} {configPath.name}</SheetTitle>
+          <SheetTitle>Edit {configPath.name}</SheetTitle>
           <SheetDescription className="sr-only">
-            {translateText("You can edit the")} {configPath.name} {translateText("file for this service. Make sure to save your changes.")}
+            You can edit the {configPath.name} file for this service. Make sure to save your changes.
           </SheetDescription>
         </SheetHeader>
         <Form id="update-config-form" className="h-full" onSubmit={submit}>
@@ -83,10 +81,10 @@ export default function ServiceConfigFileDialog({
           <div className="flex items-center gap-2">
             <Button form="update-config-form" type="submit" disabled={form.processing || query.isLoading} className="ml-2">
               {(form.processing || query.isLoading) && <LoaderCircleIcon className="animate-spin" />}
-              {translateText('Save')}
+              Save
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">{translateText('Cancel')}</Button>
+              <Button variant="outline">Cancel</Button>
             </SheetClose>
           </div>
         </SheetFooter>

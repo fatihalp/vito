@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useEffect, useRef, useState } from 'react';
 import { Head, Link } from '@inertiajs/react';
 import axios from 'axios';
@@ -30,7 +29,6 @@ type SearchStatus =
 const POLL_INTERVAL_MS = 1500;
 
 export default function EnvSearch() {
-  const translateText = useTranslate();
   const [key, setKey] = useState('');
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<EnvSearchResult[] | null>(null);
@@ -91,13 +89,13 @@ export default function EnvSearch() {
 
   return (
     <SettingsLayout>
-      <Head title={translateText("Environment key search")} />
+      <Head title="Environment key search" />
 
       <Container>
         <HeaderContainer>
           <Heading
-            title={translateText("Environment key search")}
-            description={translateText("Find a key (e.g. APP_URL) in site .env files and view its values")}
+            title="Environment key search"
+            description="Find a key (e.g. APP_URL) in site .env files and view its values"
           />
         </HeaderContainer>
 
@@ -114,20 +112,20 @@ export default function EnvSearch() {
           </div>
           <Button type="submit" disabled={searching}>
             {searching && <LoaderCircleIcon className="size-3.5 animate-spin" />}
-            {searching ? translateText("Searching...") : translateText("Search")}
+            {searching ? "Searching..." : "Search"}
           </Button>
         </form>
 
         {error && <p className="text-destructive text-sm">{error}</p>}
 
         {!searching && results === null && !error && (
-          <p className="text-muted-foreground text-sm">{translateText("Enter a key to start searching.")}</p>
+          <p className="text-muted-foreground text-sm">Enter a key to start searching.</p>
         )}
 
         {searching && results === null && (
           <p className="text-muted-foreground flex items-center gap-2 text-sm">
             <LoaderCircleIcon className="size-3.5 animate-spin" />
-            {translateText("Scanning server .env files. This may take a moment...")}
+            Scanning server .env files. This may take a moment...
           </p>
         )}
 
@@ -137,15 +135,15 @@ export default function EnvSearch() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Site</TableHead>
-                  <TableHead>{translateText('Server')}</TableHead>
-                  <TableHead>{translateText("Value")}</TableHead>
+                  <TableHead>Server</TableHead>
+                  <TableHead>Value</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {results.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={3} className="text-muted-foreground text-center">
-                      {translateText("No accessible sites found.")}
+                      No accessible sites found.
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -168,12 +166,12 @@ export default function EnvSearch() {
                       <TableCell className="font-mono text-xs">
                         {result.found ? (
                           result.value === '' ? (
-                            <span className="text-muted-foreground italic">{translateText("(empty)")}</span>
+                            <span className="text-muted-foreground italic">(empty)</span>
                           ) : (
                             result.value
                           )
                         ) : (
-                          <span className="text-muted-foreground italic">{translateText("No value")}</span>
+                          <span className="text-muted-foreground italic">No value</span>
                         )}
                       </TableCell>
                     </TableRow>

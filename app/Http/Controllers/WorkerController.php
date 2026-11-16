@@ -268,7 +268,7 @@ class WorkerController extends Controller
     private function ensureProcessManagerInstalled(Server $server): void
     {
         if ($server->isReady() && ! $server->processManager()) {
-            throw new AppError(__('Workers need a process manager, but this server has none. Install Supervisor from Settings → Services, then open Workers again.'));
+            throw new AppError('Workers need a process manager, but this server has none. Install Supervisor from Settings → Services, then open Workers again.');
         }
     }
 }

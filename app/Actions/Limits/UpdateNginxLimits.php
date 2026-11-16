@@ -24,9 +24,7 @@ class UpdateNginxLimits
             );
         } catch (Throwable $e) {
             throw ValidationException::withMessages([
-                'client_max_body_size' => __('Failed to apply Nginx limits: :message', [
-                    'message' => $e->getMessage(),
-                ]),
+                'client_max_body_size' => 'Failed to apply Nginx limits: '.$e->getMessage(),
             ]);
         }
     }
@@ -39,7 +37,7 @@ class UpdateNginxLimits
                 'regex:/^(0|[1-9]\d*[kKmMgG]?)$/',
             ],
         ], [
-            'client_max_body_size.regex' => __('Please provide a valid size (e.g., 210M, 500M, 1G, or 0 for unlimited).'),
+            'client_max_body_size.regex' => 'Please provide a valid size (e.g., 210M, 500M, 1G, or 0 for unlimited).',
         ])->validate();
     }
 

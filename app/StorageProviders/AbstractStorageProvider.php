@@ -100,10 +100,7 @@ abstract class AbstractStorageProvider implements StorageProviderContract
             if (! isset($input[$field]) || $input[$field] === '') {
                 if ($destinationChanged) {
                     throw ValidationException::withMessages([
-                        $field => __('Enter the :field again when changing :fields.', [
-                            'field' => $field,
-                            'fields' => implode(', ', $this->secretDestinationFields()),
-                        ]),
+                        $field => 'Enter the '.$field.' again when changing '.(implode(', ', $this->secretDestinationFields())).'.',
                     ]);
                 }
 

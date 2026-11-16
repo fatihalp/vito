@@ -59,7 +59,7 @@ class ManageBackup
     {
         if ($backup->type === BackupType::PGBACKREST && $backup->cluster?->replicas()->exists()) {
             throw ValidationException::withMessages([
-                'backup' => __('Replicas are built from and back up to this pgBackRest repository. Delete the replicas first.'),
+                'backup' => 'Replicas are built from and back up to this pgBackRest repository. Delete the replicas first.',
             ]);
         }
 
@@ -75,7 +75,7 @@ class ManageBackup
     {
         if ($backup->status === BackupStatus::DELETING) {
             throw ValidationException::withMessages([
-                'backup' => __('This backup is being deleted and cannot be enabled.'),
+                'backup' => 'This backup is being deleted and cannot be enabled.',
             ]);
         }
 

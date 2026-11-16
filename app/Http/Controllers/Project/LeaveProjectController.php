@@ -20,6 +20,6 @@ class LeaveProjectController extends Controller
     {
         app(LeaveProject::class)->leave($project, user());
 
-        return back()->with('success', __('You left the project successfully.'));
+        return back()->with('success', 'You left the project successfully.');
     }
 }

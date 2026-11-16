@@ -16,7 +16,7 @@ class DeleteSite
     {
         if ($site->isSelf()) {
             throw ValidationException::withMessages([
-                'domain' => __('The Vito application site cannot be deleted.'),
+                'domain' => 'The Vito application site cannot be deleted.',
             ]);
         }
 

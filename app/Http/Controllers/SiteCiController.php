@@ -45,7 +45,7 @@ class SiteCiController extends Controller
         $this->authorize('update', $targetServer->resolve($request->all()));
         $action->configure($site, $request->all());
 
-        return $this->privateJson(['message' => __('CI runner connected.')]);
+        return $this->privateJson(['message' => 'CI runner connected.']);
     }
 
     #[Get('/data', name: 'site-ci.data')]

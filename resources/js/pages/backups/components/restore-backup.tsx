@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Backup } from '@/types/backup';
 import { BackupFile } from '@/types/backup-file';
 import { Server } from '@/types/server';
@@ -24,7 +23,6 @@ export default function RestoreBackup({
   backup: Backup;
   file: BackupFile;
 }) {
-  const translateText = useTranslate();
   const page = usePage<{ server?: Server }>();
   const sourceServerName = page.props.server?.name ?? 'Original server';
   const [targetServerId, setTargetServerId] = useState(backup.server_id);
@@ -48,22 +46,22 @@ export default function RestoreBackup({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{translateText("Restore backup")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Restore backup")}</DialogDescription>
+          <DialogTitle>Restore backup</DialogTitle>
+          <DialogDescription className="sr-only">Restore backup</DialogDescription>
         </DialogHeader>
         <Form id="restore-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground text-sm">
               {file.database_engine
                 ? `Source: ${file.database_engine} ${file.database_version ?? ''}`.trim()
-                : translateText('Source database engine/version unknown - this file can only be restored to its original server.')}
+                : 'Source database engine/version unknown - this file can only be restored to its original server.'}
             </div>
             <FormField>
-              <Label htmlFor="target-server">{translateText('To server')}</Label>
+              <Label htmlFor="target-server">To server</Label>
               <ServerSelect
                 id="target-server"
                 value={String(targetServerId)}
-                placeholder={targetServerName ?? translateText('Select server...')}
+                placeholder={targetServerName ?? 'Select server...'}
                 onValueChange={(server) => {
                   if (server) {
                     setTargetServerId(server.id);
@@ -77,7 +75,7 @@ export default function RestoreBackup({
               />
             </FormField>
             <FormField>
-              <Label htmlFor="database">{translateText('To database')}</Label>
+              <Label htmlFor="database">To database</Label>
               <DatabaseSelect
                 id="database"
                 name="database"
@@ -92,12 +90,12 @@ export default function RestoreBackup({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline" disabled={form.processing}>
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button form="restore-backup-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Restore')}
+            Restore
           </Button>
         </DialogFooter>
       </DialogContent>

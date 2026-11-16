@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import DateTime from '@/components/date-time';
 import { SourceControl } from '@/types/source-control';
@@ -8,14 +7,12 @@ import { TableActionTrigger } from '@/components/table-action-trigger';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Edit({ sourceControl }: { sourceControl: SourceControl }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
-  return <DropdownMenuItem onSelect={() => dialog.sourceControlEdit.open({ sourceControl })}>{translateText('Edit')}</DropdownMenuItem>;
+  return <DropdownMenuItem onSelect={() => dialog.sourceControlEdit.open({ sourceControl })}>Edit</DropdownMenuItem>;
 }
 
 function Delete({ sourceControl }: { sourceControl: SourceControl }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -23,8 +20,8 @@ function Delete({ sourceControl }: { sourceControl: SourceControl }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: translateText("Delete :value", { value: sourceControl.name }),
-          description: translateText("Are you sure you want to delete :value?", { value: sourceControl.name }),
+          title: `Delete ${sourceControl.name}`,
+          description: `Are you sure you want to delete ${sourceControl.name}?`,
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -32,7 +29,7 @@ function Delete({ sourceControl }: { sourceControl: SourceControl }) {
         })
       }
     >
-      {translateText('Delete')}
+      Delete
     </DropdownMenuItem>
   );
 }

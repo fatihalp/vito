@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useClipboard } from '@/hooks/use-clipboard';
 import { useCallback, useState } from 'react';
 import { toast } from 'sonner';
@@ -44,7 +43,6 @@ type PageProps = {
 };
 
 function CommandRow({ item }: { item: CommandItem }) {
-  const translateText = useTranslate();
   const { copied, copy } = useClipboard(1500);
 
   const handleCopy = () => copy(item.command);
@@ -84,7 +82,7 @@ function CommandRow({ item }: { item: CommandItem }) {
           size="icon"
           className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
           onClick={handleCopy}
-          aria-label={translateText("Copy command")}
+          aria-label="Copy command"
         >
           {copied ? <CheckIcon className="size-3.5 text-neutral-500" /> : <CopyIcon className="size-3.5" />}
         </Button>
@@ -94,7 +92,6 @@ function CommandRow({ item }: { item: CommandItem }) {
 }
 
 export default function ServerCommands() {
-  const translateText = useTranslate();
   const { server: initialServer, initialData, csrf_token } = usePage<PageProps & SharedData>().props;
   const server = useRealtimeRecord<Server>(initialServer, 'server') ?? initialServer;
 
@@ -149,13 +146,13 @@ export default function ServerCommands() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Commands - :value", { value: server.name })} />
+      <Head title={`Commands - ${server.name}`} />
 
       <Container className="space-y-5">
         <HeaderContainer>
           <Heading
-            title={translateText('Commands')}
-            description={translateText("Audit log and command execution history on this server.")}
+            title={'Commands'}
+            description="Audit log and command execution history on this server."
           />
 
           <Button
@@ -166,7 +163,7 @@ export default function ServerCommands() {
             disabled={loading || !server.is_ready}
           >
             <RefreshCwIcon className={`size-3.5 ${loading ? 'animate-spin' : ''}`} />
-            <span>{translateText('Refresh')}</span>
+            <span>Refresh</span>
           </Button>
         </HeaderContainer>
 
@@ -174,7 +171,7 @@ export default function ServerCommands() {
           <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-b px-4 py-3">
             <div className="flex items-center gap-2">
               <TerminalIcon className="size-4 text-muted-foreground" />
-              <CardTitle className="text-sm font-semibold">{translateText("Command History")}</CardTitle>
+              <CardTitle className="text-sm font-semibold">Command History</CardTitle>
               <Badge variant="outline" className="text-[11px] font-mono">
                 {filteredItems.length}
               </Badge>
@@ -184,7 +181,7 @@ export default function ServerCommands() {
               <div className="relative w-48 sm:w-60">
                 <SearchIcon className="size-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={translateText("Filter commands...")}
+                  placeholder="Filter commands..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                   className="h-8 pl-8 text-xs"
@@ -202,7 +199,7 @@ export default function ServerCommands() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="sudo">{translateText("Privileged (Sudo)")}</SelectItem>
+                  <SelectItem value="sudo">Privileged (Sudo)</SelectItem>
                   <SelectItem value="bash">Shell (.bash_history)</SelectItem>
                 </SelectContent>
               </Select>
@@ -218,9 +215,9 @@ export default function ServerCommands() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="50">{translateText("50 lines")}</SelectItem>
-                  <SelectItem value="100">{translateText("100 lines")}</SelectItem>
-                  <SelectItem value="200">{translateText("200 lines")}</SelectItem>
+                  <SelectItem value="50">50 lines</SelectItem>
+                  <SelectItem value="100">100 lines</SelectItem>
+                  <SelectItem value="200">200 lines</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -230,7 +227,7 @@ export default function ServerCommands() {
             {loading ? (
               <div className="flex flex-col items-center justify-center gap-2 py-12 text-center text-muted-foreground text-xs">
                 <LoaderCircleIcon className="size-5 animate-spin text-primary" />
-                <span>{translateText("Fetching command history from server...")}</span>
+                <span>Fetching command history from server...</span>
               </div>
             ) : filteredItems.length > 0 ? (
               <div className="divide-y divide-border/60">
@@ -241,11 +238,11 @@ export default function ServerCommands() {
             ) : (
               <div className="flex flex-col items-center justify-center gap-1.5 py-12 text-center">
                 <TerminalIcon className="size-5 text-muted-foreground/60" />
-                <p className="text-sm font-medium text-foreground">{translateText("No commands found")}</p>
+                <p className="text-sm font-medium text-foreground">No commands found</p>
                 <p className="text-xs text-muted-foreground">
                   {search
-                    ? translateText("No commands match your filter criteria.")
-                    : translateText("No command execution records were returned for this source.")}
+                    ? "No commands match your filter criteria."
+                    : "No command execution records were returned for this source."}
                 </p>
               </div>
             )}

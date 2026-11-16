@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { MetricsFilter } from '@/types/metric';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,7 +7,6 @@ import { useMetrics } from '@/pages/monitoring/components/use-metrics';
 import { cn, mbToGb } from '@/lib/utils';
 
 export default function DiskView({ server, filter }: { server: Server; filter?: MetricsFilter }) {
-  const translateText = useTranslate();
   const query = useMetrics(server, filter);
 
   if (query.isLoading || !query.data) {
@@ -31,7 +29,7 @@ export default function DiskView({ server, filter }: { server: Server; filter?: 
       {current?.disk_used_percent != null && (
         <Card>
           <CardHeader>
-            <CardTitle>{translateText("Current Capacity")}</CardTitle>
+            <CardTitle>Current Capacity</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-3 p-4">
             <div className="flex items-baseline justify-between">
@@ -56,8 +54,8 @@ export default function DiskView({ server, filter }: { server: Server; filter?: 
       )}
 
       <ResourceUsageChart
-        title={translateText("Disk Usage %")}
-        label={translateText("Disk usage")}
+        title="Disk Usage %"
+        label="Disk usage"
         dataKey="disk_used_percent"
         color="var(--color-chart-3)"
         chartData={history}
@@ -67,8 +65,8 @@ export default function DiskView({ server, filter }: { server: Server; filter?: 
       />
 
       <ResourceUsageChart
-        title={translateText("Disk Used")}
-        label={translateText("Disk used")}
+        title="Disk Used"
+        label="Disk used"
         dataKey="disk_used"
         color="var(--color-chart-5)"
         chartData={history}

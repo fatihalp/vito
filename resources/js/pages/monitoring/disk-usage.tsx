@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import {
@@ -100,7 +99,6 @@ function SizeCell({ size, percentage }: { size: string; percentage: number }) {
 }
 
 export default function DiskUsage() {
-  const translateText = useTranslate();
   const {
     server,
     initialPath = '/',
@@ -252,11 +250,11 @@ export default function DiskUsage() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Disk Usage - :value", { value: server.name })} />
+      <Head title={`Disk Usage - ${server.name}`} />
 
       <Container className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <Heading title={translateText('Disk Usage')} />
+          <Heading title={'Disk Usage'} />
 
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1">
@@ -313,12 +311,12 @@ export default function DiskUsage() {
                     onClick={() => fetchDiskUsage(currentPath, limit)}
                     className="size-7 text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
                     disabled={loading}
-                    aria-label={translateText('Refresh')}
+                    aria-label={'Refresh'}
                   >
                     <RefreshCwIcon className={cn('size-3.5', loading && 'animate-spin')} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{translateText('Refresh')}</TooltipContent>
+                <TooltipContent>Refresh</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -335,7 +333,7 @@ export default function DiskUsage() {
                     disabled={!parentPath || loading}
                     onClick={() => parentPath && handleNavigate(parentPath)}
                     className="size-6 shrink-0 text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-30"
-                    aria-label={translateText("Up")}
+                    aria-label="Up"
                   >
                     <CornerLeftUpIcon className="size-3.5" />
                   </Button>
@@ -359,7 +357,7 @@ export default function DiskUsage() {
                   placeholder="/"
                 />
                 <Button type="submit" size="sm" className="h-6 px-2 text-[11px] cursor-pointer">
-                  {translateText("Go")}
+                  Go
                 </Button>
                 <Button
                   type="button"
@@ -408,7 +406,7 @@ export default function DiskUsage() {
                     setIsEditing(true);
                   }}
                   className="p-1 rounded text-muted-foreground/40 hover:text-foreground transition-colors cursor-pointer shrink-0 ml-1 disabled:opacity-30"
-                  aria-label={translateText('Edit')}
+                  aria-label={'Edit'}
                 >
                   <PencilIcon className="size-2.5" />
                 </button>
@@ -428,9 +426,9 @@ export default function DiskUsage() {
             <div className="flex items-center gap-2 min-w-0">
               <Loader2Icon className="size-4 animate-spin text-primary shrink-0" />
               <div className="flex items-center gap-1.5 flex-wrap min-w-0">
-                <span className="font-medium">{translateText("Analyzing disk usage...")}</span>
+                <span className="font-medium">Analyzing disk usage...</span>
                 <span className="text-muted-foreground hidden sm:inline truncate">
-                  {translateText("Scanning")} <code className="font-mono text-foreground text-[11px] px-1 py-0.5 bg-muted/60 rounded">{currentPath}</code> {translateText("on")} {server.name}{translateText(". This may take a moment on large disks.")}
+                  Scanning <code className="font-mono text-foreground text-[11px] px-1 py-0.5 bg-muted/60 rounded">{currentPath}</code> on {server.name}. This may take a moment on large disks.
                 </span>
               </div>
             </div>
@@ -450,7 +448,7 @@ export default function DiskUsage() {
               onClick={() => fetchDiskUsage(currentPath, limit)}
               disabled={loading}
             >
-              {translateText('Retry')}
+              Retry
             </Button>
           </div>
         )}
@@ -461,7 +459,7 @@ export default function DiskUsage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <FolderIcon className="size-3.5 text-primary" />
-                  {translateText("Folders")}
+                  Folders
                 </CardTitle>
                 <span className="text-[11px] text-muted-foreground/70 font-mono">
                   {loading ? '...' : (data?.folders.length ?? 0)}
@@ -472,8 +470,8 @@ export default function DiskUsage() {
               <Table className="table-fixed w-full">
                 <TableHeader className="bg-muted/5">
                   <TableRow className="h-7 border-b border-border/40 hover:bg-transparent">
-                    <TableHead className="h-7 px-3 text-[11px]">{translateText('Name')}</TableHead>
-                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">{translateText('Size')}</TableHead>
+                    <TableHead className="h-7 px-3 text-[11px]">Name</TableHead>
+                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">Size</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -499,7 +497,7 @@ export default function DiskUsage() {
                   ) : !data || data.folders.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={2} className="h-20 text-center text-xs text-muted-foreground">
-                        {translateText("No subdirectories")}
+                        No subdirectories
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -531,7 +529,7 @@ export default function DiskUsage() {
                                 e.stopPropagation();
                                 handleCopy(folder.path);
                               }}
-                              aria-label={translateText('Copy')}
+                              aria-label={'Copy'}
                             >
                               {copiedPath === folder.path ? (
                                 <CheckIcon className="size-3 text-neutral-500" />
@@ -557,7 +555,7 @@ export default function DiskUsage() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   <FileIcon className="size-3.5 text-primary" />
-                  {translateText("Files")}
+                  Files
                 </CardTitle>
                 <span className="text-[11px] text-muted-foreground/70 font-mono">
                   {loading ? '...' : (data?.files.length ?? 0)}
@@ -568,8 +566,8 @@ export default function DiskUsage() {
               <Table className="table-fixed w-full">
                 <TableHeader className="bg-muted/5">
                   <TableRow className="h-7 border-b border-border/40 hover:bg-transparent">
-                    <TableHead className="h-7 px-3 text-[11px]">{translateText('Name')}</TableHead>
-                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">{translateText('Size')}</TableHead>
+                    <TableHead className="h-7 px-3 text-[11px]">Name</TableHead>
+                    <TableHead className="h-7 w-32 px-3 text-right text-[11px] shrink-0">Size</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -601,7 +599,7 @@ export default function DiskUsage() {
                   ) : !data || data.files.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={2} className="h-20 text-center text-xs text-muted-foreground">
-                        {translateText("No files")}
+                        No files
                       </TableCell>
                     </TableRow>
                   ) : (
@@ -648,7 +646,7 @@ export default function DiskUsage() {
                               type="button"
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground/50 hover:text-foreground cursor-pointer ml-auto shrink-0 self-center"
                               onClick={() => handleCopy(file.path)}
-                              aria-label={translateText('Copy')}
+                              aria-label={'Copy'}
                             >
                               {copiedPath === file.path ? (
                                 <CheckIcon className="size-3 text-neutral-500" />

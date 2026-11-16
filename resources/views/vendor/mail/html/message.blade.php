@@ -17,7 +17,7 @@
 
 <x-slot:footer>
 <x-mail::footer>
-{{ __('Sent by') }} [{{ config('app.name') }}]({{ config('app.url') }}) &middot; {{ __('Self-hosted server management') }}
+{{ 'Sent by' }} [{{ config('app.name') }}]({{ config('app.url') }}) &middot; {{ 'Self-hosted server management' }}
 </x-mail::footer>
 </x-slot:footer>
 </x-mail::layout>

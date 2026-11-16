@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { useForm } from '@inertiajs/react';
@@ -14,7 +13,6 @@ import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, Di
 import PgBackRestFields, { PgBackRestSettings, pgBackRestDefaults } from '@/pages/backups/components/pgbackrest-fields';
 
 export default function EditBackup({ open, onOpenChange, backup }: { open: boolean; onOpenChange: (open: boolean) => void; backup: Backup }) {
-  const translateText = useTranslate();
   const configs = useConfigs()!;
 
   const isPgBackRest = backup.type === 'pgbackrest';
@@ -42,17 +40,17 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{translateText("Edit backup")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Edit backup")}</DialogDescription>
+          <DialogTitle>Edit backup</DialogTitle>
+          <DialogDescription className="sr-only">Edit backup</DialogDescription>
         </DialogHeader>
         <Form id="edit-backup-form" onSubmit={submit} className="p-4">
           <FormFields>
             {!isPgBackRest && (
             <FormField>
-              <Label htmlFor="interval">{translateText("Interval")}</Label>
+              <Label htmlFor="interval">Interval</Label>
               <Select value={form.data.interval} onValueChange={(value) => form.setData('interval', value)}>
                 <SelectTrigger id="interval">
-                  <SelectValue placeholder={translateText("Select an interval")} />
+                  <SelectValue placeholder="Select an interval" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -70,7 +68,7 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
 
             {!isPgBackRest && form.data.interval === 'custom' && (
               <FormField>
-                <Label htmlFor="custom_interval">{translateText("Custom interval (crontab)")}</Label>
+                <Label htmlFor="custom_interval">Custom interval (crontab)</Label>
                 <Input
                   id="custom_interval"
                   name="custom_interval"
@@ -84,7 +82,7 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
 
             {!isPgBackRest && (
               <FormField>
-                <Label htmlFor="keep">{translateText("Backups to keep")}</Label>
+                <Label htmlFor="keep">Backups to keep</Label>
                 <Input id="keep" name="keep" value={form.data.keep} onChange={(e) => form.setData('keep', e.target.value)} />
                 <InputError message={form.errors.keep} />
               </FormField>
@@ -98,11 +96,11 @@ export default function EditBackup({ open, onOpenChange, backup }: { open: boole
         <DialogFooter>
           <div className="flex items-center gap-2">
             <DialogClose asChild>
-              <Button variant="outline">{translateText('Cancel')}</Button>
+              <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button form="edit-backup-form" type="submit" disabled={form.processing}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              {translateText('Save')}
+              Save
             </Button>
           </div>
         </DialogFooter>

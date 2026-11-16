@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { FormEvent, ReactNode, useState } from 'react';
 import {
@@ -20,7 +19,6 @@ import { LoaderCircleIcon } from 'lucide-react';
 import { ProjectSelect } from '@/components/project-select';
 
 export default function TransferServer({ server, children }: { server: Server; children: ReactNode }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const form = useForm({
@@ -46,15 +44,15 @@ export default function TransferServer({ server, children }: { server: Server; c
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{translateText("Transfer")} {server.name}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Transfer server to another project")}</DialogDescription>
+          <DialogTitle>Transfer {server.name}</DialogTitle>
+          <DialogDescription className="sr-only">Transfer server to another project</DialogDescription>
         </DialogHeader>
 
         <Form id="transfer-server-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="project_id">{translateText('Project')}</Label>
-              <ProjectSelect value={form.data.project_id} onValueChange={handleProjectChange} placeholder={translateText("Select project...")} className="w-full" />
+              <Label htmlFor="project_id">Project</Label>
+              <ProjectSelect value={form.data.project_id} onValueChange={handleProjectChange} placeholder="Select project..." className="w-full" />
               <InputError message={form.errors.project_id} />
             </FormField>
           </FormFields>
@@ -62,12 +60,12 @@ export default function TransferServer({ server, children }: { server: Server; c
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
 
           <Button form="transfer-server-form" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            {translateText("Transfer server")}
+            Transfer server
           </Button>
         </DialogFooter>
       </DialogContent>

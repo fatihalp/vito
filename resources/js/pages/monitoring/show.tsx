@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import ServerLayout from '@/layouts/server/layout';
@@ -17,7 +16,6 @@ const titles: Record<string, { title: string; description: string }> = {
 };
 
 export default function Show() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     metric: string;
@@ -28,7 +26,7 @@ export default function Show() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Monitoring - :value - :value2", { value: meta.title, value2: page.props.server.name })} />
+      <Head title={`Monitoring - ${meta.title} - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>

@@ -120,20 +120,20 @@ class EditServer
 
         if ($server->siteResources()->exists()) {
             throw ValidationException::withMessages([
-                'role' => __('Disconnect this server from all sites before changing its type.'),
+                'role' => 'Disconnect this server from all sites before changing its type.',
             ]);
         }
 
         if ($role !== ServerRole::APP && $server->sites()->exists()) {
             throw ValidationException::withMessages([
-                'role' => __('Move or delete this server\'s sites before changing it to a dedicated resource server.'),
+                'role' => 'Move or delete this server\'s sites before changing it to a dedicated resource server.',
             ]);
         }
 
         foreach ($role->requiredServiceTypes() as $requiredService) {
             if (! $server->services()->where('type', $requiredService)->exists()) {
                 throw ValidationException::withMessages([
-                    'role' => __('Install the required services before selecting this server type.'),
+                    'role' => 'Install the required services before selecting this server type.',
                 ]);
             }
         }

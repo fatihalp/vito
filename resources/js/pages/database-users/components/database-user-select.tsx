@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,7 +20,6 @@ export default function DatabaseUserSelect({
   create?: boolean;
   onValueChange: (value: string) => void;
 } & SelectTriggerProps) {
-  const translateText = useTranslate();
   const query = useQuery<DatabaseUser[]>({
     queryKey: ['database-users', serverId],
     queryFn: async () => {
@@ -33,7 +31,7 @@ export default function DatabaseUserSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? translateText("Loading...") : translateText("Select a database user")} />
+          <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a database user"} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

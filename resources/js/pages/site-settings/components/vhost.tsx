@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import React, { FormEvent, ReactNode, useEffect, useState } from 'react';
 import { router, useForm } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
@@ -16,7 +15,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusRipple } from '@/components/status-ripple';
 
 export default function VHost({ site, children }: { site: Site; children: ReactNode }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [showResetDialog, setShowResetDialog] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -106,8 +104,8 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
       <SheetTrigger asChild>{children}</SheetTrigger>
       <SheetContent className="sm:max-w-5xl">
         <SheetHeader>
-          <SheetTitle>{translateText("Edit webserver template")}</SheetTitle>
-          <SheetDescription className="sr-only">{translateText("Edit the Mustache template used to generate the vhost config.")}</SheetDescription>
+          <SheetTitle>Edit webserver template</SheetTitle>
+          <SheetDescription className="sr-only">Edit the Mustache template used to generate the vhost config.</SheetDescription>
         </SheetHeader>
         <Form id="update-vhost-form" className="h-full" onSubmit={submit}>
           {query.isSuccess ? (
@@ -127,7 +125,7 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
             <Alert>
               <AlertDescription className="flex items-center gap-2">
                 <StatusRipple variant="info" />
-                <p>{translateText("This is the Mustache template used to generate the vhost. Changes here persist across SSL, domain, and redirect updates.")}</p>
+                <p>This is the Mustache template used to generate the vhost. Changes here persist across SSL, domain, and redirect updates.</p>
               </AlertDescription>
             </Alert>
           </div>
@@ -136,19 +134,19 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
           <div className="flex w-full items-center justify-between">
             <Button variant="outline" onClick={() => setShowResetDialog(true)}>
               <RotateCcwIcon />
-              {translateText('Reset')}
+              Reset
             </Button>
             <div className="flex items-center gap-2">
               <Button variant="outline" onClick={previewTemplate} disabled={previewing || query.isLoading}>
                 {previewing ? <LoaderCircleIcon className="animate-spin" /> : <EyeIcon />}
-                {translateText("Preview")}
+                Preview
               </Button>
               <Button form="update-vhost-form" disabled={form.processing || query.isLoading} onClick={submit}>
                 {(form.processing || query.isLoading) && <LoaderCircleIcon className="animate-spin" />}
-                {translateText('Save')}
+                Save
               </Button>
               <SheetClose asChild>
-                <Button variant="outline">{translateText('Cancel')}</Button>
+                <Button variant="outline">Cancel</Button>
               </SheetClose>
             </div>
           </div>
@@ -157,18 +155,18 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
       <Dialog open={showResetDialog} onOpenChange={setShowResetDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{translateText("Reset VHost template")}</DialogTitle>
+            <DialogTitle>Reset VHost template</DialogTitle>
             <DialogDescription>
-              {translateText("This will reset the template to the default and regenerate the VHost on the server. Any customizations will be lost.")}
+              This will reset the template to the default and regenerate the VHost on the server. Any customizations will be lost.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowResetDialog(false)}>
-              {translateText('Cancel')}
+              Cancel
             </Button>
             <Button variant="destructive" onClick={resetTemplate} disabled={resetting}>
               {resetting && <LoaderCircleIcon className="animate-spin" />}
-              {translateText('Reset')}
+              Reset
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -176,8 +174,8 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
       <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
         <DialogContent className="h-[80vh] sm:max-w-5xl">
           <DialogHeader>
-            <DialogTitle>{translateText("Template preview")}</DialogTitle>
-            <DialogDescription className="sr-only">{translateText("Preview of the generated vhost config from the current template.")}</DialogDescription>
+            <DialogTitle>Template preview</DialogTitle>
+            <DialogDescription className="sr-only">Preview of the generated vhost config from the current template.</DialogDescription>
           </DialogHeader>
           <div className="min-h-0 flex-1">
             <Editor
@@ -193,7 +191,7 @@ export default function VHost({ site, children }: { site: Site; children: ReactN
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowPreviewDialog(false)}>
-              {translateText('Close')}
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

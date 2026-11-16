@@ -95,7 +95,7 @@ class StorageProviderController extends Controller
         } catch (Throwable $e) {
             Log::error('Dropbox OAuth callback failed', ['exception' => get_class($e)]);
 
-            return to_route('storage-providers')->with('error', __('Failed to connect to Dropbox.'));
+            return to_route('storage-providers')->with('error', 'Failed to connect to Dropbox.');
         }
 
         return to_route('storage-providers')->with('success', 'Storage provider created.');

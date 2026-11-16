@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useState } from 'react';
 import DateTime from '@/components/date-time';
 import moment from 'moment';
@@ -19,7 +18,6 @@ export default function LatestCommitBanner({
   latestCommit: LatestCommit | null | undefined;
   activeDeployment: Deployment | null;
 }) {
-  const translateText = useTranslate();
   const [dismissedCommit, setDismissedCommit] = useState<string | null>(null);
 
   if (latestCommit?.error) {
@@ -27,7 +25,7 @@ export default function LatestCommitBanner({
       <div className="text-muted-foreground flex items-center gap-3 border-t py-2 pr-3 pl-16 text-xs">
         <AlertTriangleIcon className="text-warning size-4 shrink-0" />
         <span className="truncate" title={latestCommit.error}>
-          {translateText('Could not check :branch for new commits: :error', { branch: site.branch ?? '', error: latestCommit.error })}
+          {`Could not check ${(site.branch ?? '')} for new commits: ${latestCommit.error}`}
         </span>
       </div>
     );
@@ -46,10 +44,10 @@ export default function LatestCommitBanner({
       <GitCommitHorizontalIcon className="text-info size-4 shrink-0" />
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex min-w-0 items-center gap-2 text-sm">
-          <span className="text-info shrink-0 font-medium">{translateText('New')}</span>
+          <span className="text-info shrink-0 font-medium">New</span>
           {typeof latestCommit.behind === 'number' && latestCommit.behind > 0 && (
             <Badge variant="warning" className="shrink-0">
-              {translateText(':count behind', { count: latestCommit.behind })}
+              {`${latestCommit.behind} behind`}
             </Badge>
           )}
           <CommitSummary commit={commit} />
@@ -60,13 +58,13 @@ export default function LatestCommitBanner({
             {commit.name && commit.date && <span aria-hidden="true">·</span>}
             {commit.date && (
               <span title={moment(commit.date).format('YYYY-MM-DD HH:mm:ss')}>
-                {translateText(merged ? 'Merged' : 'Committed')} <DateTime date={commit.date} relative />
+                {merged ? 'Merged' : 'Committed'} <DateTime date={commit.date} relative />
               </span>
             )}
           </div>
         )}
       </div>
-      <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label={translateText('Dismiss new commit notice')} title={translateText('Not now')}>
+      <Button variant="ghost" size="icon" className="size-8" onClick={() => setDismissedCommit(commitId)} aria-label={'Dismiss new commit notice'} title={'Not now'}>
         <XIcon className="size-4" />
       </Button>
     </div>

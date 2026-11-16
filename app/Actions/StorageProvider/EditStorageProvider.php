@@ -13,7 +13,7 @@ class EditStorageProvider
     {
         if (! $storageProvider->hasProviderHandler()) {
             throw ValidationException::withMessages([
-                'provider' => __('This storage provider is no longer available.'),
+                'provider' => 'This storage provider is no longer available.',
             ]);
         }
 

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, useForm } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { FormEvent } from 'react';
@@ -9,7 +8,6 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth/layout';
 
 export default function ConfirmPassword() {
-  const translateText = useTranslate();
   const form = useForm<{ password: string }>({
     password: '',
   });
@@ -23,19 +21,19 @@ export default function ConfirmPassword() {
   };
 
   return (
-    <AuthLayout title={translateText("Confirm your password")} description={translateText("This is a secure area of the application. Please confirm your password before continuing.")}>
-      <Head title={translateText('Confirm password')} />
+    <AuthLayout title="Confirm your password" description="This is a secure area of the application. Please confirm your password before continuing.">
+      <Head title={'Confirm password'} />
 
       <form id="confirm-password-form" onSubmit={submit}>
         <div className="grid gap-6">
           <div className="grid gap-2">
-            <Label htmlFor="password">{translateText('Password')}</Label>
+            <Label htmlFor="password">Password</Label>
             <Input
               id="password"
               type="password"
               name="password"
               required
-              placeholder={translateText('Password')}
+              placeholder={'Password'}
               autoComplete="current-password"
               value={form.data.password}
               autoFocus
@@ -47,7 +45,7 @@ export default function ConfirmPassword() {
           <div className="flex items-center">
             <Button className="w-full" disabled={form.processing}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
-              {translateText('Confirm password')}
+              Confirm password
             </Button>
           </div>
         </div>

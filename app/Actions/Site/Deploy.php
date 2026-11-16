@@ -29,7 +29,7 @@ class Deploy
     {
         if ($site->status === SiteStatus::PLANNED) {
             throw ValidationException::withMessages([
-                'site' => __('This site is planned. Complete its runtime and deployment configuration before deploying.'),
+                'site' => 'This site is planned. Complete its runtime and deployment configuration before deploying.',
             ]);
         }
 

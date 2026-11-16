@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Head, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -19,20 +18,19 @@ type Page = {
 };
 
 export default function SshKeys() {
-  const translateText = useTranslate();
   const page = usePage<Page>();
 
   return (
     <SettingsLayout>
-      <Head title={translateText('SSH Keys')} />
+      <Head title={'SSH Keys'} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title={translateText('SSH Keys')} />
+          <Heading title={'SSH Keys'} />
           <div className="flex items-center gap-2">
             <AddSshKey>
               <Button>
                 <PlusIcon />
-                {translateText('Add')}
+                Add
               </Button>
             </AddSshKey>
           </div>

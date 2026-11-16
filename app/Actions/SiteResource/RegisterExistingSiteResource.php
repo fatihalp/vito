@@ -61,16 +61,14 @@ class RegisterExistingSiteResource
             $name = $data['database_name'] ?? $environment['DB_DATABASE'] ?? '';
             if ($name === '' || $name !== ($environment['DB_DATABASE'] ?? null)) {
                 throw ValidationException::withMessages([
-                    'database_name' => __('Select the database already configured in the application environment.'),
+                    'database_name' => 'Select the database already configured in the application environment.',
                 ]);
             }
             $configuration['database_name'] = $name;
             if (in_array($data['runtime_driver'] ?? 'native', ['docker', 'rootless_docker'], true)) {
                 if (empty($data['container']) || empty($environment['DB_USERNAME'])) {
                     throw ValidationException::withMessages([
-                        'container' => __(
-                            'Select the existing PostgreSQL container and configure the application database username.'
-                        ),
+                        'container' => 'Select the existing PostgreSQL container and configure the application database username.',
                     ]);
                 }
                 $configuration['runtime'] = [
@@ -85,7 +83,7 @@ class RegisterExistingSiteResource
                 $database = Database::query()->where('server_id', $server->id)->where('name', $name)->first();
                 if (! $database) {
                     throw ValidationException::withMessages([
-                        'database_name' => __('Import the existing database into the server database list first.'),
+                        'database_name' => 'Import the existing database into the server database list first.',
                     ]);
                 }
                 $configuration['database_id'] = $database->id;
@@ -94,7 +92,7 @@ class RegisterExistingSiteResource
 
         if ($type === SiteResourceType::CACHE && (empty($environment['REDIS_HOST']) || ! $server->memoryDatabase())) {
             throw ValidationException::withMessages([
-                'server_id' => __('The existing application Redis connection could not be identified.'),
+                'server_id' => 'The existing application Redis connection could not be identified.',
             ]);
         }
 
@@ -142,7 +140,7 @@ class RegisterExistingSiteResource
         );
         if ($environment === []) {
             throw ValidationException::withMessages([
-                'storage_provider_id' => __('This bucket was not found in the existing application configuration.'),
+                'storage_provider_id' => 'This bucket was not found in the existing application configuration.',
             ]);
         }
 

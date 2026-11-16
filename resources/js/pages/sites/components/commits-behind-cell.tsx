@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import axios from 'axios';
 import { Link } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
@@ -13,7 +12,6 @@ type CommitsBehind = {
 };
 
 export default function CommitsBehindCell({ serverId, siteId }: { serverId: number; siteId: number }) {
-  const translateText = useTranslate();
   const query = useQuery({
     queryKey: ['siteCommitsBehind', siteId],
     queryFn: async () => (await axios.get<CommitsBehind | null>(`/servers/${serverId}/sites/${siteId}/commits-behind`)).data,
@@ -26,7 +24,7 @@ export default function CommitsBehindCell({ serverId, siteId }: { serverId: numb
     return (
       <Badge variant="gray">
         <LoaderCircleIcon className="size-3 animate-spin" />
-        {translateText('Checking')}
+        Checking
       </Badge>
     );
   }
@@ -39,22 +37,22 @@ export default function CommitsBehindCell({ serverId, siteId }: { serverId: numb
   const behind = query.data?.behind;
 
   const badge = error ? (
-    <Badge variant="warning">{translateText("Check failed")}</Badge>
+    <Badge variant="warning">Check failed</Badge>
   ) : behind === null || behind === undefined ? (
-    <Badge variant="gray">{translateText("Not deployed")}</Badge>
+    <Badge variant="gray">Not deployed</Badge>
   ) : behind === 0 ? (
-    <Badge variant="success">{translateText("Up to date")}</Badge>
+    <Badge variant="success">Up to date</Badge>
   ) : (
-    <Badge variant="warning">{translateText(':count behind', { count: behind })}</Badge>
+    <Badge variant="warning">{`${behind} behind`}</Badge>
   );
 
   const hint = error
     ? error
     : behind === null || behind === undefined
-      ? translateText('No successful deployment yet.')
+      ? 'No successful deployment yet.'
       : behind === 0
-        ? translateText('The deployed commit is the latest on :branch.', { branch: query.data?.branch ?? '' })
-        : translateText(behind === 1 ? ':count new commit on :branch since the last deployment.' : ':count new commits on :branch since the last deployment.', { count: behind, branch: query.data?.branch ?? '' });
+        ? `The deployed commit is the latest on ${(query.data?.branch ?? '')}.`
+        : behind === 1 ? `${behind} new commit on ${(query.data?.branch ?? '')} since the last deployment.` : `${behind} new commits on ${(query.data?.branch ?? '')} since the last deployment.`;
 
   return (
     <Tooltip>

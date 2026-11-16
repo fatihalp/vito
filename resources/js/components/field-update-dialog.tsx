@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useState } from 'react';
 import {
   Dialog,
@@ -34,7 +33,6 @@ export default function FieldUpdateDialog({
   trigger,
   children,
 }: FieldUpdateDialogProps) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const form = useForm({
     [fieldName]: initialValue,
@@ -54,9 +52,9 @@ export default function FieldUpdateDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{translateText(title)}</DialogTitle>
+          <DialogTitle>{title}</DialogTitle>
           <DialogDescription className={typeof description === 'string' && description === 'sr-only' ? 'sr-only' : undefined}>
-            {description === 'sr-only' ? translateText('Update field') : typeof description === 'string' ? translateText(description) : description}
+            {description === 'sr-only' ? 'Update field' : typeof description === 'string' ? description : description}
           </DialogDescription>
         </DialogHeader>
 
@@ -68,12 +66,12 @@ export default function FieldUpdateDialog({
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
 
           <Button form={`${fieldName}-form`} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

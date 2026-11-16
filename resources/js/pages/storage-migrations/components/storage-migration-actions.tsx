@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TableActionTrigger } from '@/components/table-action-trigger';
 import { Link, useForm } from '@inertiajs/react';
@@ -22,7 +21,6 @@ function SimpleAction({ storageMigration, action, label, phase = 'all' }: { stor
 }
 
 function Cancel({ storageMigration }: { storageMigration: StorageMigration }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -39,13 +37,12 @@ function Cancel({ storageMigration }: { storageMigration: StorageMigration }) {
         })
       }
     >
-      {translateText('Cancel')}
+      Cancel
     </DropdownMenuItem>
   );
 }
 
 function Delete({ storageMigration }: { storageMigration: StorageMigration }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -62,13 +59,12 @@ function Delete({ storageMigration }: { storageMigration: StorageMigration }) {
         })
       }
     >
-      {translateText('Delete')}
+      Delete
     </DropdownMenuItem>
   );
 }
 
 export default function StorageMigrationActions({ storageMigration }: { storageMigration: StorageMigration }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const isOpen = ['pending', 'scanning', 'running', 'verifying', 'paused'].includes(storageMigration.status);
   const isSettled = !isOpen;
@@ -81,16 +77,16 @@ export default function StorageMigrationActions({ storageMigration }: { storageM
         </DropdownMenuTrigger>
         <DropdownMenuContent align="start">
           <DropdownMenuItem asChild>
-            <Link href={`/storage-migrations/${storageMigration.id}`}>{translateText('View')}</Link>
+            <Link href={`/storage-migrations/${storageMigration.id}`}>View</Link>
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={() => dialog.storageMigrationRename.open({ storageMigration })}>{translateText("Rename")}</DropdownMenuItem>
+          <DropdownMenuItem onSelect={() => dialog.storageMigrationRename.open({ storageMigration })}>Rename</DropdownMenuItem>
 
           {isOpen && !storageMigration.scan_completed_at && (
             <SimpleAction
               storageMigration={storageMigration}
               phase="scan"
               action={storageMigration.scan_paused ? 'resume' : 'pause'}
-              label={storageMigration.scan_paused ? translateText("Resume scanning") : translateText("Pause scanning")}
+              label={storageMigration.scan_paused ? "Resume scanning" : "Pause scanning"}
             />
           )}
           {isOpen && (
@@ -98,11 +94,11 @@ export default function StorageMigrationActions({ storageMigration }: { storageM
               storageMigration={storageMigration}
               phase="transfer"
               action={storageMigration.transfer_paused ? 'resume' : 'pause'}
-              label={storageMigration.transfer_paused ? translateText("Resume transfers") : translateText("Pause transfers")}
+              label={storageMigration.transfer_paused ? "Resume transfers" : "Pause transfers"}
             />
           )}
           {['partial', 'failed'].includes(storageMigration.status) && (
-            <SimpleAction storageMigration={storageMigration} action="retry-failed" label={translateText("Retry failed")} />
+            <SimpleAction storageMigration={storageMigration} action="retry-failed" label="Retry failed" />
           )}
 
           {isOpen && (

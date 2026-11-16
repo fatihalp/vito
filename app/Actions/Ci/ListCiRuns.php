@@ -20,12 +20,12 @@ class ListCiRuns
         $runner = $this->resolveRunner->resolve($site);
         $runs = $this->client->request($runner, ['action' => 'list']);
         if (! array_is_list($runs) || count($runs) > 50) {
-            throw ValidationException::withMessages(['ci' => __('The runner returned an invalid CI history.')]);
+            throw ValidationException::withMessages(['ci' => 'The runner returned an invalid CI history.']);
         }
         $data = [];
         foreach ($runs as $run) {
             if (! is_array($run)) {
-                throw ValidationException::withMessages(['ci' => __('The runner returned invalid CI result data.')]);
+                throw ValidationException::withMessages(['ci' => 'The runner returned invalid CI result data.']);
             }
             $this->client->assertRun($runner, $run);
             $data[] = $this->presenter->present($run);

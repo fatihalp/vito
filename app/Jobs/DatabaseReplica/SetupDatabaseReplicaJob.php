@@ -49,7 +49,7 @@ class SetupDatabaseReplicaJob implements ShouldQueue
             }
 
             if ($this->waits >= 120) {
-                app(ManageDatabaseReplica::class)->fail($this->replica, __('The primary did not open PostgreSQL to the replica within 30 minutes. Check its networking and firewall.'));
+                app(ManageDatabaseReplica::class)->fail($this->replica, 'The primary did not open PostgreSQL to the replica within 30 minutes. Check its networking and firewall.');
 
                 return;
             }
@@ -65,7 +65,7 @@ class SetupDatabaseReplicaJob implements ShouldQueue
         if ($replica) {
             $step = $replica->configuration['setup_step'] ?? null;
             $message = $step !== null
-                ? __('Setup failed while :step: :error. Open the logs on the replica page for the full output.', ['step' => $step, 'error' => $e->getMessage()])
+                ? 'Setup failed while '.$step.': '.$e->getMessage().'. Open the logs on the replica page for the full output.'
                 : $e->getMessage();
 
             ServerLog::log($replica->replica, 'database-replica-setup-failed', $message);

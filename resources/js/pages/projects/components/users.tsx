@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { DataTable } from '@/components/data-table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,7 +13,6 @@ import { TrashIcon, UserPlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 function RemoveUserAction({ user }: { user: ProjectUser }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const page = usePage<SharedData>();
 
@@ -27,11 +25,11 @@ function RemoveUserAction({ user }: { user: ProjectUser }) {
       variant="outline"
       size="sm"
       className="size-7"
-      aria-label={translateText("Remove :value from project", { value: user.email })}
+      aria-label={`Remove ${user.email} from project`}
       onClick={() =>
         dialog.confirm.open({
           title: 'Remove user',
-          description: translateText("Are you sure you want to remove :value from this project?", { value: user.email }),
+          description: `Are you sure you want to remove ${user.email} from this project?`,
           variant: 'destructive',
           confirmLabel: 'Remove',
           method: 'delete',
@@ -92,7 +90,6 @@ export default function Users({
   onOpenChange: (open: boolean) => void;
   project: Project;
 }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const [showQuickCreate, setShowQuickCreate] = useState(false);
   const canManageAccess = project.role === 'owner' || project.role === 'admin';
@@ -102,22 +99,22 @@ export default function Users({
       <Sheet open={open} onOpenChange={onOpenChange}>
         <SheetContent className="sm:max-w-2xl" onCloseAutoFocus={(e) => e.preventDefault()}>
           <SheetHeader>
-            <SheetTitle>{translateText("Project users")}</SheetTitle>
-            <SheetDescription className="sr-only">{translateText("Here you can manage project users")}</SheetDescription>
+            <SheetTitle>Project users</SheetTitle>
+            <SheetDescription className="sr-only">Here you can manage project users</SheetDescription>
           </SheetHeader>
           <div className="p-4">
             <DataTable columns={canManageAccess ? columns : columns.filter((column) => column.id !== 'actions')} data={project.users || []} />
           </div>
           <SheetFooter>
             <div className="flex items-center justify-between w-full">
-              <Button variant="outline" onClick={() => onOpenChange(false)}>{translateText('Close')}</Button>
+              <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
               {canManageAccess && (
                 <div className="flex items-center gap-2">
                   <Button variant="outline" onClick={() => setShowQuickCreate(true)}>
                     <UserPlusIcon className="size-3.5 mr-1.5" />
-                    {translateText('Create user')}
+                    Create user
                   </Button>
-                  <Button onClick={() => dialog.projectInvite.open({ project })}>{translateText('Add user')}</Button>
+                  <Button onClick={() => dialog.projectInvite.open({ project })}>Add user</Button>
                 </div>
               )}
             </div>

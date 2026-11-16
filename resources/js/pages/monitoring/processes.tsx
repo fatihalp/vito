@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Head, usePage } from '@inertiajs/react';
 import { useQueryState } from '@/hooks/use-query-state';
@@ -69,7 +68,6 @@ function MetricValue({ value }: { value: number }) {
 }
 
 export default function Processes() {
-  const translateText = useTranslate();
   const page = usePage<Page>();
   const { server } = page.props;
   const dialog = useDialog();
@@ -118,7 +116,7 @@ export default function Processes() {
   const killProcess = (pid: number) => {
     dialog.confirm.open({
       title: 'Kill Process',
-      description: translateText("Process #:value will be terminated. Do you want to proceed?", { value: pid }),
+      description: `Process #${pid} will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill',
       method: 'post',
       url: `/servers/${server.id}/monitoring/processes/kill`,
@@ -129,8 +127,8 @@ export default function Processes() {
   const killUserProcesses = () => {
     if (selectedUser === 'all') return;
     dialog.confirm.open({
-      title: translateText("Kill all processes for \":value\"", { value: selectedUser }),
-      description: translateText("All processes for user \":value\" will be terminated. Do you want to proceed?", { value: selectedUser }),
+      title: `Kill all processes for "${selectedUser}"`,
+      description: `All processes for user "${selectedUser}" will be terminated. Do you want to proceed?`,
       confirmLabel: 'Kill All',
       method: 'post',
       url: `/servers/${server.id}/monitoring/processes/kill-user`,
@@ -153,17 +151,17 @@ export default function Processes() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Processes - :value", { value: server.name })} />
+      <Head title={`Processes - ${server.name}`} />
 
       <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Heading title={translateText("Process Manager")} description={translateText("Running processes on this server, sorted by CPU usage")} />
+          <Heading title="Process Manager" description="Running processes on this server, sorted by CPU usage" />
 
           <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
             <div className="relative">
               <SearchIcon className="text-muted-foreground absolute top-1/2 left-2.5 size-3.5 -translate-y-1/2" />
               <Input
-                placeholder={translateText("Filter command or PID...")}
+                placeholder="Filter command or PID..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="h-8 w-36 sm:w-44 pl-8 pr-6 text-xs bg-muted/30 border-muted-foreground/20 focus:bg-background transition-colors"
@@ -173,7 +171,7 @@ export default function Processes() {
                   type="button"
                   onClick={() => setSearch('')}
                   className="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 text-xs leading-none"
-                  aria-label={translateText("Clear filter")}
+                  aria-label="Clear filter"
                 >
                   ✕
                 </button>
@@ -182,10 +180,10 @@ export default function Processes() {
 
             <Select value={selectedUser} onValueChange={setSelectedUser}>
               <SelectTrigger className="h-8 w-28 text-xs bg-muted/30 border-muted-foreground/20 hover:bg-muted/50">
-                <SelectValue placeholder={translateText("All users")} />
+                <SelectValue placeholder="All users" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">{translateText("All users")}</SelectItem>
+                <SelectItem value="all">All users</SelectItem>
                 {data.users.map((u) => (
                   <SelectItem key={u} value={u}>
                     {u}
@@ -197,15 +195,15 @@ export default function Processes() {
             {selectedUser !== 'all' && (
               <Button variant="destructive" size="sm" className="h-8 px-2 text-xs gap-1" onClick={killUserProcesses}>
                 <SkullIcon className="size-3.5" />
-                <span className="hidden sm:inline">{translateText('Kill processes for :user', { user: selectedUser })}</span>
-                <span className="sm:hidden">{translateText("Kill")}</span>
+                <span className="hidden sm:inline">{`Kill processes for ${selectedUser}`}</span>
+                <span className="sm:hidden">Kill</span>
               </Button>
             )}
 
             <Select value={interval} onValueChange={setIntervalValue}>
               <SelectTrigger
                 className="h-8 w-[95px] text-xs bg-muted/30 border-muted-foreground/20 hover:bg-muted/50 gap-1 px-2"
-                aria-label={translateText("Auto refresh")}
+                aria-label="Auto refresh"
               >
                 {interval !== '0' && <span className="size-1.5 rounded-full bg-neutral-500 shrink-0 animate-pulse" />}
                 <SelectValue />
@@ -228,12 +226,12 @@ export default function Processes() {
                     className="size-8 shrink-0 bg-muted/30 border-muted-foreground/20 text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer"
                     onClick={fetchProcesses}
                     disabled={loading}
-                    aria-label={translateText("Refresh processes")}
+                    aria-label="Refresh processes"
                   >
                     <RefreshCwIcon className={cn('size-3.5', loading && 'animate-spin')} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>{translateText("Refresh processes")}</TooltipContent>
+                <TooltipContent>Refresh processes</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -244,13 +242,13 @@ export default function Processes() {
             <div className="flex items-center gap-2.5">
               <AlertCircleIcon className="size-4 shrink-0" />
               <div>
-                <p className="text-xs font-semibold">{translateText("Unable to fetch processes")}</p>
+                <p className="text-xs font-semibold">Unable to fetch processes</p>
                 <p className="text-[11px] text-destructive/80 font-mono">{data.error}</p>
               </div>
             </div>
             <Button variant="outline" size="sm" className="h-7 text-xs" onClick={fetchProcesses} disabled={loading}>
               <RefreshCwIcon className={cn('size-3', loading && 'animate-spin')} />
-              {translateText('Retry')}
+              Retry
             </Button>
           </div>
         )}
@@ -261,18 +259,18 @@ export default function Processes() {
               <TableRow className="h-8 hover:bg-transparent border-b border-border/60">
                 <TableHead className="h-8 w-8 px-2 text-center text-xs">#</TableHead>
                 <TableHead className="h-8 w-16 px-2 text-xs">PID</TableHead>
-                <TableHead className="h-8 w-24 px-2 text-xs">{translateText('User')}</TableHead>
-                <TableHead className="h-8 w-14 px-2 text-right text-xs">{translateText("Priority")}</TableHead>
+                <TableHead className="h-8 w-24 px-2 text-xs">User</TableHead>
+                <TableHead className="h-8 w-14 px-2 text-right text-xs">Priority</TableHead>
                 <TableHead className="h-8 w-20 px-2 text-right text-xs">CPU %</TableHead>
-                <TableHead className="h-8 w-20 px-2 text-right text-xs">{translateText("Memory %")}</TableHead>
-                <TableHead className="h-8 px-2 text-xs">{translateText('Command')}</TableHead>
+                <TableHead className="h-8 w-20 px-2 text-right text-xs">Memory %</TableHead>
+                <TableHead className="h-8 px-2 text-xs">Command</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-xs text-muted-foreground">
-                    {search ? translateText("No processes match your filter.") : translateText("No processes found.")}
+                    {search ? "No processes match your filter." : "No processes found."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -286,13 +284,13 @@ export default function Processes() {
                             size="icon"
                             onClick={() => killProcess(p.pid)}
                             className="size-6 text-muted-foreground/30 hover:text-destructive hover:bg-destructive/10 opacity-40 group-hover:opacity-100 transition-opacity"
-                            aria-label={translateText("Kill PID :value", { value: p.pid })}
+                            aria-label={`Kill PID ${p.pid}`}
                           >
                             <SkullIcon className="size-3" />
                           </Button>
                         </TooltipTrigger>
                         <TooltipContent side="right">
-                          <span>{translateText("Kill process #")}{p.pid}</span>
+                          <span>Kill process #{p.pid}</span>
                         </TooltipContent>
                       </Tooltip>
                     </TableCell>
@@ -323,12 +321,12 @@ export default function Processes() {
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            {translateText(filtered.length === 1 ? ':count process shown' : ':count processes shown', { count: filtered.length })}
+            {filtered.length === 1 ? `${filtered.length} process shown` : `${filtered.length} processes shown`}
             {selectedUser !== 'all' && ` (user: ${selectedUser})`}
             {search && ` (filter: "${search}")`}
           </span>
           {data.processes.length > 0 && (
-            <span>{translateText('Total:')} {data.processes.length} {translateText("processes")}</span>
+            <span>Total: {data.processes.length} processes</span>
           )}
         </div>
       </Container>

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import ServerLayout from '@/layouts/server/layout';
 import SiteBanners from '@/components/site-banners';
 import { Head, usePage } from '@inertiajs/react';
@@ -17,7 +16,6 @@ import { Site } from '@/types/site';
 import { useRealtime } from '@/hooks/use-socket-events';
 
 export default function Redirects() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -28,16 +26,16 @@ export default function Redirects() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Redirect - :value", { value: page.props.server.name })} />
+      <Head title={`Redirect - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Redirect')} description={translateText("Here you can Redirect certificates")} />
+          <Heading title={'Redirect'} description="Here you can Redirect certificates" />
           <div className="flex items-center gap-2">
             <CreateRedirect site={page.props.site}>
               <Button>
                 <PlusIcon />
-                <span className="hidden lg:block">{translateText("Create redirect")}</span>
+                <span className="hidden lg:block">Create redirect</span>
               </Button>
             </CreateRedirect>
           </div>

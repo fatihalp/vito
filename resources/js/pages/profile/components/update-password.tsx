@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import InputError from '@/components/ui/input-error';
 import { useForm, usePage } from '@inertiajs/react';
 import { FormEvent, useRef } from 'react';
@@ -12,7 +11,6 @@ import { SharedData } from '@/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function UpdatePassword() {
-  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const passwordInput = useRef<HTMLInputElement>(null);
   const currentPasswordInput = useRef<HTMLInputElement>(null);
@@ -51,22 +49,22 @@ export default function UpdatePassword() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{translateText('Update password')}</CardTitle>
-        <CardDescription>{translateText('Use at least 8 characters, including an uppercase letter and a special character (such as !, @ or #).')}</CardDescription>
+        <CardTitle>Update password</CardTitle>
+        <CardDescription>Use at least 8 characters, including an uppercase letter and a special character (such as !, @ or #).</CardDescription>
       </CardHeader>
       <CardContent className="p-4">
         {page.props.auth.user.two_factor_enabled && (
           <Alert className="mb-4">
             <TriangleAlertIcon size={5} />
             <AlertDescription>
-              {translateText("Resetting your password will disable two-factor authentication. You will need to set it up again after changing your password.")}
+              Resetting your password will disable two-factor authentication. You will need to set it up again after changing your password.
             </AlertDescription>
           </Alert>
         )}
         <form id="update-password-form" onSubmit={updatePassword}>
           <div className="grid gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="current_password">{translateText('Current password')}</Label>
+              <Label htmlFor="current_password">Current password</Label>
               <Input
                 id="current_password"
                 ref={currentPasswordInput}
@@ -75,30 +73,30 @@ export default function UpdatePassword() {
                 type="password"
                 className="mt-1 block w-full"
                 autoComplete="current-password"
-                placeholder={translateText('Current password')}
+                placeholder={'Current password'}
               />
               <InputError message={form.errors.current_password} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password">{translateText('New password')}</Label>
+              <Label htmlFor="password">New password</Label>
               <Input
                 id="password"
                 required
                 minLength={8}
                 pattern={String.raw`(?=.*\p{Lu})(?=.*[\p{P}\p{S}]).{8,}`}
-                title={translateText("Use at least 8 characters, an uppercase letter and a special character.")}
+                title="Use at least 8 characters, an uppercase letter and a special character."
                 ref={passwordInput}
                 value={form.data.password}
                 onChange={(e) => form.setData('password', e.target.value)}
                 type="password"
                 className="mt-1 block w-full"
                 autoComplete="new-password"
-                placeholder={translateText('New password')}
+                placeholder={'New password'}
               />
               <InputError message={form.errors.password} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="password_confirmation">{translateText('Confirm password')}</Label>
+              <Label htmlFor="password_confirmation">Confirm password</Label>
               <Input
                 id="password_confirmation"
                 value={form.data.password_confirmation}
@@ -106,7 +104,7 @@ export default function UpdatePassword() {
                 type="password"
                 className="mt-1 block w-full"
                 autoComplete="new-password"
-                placeholder={translateText('Confirm password')}
+                placeholder={'Confirm password'}
               />
               <InputError message={form.errors.password_confirmation} />
             </div>
@@ -117,7 +115,7 @@ export default function UpdatePassword() {
         <Button form="update-password-form" disabled={form.processing}>
           {form.processing && <LoaderCircleIcon className="animate-spin" />}
           <FormSuccessful successful={form.recentlySuccessful} />
-          {translateText("Save password")}
+          Save password
         </Button>
       </CardFooter>
     </Card>

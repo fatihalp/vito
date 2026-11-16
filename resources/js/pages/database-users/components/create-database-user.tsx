@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useState } from 'react';
 import {
   Dialog,
@@ -39,7 +38,6 @@ export default function CreateDatabaseUser({
   onDatabaseUserCreated?: () => void;
   children: ReactNode;
 }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const form = useForm<CreateForm>({
@@ -72,13 +70,13 @@ export default function CreateDatabaseUser({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{translateText("Create database user")}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Create new database user")}</DialogDescription>
+          <DialogTitle>Create database user</DialogTitle>
+          <DialogDescription className="sr-only">Create new database user</DialogDescription>
         </DialogHeader>
         <Form className="p-4" id="create-database-user-form" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="username">{translateText('Username')}</Label>
+              <Label htmlFor="username">Username</Label>
               <Input
                 type="text"
                 id="username"
@@ -89,7 +87,7 @@ export default function CreateDatabaseUser({
               <InputError message={form.errors.username} />
             </FormField>
             <FormField>
-              <Label htmlFor="password">{translateText('Password')}</Label>
+              <Label htmlFor="password">Password</Label>
               <Input
                 type="password"
                 id="password"
@@ -100,15 +98,15 @@ export default function CreateDatabaseUser({
               <InputError message={form.errors.password} />
             </FormField>
             <FormField>
-              <Label htmlFor="permission">{translateText('Permission')}</Label>
+              <Label htmlFor="permission">Permission</Label>
               <Select value={form.data.permission} onValueChange={(value) => form.setData('permission', value)}>
                 <SelectTrigger>
-                  <SelectValue placeholder={translateText("Select permission")} />
+                  <SelectValue placeholder="Select permission" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="admin">{translateText("Admin (Full Access)")}</SelectItem>
-                  <SelectItem value="write">{translateText("Write (No Drop/Truncate)")}</SelectItem>
-                  <SelectItem value="read">{translateText("Read Only")}</SelectItem>
+                  <SelectItem value="admin">Admin (Full Access)</SelectItem>
+                  <SelectItem value="write">Write (No Drop/Truncate)</SelectItem>
+                  <SelectItem value="read">Read Only</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={form.errors.permission} />
@@ -118,13 +116,13 @@ export default function CreateDatabaseUser({
                 <FormField>
                   <div className="flex items-center space-x-3">
                     <Checkbox id="remote" name="remote" checked={form.data.remote} onClick={() => form.setData('remote', !form.data.remote)} />
-                    <Label htmlFor="remote">{translateText("Allow remote connection")}</Label>
+                    <Label htmlFor="remote">Allow remote connection</Label>
                   </div>
                   <InputError message={form.errors.remote} />
                 </FormField>
                 {form.data.remote && (
                   <FormField>
-                    <Label htmlFor="host">{translateText("Allow connection from (% for all)")}</Label>
+                    <Label htmlFor="host">Allow connection from (% for all)</Label>
                     <Input type="text" id="host" name="host" value={form.data.host} onChange={(e) => form.setData('host', e.target.value)} />
                     <InputError message={form.errors.host} />
                   </FormField>
@@ -136,12 +134,12 @@ export default function CreateDatabaseUser({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button form="create-database-user-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Create')}
+            Create
           </Button>
         </DialogFooter>
       </DialogContent>

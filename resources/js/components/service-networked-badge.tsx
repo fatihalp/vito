@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import type { CellComponentProps } from '@forjedio/inertia-table-react';
 import { GlobeIcon, InfoIcon, LockIcon, TriangleAlertIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +6,6 @@ import { Service } from '@/types/service';
 import { useDialog } from '@/hooks/use-dialog';
 
 export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const label = String(value ?? 'unknown');
 
@@ -31,17 +29,17 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
         type="button"
         onClick={() => dialog.serviceNetworking.open({ service })}
         className="cursor-pointer focus:outline-none inline-flex"
-        title={translateText("Click to view/change remote networking settings")}
+        title="Click to view/change remote networking settings"
       >
         {isRemoteOpen ? (
           <Badge variant="success" className="gap-1 text-xs hover:opacity-80 transition-opacity">
             <GlobeIcon className="size-3" />
-            <span>{translateText("Remote: Open")}</span>
+            <span>Remote: Open</span>
           </Badge>
         ) : (
           <Badge variant="gray" className="gap-1 text-xs hover:opacity-80 transition-opacity">
             <LockIcon className="size-3" />
-            <span>{translateText("Remote: Local Only")}</span>
+            <span>Remote: Local Only</span>
           </Badge>
         )}
       </button>
@@ -50,7 +48,7 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
           <TooltipTrigger asChild>
             <TriangleAlertIcon className="text-warning size-4" />
           </TooltipTrigger>
-          <TooltipContent>{translateText("Doesn't match Pure's setting - open Networking to reapply.")}</TooltipContent>
+          <TooltipContent>{"Doesn't match Pure's setting - open Networking to reapply."}</TooltipContent>
         </Tooltip>
       )}
       {intentWithoutObservation && (
@@ -58,7 +56,7 @@ export function ServiceNetworkedBadge({ row, value }: CellComponentProps) {
           <TooltipTrigger asChild>
             <InfoIcon className="text-muted-foreground size-4" />
           </TooltipTrigger>
-          <TooltipContent>{translateText("Networking is enabled by Pure - live state not checked yet. Use Refresh.")}</TooltipContent>
+          <TooltipContent>Networking is enabled by Pure - live state not checked yet. Use Refresh.</TooltipContent>
         </Tooltip>
       )}
     </div>

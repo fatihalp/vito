@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, router, usePage } from '@inertiajs/react';
 import { useQueryState } from '@/hooks/use-query-state';
 import { useCallback, useState } from 'react';
@@ -60,31 +59,30 @@ function formatDay(value: string): string {
 }
 
 export default function SiteStats() {
-  const translateText = useTranslate();
   const page = usePage<Page>();
   const { server, site, hasStatsService, statsEnabled } = page.props;
 
   return (
     <ServerLayout>
-      <Head title={translateText("Stats - :value - :value2", { value: site.domain, value2: server.name })} />
+      <Head title={`Stats - ${site.domain} - ${server.name}`} />
       <Container>
         {statsEnabled && hasStatsService ? (
           <StatsView server={server} site={site} />
         ) : (
           <>
             <HeaderContainer>
-              <Heading title={translateText("Stats")} description={translateText("Web statistics for this site")} />
+              <Heading title="Stats" description="Web statistics for this site" />
             </HeaderContainer>
             <SiteBanners site={site} />
             <Card>
               <CardContent className="text-muted-foreground p-6 text-sm">
                 {!statsEnabled ? (
                   <>
-                    {translateText("Statistics are")} <span className="text-foreground font-medium">{translateText("disabled")}</span> {translateText("for this site. Enable them from the site's Settings page.")}
+                    Statistics are <span className="text-foreground font-medium">disabled</span> {"for this site. Enable them from the site's Settings page."}
                   </>
                 ) : (
                   <>
-                    {translateText("Install the")} <span className="text-foreground font-medium">GoAccess</span> {translateText("service on this server to enable site statistics.")}
+                    Install the <span className="text-foreground font-medium">GoAccess</span> service on this server to enable site statistics.
                   </>
                 )}
               </CardContent>
@@ -97,7 +95,6 @@ export default function SiteStats() {
 }
 
 function StatsView({ server, site }: { server: Server; site: Site }) {
-  const translateText = useTranslate();
   const [monthParam, setMonth] = useQueryState('month', '');
   const month = monthParam || undefined;
   const [refreshing, setRefreshing] = useState(false);
@@ -141,12 +138,12 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
   return (
     <>
       <HeaderContainer>
-        <Heading title={translateText("Stats")} description={translateText("Web statistics for this site")} />
+        <Heading title="Stats" description="Web statistics for this site" />
         <div className="flex items-center gap-2">
           {data && data.months.length > 0 && (
             <Select value={selectedMonth} onValueChange={setMonth}>
               <SelectTrigger className="w-[160px]">
-                <SelectValue placeholder={translateText("Select month")} />
+                <SelectValue placeholder="Select month" />
               </SelectTrigger>
               <SelectContent>
                 {data.months.map((m) => (
@@ -157,9 +154,9 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
               </SelectContent>
             </Select>
           )}
-          <Button variant="outline" onClick={refresh} disabled={refreshing} aria-label={translateText('Refresh')}>
+          <Button variant="outline" onClick={refresh} disabled={refreshing} aria-label={'Refresh'}>
             <RefreshCwIcon className={refreshing ? 'animate-spin' : ''} />
-            <span className="hidden lg:block">{translateText('Refresh')}</span>
+            <span className="hidden lg:block">Refresh</span>
           </Button>
         </div>
       </HeaderContainer>
@@ -169,7 +166,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
       {data?.status && data.status.exit_code !== null && data.status.exit_code !== 0 && (
         <Card className="border-destructive/50">
           <CardContent className="text-destructive p-4 text-sm">
-            {translateText("The last statistics run failed")}{data.status.error ? `: ${data.status.error}` : ''}{translateText(". Try Refresh, or Re-sync the GoAccess service.")}
+            The last statistics run failed{data.status.error ? `: ${data.status.error}` : ''}. Try Refresh, or Re-sync the GoAccess service.
           </CardContent>
         </Card>
       )}
@@ -184,24 +181,24 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
 
       {isError && (
         <Card>
-          <CardContent className="text-muted-foreground p-6 text-sm">{translateText("Failed to load site statistics. Try refreshing.")}</CardContent>
+          <CardContent className="text-muted-foreground p-6 text-sm">Failed to load site statistics. Try refreshing.</CardContent>
         </Card>
       )}
 
       {!isLoading && !isError && data && data.summary.length === 0 && !detail && (
         <Card>
           <CardContent className="text-muted-foreground p-6 text-sm">
-            {translateText("No statistics yet. Data is collected hourly — use Refresh to generate it now.")}
+            No statistics yet. Data is collected hourly — use Refresh to generate it now.
           </CardContent>
         </Card>
       )}
 
       {!isLoading && data && data.summary.length > 0 && (
         <div className="flex flex-col gap-2">
-          <h3 className="text-foreground text-base font-medium">{translateText("Growth (monthly)")}</h3>
+          <h3 className="text-foreground text-base font-medium">Growth (monthly)</h3>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
             <StatsChart
-              title={translateText('Visitors')}
+              title={'Visitors'}
               value={formatNumber(data.summary.reduce((t, m) => t + m.visitors, 0))}
               color="var(--color-chart-1)"
               dataKey="visitors"
@@ -211,7 +208,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
               valueFormatter={(v) => formatNumber(Number(v))}
             />
             <StatsChart
-              title={translateText('Hits')}
+              title={'Hits'}
               value={formatNumber(data.summary.reduce((t, m) => t + m.hits, 0))}
               color="var(--color-chart-2)"
               dataKey="hits"
@@ -221,7 +218,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
               valueFormatter={(v) => formatNumber(Number(v))}
             />
             <StatsChart
-              title={translateText("Bandwidth")}
+              title="Bandwidth"
               value={formatBytes(data.summary.reduce((t, m) => t + m.bandwidth, 0))}
               color="var(--color-chart-3)"
               dataKey="bandwidth"
@@ -238,17 +235,17 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
         <>
           <div className="flex flex-col gap-2">
             <div className="flex items-center justify-between">
-              <h3 className="text-foreground text-base font-medium">{selectedMonth ? formatMonth(selectedMonth) : ''} {translateText("detail")}</h3>
-              {detail.generated_at && <span className="text-muted-foreground text-xs">{translateText("Updated")} {new Date(detail.generated_at).toLocaleString('en-US')}</span>}
+              <h3 className="text-foreground text-base font-medium">{selectedMonth ? formatMonth(selectedMonth) : ''} detail</h3>
+              {detail.generated_at && <span className="text-muted-foreground text-xs">Updated {new Date(detail.generated_at).toLocaleString('en-US')}</span>}
             </div>
             <div className="flex flex-col gap-4">
               <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <StatCard title={translateText('Visitors')} value={formatNumber(detail.totals.visitors)} />
-                <StatCard title={translateText('Hits')} value={formatNumber(detail.totals.hits)} />
-                <StatCard title={translateText("Bandwidth")} value={formatBytes(detail.totals.bandwidth)} />
+                <StatCard title={'Visitors'} value={formatNumber(detail.totals.visitors)} />
+                <StatCard title={'Hits'} value={formatNumber(detail.totals.hits)} />
+                <StatCard title="Bandwidth" value={formatBytes(detail.totals.bandwidth)} />
               </div>
               <StatsChart
-                title={translateText("Visitors per day")}
+                title="Visitors per day"
                 color="var(--color-chart-1)"
                 dataKey="visitors"
                 labelKey="date"
@@ -258,7 +255,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
                 height="small"
               />
               <StatsChart
-                title={translateText("Hits per day")}
+                title="Hits per day"
                 color="var(--color-chart-2)"
                 dataKey="hits"
                 labelKey="date"
@@ -268,7 +265,7 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
                 height="small"
               />
               <StatsChart
-                title={translateText("Bandwidth per day")}
+                title="Bandwidth per day"
                 color="var(--color-chart-3)"
                 dataKey="bandwidth"
                 labelKey="date"
@@ -281,13 +278,13 @@ function StatsView({ server, site }: { server: Server; site: Site }) {
           </div>
 
           <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-            <PanelCard title={translateText("Top pages")} rows={detail.top_pages} />
-            <PanelCard title={translateText("Referrers")} rows={detail.referrers} />
+            <PanelCard title="Top pages" rows={detail.top_pages} />
+            <PanelCard title="Referrers" rows={detail.referrers} />
           </div>
 
           <StatusCodesCard rows={detail.status_codes} />
 
-          <PanelCard title={translateText("404 pages")} rows={detail.not_found} />
+          <PanelCard title="404 pages" rows={detail.not_found} />
         </>
       )}
     </>
@@ -306,7 +303,6 @@ function StatCard({ title, value }: { title: string; value: string }) {
 }
 
 function PanelCard({ title, rows }: { title: string; rows: SiteStatsPanelRow[] }) {
-  const translateText = useTranslate();
   const columns: ColumnDef<SiteStatsPanelRow>[] = [
     {
       accessorKey: 'name',
@@ -315,12 +311,12 @@ function PanelCard({ title, rows }: { title: string; rows: SiteStatsPanelRow[] }
     },
     {
       accessorKey: 'hits',
-      header: () => <div className="text-right">{translateText('Hits')}</div>,
+      header: () => <div className="text-right">Hits</div>,
       cell: ({ row }) => <div className="text-right">{row.original.hits.toLocaleString('en-US')}</div>,
     },
     {
       accessorKey: 'visitors',
-      header: () => <div className="text-right">{translateText('Visitors')}</div>,
+      header: () => <div className="text-right">Visitors</div>,
       cell: ({ row }) => <div className="text-right">{row.original.visitors.toLocaleString('en-US')}</div>,
     },
   ];
@@ -329,7 +325,6 @@ function PanelCard({ title, rows }: { title: string; rows: SiteStatsPanelRow[] }
 }
 
 function StatusCodesCard({ rows }: { rows: SiteStatsStatusCode[] }) {
-  const translateText = useTranslate();
   const columns: ColumnDef<SiteStatsStatusCode>[] = [
     {
       accessorKey: 'name',
@@ -337,7 +332,7 @@ function StatusCodesCard({ rows }: { rows: SiteStatsStatusCode[] }) {
     },
     {
       accessorKey: 'hits',
-      header: () => <div className="text-right">{translateText('Hits')}</div>,
+      header: () => <div className="text-right">Hits</div>,
       cell: ({ row }) => <div className="text-right">{row.original.hits.toLocaleString('en-US')}</div>,
     },
   ];

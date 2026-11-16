@@ -22,13 +22,13 @@ class DeleteStorageProvider
 
         if ($storageProvider->backups()->exists()) {
             throw ValidationException::withMessages([
-                'provider' => __('This storage provider is being used by a backup.'),
+                'provider' => 'This storage provider is being used by a backup.',
             ]);
         }
 
         if ($storageProvider->siteResources()->exists()) {
             throw ValidationException::withMessages([
-                'provider' => __('This storage provider is currently connected to a site.'),
+                'provider' => 'This storage provider is currently connected to a site.',
             ]);
         }
 

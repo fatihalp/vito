@@ -25,7 +25,7 @@ class VerifyStorageConnection
         if (! $connected) {
             throw ValidationException::withMessages([
                 'provider' => ($provider instanceof ReportsConnectionErrors ? $provider->connectionError() : null)
-                    ?? __("Couldn't connect to the provider"),
+                    ?? 'Couldn\'t connect to the provider',
             ]);
         }
     }

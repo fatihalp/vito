@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ServerFeature, ServerFeatureAction } from '@/types/server';
 import { SiteFeature, SiteFeatureAction } from '@/types/site';
 import { Button } from '@/components/ui/button';
@@ -22,7 +21,6 @@ export default function FeaturesCard({
   features, 
   onActionSelect 
 }: FeaturesCardProps) {
-  const translateText = useTranslate();
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex-row items-center justify-between gap-2">
@@ -43,7 +41,7 @@ export default function FeaturesCard({
                 <DropdownMenu modal={false}>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline">
-                      {translateText('Actions')}
+                      Actions
                       <MoreVerticalIcon />
                     </Button>
                   </DropdownMenuTrigger>
@@ -65,7 +63,7 @@ export default function FeaturesCard({
           ))
         ) : (
           <CardRow className="flex-col items-center justify-center space-y-2">
-            <span className="text-muted-foreground">{translateText("No available features")}</span>
+            <span className="text-muted-foreground">No available features</span>
           </CardRow>
         )}
       </CardContent>

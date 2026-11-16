@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -19,7 +18,6 @@ import { useRealtime } from '@/hooks/use-socket-events';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function WorkerIndex() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     workers: PaginatedData<Worker>;
@@ -39,20 +37,20 @@ export default function WorkerIndex() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Workers - :value", { value: page.props.server.name })} />
+      <Head title={`Workers - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>
           <Heading
-            title={translateText('Workers')}
-            description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : translateText("Here you can manage server's workers")}
+            title={'Workers'}
+            description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : "Here you can manage server's workers"}
           />
           {page.props.server.services?.process_manager && <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm" className="gap-1.5">
                   <MoreHorizontalIcon className="size-4" />
-                  <span>{translateText('Actions')}</span>
+                  <span>Actions</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -60,7 +58,7 @@ export default function WorkerIndex() {
                   onSelect={() =>
                     dialog.confirm.open({
                       title: 'Resync workers',
-                      description: translateText("Fetch the live status of :value from the process manager and update Pure. Continue?", { value: scopeLabel }),
+                      description: `Fetch the live status of ${scopeLabel} from the process manager and update Pure. Continue?`,
                       confirmLabel: 'Resync',
                       method: 'post',
                       url: `/servers/${scope.server}/workers/resync${scope.site ? `/${scope.site}` : ''}`,
@@ -68,13 +66,13 @@ export default function WorkerIndex() {
                   }
                 >
                   <RefreshCwIcon />
-                  {translateText("Resync")}
+                  Resync
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   onSelect={() =>
                     dialog.confirm.open({
                       title: 'Restart all workers',
-                      description: translateText("Are you sure you want to restart :value?", { value: scopeLabel }),
+                      description: `Are you sure you want to restart ${scopeLabel}?`,
                       confirmLabel: 'Restart All',
                       method: 'post',
                       url: `/servers/${scope.server}/workers/restart-all${scope.site ? `/${scope.site}` : ''}`,
@@ -82,13 +80,13 @@ export default function WorkerIndex() {
                   }
                 >
                   <RotateCwIcon />
-                  {translateText("Restart All")}
+                  Restart All
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
             <Button onClick={() => dialog.workerForm.open({ serverId: page.props.server.id, site: page.props.site })}>
               <PlusIcon />
-              <span className="hidden lg:block">{translateText('Create')}</span>
+              <span className="hidden lg:block">Create</span>
             </Button>
           </div>}
         </HeaderContainer>

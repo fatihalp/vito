@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent } from 'react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -22,7 +21,6 @@ export default function NetworkFirewallRuleForm({
   networkId: number;
   rule?: NetworkFirewallRule;
 }) {
-  const translateText = useTranslate();
   const form = useForm<{
     name: string;
     protocol: string;
@@ -50,29 +48,29 @@ export default function NetworkFirewallRuleForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{rule ? translateText("Edit") : translateText("Create")} {translateText('firewall rule')}</DialogTitle>
-          <DialogDescription className="sr-only">{rule ? translateText("Edit") : translateText("Create new")} {translateText("network firewall rule")}</DialogDescription>
+          <DialogTitle>{rule ? "Edit" : "Create"} firewall rule</DialogTitle>
+          <DialogDescription className="sr-only">{rule ? "Edit" : "Create new"} network firewall rule</DialogDescription>
         </DialogHeader>
         <Form id="network-firewall-rule-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="protocol">{translateText("Protocol")}</Label>
+              <Label htmlFor="protocol">Protocol</Label>
               <Select
                 value={form.data.protocol === '' ? 'all' : form.data.protocol}
                 onValueChange={(value) => form.setData('protocol', value === 'all' ? '' : value)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder={translateText("All protocols")} />
+                  <SelectValue placeholder="All protocols" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
-                    <SelectItem value="all">{translateText("All protocols")}</SelectItem>
+                    <SelectItem value="all">All protocols</SelectItem>
                     <SelectItem value="tcp">TCP</SelectItem>
                     <SelectItem value="udp">UDP</SelectItem>
                   </SelectGroup>
@@ -90,7 +88,7 @@ export default function NetworkFirewallRuleForm({
                 onChange={(e) => form.setData('port', e.target.value)}
               />
               <p className="text-muted-foreground text-xs">
-                {translateText("Protocol and port are independent — leave either empty to match all of it, or both to match all traffic from the network.")}
+                Protocol and port are independent — leave either empty to match all of it, or both to match all traffic from the network.
               </p>
               <InputError message={form.errors.port} />
             </FormField>
@@ -98,11 +96,11 @@ export default function NetworkFirewallRuleForm({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Close')}</Button>
+            <Button variant="outline">Close</Button>
           </DialogClose>
           <Button form="network-firewall-rule-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

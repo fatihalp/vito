@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -26,7 +25,6 @@ export default function RestoreToServer({
   backup: Backup;
   file?: BackupFile;
 }) {
-  const translateText = useTranslate();
   const [requirements, setRequirements] = useState<RestoreRequirements | null>(null);
   const [planFit, setPlanFit] = useState<PlanFit>({ blocked: null, warnings: [] });
   const form = useForm({
@@ -60,40 +58,40 @@ export default function RestoreToServer({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>{translateText('Restore to a new server')}</SheetTitle>
-          <SheetDescription className="sr-only">{translateText("Create a server and restore this backup onto it")}</SheetDescription>
+          <SheetTitle>Restore to a new server</SheetTitle>
+          <SheetDescription className="sr-only">Create a server and restore this backup onto it</SheetDescription>
         </SheetHeader>
         <Form id="restore-to-server-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
-              {translateText("Pure creates a server at your provider (billed by the provider), installs the same operating system and PostgreSQL version as")}{' '}
-              {requirements?.source ?? translateText("the source")}{translateText(", and restores the backup onto it. The copy is independent: it doesn't connect to the source, archive WAL or take backups, and Pure removes the backup storage credentials from it when the restore finishes. It holds every database and user in the backup.")}
+              Pure creates a server at your provider (billed by the provider), installs the same operating system and PostgreSQL version as{' '}
+              {requirements?.source ?? "the source"}{", and restores the backup onto it. The copy is independent: it doesn't connect to the source, archive WAL or take backups, and Pure removes the backup storage credentials from it when the restore finishes. It holds every database and user in the backup."}
             </div>
 
             <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
-              <p className="font-medium">{translateText("The new server needs")}</p>
+              <p className="font-medium">The new server needs</p>
               {requirements === null ? (
-                <p className="text-muted-foreground">{translateText("Loading the requirements…")}</p>
+                <p className="text-muted-foreground">Loading the requirements…</p>
               ) : (
                 <>
                   <p>
-                    <span className="font-medium">{translateText("Storage:")} {requirements.storage_gb !== null ? `at least ${requirements.storage_gb} GB` : translateText("unknown")}.</span>{' '}
+                    <span className="font-medium">Storage: {requirements.storage_gb !== null ? `at least ${requirements.storage_gb} GB` : "unknown"}.</span>{' '}
                     {requirements.measured && requirements.database_size !== null
                       ? `The largest backed-up database is ${(requirements.database_size / 1073741824).toFixed(1)} GB when restored.`
                       : `Until a backup reports its database size, this is based on the disk ${requirements.source} uses.`}{' '}
-                    {translateText("The rest covers WAL replay, 20% growth and the operating system.")}
+                    The rest covers WAL replay, 20% growth and the operating system.
                   </p>
                   <p>
                     <span className="font-medium">
-                      vCPU: {requirements.cores ?? translateText("unknown")} {translateText("· Memory:")} {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : translateText("unknown")}
+                      vCPU: {requirements.cores ?? "unknown"} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : "unknown"}
                     </span>{' '}
-                    {translateText("or more, like")} {requirements.source}{translateText(", so the restored database performs the same and its PostgreSQL settings fit.")}
+                    or more, like {requirements.source}, so the restored database performs the same and its PostgreSQL settings fit.
                   </p>
                   <p>
                     <span className="font-medium">
-                      {translateText("Processor:")} {requirements.architecture ?? translateText("same as the source")} · {requirements.os.replace('_', ' ')} · PostgreSQL {requirements.postgresql}
+                      Processor: {requirements.architecture ?? "same as the source"} · {requirements.os.replace('_', ' ')} · PostgreSQL {requirements.postgresql}
                     </span>
-                    {translateText(". PostgreSQL data files are only safe on the same processor architecture.")}
+                    . PostgreSQL data files are only safe on the same processor architecture.
                   </p>
                 </>
               )}
@@ -109,15 +107,15 @@ export default function RestoreToServer({
             />
 
             <FormField>
-              <Label>{translateText("Restore point")}</Label>
+              <Label>Restore point</Label>
               <Select value={form.data.target} onValueChange={(target) => form.setData('target', target)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="latest">{translateText("Latest: the last backup plus all archived WAL")}</SelectItem>
-                  {file && <SelectItem value="backup">{translateText('Backup')} {file.name}{translateText(", as it was when it finished")}</SelectItem>}
-                  <SelectItem value="time">{translateText("A point in time")}</SelectItem>
+                  <SelectItem value="latest">Latest: the last backup plus all archived WAL</SelectItem>
+                  {file && <SelectItem value="backup">Backup {file.name}, as it was when it finished</SelectItem>}
+                  <SelectItem value="time">A point in time</SelectItem>
                 </SelectContent>
               </Select>
               <InputError message={form.errors.target || form.errors.backup_file_id} />
@@ -125,7 +123,7 @@ export default function RestoreToServer({
 
             {form.data.target === 'time' && (
               <FormField>
-                <Label htmlFor="restore-time">{translateText("Point in time (your local time)")}</Label>
+                <Label htmlFor="restore-time">Point in time (your local time)</Label>
                 <Input id="restore-time" type="datetime-local" step="1" value={form.data.target_time} onChange={(e) => form.setData('target_time', e.target.value)} />
                 <InputError message={form.errors.target_time} />
               </FormField>
@@ -138,10 +136,10 @@ export default function RestoreToServer({
           <div className="flex items-center gap-2">
             <Button form="restore-to-server-form" type="submit" disabled={form.processing || Boolean(planFit.blocked)}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              {translateText("Create server and restore")}
+              Create server and restore
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">{translateText('Cancel')}</Button>
+              <Button variant="outline">Cancel</Button>
             </SheetClose>
           </div>
         </SheetFooter>

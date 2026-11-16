@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,6 @@ import { LoaderCircleIcon } from 'lucide-react';
 import FormSuccessful from '@/components/form-successful';
 
 export default function UpdateProfile() {
-  const translateText = useTranslate();
   const page = usePage<
     SharedData & {
       must_verify_email: boolean;
@@ -37,45 +35,45 @@ export default function UpdateProfile() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{translateText('Profile information')}</CardTitle>
-        <CardDescription>{translateText('Update your profile information and email address.')}</CardDescription>
+        <CardTitle>Profile information</CardTitle>
+        <CardDescription>Update your profile information and email address.</CardDescription>
       </CardHeader>
       <CardContent className="p-4">
         <form id="update-profile-form" onSubmit={submit}>
           <div className="grid gap-6">
             <div className="grid gap-2">
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 id="name"
                 value={form.data.name}
                 onChange={(e) => form.setData('name', e.target.value)}
                 autoComplete="name"
-                placeholder={translateText('Full name')}
+                placeholder={'Full name'}
               />
               <InputError message={form.errors.name} />
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="email">{translateText('Email address')}</Label>
+              <Label htmlFor="email">Email address</Label>
               <Input
                 id="email"
                 type="email"
                 value={form.data.email}
                 onChange={(e) => form.setData('email', e.target.value)}
                 autoComplete="username"
-                placeholder={translateText('Email address')}
+                placeholder={'Email address'}
               />
               <InputError message={form.errors.email} />
             </div>
             {page.props.must_verify_email && page.props.auth.user.email_verified_at === null && (
               <div>
                 <p className="text-muted-foreground -mt-4 text-sm">
-                  {translateText('Your email address is unverified.')}{' '}
+                  Your email address is unverified.{' '}
                   <Link href="/email/verification-notification" method="post" as="button" className="text-foreground underline">
-                    {translateText('Click here to resend the verification email.')}
+                    Click here to resend the verification email.
                   </Link>
                 </p>
                 {page.props.status === 'verification-link-sent' && (
-                  <div className="text-success mt-2 text-sm font-medium">{translateText('A new verification link has been sent to your email address.')}</div>
+                  <div className="text-success mt-2 text-sm font-medium">A new verification link has been sent to your email address.</div>
                 )}
               </div>
             )}
@@ -86,7 +84,7 @@ export default function UpdateProfile() {
         <Button form="update-profile-form" disabled={form.processing}>
           {form.processing && <LoaderCircleIcon className="animate-spin" />}
           <FormSuccessful successful={form.recentlySuccessful} />
-          {translateText('Save')}
+          Save
         </Button>
       </CardFooter>
     </Card>

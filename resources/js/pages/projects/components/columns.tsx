@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { SharedData } from '@/types';
@@ -12,9 +11,8 @@ import { useDialog } from '@/hooks/use-dialog';
 import { ProjectUser } from '@/types/project-user';
 
 const CurrentProject = ({ project }: { project: Project }) => {
-  const translateText = useTranslate();
   const page = usePage<SharedData>();
-  return <>{project.id === page.props.auth.currentProject?.id && <Badge variant="default">{translateText("current")}</Badge>}</>;
+  return <>{project.id === page.props.auth.currentProject?.id && <Badge variant="default">current</Badge>}</>;
 };
 
 function getActiveRegisteredUsers(project: Project): ProjectUser[] {
@@ -22,7 +20,6 @@ function getActiveRegisteredUsers(project: Project): ProjectUser[] {
 }
 
 export function ProjectActions({ project }: { project: Project }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const page = usePage<SharedData>();
   const canDelete = project.role === 'owner' || page.props.auth.user.is_admin;
@@ -33,15 +30,15 @@ export function ProjectActions({ project }: { project: Project }) {
         <TableActionTrigger />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={() => dialog.projectForm.open({ project })}>{translateText('Edit')}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => dialog.projectForm.open({ project })}>Edit</DropdownMenuItem>
         <DropdownMenuItem onSelect={() => dialog.projectUsers.open({ project })}>
           <UsersIcon className="size-3.5 mr-2" />
-          <span>{project.role === 'user' ? translateText("View access") : translateText("Manage access")}</span>
+          <span>{project.role === 'user' ? "View access" : "Manage access"}</span>
         </DropdownMenuItem>
         {project.role !== 'owner' && (
           <DropdownMenuItem
             onSelect={() => dialog.confirm.open({
-              title: translateText("Leave :value", { value: project.name }),
+              title: `Leave ${project.name}`,
               description: 'Are you sure you want to leave this project?',
               confirmLabel: 'Leave',
               variant: 'destructive',
@@ -49,7 +46,7 @@ export function ProjectActions({ project }: { project: Project }) {
               url: `/settings/projects/${project.id}/leave`,
             })}
           >
-            {translateText("Leave project")}
+            Leave project
           </DropdownMenuItem>
         )}
         {canDelete && (
@@ -59,8 +56,8 @@ export function ProjectActions({ project }: { project: Project }) {
               variant="destructive"
               onSelect={() =>
                 dialog.confirm.open({
-                  title: translateText("Delete :value", { value: project.name }),
-                  description: translateText("Are you sure you want to delete :value?", { value: project.name }),
+                  title: `Delete ${project.name}`,
+                  description: `Are you sure you want to delete ${project.name}?`,
                   variant: 'destructive',
                   confirmLabel: 'Delete',
                   method: 'delete',
@@ -68,7 +65,7 @@ export function ProjectActions({ project }: { project: Project }) {
                 })
               }
             >
-              {translateText('Delete')}
+              Delete
             </DropdownMenuItem>
           </>
         )}

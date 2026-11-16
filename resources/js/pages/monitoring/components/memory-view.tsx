@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { MetricsFilter } from '@/types/metric';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -8,7 +7,6 @@ import { useMetrics } from '@/pages/monitoring/components/use-metrics';
 import { kbToGb } from '@/lib/utils';
 
 export default function MemoryView({ server, filter }: { server: Server; filter?: MetricsFilter }) {
-  const translateText = useTranslate();
   const query = useMetrics(server, filter);
 
   if (query.isLoading || !query.data) {
@@ -30,13 +28,13 @@ export default function MemoryView({ server, filter }: { server: Server; filter?
     <div className="flex flex-col gap-6">
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatTile
-          label={translateText('Memory Usage')}
+          label={'Memory Usage'}
           value={current?.memory_used_percent != null ? `${current.memory_used_percent.toFixed(2)}%` : 'N/A'}
           subtitle={latest ? `${kbToGb(latest.memory_used)} / ${kbToGb(latest.memory_total)} GB` : undefined}
         />
-        <StatTile label={translateText("Memory Free")} value={latest ? `${kbToGb(latest.memory_free)} GB` : 'N/A'} />
+        <StatTile label="Memory Free" value={latest ? `${kbToGb(latest.memory_free)} GB` : 'N/A'} />
         <StatTile
-          label={translateText("Swap Usage")}
+          label="Swap Usage"
           value={current?.swap_used_percent != null ? `${current.swap_used_percent.toFixed(2)}%` : 'N/A'}
           subtitle={swapPresent ? undefined : 'No swap configured'}
         />
@@ -44,8 +42,8 @@ export default function MemoryView({ server, filter }: { server: Server; filter?
       </div>
 
       <ResourceUsageChart
-        title={translateText("Memory Usage %")}
-        label={translateText("Memory usage")}
+        title="Memory Usage %"
+        label="Memory usage"
         dataKey="memory_used_percent"
         color="var(--color-chart-2)"
         chartData={history}
@@ -55,8 +53,8 @@ export default function MemoryView({ server, filter }: { server: Server; filter?
       />
 
       <ResourceUsageChart
-        title={translateText("Memory Used")}
-        label={translateText("Memory used")}
+        title="Memory Used"
+        label="Memory used"
         dataKey="memory_used"
         color="var(--color-chart-3)"
         chartData={history}
@@ -68,7 +66,7 @@ export default function MemoryView({ server, filter }: { server: Server; filter?
 
       {swapPresent && (
         <ResourceUsageChart
-          title={translateText("Swap Usage %")}
+          title="Swap Usage %"
           label="Swap"
           dataKey="swap_used_percent"
           color="var(--color-chart-4)"

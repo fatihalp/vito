@@ -48,7 +48,7 @@ class RuntimeProcessController extends Controller
         $action->register($server, $request->all());
         RefreshRuntimeProcessesJob::dispatch($server);
 
-        return back()->with('success', __('Existing process registered. Its status will be checked shortly.'));
+        return back()->with('success', 'Existing process registered. Its status will be checked shortly.');
     }
 
     #[Post('/refresh', name: 'runtime-processes.refresh')]
@@ -57,7 +57,7 @@ class RuntimeProcessController extends Controller
         $this->authorize('create', [RuntimeProcess::class, $server]);
         RefreshRuntimeProcessesJob::dispatch($server);
 
-        return back()->with('success', __('Process status refresh queued.'));
+        return back()->with('success', 'Process status refresh queued.');
     }
 
     #[Post('/{runtimeProcess}/{operation}', name: 'runtime-processes.control')]
@@ -71,7 +71,7 @@ class RuntimeProcessController extends Controller
         $this->authorize('manage', [$runtimeProcess, $server]);
         $action->queue($request->user(), $runtimeProcess, $operation);
 
-        return back()->with('success', __('Process command queued. Its result will appear here shortly.'));
+        return back()->with('success', 'Process command queued. Its result will appear here shortly.');
     }
 
     #[Delete('/{runtimeProcess}', name: 'runtime-processes.destroy')]
@@ -80,6 +80,6 @@ class RuntimeProcessController extends Controller
         $this->authorize('manage', [$runtimeProcess, $server]);
         $runtimeProcess->delete();
 
-        return back()->with('success', __('Process unlinked. The running service was not changed.'));
+        return back()->with('success', 'Process unlinked. The running service was not changed.');
     }
 }

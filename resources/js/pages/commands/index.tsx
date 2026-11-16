@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import Container from '@/components/container';
 import DateTime from '@/components/date-time';
 import Heading from '@/components/heading';
@@ -20,7 +19,6 @@ import { Clock3Icon, CornerDownLeftIcon, LoaderCircleIcon, PlayIcon, PlusIcon, T
 import { FormEvent } from 'react';
 
 function CommandRow({ command }: { command: Command }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -40,29 +38,29 @@ function CommandRow({ command }: { command: Command }) {
         <Button variant="ghost" size="sm" className="hidden sm:inline-flex" asChild>
           <Link href={`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`}>
             <Clock3Icon />
-            {translateText('Logs')}
+            Logs
           </Link>
         </Button>
         <Button size="sm" onClick={() => dialog.commandExecute.open({ command })}>
           <PlayIcon />
-          <span className="hidden sm:inline">{translateText('Run')}</span>
+          <span className="hidden sm:inline">Run</span>
         </Button>
         <DropdownMenu modal={false}>
           <DropdownMenuTrigger asChild>
-            <TableActionTrigger iconOnly aria-label={translateText("Manage :value", { value: command.name })} />
+            <TableActionTrigger iconOnly aria-label={`Manage ${command.name}`} />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem asChild className="sm:hidden">
-              <Link href={`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`}>{translateText('View logs')}</Link>
+              <Link href={`/servers/${command.server_id}/sites/${command.site_id}/commands/${command.id}`}>View logs</Link>
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => dialog.commandEdit.open({ command })}>{translateText('Edit')}</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => dialog.commandEdit.open({ command })}>Edit</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               variant="destructive"
               onSelect={() =>
                 dialog.confirm.open({
                   title: 'Delete command',
-                  description: translateText("Delete :value? Its execution history will also be removed.", { value: command.name }),
+                  description: `Delete ${command.name}? Its execution history will also be removed.`,
                   variant: 'destructive',
                   confirmLabel: 'Delete',
                   method: 'delete',
@@ -70,7 +68,7 @@ function CommandRow({ command }: { command: Command }) {
                 })
               }
             >
-              {translateText('Delete')}
+              Delete
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -80,7 +78,6 @@ function CommandRow({ command }: { command: Command }) {
 }
 
 export default function Commands() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -104,10 +101,10 @@ export default function Commands() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Commands - :value - :value2", { value: site.domain, value2: server.name })} />
+      <Head title={`Commands - ${site.domain} - ${server.name}`} />
 
       <Container>
-        <Heading title={translateText('Commands')} />
+        <Heading title={'Commands'} />
 
         <SiteBanners site={site} />
 
@@ -123,18 +120,18 @@ export default function Commands() {
                   className="h-9 pl-10 font-mono"
                   autoComplete="off"
                   autoFocus
-                  aria-label={translateText("Command to run")}
+                  aria-label="Command to run"
                 />
               </div>
               <Button type="submit" className="h-9 shrink-0" disabled={form.processing || !form.data.command.trim()}>
                 {form.processing ? <LoaderCircleIcon className="animate-spin" /> : <CornerDownLeftIcon />}
-                <span className="hidden sm:inline">{translateText('Run')}</span>
+                <span className="hidden sm:inline">Run</span>
               </Button>
             </form>
             <InputError message={form.errors.command} className="px-2 pt-2" />
             {suggestedCommands.length > 0 && (
               <details className="px-2 pt-2 text-xs">
-                <summary className="text-muted-foreground cursor-pointer">{translateText("Recent inputs")}</summary>
+                <summary className="text-muted-foreground cursor-pointer">Recent inputs</summary>
                 <div className="flex flex-col gap-1 pt-2">
                 {suggestedCommands.map((suggestion) => (
                   <Button
@@ -158,11 +155,11 @@ export default function Commands() {
         <Card>
           <CardHeader className="flex-row items-center justify-between gap-4">
             <div className="flex flex-col gap-1.5">
-              <CardTitle>{translateText("Saved commands")}</CardTitle>
+              <CardTitle>Saved commands</CardTitle>
             </div>
             <Button variant="outline" size="sm" onClick={() => dialog.commandCreate.open({ serverId: server.id, siteId: site.id })}>
               <PlusIcon />
-              <span className="hidden sm:inline">{translateText("Save command")}</span>
+              <span className="hidden sm:inline">Save command</span>
             </Button>
           </CardHeader>
           <CardContent>
@@ -172,8 +169,8 @@ export default function Commands() {
               <div className="flex flex-col items-center gap-3 px-6 py-14 text-center">
                 <TerminalIcon className="text-muted-foreground size-6" />
                 <div className="flex flex-col gap-1">
-                  <h3 className="font-medium">{translateText("No recent commands")}</h3>
-                  <p className="text-muted-foreground text-sm">{translateText("Run a command above and it will appear here for next time.")}</p>
+                  <h3 className="font-medium">No recent commands</h3>
+                  <p className="text-muted-foreground text-sm">Run a command above and it will appear here for next time.</p>
                 </div>
               </div>
             )}
@@ -183,11 +180,11 @@ export default function Commands() {
         {(commands.links.prev || commands.links.next) && (
           <div className="flex items-center justify-between gap-3">
             <Button variant="outline" disabled={!commands.links.prev} onClick={() => visitPage(commands.links.prev)}>
-              {translateText('Previous')}
+              Previous
             </Button>
-            <span className="text-muted-foreground text-sm">{translateText('Page')} {commands.meta.current_page}</span>
+            <span className="text-muted-foreground text-sm">Page {commands.meta.current_page}</span>
             <Button variant="outline" disabled={!commands.links.next} onClick={() => visitPage(commands.links.next)}>
-              {translateText('Next')}
+              Next
             </Button>
           </div>
         )}

@@ -11,7 +11,7 @@ class DeleteProject
     {
         if ($project->servers()->exists()) {
             throw ValidationException::withMessages([
-                'project' => __('This project still has servers. Delete or move them first.'),
+                'project' => 'This project still has servers. Delete or move them first.',
             ]);
         }
 

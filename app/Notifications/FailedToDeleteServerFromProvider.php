@@ -11,21 +11,15 @@ class FailedToDeleteServerFromProvider extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("We couldn't delete [:server] \nfrom :provider \nPlease check your provider and delete it manually", [
-            'server' => $this->server->name,
-            'provider' => $this->server->provider,
-        ]);
+        return strtr("We couldn't delete [:server] \nfrom :provider \nPlease check your provider and delete it manually", [':server' => $this->server->name, ':provider' => $this->server->provider]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->error()
-            ->subject(__('Failed to delete server from provider'))
-            ->line(__('We couldn\'t delete [:server] from :provider.', [
-                'server' => $this->server->name,
-                'provider' => $this->server->provider,
-            ]))
-            ->line(__('Please check your provider and remove it manually.'));
+            ->subject('Failed to delete server from provider')
+            ->line(strtr('We couldn\'t delete [:server] from :provider.', [':server' => $this->server->name, ':provider' => $this->server->provider]))
+            ->line('Please check your provider and remove it manually.');
     }
 }

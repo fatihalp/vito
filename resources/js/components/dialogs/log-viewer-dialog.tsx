@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import LogOutput from '@/components/log-output';
@@ -16,7 +15,6 @@ type LogViewerDialogProps = {
 };
 
 export default function LogViewerDialog({ open, onOpenChange, serverId, logId, title }: LogViewerDialogProps) {
-  const translateText = useTranslate();
   const { content, isLoading, error } = useLogContent({ serverId, logId, enabled: open });
 
   return (
@@ -24,7 +22,7 @@ export default function LogViewerDialog({ open, onOpenChange, serverId, logId, t
       <DialogContent className="sm:max-w-5xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Log contents")}</DialogDescription>
+          <DialogDescription className="sr-only">Log contents</DialogDescription>
         </DialogHeader>
         <LogOutput>
           <>
@@ -33,14 +31,14 @@ export default function LogViewerDialog({ open, onOpenChange, serverId, logId, t
                 <Loader2 className="size-6 animate-spin text-muted-foreground" />
               </div>
             )}
-            {error && <div className="text-destructive">{translateText("Error:")} {error}</div>}
+            {error && <div className="text-destructive">Error: {error}</div>}
             {!isLoading && !isPendingLog(content) && content && !error && content}
           </>
         </LogOutput>
         <DialogFooter>
           <Button variant="outline" asChild>
             <a href={`/servers/${serverId}/logs/${logId}/download`} target="_blank" rel="noopener noreferrer">
-              {translateText('Download')}
+              Download
             </a>
           </Button>
         </DialogFooter>

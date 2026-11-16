@@ -47,7 +47,7 @@ class AllocateNetworkBlock
         }
 
         throw ValidationException::withMessages([
-            'servers' => __('No free address block is available in the selected pool. Choose a smaller block size or the RFC1918 pool.'),
+            'servers' => 'No free address block is available in the selected pool. Choose a smaller block size or the RFC1918 pool.',
         ]);
     }
 

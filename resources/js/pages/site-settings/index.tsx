@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
@@ -29,11 +28,10 @@ import WebDirectory from './components/web-directory';
 import { useDialog } from '@/hooks/use-dialog';
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
-  const translateText = useTranslate();
   return (
     <Card className="overflow-hidden">
       <CardHeader className="px-3 py-2">
-        <CardTitle className="text-sm">{translateText(title)}</CardTitle>
+        <CardTitle className="text-sm">{title}</CardTitle>
       </CardHeader>
       <CardContent className="bg-background divide-y p-0">{children}</CardContent>
     </Card>
@@ -41,10 +39,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 function Field({ label, children }: { label: ReactNode; children: ReactNode }) {
-  const translateText = useTranslate();
   return (
     <div className="grid min-h-10 grid-cols-[8rem_minmax(0,1fr)] items-center gap-3 px-3 py-1.5 text-sm">
-      <span className="text-muted-foreground">{typeof label === 'string' ? translateText(label) : label}</span>
+      <span className="text-muted-foreground">{typeof label === 'string' ? label : label}</span>
       <div className="flex min-w-0 flex-wrap items-center gap-1.5">{children}</div>
     </div>
   );
@@ -64,7 +61,6 @@ function EditButton({ children, ...props }: React.ComponentProps<typeof Button>)
 }
 
 export default function SiteSettings() {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const page = usePage<{
     server: Server;
@@ -76,11 +72,11 @@ export default function SiteSettings() {
 
   return (
     <ServerLayout>
-      <Head title={translateText('Settings - :value', { value: site.domain })} />
+      <Head title={`Settings - ${site.domain}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Settings')} description={translateText('Manage how this site is built, served and deployed')} />
+          <Heading title={'Settings'} description={'Manage how this site is built, served and deployed'} />
         </HeaderContainer>
 
         <SiteBanners site={site} />
@@ -88,8 +84,8 @@ export default function SiteSettings() {
         <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2 2xl:grid-cols-3">
           <Section title="General">
             <Field label="Status">
-              <Badge variant={site.status_color}>{translateText(site.status)}</Badge>
-              {site.suspended && <Badge variant="warning">{translateText('suspended')}</Badge>}
+              <Badge variant={site.status_color}>{site.status}</Badge>
+              {site.suspended && <Badge variant="warning">suspended</Badge>}
             </Field>
             <Field label="Type">
               <Value>{site.type}</Value>
@@ -116,7 +112,7 @@ export default function SiteSettings() {
                 </ChangeSourceControl>
               ) : (
                 <AttachSourceControl site={site}>
-                  <EditButton>{translateText("Attach")}</EditButton>
+                  <EditButton>Attach</EditButton>
                 </AttachSourceControl>
               )}
             </Field>
@@ -150,7 +146,7 @@ export default function SiteSettings() {
                         <TooltipTrigger asChild>
                           <TriangleAlertIcon className="text-destructive size-4" />
                         </TooltipTrigger>
-                        <TooltipContent>{translateText('You are using a custom vhost template')}</TooltipContent>
+                        <TooltipContent>You are using a custom vhost template</TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
                   )}
@@ -159,24 +155,24 @@ export default function SiteSettings() {
             >
               <VHostPreview site={site}>
                 <Button variant="outline" size="sm" className="h-6">
-                  {translateText('View')}
+                  View
                 </Button>
               </VHostPreview>
               <VHost site={site}>
-                <EditButton>{translateText("Template")}</EditButton>
+                <EditButton>Template</EditButton>
               </VHost>
             </Field>
             {supportsBasicAuth && (
               <Field label="Basic auth">
                 <BasicAuth site={site}>
-                  <EditButton>{site.basic_auth?.enabled ? translateText('Enabled (:count)', { count: site.basic_auth.users.length }) : translateText('Disabled')}</EditButton>
+                  <EditButton>{site.basic_auth?.enabled ? `Enabled (${site.basic_auth.users.length})` : 'Disabled'}</EditButton>
                 </BasicAuth>
               </Field>
             )}
             {page.props.server.services['log_analysis'] && (
               <Field label="Statistics">
                 <StatsToggle site={site}>
-                  <EditButton>{site.stats_enabled ? translateText('Enabled') : translateText('Disabled')}</EditButton>
+                  <EditButton>{site.stats_enabled ? 'Enabled' : 'Disabled'}</EditButton>
                 </StatsToggle>
               </Field>
             )}
@@ -189,7 +185,7 @@ export default function SiteSettings() {
                   {site.supports_php_settings && (
                     <Button variant="outline" size="sm" className="h-6" onClick={() => dialog.phpSettings.open({ site })}>
                       <SlidersHorizontalIcon className="text-muted-foreground size-3" />
-                      {translateText('Settings')}
+                      Settings
                     </Button>
                   )}
                 </>
@@ -234,12 +230,12 @@ export default function SiteSettings() {
         {!site.type_data?.is_self && (
           <Card className="border-destructive/50 flex-row flex-wrap items-center justify-between gap-3 px-4 py-3">
             <div className="flex flex-col gap-0.5">
-              <span className="text-sm font-medium">{translateText("Delete site")}</span>
-              <span className="text-muted-foreground text-sm">{translateText('The site will be removed from Pure. Its files and physical server will remain untouched.')}</span>
+              <span className="text-sm font-medium">Delete site</span>
+              <span className="text-muted-foreground text-sm">The site will be removed from Pure. Its files and physical server will remain untouched.</span>
             </div>
             <DeleteSite site={site}>
               <Button variant="destructive" size="sm">
-                {translateText('Delete site')}
+                Delete site
               </Button>
             </DeleteSite>
           </Card>

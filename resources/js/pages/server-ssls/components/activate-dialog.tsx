@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -17,7 +16,6 @@ type ActivateServerSslDialogProps = {
 };
 
 export default function ActivateServerSslDialog({ open, onOpenChange, serverId, sslId }: ActivateServerSslDialogProps) {
-  const translateText = useTranslate();
   const form = useForm<{ certificate: string; ca: string }>({
     certificate: '',
     ca: '',
@@ -34,13 +32,13 @@ export default function ActivateServerSslDialog({ open, onOpenChange, serverId, 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full lg:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>{translateText("Activate SSL")}</SheetTitle>
-          <SheetDescription>{translateText("Install a signed certificate from your Certificate Authority.")}</SheetDescription>
+          <SheetTitle>Activate SSL</SheetTitle>
+          <SheetDescription>Install a signed certificate from your Certificate Authority.</SheetDescription>
         </SheetHeader>
         <Form id="activate-server-ssl-form" className="p-4" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="certificate">{translateText("Certificate (PEM)")}</Label>
+              <Label htmlFor="certificate">Certificate (PEM)</Label>
               <Textarea
                 id="certificate"
                 name="certificate"
@@ -53,7 +51,7 @@ export default function ActivateServerSslDialog({ open, onOpenChange, serverId, 
               <InputError message={form.errors.certificate} />
             </FormField>
             <FormField>
-              <Label htmlFor="ca">{translateText("CA Bundle (optional)")}</Label>
+              <Label htmlFor="ca">CA Bundle (optional)</Label>
               <Textarea
                 id="ca"
                 name="ca"
@@ -70,11 +68,11 @@ export default function ActivateServerSslDialog({ open, onOpenChange, serverId, 
         <SheetFooter>
           <div className="flex items-center gap-2">
             <Button type="submit" form="activate-server-ssl-form" disabled={form.processing}>
-              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />} {translateText("Activate")}
+              {form.processing && <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />} Activate
             </Button>
             <SheetClose asChild>
               <Button variant="outline" disabled={form.processing}>
-                {translateText('Cancel')}
+                Cancel
               </Button>
             </SheetClose>
           </div>

@@ -37,10 +37,7 @@ class ConnectServerPairToNetwork
             $status = $this->networks->memberStatus($network, $server);
 
             if ($status === NetworkServerStatus::FAILED) {
-                throw new RuntimeException(__('Connecting :server to the private network :network failed. Check the network logs.', [
-                    'server' => $server->name,
-                    'network' => $network->name,
-                ]));
+                throw new RuntimeException('Connecting '.$server->name.' to the private network '.$network->name.' failed. Check the network logs.');
             }
 
             if ($status !== NetworkServerStatus::ACTIVE || $this->networks->address($network, $server) === null) {

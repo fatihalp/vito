@@ -204,14 +204,14 @@ class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
     public static function connectionErrorMessage(Throwable $e): string
     {
         return match (static::awsErrorCode($e)) {
-            'NoSuchBucket' => __('Bucket not found. Check the bucket name.'),
+            'NoSuchBucket' => 'Bucket not found. Check the bucket name.',
             'AccessDenied',
-            'AllAccessDisabled' => __('Access was denied. Check the storage token permissions.'),
+            'AllAccessDisabled' => 'Access was denied. Check the storage token permissions.',
             'InvalidAccessKeyId',
             'SignatureDoesNotMatch',
             'InvalidToken',
-            'ExpiredToken' => __('The access key or secret key is invalid.'),
-            default => __('Couldn\'t connect to the provider.'),
+            'ExpiredToken' => 'The access key or secret key is invalid.',
+            default => 'Couldn\'t connect to the provider.',
         };
     }
 

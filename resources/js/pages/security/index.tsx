@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { ReactNode, useCallback, useState } from 'react';
 import { Server } from '@/types/server';
@@ -28,7 +27,6 @@ function serviceStatusLabel(status: string): string {
 }
 
 function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: AutoUpdateState }) {
-  const translateText = useTranslate();
   const [parsed, setParsed] = useState(parseSchedule(autoUpdate.schedule));
   const form = useForm<{ enabled: boolean; schedule: string }>({
     enabled: autoUpdate.enabled,
@@ -43,16 +41,16 @@ function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: Aut
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex min-w-0 flex-col gap-1.5">
             <CardTitle className="flex flex-wrap items-center gap-2">
-              {translateText("Automatic updates")}
-              <Badge variant={autoUpdate.enabled ? 'success' : 'gray'}>{autoUpdate.enabled ? translateText("applied") : translateText("not applied")}</Badge>
+              Automatic updates
+              <Badge variant={autoUpdate.enabled ? 'success' : 'gray'}>{autoUpdate.enabled ? "applied" : "not applied"}</Badge>
             </CardTitle>
-            <CardDescription>{translateText("Pure applies package updates to this server on a schedule (times are UTC).")}</CardDescription>
+            <CardDescription>Pure applies package updates to this server on a schedule (times are UTC).</CardDescription>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            <Switch checked={form.data.enabled} onCheckedChange={(value) => form.setData('enabled', value)} aria-label={translateText("Enable automatic updates")} />
+            <Switch checked={form.data.enabled} onCheckedChange={(value) => form.setData('enabled', value)} aria-label="Enable automatic updates" />
             <Button onClick={save} disabled={form.processing}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
-              {translateText('Save')}
+              Save
             </Button>
           </div>
         </div>
@@ -68,7 +66,7 @@ function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: Aut
           />
           <InputError message={form.errors.schedule} />
           <p className="text-muted-foreground text-xs">
-            {translateText("Disabling automatic updates stops future runs only; it does not undo updates already applied.")}
+            Disabling automatic updates stops future runs only; it does not undo updates already applied.
           </p>
         </CardContent>
       )}
@@ -77,7 +75,6 @@ function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: Aut
 }
 
 function Fail2banRow({ server, fail2ban }: { server: number; fail2ban: Service | null }) {
-  const translateText = useTranslate();
   const dialog = useDialog();
   const installing = fail2ban?.status === 'installing' || fail2ban?.status === 'uninstalling';
 
@@ -94,16 +91,16 @@ function Fail2banRow({ server, fail2ban }: { server: number; fail2ban: Service |
                   {serviceStatusLabel(fail2ban.status)}
                 </Badge>
               ) : (
-                <Badge variant="gray">{translateText('not applied')}</Badge>
+                <Badge variant="gray">not applied</Badge>
               )}
             </CardTitle>
-            <CardDescription>{translateText("Bans IP addresses with too many failed SSH login attempts.")}</CardDescription>
+            <CardDescription>Bans IP addresses with too many failed SSH login attempts.</CardDescription>
           </div>
           <div className="flex shrink-0 flex-wrap items-center gap-2">
             {fail2ban ? (
               <>
                 <Button variant="outline" disabled={installing} onClick={() => dialog.fail2banForm.open({ serverId: server, fail2ban })}>
-                  {translateText("Configure")}
+                  Configure
                 </Button>
                 <Button
                   variant="destructive"
@@ -119,18 +116,18 @@ function Fail2banRow({ server, fail2ban }: { server: number; fail2ban: Service |
                     })
                   }
                 >
-                  {translateText('Uninstall')}
+                  Uninstall
                 </Button>
               </>
             ) : (
-              <Button onClick={() => dialog.fail2banForm.open({ serverId: server, fail2ban: null })}>{translateText('Install')}</Button>
+              <Button onClick={() => dialog.fail2banForm.open({ serverId: server, fail2ban: null })}>Install</Button>
             )}
           </div>
         </div>
       </CardHeader>
       {fail2ban && (
         <CardContent className="px-4 pb-4">
-          <p className="text-muted-foreground text-xs">{translateText("View banned IPs and activity in Service logs.")}</p>
+          <p className="text-muted-foreground text-xs">View banned IPs and activity in Service logs.</p>
         </CardContent>
       )}
     </div>
@@ -138,7 +135,6 @@ function Fail2banRow({ server, fail2ban }: { server: number; fail2ban: Service |
 }
 
 function ScoreCard({ score, children }: { score: SecurityScore; children: ReactNode }) {
-  const translateText = useTranslate();
   const textColor = score.score >= 80 ? 'text-success' : score.score >= 40 ? 'text-warning' : 'text-destructive';
   const barColor =
     score.score >= 80
@@ -152,15 +148,15 @@ function ScoreCard({ score, children }: { score: SecurityScore; children: ReactN
       <CardContent className="flex flex-col gap-3 p-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-1.5">
-            {translateText("Security score")}
+            Security score
             <Tooltip>
               <TooltipTrigger asChild>
-                <button type="button" className="text-muted-foreground hover:text-foreground" aria-label={translateText("About the security score")}>
+                <button type="button" className="text-muted-foreground hover:text-foreground" aria-label="About the security score">
                   <InfoIcon className="size-4" />
                 </button>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs">
-                {translateText("This score only reflects the hardening features Pure manages. It is not an indicative or complete security rating for your server.")}
+                This score only reflects the hardening features Pure manages. It is not an indicative or complete security rating for your server.
               </TooltipContent>
             </Tooltip>
           </CardTitle>
@@ -177,7 +173,6 @@ function ScoreCard({ score, children }: { score: SecurityScore; children: ReactN
 }
 
 function FirewallRow({ server, firewall }: { server: number; firewall: Service | null }) {
-  const translateText = useTranslate();
   const installing = firewall?.status === 'installing' || firewall?.status === 'uninstalling';
   return (
     <div>
@@ -192,18 +187,18 @@ function FirewallRow({ server, firewall }: { server: number; firewall: Service |
                   {serviceStatusLabel(firewall.status)}
                 </Badge>
               ) : (
-                <Badge variant="gray">{translateText('not applied')}</Badge>
+                <Badge variant="gray">not applied</Badge>
               )}
             </CardTitle>
-            <CardDescription>{translateText("A UFW firewall controls which ports accept inbound connections.")}</CardDescription>
+            <CardDescription>A UFW firewall controls which ports accept inbound connections.</CardDescription>
           </div>
           {firewall ? (
             <Button variant="outline" asChild>
-              <Link href={`/servers/${server}/firewall`}>{translateText("Manage rules")}</Link>
+              <Link href={`/servers/${server}/firewall`}>Manage rules</Link>
             </Button>
           ) : (
             <Button disabled={installing} onClick={() => router.post(`/servers/${server}/security/firewall`, {}, { preserveScroll: true })}>
-              {translateText('Install')}
+              Install
             </Button>
           )}
         </div>
@@ -213,7 +208,6 @@ function FirewallRow({ server, firewall }: { server: number; firewall: Service |
 }
 
 export default function Security() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     score: SecurityScore;
@@ -250,14 +244,14 @@ export default function Security() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Security - :value", { value: page.props.server.name })} />
+      <Head title={`Security - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={translateText('Security')} description={translateText("Harden this server: automatic updates, firewall, Fail2ban, and SSH access.")} />
-          <Button variant="outline" onClick={check} disabled={checking} aria-label={translateText("Check security status")}>
+          <Heading title={'Security'} description="Harden this server: automatic updates, firewall, Fail2ban, and SSH access." />
+          <Button variant="outline" onClick={check} disabled={checking} aria-label="Check security status">
             {checking ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCwIcon />}
-            <span className="hidden lg:block">{translateText("Check status")}</span>
+            <span className="hidden lg:block">Check status</span>
           </Button>
         </HeaderContainer>
 
@@ -265,7 +259,7 @@ export default function Security() {
           <Alert>
             <TriangleAlertIcon className="text-warning" />
             <AlertDescription>
-              {translateText("Before applying changes, make sure you can access your provider's recovery console in case you need to restore SSH access.")}
+              {"Before applying changes, make sure you can access your provider's recovery console in case you need to restore SSH access."}
             </AlertDescription>
           </Alert>
 
@@ -279,8 +273,8 @@ export default function Security() {
             <Fail2banRow server={serverId} fail2ban={page.props.fail2ban} />
             <SecurityToggleCard
               serverId={serverId}
-              title={translateText("Disable password authentication")}
-              description={translateText("When on, SSH access requires a key and password logins are refused (global default only).")}
+              title="Disable password authentication"
+              description="When on, SSH access requires a key and password logins are refused (global default only)."
               state={page.props.passwordAuth}
               onToggle={(nextSecure) => {
                 dialog.confirm.open({
@@ -298,8 +292,8 @@ export default function Security() {
             />
             <SecurityToggleCard
               serverId={serverId}
-              title={translateText("Disable root SSH login")}
-              description={page.props.rootLogin.manageable ? translateText("When on, the root user cannot log in over SSH.") : translateText("Pure currently connects to this server as root; switch to a non-root SSH user before disabling root login.")}
+              title="Disable root SSH login"
+              description={page.props.rootLogin.manageable ? "When on, the root user cannot log in over SSH." : "Pure currently connects to this server as root; switch to a non-root SSH user before disabling root login."}
               state={page.props.rootLogin}
               onToggle={(nextSecure) => {
                 dialog.confirm.open({

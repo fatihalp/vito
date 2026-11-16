@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { Site } from '@/types/site';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -10,7 +9,6 @@ import { DataTable } from '@/components/data-table';
 import { columns } from '@/pages/server-logs/components/columns';
 
 export default function Logs({ server, site }: { server: Server; site?: Site }) {
-  const translateText = useTranslate();
   const [currentPage, setCurrentPage] = useState(1);
   const queryClient = useQueryClient();
 
@@ -42,8 +40,8 @@ export default function Logs({ server, site }: { server: Server; site?: Site }) 
     <>
       {query.isError ? (
         <div role="alert" className="flex items-center gap-2 text-sm">
-          <span>{translateText("Unable to load server logs.")}</span>
-          <button type="button" className="underline" onClick={() => void query.refetch()}>{translateText('Try again')}</button>
+          <span>Unable to load server logs.</span>
+          <button type="button" className="underline" onClick={() => void query.refetch()}>Try again</button>
         </div>
       ) : query.isLoading ? (
         <TableSkeleton rows={5} cells={3} />

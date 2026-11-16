@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useState } from 'react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useQueryState } from '@/hooks/use-query-state';
@@ -54,7 +53,6 @@ function StatusIcon({ status }: { status?: string }) {
 }
 
 function WorkerLogContent() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     worker: Worker;
@@ -137,7 +135,7 @@ function WorkerLogContent() {
 
   return (
     <>
-      <Head title={translateText("Logs · :value - :value2", { value: worker.name || worker.command, value2: server.name })} />
+      <Head title={`Logs · ${(worker.name || worker.command)} - ${server.name}`} />
 
       <Container className="gap-3 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
@@ -145,7 +143,7 @@ function WorkerLogContent() {
             <Button variant="outline" size="sm" asChild className="h-8 gap-1.5 shrink-0 text-muted-foreground hover:text-foreground">
               <Link href={backUrl}>
                 <ArrowLeftIcon className="size-3.5" />
-                <span>{translateText('Workers')}</span>
+                <span>Workers</span>
               </Link>
             </Button>
 
@@ -162,7 +160,7 @@ function WorkerLogContent() {
               <Badge variant={worker.status_color || (worker.status === 'running' ? 'success' : 'secondary')} className="capitalize text-xs">
                 {worker.status}
               </Badge>
-              {worker.is_site_bootstrap && <Badge variant="outline" className="text-xs">{translateText("Site Managed")}</Badge>}
+              {worker.is_site_bootstrap && <Badge variant="outline" className="text-xs">Site Managed</Badge>}
             </div>
           </div>
 
@@ -181,7 +179,7 @@ function WorkerLogContent() {
                   ) : (
                     <RotateCwIcon className="size-3.5" />
                   )}
-                  <span>{translateText('Restart')}</span>
+                  <span>Restart</span>
                 </Button>
                 <Button
                   variant="outline"
@@ -195,7 +193,7 @@ function WorkerLogContent() {
                   ) : (
                     <PauseIcon className="size-3.5" />
                   )}
-                  <span>{translateText('Stop')}</span>
+                  <span>Stop</span>
                 </Button>
               </>
             ) : (
@@ -211,7 +209,7 @@ function WorkerLogContent() {
                 ) : (
                   <PlayIcon className="size-3.5" />
                 )}
-                <span>{translateText('Start')}</span>
+                <span>Start</span>
               </Button>
             )}
           </div>
@@ -224,11 +222,11 @@ function WorkerLogContent() {
                 <TabsList className="h-7 bg-muted/60 p-0.5">
                   <TabsTrigger value="output" className="h-6 text-xs px-2.5 gap-1.5">
                     <TerminalIcon className="size-3.5" />
-                    <span>{translateText('Output')}</span>
+                    <span>Output</span>
                   </TabsTrigger>
                   <TabsTrigger value="history" className="h-6 text-xs px-2.5 gap-1.5">
                     <HistoryIcon className="size-3.5" />
-                    <span>{translateText('History')}</span>
+                    <span>History</span>
                     {historyList.length > 0 && (
                       <span className="text-[10px] bg-background text-foreground px-1 py-0.2 rounded-full font-mono">
                         {historyList.length}
@@ -261,10 +259,10 @@ function WorkerLogContent() {
                   size="sm"
                   onClick={() => setAutoRefresh(!autoRefresh)}
                   className="h-7 gap-1.5 px-2.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                  title={autoRefresh ? translateText("Disable auto-refresh") : translateText("Enable auto-refresh")}
+                  title={autoRefresh ? "Disable auto-refresh" : "Enable auto-refresh"}
                 >
                   <span className={cn('size-1.5 rounded-full', autoRefresh ? 'bg-neutral-500 animate-pulse' : 'bg-muted-foreground/40')} />
-                  <span>{translateText("Auto-refresh")}</span>
+                  <span>Auto-refresh</span>
                 </Button>
               )}
 
@@ -274,7 +272,7 @@ function WorkerLogContent() {
                 onClick={() => query.refetch()}
                 disabled={query.isFetching}
                 className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
-                title={translateText('Refresh')}
+                title={'Refresh'}
               >
                 <RefreshCwIcon className={cn('size-3.5', query.isFetching && 'animate-spin')} />
               </Button>
@@ -285,10 +283,10 @@ function WorkerLogContent() {
                   size="sm"
                   onClick={handleClearLogs}
                   className="h-7 gap-1.5 px-2 text-xs text-muted-foreground hover:text-destructive cursor-pointer"
-                  title={translateText("Clear all logs")}
+                  title="Clear all logs"
                 >
                   <Trash2Icon className="size-3.5" />
-                  <span>{translateText('Clear')}</span>
+                  <span>Clear</span>
                 </Button>
               )}
             </div>
@@ -296,11 +294,11 @@ function WorkerLogContent() {
 
           {activeTab === 'output' ? (
             <LogOutput className="h-[calc(100vh-230px)] min-h-[500px] w-full flex-1 rounded-none border-0 p-4 font-mono text-xs sm:text-sm">
-              {query.isLoading && translateText("Loading worker logs...")}
-              {query.isError && <span className="text-destructive">{translateText("Failed to load worker logs.")}</span>}
+              {query.isLoading && "Loading worker logs..."}
+              {query.isError && <span className="text-destructive">Failed to load worker logs.</span>}
               {!query.isLoading && !query.isError && (query.data?.logs || (
                 <span className="text-muted-foreground flex items-center gap-2">
-                  <TerminalIcon className="size-4" /> {translateText("No log output available for this worker.")}
+                  <TerminalIcon className="size-4" /> No log output available for this worker.
                 </span>
               ))}
             </LogOutput>
@@ -309,7 +307,7 @@ function WorkerLogContent() {
               {historyList.length === 0 ? (
                 <div className="text-muted-foreground flex flex-col items-center justify-center h-full py-12 gap-2">
                   <HistoryIcon className="size-8 stroke-1 text-muted-foreground/60" />
-                  <span className="text-sm">{translateText("No start/stop history recorded for this worker yet.")}</span>
+                  <span className="text-sm">No start/stop history recorded for this worker yet.</span>
                 </div>
               ) : (
                 <div className="divide-y divide-border border rounded-md overflow-hidden bg-card">
@@ -324,7 +322,7 @@ function WorkerLogContent() {
                             {item.description || `Worker ${item.type}`}
                           </span>
                           <span className="text-[11px] text-muted-foreground">
-                            {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : translateText("by System"))}
+                            {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : "by System")}
                           </span>
                         </div>
                       </div>

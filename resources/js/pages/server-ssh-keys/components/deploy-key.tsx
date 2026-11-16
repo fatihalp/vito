@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { CheckIcon, KeyRoundIcon, LoaderCircle, PlusIcon, UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,7 +21,6 @@ import AddSshKey from '@/pages/ssh-keys/components/add-ssh-key';
 import { cn } from '@/lib/utils';
 
 export default function DeployKey({ children }: { children?: ReactNode }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const page = usePage<{ server: Server }>();
   const server = page.props.server;
@@ -57,26 +55,26 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
         {children || (
           <Button size="sm" className="gap-1.5">
             <KeyRoundIcon className="size-3.5" />
-            {translateText('Deploy SSH key')}
+            Deploy SSH key
           </Button>
         )}
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{translateText('Deploy SSH key')}</DialogTitle>
+          <DialogTitle>Deploy SSH key</DialogTitle>
           <DialogDescription>
-            {translateText("Select a key and a user to deploy on")} {server.name}.
+            Select a key and a user to deploy on {server.name}.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 px-4 pb-2">
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <h4 className="text-xs font-medium text-muted-foreground">{translateText('SSH Keys')}</h4>
+              <h4 className="text-xs font-medium text-muted-foreground">SSH Keys</h4>
               <AddSshKey onKeyAdded={() => query.refetch()}>
                 <Button variant="ghost" size="sm" className="h-6 px-2 text-xs gap-1">
                   <PlusIcon className="size-3" />
-                  {translateText('Add')}
+                  Add
                 </Button>
               </AddSshKey>
             </div>
@@ -89,7 +87,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
                 )}
                 {query.isSuccess && query.data.length === 0 && (
                   <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
-                    <p className="text-xs text-muted-foreground">{translateText("No SSH keys yet")}</p>
+                    <p className="text-xs text-muted-foreground">No SSH keys yet</p>
                   </div>
                 )}
                 {query.isSuccess &&
@@ -118,7 +116,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
           </div>
 
           <div className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground">{translateText("Server Users")}</h4>
+            <h4 className="text-xs font-medium text-muted-foreground">Server Users</h4>
             <div className="border rounded-lg overflow-hidden">
               <div className="max-h-52 overflow-y-auto divide-y">
                 {serverUsers.map((user) => (
@@ -134,7 +132,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
                     <UserIcon className="size-3.5 shrink-0" />
                     <span className="truncate text-xs font-medium font-mono">{user}</span>
                     {user === server.ssh_user && (
-                      <span className="text-[10px] text-muted-foreground ml-1">{translateText("default")}</span>
+                      <span className="text-[10px] text-muted-foreground ml-1">default</span>
                     )}
                     {form.data.user === user && <CheckIcon className="size-3.5 ml-auto shrink-0" />}
                   </button>
@@ -148,12 +146,12 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
         <DialogFooter className="border-t pt-3">
           <DialogClose asChild>
             <Button type="button" variant="outline" size="sm">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button size="sm" onClick={submit} disabled={!form.data.key || !form.data.user || form.processing}>
             {form.processing && <LoaderCircle className="mr-1.5 size-3.5 animate-spin" />}
-            {translateText("Deploy key")}
+            Deploy key
           </Button>
         </DialogFooter>
       </DialogContent>

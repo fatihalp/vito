@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FormEvent } from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,7 +18,6 @@ export default function ProjectForm({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const translateText = useTranslate();
   const form = useForm({
     name: project?.name || '',
   });
@@ -47,13 +45,13 @@ export default function ProjectForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{project ? translateText("Edit Project") : translateText("Create Project")}</DialogTitle>
-          <DialogDescription className="sr-only">{project ? translateText("Edit the project details.") : translateText("Here you can create a new project.")}</DialogDescription>
+          <DialogTitle>{project ? "Edit Project" : "Create Project"}</DialogTitle>
+          <DialogDescription className="sr-only">{project ? "Edit the project details." : "Here you can create a new project."}</DialogDescription>
         </DialogHeader>
         <Form id="project-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -62,12 +60,12 @@ export default function ProjectForm({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button form="project-form" type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

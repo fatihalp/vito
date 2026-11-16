@@ -33,9 +33,7 @@ class UpdatePhpLimits
             );
         } catch (Throwable $e) {
             throw ValidationException::withMessages([
-                'upload_max_filesize' => __('Failed to apply PHP limits: :message', [
-                    'message' => $e->getMessage(),
-                ]),
+                'upload_max_filesize' => 'Failed to apply PHP limits: '.$e->getMessage(),
             ]);
         }
     }
@@ -68,9 +66,9 @@ class UpdatePhpLimits
                 'max:86400',
             ],
         ], [
-            'upload_max_filesize.regex' => __('Please provide a valid upload max filesize (e.g., 210M or 1G).'),
-            'post_max_size.regex' => __('Please provide a valid post max size (e.g., 220M or 1G).'),
-            'memory_limit.regex' => __('Please provide a valid memory limit (e.g., 512M, 1G, or -1 for unlimited).'),
+            'upload_max_filesize.regex' => 'Please provide a valid upload max filesize (e.g., 210M or 1G).',
+            'post_max_size.regex' => 'Please provide a valid post max size (e.g., 220M or 1G).',
+            'memory_limit.regex' => 'Please provide a valid memory limit (e.g., 512M, 1G, or -1 for unlimited).',
         ]);
 
         $validator->after(function ($validator) use ($input): void {
@@ -84,7 +82,7 @@ class UpdatePhpLimits
             if ($uploadBytes > 0 && $postBytes > 0 && $postBytes < $uploadBytes) {
                 $validator->errors()->add(
                     'post_max_size',
-                    __('post_max_size must be greater than or equal to upload_max_filesize.')
+                    'post_max_size must be greater than or equal to upload_max_filesize.'
                 );
             }
 
@@ -93,7 +91,7 @@ class UpdatePhpLimits
                 if ($memoryBytes > 0 && $postBytes > 0 && $memoryBytes < $postBytes) {
                     $validator->errors()->add(
                         'memory_limit',
-                        __('memory_limit must be greater than or equal to post_max_size.')
+                        'memory_limit must be greater than or equal to post_max_size.'
                     );
                 }
             }

@@ -87,7 +87,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
             }
         }
 
-        throw new ServerProviderError(__('There is no free 10.x.0.0/16 range left for a new Hetzner network.'));
+        throw new ServerProviderError('There is no free 10.x.0.0/16 range left for a new Hetzner network.');
     }
 
     private function waitForAction(array $action): void
@@ -98,7 +98,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
         }
 
         if ($action['status'] !== 'success') {
-            throw new ServerProviderError($action['error']['message'] ?? __('Hetzner did not finish attaching the server to the private network.'));
+            throw new ServerProviderError($action['error']['message'] ?? 'Hetzner did not finish attaching the server to the private network.');
         }
     }
 
@@ -271,12 +271,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
 
                 $available = $this->planIsAvailable($location);
 
-                $label = __('server_providers.plan', [
-                    'name' => $type['name'],
-                    'cpu' => $type['cores'],
-                    'memory' => $type['memory'],
-                    'disk' => $type['disk'],
-                ]);
+                $label = 'server_providers.plan';
 
                 if ($available) {
                     $price = $this->planMonthlyPrice($type, $region);
@@ -378,10 +373,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
                 'server_type' => $this->server->provider_data['plan'],
             ]);
         if ($create->status() != 201) {
-            $this->providerError($create, __('location :location, server type :plan', [
-                'location' => $this->server->provider_data['region'],
-                'plan' => $this->server->provider_data['plan'],
-            ]));
+            $this->providerError($create, 'location '.$this->server->provider_data['region'].', server type '.$this->server->provider_data['plan']);
         }
         $this->server->jsonUpdate('provider_data', 'hetzner_id', $create->json()['server']['id'], false);
         $this->server->ip = $create->json()['server']['public_net']['ipv4']['ip'];
@@ -456,15 +448,15 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
         $details = $response->json('error.details');
 
         $hint = match ($code) {
-            'placement_error', 'resource_unavailable' => __('This server type is currently unavailable in the selected location. Try another location or plan.'),
-            'uniqueness_error' => __('A resource with this name already exists in your Hetzner project.'),
-            'resource_limit_exceeded' => __('Your Hetzner project resource limit is reached.'),
-            'unauthorized', 'forbidden' => __('The Hetzner API token is invalid or lacks read & write permission.'),
+            'placement_error', 'resource_unavailable' => 'This server type is currently unavailable in the selected location. Try another location or plan.',
+            'uniqueness_error' => 'A resource with this name already exists in your Hetzner project.',
+            'resource_limit_exceeded' => 'Your Hetzner project resource limit is reached.',
+            'unauthorized', 'forbidden' => 'The Hetzner API token is invalid or lacks read & write permission.',
             default => null,
         };
 
         throw new ServerProviderError(collect([
-            __('Hetzner: :message', ['message' => $response->json('error.message') ?? __('request failed')]),
+            'Hetzner: '.($response->json('error.message') ?? 'request failed'),
             '('.collect([$code, 'HTTP '.$response->status()])->filter()->implode(', ').')',
             $context ? '— '.$context : null,
             $details ? '— '.json_encode($details, JSON_UNESCAPED_SLASHES) : null,

@@ -33,11 +33,11 @@ class SyncPostgresListenAddresses
         $handler = $service?->hasHandler() ? $service->handler() : null;
 
         if ($address === null || ! $handler instanceof SupportsNetworking) {
-            throw new RuntimeException(__('PostgreSQL on :server has no private cluster address to listen on.', ['server' => $server->name]));
+            throw new RuntimeException('PostgreSQL on '.$server->name.' has no private cluster address to listen on.');
         }
 
         if ($service->status === ServiceStatus::FAILED || $handler->networkingFailed()) {
-            throw new RuntimeException(__('Could not update the listen addresses of PostgreSQL on :server.', ['server' => $server->name]));
+            throw new RuntimeException('Could not update the listen addresses of PostgreSQL on '.$server->name.'.');
         }
 
         if (! in_array($service->status, SyncServiceStatus::SETTLED_STATUSES, true)) {

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
@@ -27,7 +26,6 @@ import {
 import { CRONJOB_TEMPLATES } from '@/config/cron-templates';
 
 export default function CronJobIndex() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     cronjobs: PaginatedData<CronJob>;
@@ -38,13 +36,13 @@ export default function CronJobIndex() {
 
   return (
     <ServerLayout>
-      <Head title={translateText("Cron jobs - :value", { value: page.props.server.name })} />
+      <Head title={`Cron jobs - ${page.props.server.name}`} />
 
       <Container>
         <HeaderContainer>
           <Heading
-            title={translateText("Cron jobs")}
-            description={page.props.site ? `Manage scheduled tasks and cron jobs for ${page.props.site.domain}` : translateText("Manage server's cron jobs")}
+            title="Cron jobs"
+            description={page.props.site ? `Manage scheduled tasks and cron jobs for ${page.props.site.domain}` : "Manage server's cron jobs"}
           />
           <div className="flex items-center gap-2">
             <Button
@@ -60,7 +58,7 @@ export default function CronJobIndex() {
                 })
               }
             >
-              {translateText('Sync')}
+              Sync
             </Button>
             <DropdownMenu>
               <div className="flex items-center rounded-md shadow-xs">
@@ -69,16 +67,16 @@ export default function CronJobIndex() {
                   onClick={() => dialog.cronjobForm.open({ serverId: page.props.server.id, site: page.props.site })}
                 >
                   <PlusIcon />
-                  <span className="hidden lg:block">{translateText('Create')}</span>
+                  <span className="hidden lg:block">Create</span>
                 </Button>
                 <DropdownMenuTrigger asChild>
-                  <Button className="rounded-l-none px-2" aria-label={translateText("Quick add presets")}>
+                  <Button className="rounded-l-none px-2" aria-label="Quick add presets">
                     <ChevronDownIcon className="h-4 w-4" />
                   </Button>
                 </DropdownMenuTrigger>
               </div>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel className="text-xs">{translateText("Quick Add (Laravel)")}</DropdownMenuLabel>
+                <DropdownMenuLabel className="text-xs">Quick Add (Laravel)</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {CRONJOB_TEMPLATES.map((t) => (
                   <DropdownMenuItem
@@ -94,7 +92,7 @@ export default function CronJobIndex() {
                     <div className="flex flex-col">
                       <span className="flex items-center gap-1.5 text-xs font-medium">
                         {t.label}
-                        {t.isOfficial && <span className="bg-primary/10 py-0.2 text-primary rounded px-1 text-[9px] font-semibold">{translateText("Official")}</span>}
+                        {t.isOfficial && <span className="bg-primary/10 py-0.2 text-primary rounded px-1 text-[9px] font-semibold">Official</span>}
                       </span>
                       <span className="text-muted-foreground line-clamp-1 font-mono text-[10px]">{t.description}</span>
                     </div>
@@ -113,10 +111,10 @@ export default function CronJobIndex() {
               <div className="flex items-center gap-2">
                 <ClockIcon className="text-primary h-4 w-4" />
                 <h4 className="text-sm font-semibold">Laravel Task Scheduler</h4>
-                <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[10px] font-medium">{translateText("Recommended")}</span>
+                <span className="bg-primary/10 text-primary rounded px-1.5 py-0.5 text-[10px] font-medium">Recommended</span>
               </div>
               <p className="text-muted-foreground text-xs">
-                {translateText("Run scheduled artisan commands seamlessly by adding Laravel's official scheduler (")}
+                {"Run scheduled artisan commands seamlessly by adding Laravel's official scheduler ("}
                 <code className="font-mono text-[11px]">* * * * * php artisan schedule:run</code>).
               </p>
             </div>
@@ -132,7 +130,7 @@ export default function CronJobIndex() {
               className="shrink-0"
             >
               <ZapIcon className="mr-1 h-3.5 w-3.5" />
-              {translateText("Quick Add Scheduler")}
+              Quick Add Scheduler
             </Button>
           </div>
         )}

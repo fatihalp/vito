@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
@@ -24,7 +23,6 @@ export default function DnsProviderEditDialog({
   onOpenChange: (open: boolean) => void;
   dnsProvider: DNSProvider;
 }) {
-  const translateText = useTranslate();
   const configs = useConfigs()!;
   const editFields: DynamicFieldConfig[] = configs.dns_provider.providers[dnsProvider.provider]?.edit_form ?? [];
 
@@ -44,13 +42,13 @@ export default function DnsProviderEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{translateText('Edit')} {dnsProvider.name}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Edit DNS provider")}</DialogDescription>
+          <DialogTitle>Edit {dnsProvider.name}</DialogTitle>
+          <DialogDescription className="sr-only">Edit DNS provider</DialogDescription>
         </DialogHeader>
         <Form id="edit-dns-provider-form" className="p-4" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input type="text" id="name" name="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
@@ -74,7 +72,7 @@ export default function DnsProviderEditDialog({
                   checked={form.data.global}
                   onCheckedChange={(checked) => form.setData('global', Boolean(checked))}
                 />
-                <Label htmlFor="global">{translateText('Is global (accessible in all projects)')}</Label>
+                <Label htmlFor="global">Is global (accessible in all projects)</Label>
               </div>
               <InputError message={form.errors.global} />
             </FormField>
@@ -82,12 +80,12 @@ export default function DnsProviderEditDialog({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button form="edit-dns-provider-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

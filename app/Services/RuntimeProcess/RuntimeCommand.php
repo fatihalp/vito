@@ -52,7 +52,7 @@ class RuntimeCommand
                 ->first(['username']);
             if ($registered?->username !== $user) {
                 throw ValidationException::withMessages([
-                    'unix_user' => __('Select an isolated Linux user registered on this server.'),
+                    'unix_user' => 'Select an isolated Linux user registered on this server.',
                 ]);
             }
         }
@@ -96,13 +96,13 @@ class RuntimeCommand
             ));
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'unix_user' => __('Could not verify the runtime user on this server.'),
+                'unix_user' => 'Could not verify the runtime user on this server.',
             ]);
         }
         $isNonSystemUser = ctype_digit($uid) && strlen($uid) <= 10 && (int) $uid >= 1000 && (int) $uid <= 4294967294;
         if (! $isNonSystemUser) {
             throw ValidationException::withMessages([
-                'unix_user' => __('User runtimes require a verified, non-system Linux user.'),
+                'unix_user' => 'User runtimes require a verified, non-system Linux user.',
             ]);
         }
 
@@ -123,14 +123,14 @@ class RuntimeCommand
             );
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'runtime' => __('Could not verify the selected rootless Docker daemon.'),
+                'runtime' => 'Could not verify the selected rootless Docker daemon.',
             ]);
         }
         $isRootless = is_array($options)
             && (in_array('name=rootless', $options, true) || in_array('rootless', $options, true));
         if (! $isRootless) {
             throw ValidationException::withMessages([
-                'runtime' => __('The selected Docker socket is not a verified rootless daemon.'),
+                'runtime' => 'The selected Docker socket is not a verified rootless daemon.',
             ]);
         }
     }

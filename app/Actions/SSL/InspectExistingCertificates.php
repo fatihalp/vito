@@ -105,6 +105,6 @@ class InspectExistingCertificates
 
     private function invalidInventory(): never
     {
-        throw ValidationException::withMessages(['certificate' => __('The certificate inventory is invalid.')]);
+        throw ValidationException::withMessages(['certificate' => 'The certificate inventory is invalid.']);
     }
 }

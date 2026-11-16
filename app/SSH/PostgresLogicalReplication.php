@@ -18,7 +18,7 @@ class PostgresLogicalReplication
         $values = self::values($output);
 
         if (! isset($values['VERSION_NUM'], $values['WAL_LEVEL'])) {
-            throw new SSHCommandError(__('Could not read the PostgreSQL settings of :server.', ['server' => $server->name]));
+            throw new SSHCommandError('Could not read the PostgreSQL settings of '.$server->name.'.');
         }
 
         $databases = [];

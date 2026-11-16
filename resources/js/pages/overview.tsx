@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import Container from '@/components/container';
 import Heading from '@/components/heading';
@@ -165,17 +164,16 @@ function QuickAccessCard({
   count: number;
   children?: ReactNode;
 }) {
-  const translateText = useTranslate();
   return (
     <section className="min-w-0 rounded-xl border border-border/60 bg-card p-4">
       <div className="flex items-center justify-between gap-3 border-b border-border/50 pb-3">
         <h2 className="text-base font-semibold tracking-tight">{title}</h2>
         <Link href={viewAllHref} className="inline-flex items-center gap-1.5 text-sm font-medium text-info hover:underline">
-          {translateText('All')} <ArrowRightIcon className="size-4" />
+          All <ArrowRightIcon className="size-4" />
         </Link>
       </div>
       {loading || count === 0 ? (
-        <p className="py-8 text-sm text-muted-foreground">{loading ? translateText("Loading…") : emptyText}</p>
+        <p className="py-8 text-sm text-muted-foreground">{loading ? "Loading…" : emptyText}</p>
       ) : (
         <div className="flex flex-col divide-y divide-border/50">{children}</div>
       )}
@@ -190,7 +188,6 @@ function prioritize<T extends { id: number }>(items: T[], ids: number[]): T[] {
 }
 
 export default function Overview() {
-  const translateText = useTranslate();
   const page = usePage<SharedData>();
   const userId = page.props.auth.user.id;
   const [recentServerIds, setRecentServerIds] = useState<number[]>([]);
@@ -216,14 +213,14 @@ export default function Overview() {
 
   return (
     <Layout>
-      <Head title={translateText('Overview')} />
+      <Head title={'Overview'} />
       <Container>
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <Heading title={translateText('Overview')} />
+          <Heading title={'Overview'} />
           <Input
             type="search"
-            aria-label={translateText("Search servers and sites")}
-            placeholder={translateText("Filter recent resources")}
+            aria-label="Search servers and sites"
+            placeholder="Filter recent resources"
             value={search}
             onChange={(event) => setSearch(event.target.value)}
             className="w-full sm:max-w-xs"
@@ -232,8 +229,8 @@ export default function Overview() {
 
         <div className="grid items-start gap-3 md:grid-cols-2">
               <QuickAccessCard
-                title={translateText('Servers')}
-                viewAllHref={"/servers"}
+                title={'Servers'}
+                viewAllHref="/servers"
                 emptyText={query ? 'No matching servers.' : 'No servers yet.'}
                 loading={isLoading}
                 count={recentServers.length}
@@ -255,7 +252,7 @@ export default function Overview() {
               </QuickAccessCard>
 
               <QuickAccessCard
-                title={translateText('Sites')}
+                title={'Sites'}
                 viewAllHref={withQuery("/sites", { project: 'all' })}
                 emptyText={query ? 'No matching sites.' : 'No sites yet.'}
                 loading={isLoading}

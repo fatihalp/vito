@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { useForm, usePage } from '@inertiajs/react';
 import type { SharedData } from '@/types';
 import { FormEvent, ReactNode, useState } from 'react';
@@ -23,7 +22,6 @@ import InputError from '@/components/ui/input-error';
 import axios from 'axios';
 
 function Enable({ show = true }: { show?: boolean }): ReactNode {
-  const translateText = useTranslate();
   const page = usePage<
     SharedData & {
       two_factor_must_confirm: boolean;
@@ -66,19 +64,19 @@ function Enable({ show = true }: { show?: boolean }): ReactNode {
       {show && (
         <Button onClick={submit} disabled={enableForm.processing}>
           {enableForm.processing && <LoaderCircleIcon className="animate-spin" />}
-          {translateText("Enable Two Factor")}
+          Enable Two Factor
         </Button>
       )}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{translateText("Enable Two Factor")}</DialogTitle>
-            <DialogDescription>{translateText("Enabling two factor authentication")}</DialogDescription>
+            <DialogTitle>Enable Two Factor</DialogTitle>
+            <DialogDescription>Enabling two factor authentication</DialogDescription>
           </DialogHeader>
           <form id="confirm-form" onSubmit={confirm} className="p-4">
             <div className="grid gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="qr-code">{translateText("Scan this QR code with your authenticator app")}</Label>
+                <Label htmlFor="qr-code">Scan this QR code with your authenticator app</Label>
                 <div className="my-3 flex max-h-[400px] items-center justify-center">
                   <div dangerouslySetInnerHTML={{ __html: qrCode }}></div>
                 </div>
@@ -89,12 +87,12 @@ function Enable({ show = true }: { show?: boolean }): ReactNode {
               </div>
               {page.props.two_factor_must_confirm && (
                 <div className="grid gap-2">
-                  <Label htmlFor="code">{translateText("Confirmation Code")}</Label>
+                  <Label htmlFor="code">Confirmation Code</Label>
                   <Input
                     id="code"
                     type="text"
                     name="code"
-                    placeholder={translateText("Enter the confirmation code")}
+                    placeholder="Enter the confirmation code"
                     autoFocus
                     value={confirmForm.data.code}
                     onChange={(e) => confirmForm.setData('code', e.target.value)}
@@ -106,12 +104,12 @@ function Enable({ show = true }: { show?: boolean }): ReactNode {
           </form>
           <DialogFooter>
             <DialogClose asChild>
-              <Button variant="outline">{translateText('Close')}</Button>
+              <Button variant="outline">Close</Button>
             </DialogClose>
             {page.props.two_factor_must_confirm && (
               <Button form="confirm-form" disabled={confirmForm.processing}>
                 {confirmForm.processing && <LoaderCircleIcon className="animate-spin" />}
-                {translateText('Confirm')}
+                Confirm
               </Button>
             )}
           </DialogFooter>
@@ -122,7 +120,6 @@ function Enable({ show = true }: { show?: boolean }): ReactNode {
 }
 
 function Disable(): ReactNode {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const form = useForm();
 
@@ -136,21 +133,21 @@ function Disable(): ReactNode {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="destructive">{translateText("Disable Two Factor")}</Button>
+        <Button variant="destructive">Disable Two Factor</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{translateText("Disable two factor")}</DialogTitle>
-          <DialogDescription>{translateText("Disable two factor")}</DialogDescription>
+          <DialogTitle>Disable two factor</DialogTitle>
+          <DialogDescription>Disable two factor</DialogDescription>
         </DialogHeader>
-        <p className="p-4">{translateText("Are you sure you want to enable two factor authentication?")}</p>
+        <p className="p-4">Are you sure you want to enable two factor authentication?</p>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button onClick={submit} variant="destructive" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Disable')}
+            Disable
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -159,7 +156,6 @@ function Disable(): ReactNode {
 }
 
 function Regenerate(): ReactNode {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const form = useForm();
 
@@ -173,21 +169,21 @@ function Regenerate(): ReactNode {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>{translateText('Regenerate recovery codes')}</Button>
+        <Button>Regenerate recovery codes</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{translateText('Regenerate recovery codes')}</DialogTitle>
-          <DialogDescription>{translateText('Regenerate recovery codes')}</DialogDescription>
+          <DialogTitle>Regenerate recovery codes</DialogTitle>
+          <DialogDescription>Regenerate recovery codes</DialogDescription>
         </DialogHeader>
-        <p className="p-4">{translateText("Are you sure you want to regenerate the recovery codes?")}</p>
+        <p className="p-4">Are you sure you want to regenerate the recovery codes?</p>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            {translateText('Regenerate')}
+            Regenerate
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -196,7 +192,6 @@ function Regenerate(): ReactNode {
 }
 
 export default function TwoFactor() {
-  const translateText = useTranslate();
   const page = usePage<
     SharedData & {
       two_factor_enabled: boolean;
@@ -217,8 +212,8 @@ export default function TwoFactor() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>{translateText('Two factor authentication')}</CardTitle>
-        <CardDescription>{translateText("Enable or Disable two factor authentication")}</CardDescription>
+        <CardTitle>Two factor authentication</CardTitle>
+        <CardDescription>Enable or Disable two factor authentication</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4 p-4">
         {isEnabled() ? (
@@ -227,14 +222,14 @@ export default function TwoFactor() {
               <AlertDescription>
                 <div className="flex items-center gap-2">
                   <CheckCircle2Icon className="text-success size-4" />
-                  <p>{translateText("Two factor authentication is enabled")}</p>
+                  <p>Two factor authentication is enabled</p>
                 </div>
               </AlertDescription>
             </Alert>
             {page.props.two_factor_recovery_codes.length > 0 && (
               <div className="grid gap-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="recovery-codes">{translateText("Recovery Codes")}</Label>
+                  <Label htmlFor="recovery-codes">Recovery Codes</Label>
                   <Textarea id="recovery-codes" value={page.props.two_factor_recovery_codes?.join('\n') || ''} disabled rows={5} />
                 </div>
               </div>
@@ -245,7 +240,7 @@ export default function TwoFactor() {
             <AlertDescription>
               <div className="flex items-center gap-2">
                 <XCircleIcon className="text-danger size-4" />
-                <strong>{translateText('Two factor authentication is not enabled')}</strong>
+                <strong>Two factor authentication is not enabled</strong>
               </div>
             </AlertDescription>
           </Alert>

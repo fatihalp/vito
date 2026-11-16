@@ -20,13 +20,13 @@ class RunBackup
     {
         if ($backup->type === BackupType::PGBACKREST && $backup->cluster?->status !== PostgresClusterStatus::ACTIVE) {
             throw ValidationException::withMessages([
-                'backup' => __('The PostgreSQL cluster is failing over. Backups start again when it finishes.'),
+                'backup' => 'The PostgreSQL cluster is failing over. Backups start again when it finishes.',
             ]);
         }
 
         if ($backup->type === BackupType::PGBACKREST && $backup->files()->where('status', BackupFileStatus::CREATING)->exists()) {
             throw ValidationException::withMessages([
-                'backup' => __('A pgBackRest backup is already running on this server.'),
+                'backup' => 'A pgBackRest backup is already running on this server.',
             ]);
         }
 

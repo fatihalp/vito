@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import React, { FormEvent, useEffect, useMemo, useState } from 'react';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useQueryFlag, useQueryState } from '@/hooks/use-query-state';
@@ -70,7 +69,6 @@ const preserveManagedVariables = (next: EnvVariable[], current: EnvVariable[]): 
 };
 
 function EnvironmentEditorContent() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -335,7 +333,7 @@ function EnvironmentEditorContent() {
 
   return (
     <>
-      <Head title={translateText(".env Editor - :value", { value: site.domain })} />
+      <Head title={`.env Editor - ${site.domain}`} />
 
       <Container className="gap-4 py-5 flex flex-col min-h-[calc(100vh-80px)]">
         <div style={{ position: 'absolute', opacity: 0, height: 0, width: 0, overflow: 'hidden', zIndex: -1 }} aria-hidden="true">
@@ -348,20 +346,20 @@ function EnvironmentEditorContent() {
             <Button variant="outline" size="sm" asChild className="h-9 gap-1.5 cursor-pointer">
               <Link href={`/servers/${server.id}/sites/${site.id}`}>
                 <ArrowLeftIcon className="size-4" />
-                <span>{translateText("Back to site")}</span>
+                <span>Back to site</span>
               </Link>
             </Button>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-xl font-bold tracking-tight">{translateText("Environment Variables")}</h1>
+                <h1 className="text-xl font-bold tracking-tight">Environment Variables</h1>
                 {isDirty && (
                   <span className="inline-flex items-center rounded-md bg-neutral-500/10 px-2 py-0.5 text-xs font-medium text-neutral-500">
-                    {translateText("Unsaved changes")}
+                    Unsaved changes
                   </span>
                 )}
                 {saveSuccess && (
                   <span className="inline-flex items-center gap-1 rounded-md bg-neutral-500/10 px-2 py-0.5 text-xs font-medium text-neutral-500 animate-in fade-in">
-                    <CheckIcon className="size-3" /> {translateText('Saved')}
+                    <CheckIcon className="size-3" /> Saved
                   </span>
                 )}
               </div>
@@ -379,7 +377,7 @@ function EnvironmentEditorContent() {
                 className="h-9 gap-1.5 cursor-pointer text-xs"
               >
                 <HistoryIcon className="size-3.5" />
-                <span>{showHistory ? translateText("Back to Editor") : translateText("History")}</span>
+                <span>{showHistory ? "Back to Editor" : "History"}</span>
               </Button>
             )}
 
@@ -399,7 +397,7 @@ function EnvironmentEditorContent() {
                 ) : (
                   <SlidersHorizontalIcon className="size-3.5" />
                 )}
-                <span>{mode === 'variables' ? translateText("Classic Editor") : translateText("Variables Mode")}</span>
+                <span>{mode === 'variables' ? "Classic Editor" : "Variables Mode"}</span>
               </Button>
             )}
 
@@ -422,7 +420,7 @@ function EnvironmentEditorContent() {
               ) : (
                 <SaveIcon className="size-3.5" />
               )}
-              <span>{translateText("Save .env")}</span>
+              <span>Save .env</span>
               <kbd className="hidden sm:inline-block rounded bg-primary-foreground/20 px-1 py-0.5 text-[10px] font-mono leading-none">
                 ⌘S
               </kbd>
@@ -453,7 +451,7 @@ function EnvironmentEditorContent() {
             <div className="flex items-start sm:items-center gap-2.5">
               <AlertTriangleIcon className="size-4 text-neutral-600 dark:text-neutral-400 shrink-0 mt-0.5 sm:mt-0" />
               <div>
-                {translateText("Duplicate keys detected:")} <span className="font-mono font-semibold">{Array.from(duplicateKeys).join(', ')}</span>{translateText(". You can save anyway, but applications will typically only evaluate the last defined value.")}
+                Duplicate keys detected: <span className="font-mono font-semibold">{Array.from(duplicateKeys).join(', ')}</span>. You can save anyway, but applications will typically only evaluate the last defined value.
               </div>
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -464,7 +462,7 @@ function EnvironmentEditorContent() {
                 onClick={() => setFilterDuplicatesOnly(!filterDuplicatesOnly)}
                 className="h-7 text-xs bg-background/80 hover:bg-background border-neutral-500/30 cursor-pointer"
               >
-                {filterDuplicatesOnly ? translateText("Show all variables") : `Filter duplicates (${duplicateKeys.size})`}
+                {filterDuplicatesOnly ? "Show all variables" : `Filter duplicates (${duplicateKeys.size})`}
               </Button>
               <Button
                 type="button"
@@ -473,7 +471,7 @@ function EnvironmentEditorContent() {
                 onClick={() => setDuplicateModalOpen(true)}
                 className="h-7 text-xs hover:bg-neutral-500/20 cursor-pointer"
               >
-                {translateText("Inspect details")}
+                Inspect details
               </Button>
             </div>
           </div>
@@ -495,7 +493,7 @@ function EnvironmentEditorContent() {
                 <div className="border-b bg-muted/30 px-4 py-2.5 flex items-center gap-2 text-xs text-muted-foreground">
                   <InfoIcon className="size-4 text-primary shrink-0" />
                   <span>
-                    {translateText("Resource-managed variables (database, redis, mail, etc.) are automatically synchronized with connected resources.")}
+                    Resource-managed variables (database, redis, mail, etc.) are automatically synchronized with connected resources.
                   </span>
                 </div>
               )}
@@ -533,7 +531,7 @@ function EnvironmentEditorContent() {
                 <div className="flex items-center gap-2 flex-1 max-w-sm">
                   <Input
                     type="search"
-                    placeholder={translateText("Filter variables...")}
+                    placeholder="Filter variables..."
                     value={searchFilter}
                     onChange={(e) => setSearchFilter(e.target.value)}
                     autoComplete="new-password"
@@ -553,7 +551,7 @@ function EnvironmentEditorContent() {
                       className="gap-1 text-xs shrink-0 cursor-pointer"
                       onClick={() => setFilterDuplicatesOnly(false)}
                     >
-                      <span>{translateText("Duplicates only")}</span>
+                      <span>Duplicates only</span>
                       <XIcon className="size-3" />
                     </Badge>
                   )}
@@ -567,7 +565,7 @@ function EnvironmentEditorContent() {
                   className="h-9 gap-1.5 cursor-pointer"
                 >
                   <PlusIcon className="size-4" />
-                  <span>{translateText("Add Variable")}</span>
+                  <span>Add Variable</span>
                 </Button>
               </div>
 
@@ -583,7 +581,7 @@ function EnvironmentEditorContent() {
                 </div>
               ) : filteredVariables.length === 0 ? (
                 <div className="text-center py-12 text-muted-foreground text-sm">
-                  {searchFilter ? translateText("No variables match your filter.") : translateText("This file has no variables.")}
+                  {searchFilter ? "No variables match your filter." : "This file has no variables."}
                 </div>
               ) : (
                 <fieldset disabled={isSwitching || canEdit === false} className="flex flex-col gap-3 py-2">
@@ -619,11 +617,11 @@ function EnvironmentEditorContent() {
                               variant="outline"
                               onClick={generateAppKey}
                               disabled={generatingKey || isDirty}
-                              title={isDirty ? translateText("Save or discard your changes first") : translateText("Run php artisan key:generate")}
+                              title={isDirty ? "Save or discard your changes first" : "Run php artisan key:generate"}
                               className="shrink-0"
                             >
                               {generatingKey ? <LoaderCircleIcon className="size-4 animate-spin" /> : <KeyRoundIcon className="size-4" />}
-                              <span>{translateText("Generate key")}</span>
+                              <span>Generate key</span>
                             </Button>
                           )
                         }
@@ -641,10 +639,10 @@ function EnvironmentEditorContent() {
             <DialogHeader>
               <div className="flex items-center gap-2 text-neutral-600 dark:text-neutral-400">
                 <AlertTriangleIcon className="size-5" />
-                <DialogTitle className="text-foreground">{translateText("Duplicate Keys Detected")}</DialogTitle>
+                <DialogTitle className="text-foreground">Duplicate Keys Detected</DialogTitle>
               </div>
               <DialogDescription className="text-xs pt-1">
-                {translateText("Your environment contains duplicate keys. In PHP and most runtime environments, duplicate keys are evaluated in order and only the")} <strong>{translateText("last defined value")}</strong> {translateText("takes effect.")}
+                Your environment contains duplicate keys. In PHP and most runtime environments, duplicate keys are evaluated in order and only the <strong>last defined value</strong> takes effect.
               </DialogDescription>
             </DialogHeader>
 
@@ -654,7 +652,7 @@ function EnvironmentEditorContent() {
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-xs font-semibold text-foreground">{key}</span>
                     <span className="rounded-full bg-neutral-500/10 px-2 py-0.5 text-[11px] font-medium text-neutral-600 dark:text-neutral-400">
-                      {entries.length} {translateText("occurrences")}
+                      {entries.length} occurrences
                     </span>
                   </div>
                   <div className="space-y-1 font-mono text-xs">
@@ -678,7 +676,7 @@ function EnvironmentEditorContent() {
                             #{idx + 1}: {displayVal}
                           </span>
                           <span className="text-[10px] shrink-0 uppercase tracking-wider font-sans font-medium">
-                            {isLast ? translateText("Effective value") : translateText("Overridden")}
+                            {isLast ? "Effective value" : "Overridden"}
                           </span>
                         </div>
                       );
@@ -698,7 +696,7 @@ function EnvironmentEditorContent() {
                 }}
                 className="cursor-pointer"
               >
-                {translateText("Review & Edit Duplicates")}
+                {"Review & Edit Duplicates"}
               </Button>
               <Button
                 type="button"
@@ -714,7 +712,7 @@ function EnvironmentEditorContent() {
                 ) : (
                   <SaveIcon className="size-4" />
                 )}
-                <span>{translateText("Save with Duplicates")}</span>
+                <span>Save with Duplicates</span>
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -43,7 +43,7 @@ class ManagePgBackRest
 
         if ($server->database()?->name !== 'postgresql') {
             throw ValidationException::withMessages([
-                'type' => __('pgBackRest backups need a PostgreSQL service on this server.'),
+                'type' => 'pgBackRest backups need a PostgreSQL service on this server.',
             ]);
         }
 
@@ -51,13 +51,13 @@ class ManagePgBackRest
 
         if ($cluster !== null && $cluster->primary_server_id !== $server->id) {
             throw ValidationException::withMessages([
-                'type' => __('This server is a replica. Its cluster is backed up from the primary.'),
+                'type' => 'This server is a replica. Its cluster is backed up from the primary.',
             ]);
         }
 
         if ($server->backups()->where('type', BackupType::PGBACKREST)->exists()) {
             throw ValidationException::withMessages([
-                'type' => __('This server already has a pgBackRest backup.'),
+                'type' => 'This server already has a pgBackRest backup.',
             ]);
         }
 
@@ -213,7 +213,7 @@ class ManagePgBackRest
         $cluster = $backup->cluster;
 
         if ($cluster->status !== PostgresClusterStatus::ACTIVE) {
-            throw new RuntimeException(__('The PostgreSQL cluster started failing over before this backup could start.'));
+            throw new RuntimeException('The PostgreSQL cluster started failing over before this backup could start.');
         }
         $host = app(SelectPgBackRestHost::class)->select($cluster);
 
@@ -254,7 +254,7 @@ class ManagePgBackRest
         if ($state === 'failed') {
             $reason = $pgBackRest->failureReason($file);
             $pgBackRest->cleanup($file);
-            $this->fail($file, $reason !== '' ? $reason : __('The pgBackRest backup failed.'));
+            $this->fail($file, $reason !== '' ? $reason : 'The pgBackRest backup failed.');
 
             return true;
         }
@@ -272,8 +272,8 @@ class ManagePgBackRest
 
         if ($created === null) {
             $this->fail($file, $state === 'missing'
-                ? __('The backup process on the server stopped before it finished, for example because the server restarted.')
-                : __('pgBackRest finished without adding a backup to the repository.'));
+                ? 'The backup process on the server stopped before it finished, for example because the server restarted.'
+                : 'pgBackRest finished without adding a backup to the repository.');
 
             return true;
         }
@@ -284,7 +284,7 @@ class ManagePgBackRest
         $file->status = BackupFileStatus::CREATED;
         $file->progress = null;
         $file->message = implode(' ', array_filter([
-            ($created['error'] ?? false) ? __('pgBackRest reported errors in this backup, such as page checksum failures. Run pgbackrest verify on the server.') : null,
+            ($created['error'] ?? false) ? 'pgBackRest reported errors in this backup, such as page checksum failures. Run pgbackrest verify on the server.' : null,
             ...$this->checkArchiving($backup, $archive),
         ])) ?: null;
         $file->save();
@@ -340,7 +340,7 @@ class ManagePgBackRest
             ...$configuration,
             'last_verified_at' => now()->toIso8601String(),
             'last_verify_result' => $state === 'succeeded' ? 'passed' : 'failed',
-            'last_verify_error' => $state === 'succeeded' ? null : ($reason !== '' ? $reason : __('The verify process stopped before it finished.')),
+            'last_verify_error' => $state === 'succeeded' ? null : ($reason !== '' ? $reason : 'The verify process stopped before it finished.'),
         ];
         $backup->save();
 
@@ -357,7 +357,7 @@ class ManagePgBackRest
         try {
             $backup->pgBackRest()->check();
         } catch (SSHError $e) {
-            $problem = __('pgbackrest check failed on the primary, so WAL may not be reaching S3: :error', ['error' => $e->getMessage()]);
+            $problem = 'pgbackrest check failed on the primary, so WAL may not be reaching S3: '.$e->getMessage();
         }
 
         $backup->refresh();
@@ -380,13 +380,11 @@ class ManagePgBackRest
         $problems = [];
 
         if ($archive['failing']) {
-            $problems[] = __('PostgreSQL is failing to archive WAL to S3, so point-in-time recovery is falling behind.');
+            $problems[] = 'PostgreSQL is failing to archive WAL to S3, so point-in-time recovery is falling behind.';
         }
 
         if ($archive['dropped'] > $droppedBefore) {
-            $problems[] = __('pgBackRest dropped WAL because the archive queue exceeded :size GiB, so point-in-time recovery has a gap until the next backup.', [
-                'size' => $backup->configuration['wal_queue_max_gb'],
-            ]);
+            $problems[] = 'pgBackRest dropped WAL because the archive queue exceeded '.$backup->configuration['wal_queue_max_gb'].' GiB, so point-in-time recovery has a gap until the next backup.';
         }
 
         $backup->configuration = [
@@ -514,7 +512,7 @@ class ManagePgBackRest
         }
 
         Validator::make($input, $rules, [
-            'storage.exists' => __('pgBackRest backups need an S3 storage provider.'),
+            'storage.exists' => 'pgBackRest backups need an S3 storage provider.',
         ])->validate();
     }
 

@@ -67,7 +67,7 @@ class SyncProviderNetworksJob implements ShouldQueue
         ]);
 
         Notifier::send($this->project, new GenericNotification(
-            __('Could not sync private networks from your cloud providers. Check the provider connection and its permissions.')
+            'Could not sync private networks from your cloud providers. Check the provider connection and its permissions.'
         ));
     }
 

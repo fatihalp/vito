@@ -21,7 +21,7 @@ class BrowsePostgresDatabase
     public function resource(SiteResource $resource, array $input): array
     {
         if ($resource->type !== SiteResourceType::DATABASE || ! $resource->server) {
-            throw ValidationException::withMessages(['database' => __('Select a database resource.')]);
+            throw ValidationException::withMessages(['database' => 'Select a database resource.']);
         }
 
         $configuration = $resource->configuration;
@@ -46,7 +46,7 @@ class BrowsePostgresDatabase
         $table = $data['table'] ?? null;
 
         if (str_starts_with($schema, 'pg_') || $schema === 'information_schema') {
-            throw ValidationException::withMessages(['schema' => __('Select an application schema.')]);
+            throw ValidationException::withMessages(['schema' => 'Select an application schema.']);
         }
 
         if (! $table) {
@@ -57,12 +57,12 @@ class BrowsePostgresDatabase
 
         if ($columns === []) {
             throw ValidationException::withMessages([
-                'table' => __('The table was not found or has no visible columns.'),
+                'table' => 'The table was not found or has no visible columns.',
             ]);
         }
         if (count($columns) > 200) {
             throw ValidationException::withMessages([
-                'table' => __('This table has too many columns for the browser.'),
+                'table' => 'This table has too many columns for the browser.',
             ]);
         }
 
@@ -142,7 +142,7 @@ class BrowsePostgresDatabase
             || str_contains($database, "\0");
         if ($isInvalidDatabase) {
             throw ValidationException::withMessages([
-                'database' => __('The database connection has not been registered.'),
+                'database' => 'The database connection has not been registered.',
             ]);
         }
         $driver = $runtime['driver'] ?? 'native';
@@ -158,7 +158,7 @@ class BrowsePostgresDatabase
         } else {
             if ($server->database()?->name !== Postgresql::id()) {
                 throw ValidationException::withMessages([
-                    'database' => __('The data browser currently supports PostgreSQL.'),
+                    'database' => 'The data browser currently supports PostgreSQL.',
                 ]);
             }
             $command = 'psql -h /var/run/postgresql -p 5432';
@@ -174,7 +174,7 @@ class BrowsePostgresDatabase
         );
 
         if (strlen($output) > 4 * 1024 * 1024) {
-            throw ValidationException::withMessages(['table' => __('The response is too large for the browser.')]);
+            throw ValidationException::withMessages(['table' => 'The response is too large for the browser.']);
         }
 
         return json_decode(trim($output), true, flags: JSON_THROW_ON_ERROR);

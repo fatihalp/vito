@@ -13,11 +13,7 @@ class ServerInstallationSucceed extends AbstractNotification
     {
         $this->server->refresh();
 
-        return __("Installation succeed for server [:server] \nServer IP: :ip \n:link", [
-            'server' => $this->server->name,
-            'ip' => $this->server->ip,
-            'link' => url('/servers/'.$this->server->id),
-        ]);
+        return strtr("Installation succeed for server [:server] \nServer IP: :ip \n:link", [':server' => $this->server->name, ':ip' => $this->server->ip, ':link' => url('/servers/'.$this->server->id)]);
     }
 
     public function toEmail(object $notifiable): MailMessage
@@ -26,9 +22,9 @@ class ServerInstallationSucceed extends AbstractNotification
 
         return (new MailMessage)
             ->success()
-            ->subject(__('Your server is ready'))
-            ->line(__('Your server [:server] has been installed successfully and is ready to use.', ['server' => $this->server->name]))
-            ->line(__('Server IP: :ip', ['ip' => $this->server->ip]))
-            ->action(__('Manage your server'), url('/servers/'.$this->server->id));
+            ->subject('Your server is ready')
+            ->line('Your server ['.$this->server->name.'] has been installed successfully and is ready to use.')
+            ->line('Server IP: '.$this->server->ip)
+            ->action('Manage your server', url('/servers/'.$this->server->id));
     }
 }

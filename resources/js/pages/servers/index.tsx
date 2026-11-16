@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { usePanelView } from '@/hooks/use-panel-view';
 import PanelViewToggle from '@/components/panel-view-toggle';
 import { useSocketStore } from '@/stores/socket-store';
@@ -32,7 +31,6 @@ type Page = {
 };
 
 const NameCell = ({ row, value }: CellRenderProps) => {
-  const translateText = useTranslate();
   const status = String(row.status || '');
   const isUnreachable = status === 'disconnected' || row.is_disconnected === true;
   const isInstalling = status === 'installing';
@@ -59,22 +57,22 @@ const NameCell = ({ row, value }: CellRenderProps) => {
             <TooltipTrigger asChild>
               <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
                 <WifiOffIcon className="size-3 shrink-0" />
-                {translateText("Unreachable")}
+                Unreachable
               </span>
             </TooltipTrigger>
-            <TooltipContent>{translateText("Server connection lost / unreachable")}</TooltipContent>
+            <TooltipContent>Server connection lost / unreachable</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       )}
       {isInstalling && (
         <span className="inline-flex items-center gap-1 rounded bg-warning/15 px-1.5 py-0.5 text-[11px] font-medium text-warning">
           <LoaderCircleIcon className="size-3 animate-spin shrink-0" />
-          {translateText("Installing")}
+          Installing
         </span>
       )}
       {isFailed && (
         <span className="inline-flex items-center gap-1 rounded bg-destructive/10 px-1.5 py-0.5 text-[11px] font-medium text-destructive">
-          {translateText("Failed")}
+          Failed
         </span>
       )}
     </div>
@@ -83,7 +81,6 @@ const NameCell = ({ row, value }: CellRenderProps) => {
 
 const metricCell = (threshold: number) =>
   function MetricCell({ value, row }: CellRenderProps) {
-    const translateText = useTranslate();
     const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
 
     if (isUnreachable) {
@@ -96,7 +93,7 @@ const metricCell = (threshold: number) =>
                 <span>—</span>
               </span>
             </TooltipTrigger>
-            <TooltipContent>{translateText("Server unreachable")}</TooltipContent>
+            <TooltipContent>Server unreachable</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       );
@@ -105,7 +102,7 @@ const metricCell = (threshold: number) =>
     const numeric = typeof value === 'number' ? value : null;
 
     if (numeric === null) {
-      return <span className="text-muted-foreground text-xs" title={translateText("Cloud pricing is not linked or could not be verified.")}>—</span>;
+      return <span className="text-muted-foreground text-xs" title="Cloud pricing is not linked or could not be verified.">—</span>;
     }
 
     return (
@@ -138,7 +135,6 @@ type ServerCost = {
 };
 
 const CostCell = ({ value }: CellRenderProps) => {
-  const translateText = useTranslate();
   const cost = (value as ServerCost | null) ?? null;
 
   if (!cost || !cost.formatted) {
@@ -147,7 +143,7 @@ const CostCell = ({ value }: CellRenderProps) => {
 
   return (
     <div className="flex flex-col">
-      <span className="font-mono text-sm font-medium" title={translateText("Monthly server plan before VAT. IPv4, backups and other extras are not included.")}>{cost.formatted}</span>
+      <span className="font-mono text-sm font-medium" title="Monthly server plan before VAT. IPv4, backups and other extras are not included.">{cost.formatted}</span>
       {cost.plan && (
         <span className="text-muted-foreground text-[11px]">
           {cost.plan}{cost.region ? ` · ${cost.region}` : ''}
@@ -180,14 +176,13 @@ const getRoleIcon = (roleValue: unknown, roleLabel: unknown) => {
 };
 
 const RoleCell = ({ row, value }: CellRenderProps) => {
-  const translateText = useTranslate();
   const Icon = getRoleIcon(row.role_value, value ?? row.role);
   const displayText = String(value || row.role || 'App server');
 
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Icon className="size-4 shrink-0 text-muted-foreground" />
-      <span className="text-sm font-medium">{translateText(displayText)}</span>
+      <span className="text-sm font-medium">{displayText}</span>
     </div>
   );
 };
@@ -218,7 +213,6 @@ const stageCell = ({ value }: CellRenderProps) => {
 };
 
 const WarningsCell = ({ row, value }: CellRenderProps) => {
-  const translateText = useTranslate();
   const isUnreachable = row.status === 'disconnected' || row.is_disconnected === true;
 
   if (isUnreachable) {
@@ -233,10 +227,10 @@ const WarningsCell = ({ row, value }: CellRenderProps) => {
   }
 
   const formatWarningLabel = (w: { key: string; count?: number }) => {
-    if (w.key === 'reboot_required') return translateText('Restart required');
-    if (w.key === 'updates_available') return translateText(w.count === 1 ? ':count package update available' : ':count package updates available', { count: w.count ?? 0 });
-    if (w.key === 'kernel_update_available') return translateText('Kernel update available');
-    if (w.key === 'backups_need_attention') return translateText(w.count === 1 ? ':count backup needs attention' : ':count backups need attention', { count: w.count ?? 0 });
+    if (w.key === 'reboot_required') return 'Restart required';
+    if (w.key === 'updates_available') return w.count === 1 ? `${(w.count ?? 0)} package update available` : `${(w.count ?? 0)} package updates available`;
+    if (w.key === 'kernel_update_available') return 'Kernel update available';
+    if (w.key === 'backups_need_attention') return w.count === 1 ? `${(w.count ?? 0)} backup needs attention` : `${(w.count ?? 0)} backups need attention`;
     return w.key;
   };
 
@@ -247,7 +241,7 @@ const WarningsCell = ({ row, value }: CellRenderProps) => {
           variant="ghost"
           size="sm"
           className="h-6 shrink-0 gap-1 px-1.5 text-warning/80 hover:text-warning"
-          aria-label={translateText(count === 1 ? ':count server warning' : ':count server warnings', { count })}
+          aria-label={count === 1 ? `${count} server warning` : `${count} server warnings`}
           onClick={(event) => {
             event.stopPropagation();
             router.visit(warnings.some((warning) => warning.key === 'updates_available' || warning.key === 'kernel_update_available')
@@ -260,7 +254,7 @@ const WarningsCell = ({ row, value }: CellRenderProps) => {
         </Button>
       </TooltipTrigger>
       <TooltipContent align="start" className="w-72 p-3">
-        <p className="mb-2 text-xs font-medium">{translateText("Server warnings")}</p>
+        <p className="mb-2 text-xs font-medium">Server warnings</p>
         <ul className="text-muted-foreground flex flex-col gap-2 text-xs">
           {warnings.map((warning) => <li key={warning.key}>{formatWarningLabel(warning)}</li>)}
         </ul>
@@ -270,11 +264,10 @@ const WarningsCell = ({ row, value }: CellRenderProps) => {
 };
 
 const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
-  const translateText = useTranslate();
   const result = value as PhpVersions | null;
 
   if (!result) {
-    return <span className="text-muted-foreground text-xs">{translateText("Not checked")}</span>;
+    return <span className="text-muted-foreground text-xs">Not checked</span>;
   }
 
   const labels = {
@@ -292,27 +285,26 @@ const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
         <Link href={`/servers/${row.id}/services`} className="inline-flex flex-col items-start gap-1">
           <Badge variant={result.status === 'outdated' ? 'warning' : result.status === 'current' ? 'success' : 'gray'}>
             {result.checking && <LoaderCircleIcon className="size-3 animate-spin" />}
-            {translateText(result.checking ? 'Checking' : labels[result.status])}
+            {result.checking ? 'Checking' : labels[result.status]}
           </Badge>
           {result.versions.map((version) => (
             <span key={version.installed} className="text-muted-foreground whitespace-nowrap text-xs">
-              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ` · ${translateText('End of support')}` : ''}
+              {version.installed}{version.outdated ? ` → ${version.latest}` : ''}{version.unsupported ? ` · ${'End of support'}` : ''}
             </span>
           ))}
-          {stale && <span className="text-muted-foreground text-xs">{translateText("Cached result")}</span>}
+          {stale && <span className="text-muted-foreground text-xs">Cached result</span>}
         </Link>
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
-        <p>{translateText("Compared with the latest patch release for each PHP branch.")}</p>
-        <p>{result.checked_at ? translateText('Last successful check: :date', { date: new Date(result.checked_at).toLocaleString('en-US') }) : translateText('No successful checks yet.')}</p>
-        {result.status === 'error' && <p>{translateText("Unable to reach the server or PHP version source. Previous results are preserved.")}</p>}
+        <p>Compared with the latest patch release for each PHP branch.</p>
+        <p>{result.checked_at ? `Last successful check: ${(new Date(result.checked_at).toLocaleString('en-US'))}` : 'No successful checks yet.'}</p>
+        {result.status === 'error' && <p>Unable to reach the server or PHP version source. Previous results are preserved.</p>}
       </TooltipContent>
     </Tooltip>
   );
 };
 
 export default function Servers() {
-  const translateText = useTranslate();
   const page = usePage<Page & SharedData>();
   const versionForm = useForm({ project: page.props.serverScope ?? 'all' });
   const { advanced } = usePanelView();
@@ -333,11 +325,11 @@ export default function Servers() {
 
   return (
     <Layout>
-      <Head title={translateText('Servers')} />
+      <Head title={'Servers'} />
 
       <Container>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <Heading title={translateText('Servers')} />
+          <Heading title={'Servers'} />
           <div className="flex flex-wrap items-center gap-2">
             {advanced && <Button
               variant="outline"
@@ -348,12 +340,12 @@ export default function Servers() {
               }}
             >
               <RefreshCwIcon className={cn(checkingVersions && 'animate-spin')} />
-              {translateText("Check versions")}
+              Check versions
             </Button>}
             <Button asChild>
-              <Link href={"/servers/create"}>
+              <Link href="/servers/create">
                 <PlusIcon />
-                {translateText('Create server')}
+                Create server
               </Link>
             </Button>
           </div>
@@ -388,16 +380,16 @@ export default function Servers() {
                   router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                 }}
               >
-                <SelectTrigger className="h-8 w-44" aria-label={translateText("PHP version status filter")}>
+                <SelectTrigger className="h-8 w-44" aria-label="PHP version status filter">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">{translateText("All PHP statuses")}</SelectItem>
-                  <SelectItem value="outdated">{translateText("Outdated PHP")}</SelectItem>
+                  <SelectItem value="all">All PHP statuses</SelectItem>
+                  <SelectItem value="outdated">Outdated PHP</SelectItem>
                 </SelectContent>
               </Select>}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-muted-foreground text-sm">{translateText("Group by")}</span>
+                <span className="text-muted-foreground text-sm">Group by</span>
                 <Select
                   value={page.props.groupBy ?? 'none'}
                   onValueChange={(groupBy) => {
@@ -411,12 +403,12 @@ export default function Servers() {
                     router.get(url.toString(), {}, { preserveScroll: true, preserveState: true, replace: true });
                   }}
                 >
-                  <SelectTrigger className="h-8 w-40" aria-label={translateText("Group servers by")}>
-                    <SelectValue placeholder={translateText('No grouping')} />
+                  <SelectTrigger className="h-8 w-40" aria-label="Group servers by">
+                    <SelectValue placeholder={'No grouping'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">{translateText('No grouping')}</SelectItem>
-                    <SelectItem value="project">{translateText("Group by Project")}</SelectItem>
+                    <SelectItem value="none">No grouping</SelectItem>
+                    <SelectItem value="project">Group by Project</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode, useEffect, useState } from 'react';
 import moment from 'moment';
 import {
@@ -168,7 +167,6 @@ export default function DeploymentProgress({
   selectedStep?: number;
   onStepSelect?: (index: number) => void;
 }) {
-  const translateText = useTranslate();
   const deploying = deployment.status === 'deploying';
   const failed = deployment.status === 'failed';
   const finished = deployment.status === 'finished';
@@ -201,7 +199,7 @@ export default function DeploymentProgress({
             <CheckCircle2Icon className="size-4 text-muted-foreground shrink-0" />
           )}
 
-          <span className="text-sm font-medium shrink-0">{translateText(title)}</span>
+          <span className="text-sm font-medium shrink-0">{title}</span>
 
           {stepLabel && (
             <span className="text-[13px] text-muted-foreground tabular-nums shrink-0">{stepLabel}</span>
@@ -232,7 +230,7 @@ export default function DeploymentProgress({
               size="icon"
               className="size-7 cursor-pointer"
               onClick={() => setShowSteps((prev) => !prev)}
-              aria-label={translateText(showSteps ? 'Hide steps' : 'Show steps')}
+              aria-label={showSteps ? 'Hide steps' : 'Show steps'}
             >
               {showSteps ? <ChevronUpIcon className="size-4" /> : <ChevronDownIcon className="size-4" />}
             </Button>
@@ -242,7 +240,7 @@ export default function DeploymentProgress({
         </div>
       </div>
 
-      {deploying && <Progress value={percent} aria-label={translateText('Deployment progress')} className="h-1.5" />}
+      {deploying && <Progress value={percent} aria-label={'Deployment progress'} className="h-1.5" />}
 
       {steps.length > 0 && showSteps && (
         <div className="divide-y divide-border/60 overflow-hidden">

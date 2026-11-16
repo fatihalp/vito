@@ -27,7 +27,7 @@ class AttachProviderNetwork
         app(SyncProviderNetworks::class)->forProject($first->project);
 
         $network = $first->project->networks()->where('server_provider_id', $first->provider_id)->where('external_id', $attached['id'])->first()
-            ?? throw new RuntimeException(__('The provider attached both servers to a private network, but Vito could not load it. Sync the networks on the Networks page and retry.'));
+            ?? throw new RuntimeException('The provider attached both servers to a private network, but Vito could not load it. Sync the networks on the Networks page and retry.');
 
         if ($attached['managed']) {
             $network->firewallRules()->where('name', 'Allow all')->get()->each(fn ($rule) => app(ManageNetworkFirewallRule::class)->delete($rule));

@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { FormEvent } from 'react';
@@ -21,7 +20,6 @@ export default function LinkDatabaseUserDialog({
   onOpenChange: (open: boolean) => void;
   databaseUser: DatabaseUser;
 }) {
-  const translateText = useTranslate();
   const page = usePage<{
     databases: Database[];
   }>();
@@ -47,18 +45,18 @@ export default function LinkDatabaseUserDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{translateText("Link database user [")}{databaseUser.username}]</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Link database user")}</DialogDescription>
+          <DialogTitle>Link database user [{databaseUser.username}]</DialogTitle>
+          <DialogDescription className="sr-only">Link database user</DialogDescription>
         </DialogHeader>
         <Form id="link-database-user" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="databases">{translateText('Databases')}</Label>
+              <Label htmlFor="databases">Databases</Label>
               <MultiSelect
                 options={databases}
                 onValueChange={(value) => form.setData('databases', value)}
                 defaultValue={form.data.databases}
-                placeholder={translateText("Select database")}
+                placeholder="Select database"
                 maxCount={5}
               />
               <InputError className="mt-2" message={form.errors.databases} />
@@ -67,12 +65,12 @@ export default function LinkDatabaseUserDialog({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">{translateText('Cancel')}</Button>
+            <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button form="link-database-user" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            {translateText('Save')}
+            Save
           </Button>
         </DialogFooter>
       </DialogContent>

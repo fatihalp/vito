@@ -19,7 +19,7 @@ class CiRunnerClient
             && ! in_array('..', explode('/', $repository), true);
         if (! $isValid) {
             throw ValidationException::withMessages([
-                'ci' => __('Connect a repository to this site before configuring CI.'),
+                'ci' => 'Connect a repository to this site before configuring CI.',
             ]);
         }
 
@@ -35,12 +35,12 @@ class CiRunnerClient
             && in_array($source->provider, ['github', 'github-app', 'gitlab'], true);
         if (! $isSupportedSource) {
             throw ValidationException::withMessages([
-                'ci' => __('Connect a supported source-control provider before configuring CI.'),
+                'ci' => 'Connect a supported source-control provider before configuring CI.',
             ]);
         }
         if ($source->provider === 'gitlab' && (int) ($source->provider_data['ssh_port'] ?? 22) !== 22) {
             throw ValidationException::withMessages([
-                'ci' => __('This CI protocol does not support a custom source-control SSH port.'),
+                'ci' => 'This CI protocol does not support a custom source-control SSH port.',
             ]);
         }
         $fingerprintParts = [$source->id, $source->provider, $source->url, $this->repository($site->repository)];
@@ -65,7 +65,7 @@ class CiRunnerClient
             && ! isset($parts['query'])
             && ! isset($parts['fragment']);
         if (! $isSupportedOrigin) {
-            throw ValidationException::withMessages(['ci' => __('The source-control origin is not supported by CI.')]);
+            throw ValidationException::withMessages(['ci' => 'The source-control origin is not supported by CI.']);
         }
         $port = isset($parts['port']) ? ':'.$parts['port'] : '';
 
@@ -76,7 +76,7 @@ class CiRunnerClient
     {
         if ($runner->server->is_self) {
             throw ValidationException::withMessages([
-                'ci' => __('CI jobs must run outside the Vito control-plane server.'),
+                'ci' => 'CI jobs must run outside the Vito control-plane server.',
             ]);
         }
         $key = hash('sha256', implode('|', [
@@ -90,12 +90,12 @@ class CiRunnerClient
         $info = Cache::remember('ci-runner-info:'.$key, 15, fn () => $this->exchange($runner, ['action' => 'info']));
         if (! $this->infoMatchesRunner($info, $runner)) {
             throw ValidationException::withMessages([
-                'ci' => __('The runner does not match this repository or uses an unsupported protocol.'),
+                'ci' => 'The runner does not match this repository or uses an unsupported protocol.',
             ]);
         }
         foreach ($info['stages'] as $stage) {
             if (! is_string($stage) || ! preg_match('/^[a-z][a-z0-9-]{0,39}$/', $stage)) {
-                throw ValidationException::withMessages(['ci' => __('The runner returned invalid stage information.')]);
+                throw ValidationException::withMessages(['ci' => 'The runner returned invalid stage information.']);
             }
         }
 
@@ -117,7 +117,7 @@ class CiRunnerClient
     {
         if (! $runner->enabled && ($request['action'] ?? null) === 'run') {
             throw ValidationException::withMessages([
-                'ci' => __('CI is paused. Ask an administrator to enable the runner.'),
+                'ci' => 'CI is paused. Ask an administrator to enable the runner.',
             ]);
         }
         $identity = $this->sourceIdentity($runner->site);
@@ -127,7 +127,7 @@ class CiRunnerClient
             && $this->repository($runner->site->repository) === $runner->repository;
         if (! $identityUnchanged) {
             throw ValidationException::withMessages([
-                'ci' => __('The site repository changed. Ask an administrator to reconnect CI.'),
+                'ci' => 'The site repository changed. Ask an administrator to reconnect CI.',
             ]);
         }
         $this->info($runner);
@@ -143,7 +143,7 @@ class CiRunnerClient
             && $this->repository($run['repository']) === $runner->repository
             && preg_match('/^[a-f0-9]{16}$/', $run['run_id']);
         if (! $belongsToRunner) {
-            throw ValidationException::withMessages(['ci' => __('The CI result does not belong to this repository.')]);
+            throw ValidationException::withMessages(['ci' => 'The CI result does not belong to this repository.']);
         }
     }
 
@@ -164,7 +164,7 @@ class CiRunnerClient
         }
         if (! $valid) {
             throw ValidationException::withMessages([
-                'ref' => __('Enter a branch, pr:N or a full 40-character commit SHA.'),
+                'ref' => 'Enter a branch, pr:N or a full 40-character commit SHA.',
             ]);
         }
 
@@ -175,7 +175,7 @@ class CiRunnerClient
     {
         $json = json_encode($request, JSON_THROW_ON_ERROR);
         if (strlen($json) > 8192) {
-            throw ValidationException::withMessages(['ci' => __('The CI request is too large.')]);
+            throw ValidationException::withMessages(['ci' => 'The CI request is too large.']);
         }
         $command = implode(' ', [
             'printf %s',
@@ -197,26 +197,20 @@ class CiRunnerClient
             }
         } catch (Throwable) {
             throw ValidationException::withMessages([
-                'ci' => __('Could not reach the CI runner. Check its SSH connection and runner service.'),
+                'ci' => 'Could not reach the CI runner. Check its SSH connection and runner service.',
             ]);
         }
         if ($response['ok'] !== true) {
             $error = is_string($response['error'] ?? null) ? $response['error'] : '';
             $message = match (true) {
-                str_contains($error, 'A CI run is active') => __(
-                    'A CI job is already running. Wait for it to finish or cancel it.'
-                ),
-                str_contains($error, 'Run not found') => __(
-                    'This CI result is unavailable or its retention period has expired.'
-                ),
-                default => __(
-                    'The runner rejected this request. Check the reference, selected stages and runner configuration.'
-                ),
+                str_contains($error, 'A CI run is active') => 'A CI job is already running. Wait for it to finish or cancel it.',
+                str_contains($error, 'Run not found') => 'This CI result is unavailable or its retention period has expired.',
+                default => 'The runner rejected this request. Check the reference, selected stages and runner configuration.',
             };
             throw ValidationException::withMessages(['ci' => $message]);
         }
         if (! is_array($response['data'] ?? null)) {
-            throw ValidationException::withMessages(['ci' => __('The runner returned an invalid response.')]);
+            throw ValidationException::withMessages(['ci' => 'The runner returned an invalid response.']);
         }
 
         return $response['data'];

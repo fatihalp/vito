@@ -14,7 +14,7 @@ class ConcealNetworkPeerKey
     {
         if ($peer->byo) {
             throw ValidationException::withMessages([
-                'peer' => __('This peer uses a user-provided key; there is nothing to conceal.'),
+                'peer' => 'This peer uses a user-provided key; there is nothing to conceal.',
             ]);
         }
 

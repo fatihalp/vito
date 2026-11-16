@@ -38,16 +38,13 @@ class MatchingServer
     {
         if (isset($plan['disk'], $requirements['storage_gb']) && $plan['disk'] < $requirements['storage_gb']) {
             throw ValidationException::withMessages([
-                $field => __('This plan has :disk GB of disk, but it needs at least :required GB.', ['disk' => $plan['disk'], 'required' => $requirements['storage_gb']]),
+                $field => 'This plan has '.$plan['disk'].' GB of disk, but it needs at least '.$requirements['storage_gb'].' GB.',
             ]);
         }
 
         if (isset($plan['architecture'], $requirements['architecture']) && $plan['architecture'] !== $requirements['architecture']) {
             throw ValidationException::withMessages([
-                $field => __(':source runs on :architecture. PostgreSQL data files are not safe to copy to another processor architecture, so choose a :architecture plan.', [
-                    'source' => $requirements['source'],
-                    'architecture' => $requirements['architecture'],
-                ]),
+                $field => $requirements['source'].' runs on '.$requirements['architecture'].'. PostgreSQL data files are not safe to copy to another processor architecture, so choose a '.$requirements['architecture'].' plan.',
             ]);
         }
     }

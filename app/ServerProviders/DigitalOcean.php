@@ -193,12 +193,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 ->map(function (array $size) use ($region): array {
                     $available = (bool) $size['available'] && in_array($region, $size['regions'], true);
 
-                    $label = __('server_providers.plan', [
-                        'name' => $size['description'],
-                        'cpu' => $size['vcpus'],
-                        'memory' => $size['memory'],
-                        'disk' => $size['disk'],
-                    ]);
+                    $label = 'server_providers.plan';
 
                     if ($available) {
                         $label .= ' ('.number_format((float) $size['price_monthly'], 2).'/mo)';
@@ -278,7 +273,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
         }
 
         if ($create->status() != 202) {
-            $msg = __('Failed to create server on DigitalOcean');
+            $msg = 'Failed to create server on DigitalOcean';
             Log::error('Failed to create server on DigitalOcean', $create->json());
             throw new ServerProviderError($msg);
         }
@@ -349,7 +344,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
             ]);
 
         if (! $response->successful()) {
-            throw new ServerProviderError($response->json('message') ?? __('DigitalOcean request failed with status :status', ['status' => $response->status()]));
+            throw new ServerProviderError($response->json('message') ?? 'DigitalOcean request failed with status '.$response->status());
         }
     }
 

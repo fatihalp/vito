@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { Site } from '@/types/site';
 import ServerLayout from '@/layouts/server/layout';
@@ -22,7 +21,6 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 
 export default function LoadBalancer() {
-  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -80,7 +78,7 @@ export default function LoadBalancer() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Load balancer" description={translateText("Here you can manage the load balancer configs")} />
+          <Heading title="Load balancer" description="Here you can manage the load balancer configs" />
           <div className="flex items-center gap-2">
           </div>
         </HeaderContainer>
@@ -89,20 +87,20 @@ export default function LoadBalancer() {
 
         <Card>
           <CardHeader>
-            <CardTitle>{translateText("Configs")}</CardTitle>
-            <CardDescription>{translateText("Modify load balancer configs")}</CardDescription>
+            <CardTitle>Configs</CardTitle>
+            <CardDescription>Modify load balancer configs</CardDescription>
           </CardHeader>
           <CardContent className="p-4">
             <Form>
               <FormFields>
                 <FormField>
-                  <Label htmlFor="method">{translateText("Method")}</Label>
+                  <Label htmlFor="method">Method</Label>
                   <Select
                     value={form.data.method}
                     onValueChange={(value) => form.setData('method', value as 'round-robin' | 'least-connections' | 'ip-hash')}
                   >
                     <SelectTrigger id="method">
-                      <SelectValue placeholder={translateText("Select a method")} />
+                      <SelectValue placeholder="Select a method" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -127,7 +125,7 @@ export default function LoadBalancer() {
                     />
                     <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 lg:grid-cols-4">
                       <FormField>
-                        <Label htmlFor={`server-${index}`}>{translateText('Server')}</Label>
+                        <Label htmlFor={`server-${index}`}>Server</Label>
                         <ServerSelect
                           id={`server-${index}`}
                           value={item.ip}
@@ -163,7 +161,7 @@ export default function LoadBalancer() {
                       </FormField>
 
                       <FormField>
-                        <Label htmlFor={`weight-${index}`}>{translateText("Weight")}</Label>
+                        <Label htmlFor={`weight-${index}`}>Weight</Label>
                         <Input
                           id={`weight-${index}`}
                           type="text"
@@ -181,7 +179,7 @@ export default function LoadBalancer() {
                       </FormField>
 
                       <FormField>
-                        <Label htmlFor={`backup-${index}`}>{translateText('Backup')}</Label>
+                        <Label htmlFor={`backup-${index}`}>Backup</Label>
                         <Switch
                           id={`backup-${index}`}
                           checked={item.backup || false}
@@ -205,7 +203,7 @@ export default function LoadBalancer() {
                   onClick={addServer}
                   className="text-muted-foreground hover:text-foreground flex h-[92px] items-center justify-center rounded-md border border-dashed hover:cursor-pointer"
                 >
-                  {translateText("Add server to the load balancer")}
+                  Add server to the load balancer
                 </FormField>
               </FormFields>
             </Form>
@@ -214,7 +212,7 @@ export default function LoadBalancer() {
             <Button disabled={form.processing} onClick={submit}>
               {form.processing && <LoaderCircleIcon className="animate-spin" />}
               <FormSuccessful successful={form.recentlySuccessful} />
-              {translateText("Save and Deploy")}
+              Save and Deploy
             </Button>
           </CardFooter>
         </Card>

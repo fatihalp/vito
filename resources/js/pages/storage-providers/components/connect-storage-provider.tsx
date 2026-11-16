@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { AlertCircleIcon, ChevronDownIcon, InfoIcon, LoaderCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -91,7 +90,6 @@ export default function ConnectStorageProvider({
   onProviderAdded?: () => void;
   children: ReactNode;
 }) {
-  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const [activePreset, setActivePreset] = useState<string | null>(null);
@@ -285,8 +283,8 @@ export default function ConnectStorageProvider({
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{translateText('Connect to storage provider')}</DialogTitle>
-          <DialogDescription className="sr-only">{translateText("Connect to a new storage provider")}</DialogDescription>
+          <DialogTitle>Connect to storage provider</DialogTitle>
+          <DialogDescription className="sr-only">Connect to a new storage provider</DialogDescription>
         </DialogHeader>
         <Form
           id="create-storage-provider-form"
@@ -301,12 +299,12 @@ export default function ConnectStorageProvider({
             {providerError && (
               <Alert variant="destructive">
                 <AlertCircleIcon className="size-4" />
-                <AlertTitle>{translateText('Connection failed')}</AlertTitle>
+                <AlertTitle>Connection failed</AlertTitle>
                 <AlertDescription>{providerError}</AlertDescription>
               </Alert>
             )}
             <FormField>
-              <Label htmlFor="provider">{translateText('Provider')}</Label>
+              <Label htmlFor="provider">Provider</Label>
               <Select
                 value={form.data.provider}
                 onValueChange={(value) => {
@@ -316,7 +314,7 @@ export default function ConnectStorageProvider({
                 }}
               >
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder={translateText('Select a provider')} />
+                  <SelectValue placeholder={'Select a provider'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>
@@ -334,8 +332,8 @@ export default function ConnectStorageProvider({
             {form.data.provider === 's3' && (
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label className="text-xs font-semibold text-foreground">{translateText("S3 Service Preset")}</Label>
-                  <span className="text-[11px] text-muted-foreground">{translateText("Click to auto-fill endpoint & region")}</span>
+                  <Label className="text-xs font-semibold text-foreground">S3 Service Preset</Label>
+                  <span className="text-[11px] text-muted-foreground">{"Click to auto-fill endpoint & region"}</span>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {S3_PRESETS.map((p) => (
@@ -362,19 +360,19 @@ export default function ConnectStorageProvider({
             {form.data.provider === 'dropbox' && (
               <Alert>
                 <InfoIcon className="size-4" />
-                <AlertTitle>{translateText("Connect with Dropbox OAuth")}</AlertTitle>
+                <AlertTitle>Connect with Dropbox OAuth</AlertTitle>
                 <AlertDescription>
-                  <p>{translateText("Create a Dropbox app with offline access enabled, then add this redirect URI to its OAuth settings:")}</p>
+                  <p>Create a Dropbox app with offline access enabled, then add this redirect URI to its OAuth settings:</p>
                   <code className="bg-muted block w-full rounded px-1.5 py-1 text-xs break-all mt-1">
                     {"/settings/storage-providers/dropbox/callback"}
                   </code>
-                  <p className="mt-1">{translateText("Enter the app key and secret below, then continue to Dropbox to authorize access.")}</p>
+                  <p className="mt-1">Enter the app key and secret below, then continue to Dropbox to authorize access.</p>
                 </AlertDescription>
               </Alert>
             )}
 
             <FormField>
-              <Label htmlFor="name">{translateText('Name')}</Label>
+              <Label htmlFor="name">Name</Label>
               <Input
                 type="text"
                 name="name"
@@ -385,7 +383,7 @@ export default function ConnectStorageProvider({
                 data-bwignore="true"
                 data-form-type="other"
                 spellCheck={false}
-                placeholder={translateText("e.g. Hetzner Storage or Backups")}
+                placeholder="e.g. Hetzner Storage or Backups"
                 value={form.data.name}
                 onChange={(e) => form.setData('name', e.target.value)}
               />
@@ -405,8 +403,8 @@ export default function ConnectStorageProvider({
             {isCloudflareR2 && (
               <div className="rounded-lg border bg-muted/30 p-3 space-y-3">
                 <div>
-                  <Label className="text-sm font-semibold">{translateText("R2 account buckets")}</Label>
-                  <p className="mt-1 text-xs text-muted-foreground">{translateText("List your account once, then import selected buckets as manageable Vito storage providers.")}</p>
+                  <Label className="text-sm font-semibold">R2 account buckets</Label>
+                  <p className="mt-1 text-xs text-muted-foreground">List your account once, then import selected buckets as manageable Vito storage providers.</p>
                 </div>
                 <Button
                   type="button"
@@ -416,19 +414,19 @@ export default function ConnectStorageProvider({
                   onClick={() => void listR2Buckets()}
                 >
                   {loadingR2Buckets && <LoaderCircle className="animate-spin" />}
-                  {translateText("List R2 buckets")}
+                  List R2 buckets
                 </Button>
 
                 {r2Buckets.length > 0 && (
                   <div className="space-y-2 rounded-md border bg-background p-2.5">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-xs text-muted-foreground">{r2Buckets.length} {translateText("bucket found")}</span>
+                      <span className="text-xs text-muted-foreground">{r2Buckets.length} bucket found</span>
                       <button
                         type="button"
                         className="text-xs font-medium text-primary hover:underline"
                         onClick={() => setSelectedR2Buckets(selectedR2Buckets.length === r2Buckets.length ? [] : r2Buckets)}
                       >
-                        {selectedR2Buckets.length === r2Buckets.length ? translateText("Clear selection") : translateText("Select all")}
+                        {selectedR2Buckets.length === r2Buckets.length ? "Clear selection" : "Select all"}
                       </button>
                     </div>
                     <div className="max-h-40 space-y-2 overflow-y-auto">
@@ -452,7 +450,7 @@ export default function ConnectStorageProvider({
                       onClick={() => void importR2Buckets()}
                     >
                       {importingR2Buckets && <LoaderCircle className="animate-spin" />}
-                      {translateText("Import selected buckets to Vito")}
+                      Import selected buckets to Vito
                     </Button>
                   </div>
                 )}
@@ -466,7 +464,7 @@ export default function ConnectStorageProvider({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
               >
                 <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
-                <span>{showOptional ? translateText("Hide optional fields") : translateText("Show optional fields (Path, Global)")}</span>
+                <span>{showOptional ? "Hide optional fields" : "Show optional fields (Path, Global)"}</span>
               </button>
 
               {showOptional && (
@@ -489,7 +487,7 @@ export default function ConnectStorageProvider({
                         onClick={() => form.setData('global', !form.data.global)}
                       />
                       <Label htmlFor="global" className="text-xs font-normal">
-                        {translateText('Is global (accessible in all projects)')}
+                        Is global (accessible in all projects)
                       </Label>
                     </div>
                     <InputError message={form.errors.global} />
@@ -502,12 +500,12 @@ export default function ConnectStorageProvider({
         <DialogFooter>
           <DialogClose asChild>
             <Button type="button" variant="outline">
-              {translateText('Cancel')}
+              Cancel
             </Button>
           </DialogClose>
           <Button type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
-            {translateText('Connect')}
+            Connect
           </Button>
         </DialogFooter>
       </DialogContent>

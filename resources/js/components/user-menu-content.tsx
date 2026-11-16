@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
@@ -17,7 +16,6 @@ interface UserMenuContentProps {
 }
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
-  const translateText = useTranslate();
   const cleanup = useMobileNavigation();
   const { theme, setTheme } = useTheme();
 
@@ -43,28 +41,28 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <PaletteIcon className="mr-2 size-4" />
-            {translateText('Appearance')}
+            Appearance
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              <DropdownMenuRadioItem value="light">{translateText('Light')}</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="dark">{translateText('Dark')}</DropdownMenuRadioItem>
-              <DropdownMenuRadioItem value="system">{translateText('System')}</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
             </DropdownMenuRadioGroup>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuItem asChild>
-          <Link className="block w-full" href={"/settings/profile"} as="button" prefetch onClick={cleanup}>
+          <Link className="block w-full" href="/settings/profile" as="button" prefetch onClick={cleanup}>
             <Settings className="mr-2" />
-            {translateText('Settings')}
+            Settings
           </Link>
         </DropdownMenuItem>
         {user.is_admin && (
           <>
             <DropdownMenuItem asChild>
-              <Link className="block w-full" href={"/admin/vito"} as="button" prefetch onClick={cleanup}>
+              <Link className="block w-full" href="/admin/vito" as="button" prefetch onClick={cleanup}>
                 <ShieldCheckIcon className="mr-2" />
-                {translateText('Pure Settings')}
+                Pure Settings
               </Link>
             </DropdownMenuItem>
           </>
@@ -72,9 +70,9 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild>
-        <Link className="block w-full" method="post" href={"/logout"} as="button" onClick={handleLogout}>
+        <Link className="block w-full" method="post" href="/logout" as="button" onClick={handleLogout}>
           <LogOut className="mr-2" />
-          {translateText('Log out')}
+          Log out
         </Link>
       </DropdownMenuItem>
     </>

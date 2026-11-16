@@ -1,4 +1,3 @@
-import { useTranslate } from '@/hooks/use-translate';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +14,6 @@ export default function RunnerSettings({ base, runner, servers, repository }: {
   servers: { id: number; name: string }[];
   repository: string | null;
 }) {
-  const translateText = useTranslate();
   const [serverId, setServerId] = useState(String(runner?.server_id ?? ''));
   const [user, setUser] = useState(runner?.user ?? 'vito-ci');
   const [executable, setExecutable] = useState(runner?.executable ?? '/usr/local/bin/vito-ci');
@@ -39,20 +37,20 @@ export default function RunnerSettings({ base, runner, servers, repository }: {
   }
 
   return <details className="rounded-xl border bg-card p-4" open={!runner}>
-    <summary className="cursor-pointer font-medium">{translateText("Runner settings")}</summary>
-    <p className="mt-3 text-sm text-muted-foreground">{translateText("Connect an existing isolated runner for")} {repository || translateText("this repository")}{translateText(". This does not install software or change the application.")}</p>
+    <summary className="cursor-pointer font-medium">Runner settings</summary>
+    <p className="mt-3 text-sm text-muted-foreground">Connect an existing isolated runner for {repository || "this repository"}. This does not install software or change the application.</p>
     <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
-      <div className="space-y-2"><Label htmlFor="ci-server">{translateText("Runner server")}</Label>
+      <div className="space-y-2"><Label htmlFor="ci-server">Runner server</Label>
         <select id="ci-server" value={serverId} onChange={(event) => setServerId(event.target.value)} required className="h-9 w-full rounded-md border bg-background px-3 text-sm">
-          <option value="">{translateText("Select a runner server")}</option>
+          <option value="">Select a runner server</option>
           {servers.map((server) => <option key={server.id} value={server.id}>{server.name}</option>)}
         </select>
       </div>
-      <div className="space-y-2"><Label htmlFor="ci-user">{translateText("Isolated Linux user")}</Label><Input id="ci-user" value={user} onChange={(event) => setUser(event.target.value)} required maxLength={32} autoComplete="off" /></div>
-      <div className="space-y-2 sm:col-span-2"><Label htmlFor="ci-executable">{translateText("Runner client path")}</Label><Input id="ci-executable" value={executable} onChange={(event) => setExecutable(event.target.value)} required maxLength={255} autoComplete="off" /><p className="text-xs text-muted-foreground">{translateText("Use the administrator-installed, root-owned CI client. Repository identity is checked before saving.")}</p></div>
-      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />{translateText("Enable CI requests")}</label>
+      <div className="space-y-2"><Label htmlFor="ci-user">Isolated Linux user</Label><Input id="ci-user" value={user} onChange={(event) => setUser(event.target.value)} required maxLength={32} autoComplete="off" /></div>
+      <div className="space-y-2 sm:col-span-2"><Label htmlFor="ci-executable">Runner client path</Label><Input id="ci-executable" value={executable} onChange={(event) => setExecutable(event.target.value)} required maxLength={255} autoComplete="off" /><p className="text-xs text-muted-foreground">Use the administrator-installed, root-owned CI client. Repository identity is checked before saving.</p></div>
+      <label className="flex items-center gap-2 text-sm"><input type="checkbox" checked={enabled} onChange={(event) => setEnabled(event.target.checked)} />Enable CI requests</label>
       {error && <p role="alert" className="text-sm text-destructive sm:col-span-2">{error}</p>}
-      <div className="sm:col-span-2"><Button type="submit" disabled={saving || !repository || !serverId}>{saving ? translateText("Checking runner…") : translateText("Verify and save")}</Button></div>
+      <div className="sm:col-span-2"><Button type="submit" disabled={saving || !repository || !serverId}>{saving ? "Checking runner…" : "Verify and save"}</Button></div>
     </form>
   </details>;
 }
