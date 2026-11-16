@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef } from '@tanstack/react-table';
 import type { ServerLog } from '@/types/server-log';
 import { ReactNode } from 'react';
@@ -26,26 +27,28 @@ export function Download({ serverLog, children }: { serverLog: ServerLog; childr
 }
 
 function Clear({ serverLog }: { serverLog: ServerLog }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
     <DropdownMenuItem
       onSelect={() =>
         dialog.confirm.open({
-          title: `Clear ${serverLog.name}`,
-          description: `Are you sure you want to clear the contents of ${serverLog.name}? This will remove all content from the log file but keep the file itself.`,
+          title: translateText("Clear :value", { value: serverLog.name }),
+          description: translateText("Are you sure you want to clear the contents of :value? This will remove all content from the log file but keep the file itself.", { value: serverLog.name }),
           confirmLabel: 'Clear',
           method: 'post',
           url: `/servers/${serverLog.server_id}/logs/${serverLog.id}/clear`,
         })
       }
     >
-      Clear
+      {translateText('Clear')}
     </DropdownMenuItem>
   );
 }
 
 function Delete({ serverLog }: { serverLog: ServerLog }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -53,8 +56,8 @@ function Delete({ serverLog }: { serverLog: ServerLog }) {
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: `Delete ${serverLog.name}`,
-          description: `Are you sure you want to delete ${serverLog.name}?`,
+          title: translateText("Delete :value", { value: serverLog.name }),
+          description: translateText("Are you sure you want to delete :value?", { value: serverLog.name }),
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -62,7 +65,7 @@ function Delete({ serverLog }: { serverLog: ServerLog }) {
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }

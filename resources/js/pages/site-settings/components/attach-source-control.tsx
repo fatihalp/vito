@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/ui/input-error';
@@ -8,10 +9,11 @@ import SelectBranch from '@/pages/source-controls/components/select-branch';
 import FieldUpdateDialog from '@/components/field-update-dialog';
 
 export default function AttachSourceControl({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   return (
     <FieldUpdateDialog
-      title="Attach source control"
-      description="Connect this site to a Git repository."
+      title={translateText("Attach source control")}
+      description={translateText("Connect this site to a Git repository.")}
       initialValue=""
       fieldName="source_control"
       url={`/servers/${site.server_id}/sites/${site.id}/settings/attach-source-control`}
@@ -20,7 +22,7 @@ export default function AttachSourceControl({ site, children }: { site: Site; ch
       {(form) => (
         <>
           <div>
-            <Label htmlFor="source_control">Source control</Label>
+            <Label htmlFor="source_control">{translateText('Source control')}</Label>
             <SourceControlSelect
               value={form.data.source_control}
               onValueChange={(value) => form.setData('source_control', value)}
@@ -30,7 +32,7 @@ export default function AttachSourceControl({ site, children }: { site: Site; ch
           </div>
 
           <div>
-            <Label htmlFor="repository">Repository</Label>
+            <Label htmlFor="repository">{translateText('Repository')}</Label>
             <SelectRepo
               sourceControlId={form.data.source_control}
               value={form.data.repository || ''}

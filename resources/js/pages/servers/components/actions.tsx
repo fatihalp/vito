@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { Server } from '@/types/server';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -7,6 +8,7 @@ import { Link, useForm } from '@inertiajs/react';
 import { useDialog } from '@/hooks/use-dialog';
 
 function CheckForUpdates({ server }: { server: Server }) {
+  const translateText = useTranslate();
   const form = useForm();
 
   const submit = () => {
@@ -22,12 +24,13 @@ function CheckForUpdates({ server }: { server: Server }) {
       }}
     >
       {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-      Check for updates
+      {translateText("Check for updates")}
     </DropdownMenuItem>
   );
 }
 
 function CheckConnection({ server }: { server: Server }) {
+  const translateText = useTranslate();
   const form = useForm();
 
   const submit = () => {
@@ -43,7 +46,7 @@ function CheckConnection({ server }: { server: Server }) {
       }}
     >
       {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-      Check connection
+      {translateText("Check connection")}
     </DropdownMenuItem>
   );
 }
@@ -61,6 +64,7 @@ export default function ServerActions({
   size = 'sm',
   className,
 }: ServerActionsProps) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const canPowerManage = server.can_power_manage === true;
   const isDisconnected = server.status === 'disconnected';
@@ -70,7 +74,7 @@ export default function ServerActions({
       <DropdownMenuTrigger asChild>
         <Button variant={variant} size={size} className={className ?? 'gap-1 cursor-pointer'}>
           <MoreVerticalIcon className="size-3 text-muted-foreground" />
-          <span>Server actions</span>
+          <span>{translateText('Server actions')}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">
@@ -81,8 +85,8 @@ export default function ServerActions({
             className="text-success focus:text-success focus:bg-success/10 font-medium"
             onSelect={() =>
               dialog.confirm.open({
-                title: `Start ${server.name}?`,
-                description: `Power on this server via ${server.provider}? The server will boot up and reconnect.`,
+                title: translateText("Start :value?", { value: server.name }),
+                description: translateText("Power on this server via :value? The server will boot up and reconnect.", { value: server.provider }),
                 variant: 'default',
                 confirmLabel: 'Start Server',
                 method: 'post',
@@ -91,14 +95,14 @@ export default function ServerActions({
             }
           >
             <PlayIcon className="size-4 mr-2 text-success" />
-            Start server ({server.provider})
+            {translateText("Start server (")}{server.provider})
           </DropdownMenuItem>
         )}
 
         <DropdownMenuItem asChild>
           <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })} className="flex items-center w-full cursor-pointer">
             <RefreshCwIcon className="size-4 mr-2" />
-            Restart
+            {translateText('Restart')}
           </Link>
         </DropdownMenuItem>
 
@@ -107,8 +111,8 @@ export default function ServerActions({
             className="text-destructive focus:text-destructive focus:bg-destructive/10 font-medium"
             onSelect={() =>
               dialog.confirm.open({
-                title: `Stop ${server.name}?`,
-                description: `Are you sure you want to stop (power off) this server via ${server.provider}? All services, databases, and sites hosted on this server will become offline immediately until you start it again.`,
+                title: translateText("Stop :value?", { value: server.name }),
+                description: translateText("Are you sure you want to stop (power off) this server via :value? All services, databases, and sites hosted on this server will become offline immediately until you start it again.", { value: server.provider }),
                 variant: 'destructive',
                 confirmLabel: 'Stop Server',
                 method: 'post',
@@ -117,7 +121,7 @@ export default function ServerActions({
             }
           >
             <PowerOffIcon className="size-4 mr-2 text-destructive" />
-            Stop server ({server.provider})
+            {translateText("Stop server (")}{server.provider})
           </DropdownMenuItem>
         )}
 
@@ -129,7 +133,7 @@ export default function ServerActions({
           asChild
         >
           <Link href={withQuery(`/servers/${server.id}/update`, { start: 1 })} className="flex items-center w-full cursor-pointer">
-            Update packages
+            {translateText("Update packages")}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem
@@ -137,7 +141,7 @@ export default function ServerActions({
           asChild
         >
           <Link href={withQuery(`/servers/${server.id}/update`, { type: 'kernel', start: 1 })} className="flex items-center w-full cursor-pointer">
-            Update kernel
+            {translateText("Update kernel")}
           </Link>
         </DropdownMenuItem>
       </DropdownMenuContent>

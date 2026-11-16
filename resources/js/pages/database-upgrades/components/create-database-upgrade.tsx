@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useEffect, useState } from 'react';
 import { useForm } from '@inertiajs/react';
 import axios from 'axios';
@@ -20,6 +21,7 @@ function gigabytes(bytes: number): string {
 }
 
 export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { open: boolean; onOpenChange: (open: boolean) => void; server: Server }) {
+  const translateText = useTranslate();
   const [versions, setVersions] = useState<{ version: number; versions: string[]; source: string } | null>(null);
   const [requirements, setRequirements] = useState<UpgradeRequirements | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -69,15 +71,13 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>Upgrade PostgreSQL on a new server</SheetTitle>
-          <SheetDescription className="sr-only">Create a server with a newer PostgreSQL and copy every database to it</SheetDescription>
+          <SheetTitle>{translateText("Upgrade PostgreSQL on a new server")}</SheetTitle>
+          <SheetDescription className="sr-only">{translateText("Create a server with a newer PostgreSQL and copy every database to it")}</SheetDescription>
         </SheetHeader>
         <Form id="create-database-upgrade-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
-              Pure creates a server at your provider (billed by the provider), installs the PostgreSQL version you pick, and copies every database, role and
-              schema of {requirements?.source ?? server.name} onto it with logical replication. {requirements?.source ?? server.name} keeps serving reads and
-              writes the whole time, and you decide when to switch over.
+              {translateText("Pure creates a server at your provider (billed by the provider), installs the PostgreSQL version you pick, and copies every database, role and schema of")} {requirements?.source ?? server.name} {translateText("onto it with logical replication.")} {requirements?.source ?? server.name} {translateText("keeps serving reads and writes the whole time, and you decide when to switch over.")}
             </div>
 
             {error && (
@@ -87,28 +87,28 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
             )}
 
             {requirements === null && error === null && (
-              <p className="text-muted-foreground text-sm">Checking what {server.name} holds. On a server Pure cannot reach, this takes about half a minute.</p>
+              <p className="text-muted-foreground text-sm">{translateText("Checking what")} {server.name} {translateText("holds. On a server Pure cannot reach, this takes about half a minute.")}</p>
             )}
 
             {requirements && (
               <>
                 <div className="flex flex-col gap-1 rounded-md border p-3 text-sm">
-                  <p className="font-medium">The new server needs</p>
+                  <p className="font-medium">{translateText("The new server needs")}</p>
                   <p>
-                    <span className="font-medium">Storage: at least {requirements.storage_gb} GB.</span> The {requirements.databases.length} databases of{' '}
-                    {requirements.source} hold {gigabytes(requirements.database_size)}; the rest covers indexes, growth and the operating system.
+                    <span className="font-medium">{translateText("Storage: at least")} {requirements.storage_gb} GB.</span> {translateText("The")} {requirements.databases.length} {translateText("databases of")}{' '}
+                    {requirements.source} {translateText("hold")} {gigabytes(requirements.database_size)}{translateText("; the rest covers indexes, growth and the operating system.")}
                   </p>
                   <p>
                     <span className="font-medium">
-                      vCPU: {requirements.cores ?? 'unknown'} · Memory: {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : 'unknown'}
+                      vCPU: {requirements.cores ?? translateText("unknown")} {translateText("· Memory:")} {requirements.memory_gb !== null ? `${requirements.memory_gb} GB` : translateText("unknown")}
                     </span>{' '}
-                    or more, like {requirements.source}. Any processor architecture works: the rows are copied, not the data files.
+                    {translateText("or more, like")} {requirements.source}{translateText(". Any processor architecture works: the rows are copied, not the data files.")}
                   </p>
                 </div>
 
                 {requirements.warnings.length > 0 && (
                   <Alert>
-                    <AlertTitle>What logical replication does not copy</AlertTitle>
+                    <AlertTitle>{translateText("What logical replication does not copy")}</AlertTitle>
                     <AlertDescription>
                       <ul className="list-disc pl-4">
                         {requirements.warnings.map((warning) => (
@@ -123,22 +123,22 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
 
             {versions && versions.versions.length === 0 && (
               <Alert>
-                <AlertTitle>PostgreSQL {versions.version} is the newest version Pure installs</AlertTitle>
-                <AlertDescription>There is no newer major version to move {versions.source} to yet.</AlertDescription>
+                <AlertTitle>PostgreSQL {versions.version} {translateText("is the newest version Pure installs")}</AlertTitle>
+                <AlertDescription>{translateText("There is no newer major version to move")} {versions.source} {translateText("to yet.")}</AlertDescription>
               </Alert>
             )}
 
             {requirements && (
               <FormField>
-                <Label>How the new server gets the data</Label>
+                <Label>{translateText("How the new server gets the data")}</Label>
                 <Select value={form.data.mode} onValueChange={(mode) => form.setData('mode', mode)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="logical">Copy every row over the private network</SelectItem>
+                    <SelectItem value="logical">{translateText("Copy every row over the private network")}</SelectItem>
                     <SelectItem value="seeded" disabled={!requirements.seed.available}>
-                      Start from the latest backup, then replicate only what came after
+                      {translateText("Start from the latest backup, then replicate only what came after")}
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -146,7 +146,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   {form.data.mode === 'seeded'
                     ? `Pure restores the backup of ${requirements.source} onto the new server, upgrades that copy to the version you pick, and then replays only the changes made since. For a large database this turns days of copying into hours, and the old server is never read for it — the rows come from the backup repository.`
                     : requirements.seed.available
-                      ? 'Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster.'
+                      ? translateText("Every row travels over the private network. Simple, and fine up to tens of GB; past that, starting from the backup is far faster.")
                       : `Every row travels over the private network. ${requirements.seed.reason}`}
                 </p>
                 <InputError message={form.errors.mode} />
@@ -154,16 +154,16 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
             )}
 
             <FormField>
-              <Label>PostgreSQL version</Label>
+              <Label>{translateText("PostgreSQL version")}</Label>
               <Select value={form.data.version} onValueChange={(version) => form.setData('version', version)} disabled={!versions?.versions.length}>
                 <SelectTrigger>
                   <SelectValue
                     placeholder={
                       versions === null
-                        ? 'Reading the current version…'
+                        ? translateText("Reading the current version…")
                         : versions.versions.length === 0
                           ? `PostgreSQL ${versions.version} is already the newest`
-                          : 'Select a version'
+                          : translateText("Select a version")
                     }
                   />
                 </SelectTrigger>
@@ -190,19 +190,18 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
 
             {requirements && requirements.tables_without_key_count > 0 && (
               <FormField>
-                <Label>Tables without a primary key ({requirements.tables_without_key_count})</Label>
+                <Label>{translateText("Tables without a primary key (")}{requirements.tables_without_key_count})</Label>
                 <Select value={form.data.replica_identity} onValueChange={(value) => form.setData('replica_identity', value)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="full">Set REPLICA IDENTITY FULL on them, so they keep working</SelectItem>
-                    <SelectItem value="leave">Leave them, UPDATE and DELETE on them fail while the copy runs</SelectItem>
+                    <SelectItem value="full">{translateText("Set REPLICA IDENTITY FULL on them, so they keep working")}</SelectItem>
+                    <SelectItem value="leave">{translateText("Leave them, UPDATE and DELETE on them fail while the copy runs")}</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-muted-foreground text-sm">
-                  For example {requirements.tables_without_key.slice(0, 3).join(', ')}. REPLICA IDENTITY FULL makes PostgreSQL write the whole old row for
-                  updates on those tables while the copy runs, and costs nothing once it is over.
+                  {translateText("For example")} {requirements.tables_without_key.slice(0, 3).join(', ')}{translateText(". REPLICA IDENTITY FULL makes PostgreSQL write the whole old row for updates on those tables while the copy runs, and costs nothing once it is over.")}
                 </p>
                 <InputError message={form.errors.replica_identity} />
               </FormField>
@@ -210,7 +209,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
 
             {requirements && (
               <FormField>
-                <Label htmlFor="upgrade-wal">WAL {requirements.source} keeps for the copy (GB)</Label>
+                <Label htmlFor="upgrade-wal">WAL {requirements.source} {translateText("keeps for the copy (GB)")}</Label>
                 <Input
                   id="upgrade-wal"
                   type="number"
@@ -219,9 +218,7 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
                   onChange={(e) => form.setData('wal_keep_gb', e.target.value)}
                 />
                 <p className="text-muted-foreground text-sm">
-                  Until the new server has applied everything, {requirements.source} keeps the WAL it still needs. This caps it: if the new server falls
-                  further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away
-                  from. The default is a quarter of its free disk.
+                  {translateText("Until the new server has applied everything,")} {requirements.source} {translateText("keeps the WAL it still needs. This caps it: if the new server falls further behind than this, the upgrade stops and can be started again — rather than filling the disk of the server you are migrating away from. The default is a quarter of its free disk.")}
                 </p>
                 <InputError message={form.errors.wal_keep_gb} />
               </FormField>
@@ -231,11 +228,10 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
               <FormField>
                 <div className="flex items-center gap-2">
                   <Checkbox id="upgrade-restart" checked={form.data.restart} onClick={() => form.setData('restart', !form.data.restart)} />
-                  <Label htmlFor="upgrade-restart">Restart PostgreSQL on {requirements.source} once</Label>
+                  <Label htmlFor="upgrade-restart">{translateText("Restart PostgreSQL on")} {requirements.source} {translateText("once")}</Label>
                 </div>
                 <p className="text-muted-foreground text-sm">
-                  Logical replication needs wal_level = logical and {requirements.required_slots} replication slots, which only apply after a restart. Pure
-                  restarts PostgreSQL once, early in the upgrade, and open connections are dropped at that moment.
+                  {translateText("Logical replication needs wal_level = logical and")} {requirements.required_slots} {translateText("replication slots, which only apply after a restart. Pure restarts PostgreSQL once, early in the upgrade, and open connections are dropped at that moment.")}
                 </p>
                 <InputError message={form.errors.restart} />
               </FormField>
@@ -246,10 +242,10 @@ export default function CreateDatabaseUpgrade({ open, onOpenChange, server }: { 
           <div className="flex items-center gap-2">
             <Button form="create-database-upgrade-form" type="submit" disabled={form.processing || requirements === null || Boolean(planFit.blocked)}>
               {form.processing && <LoaderCircle className="animate-spin" />}
-              Create server and start copying
+              {translateText("Create server and start copying")}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
           </div>
         </SheetFooter>

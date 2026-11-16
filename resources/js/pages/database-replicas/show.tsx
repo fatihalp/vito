@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { Head, Link, usePage, usePoll } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -31,6 +32,7 @@ const formatLatency = (value: unknown): string => {
 const formatByteValue = (value: unknown): string => formatBytes(Number(value ?? 0), 1);
 
 export default function ShowDatabaseReplica() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const replica = useRealtimeRecord<DatabaseReplica>(page.props.replica, 'database-replica') ?? page.props.replica;
   const latest = replica.latest_metric;
@@ -52,11 +54,11 @@ export default function ShowDatabaseReplica() {
 
   return (
     <ServerLayout>
-      <Head title={`Replica ${replica.replica_server_name}`} />
+      <Head title={translateText("Replica :value", { value: (replica.replica_server_name ?? '—') })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title={`${replica.primary_server_name} → ${replica.replica_server_name}`} description="PostgreSQL streaming replica" />
+          <Heading title={`${replica.primary_server_name} → ${replica.replica_server_name}`} description={translateText("PostgreSQL streaming replica")} />
           <div className="flex items-center gap-2">
             <Badge variant={replica.status_color}>{replica.status}</Badge>
             <Badge variant={replica.health_color}>{replica.health}</Badge>
@@ -65,14 +67,14 @@ export default function ShowDatabaseReplica() {
         </HeaderContainer>
 
         {replica.status === 'seeding' && (
-          <span className="text-muted-foreground text-sm">Restoring from pgBackRest and replaying archived WAL. This can take a while for large clusters.</span>
+          <span className="text-muted-foreground text-sm">{translateText("Restoring from pgBackRest and replaying archived WAL. This can take a while for large clusters.")}</span>
         )}
         {replica.status === 'waiting_for_backup' && (
-          <span className="text-muted-foreground text-sm">Waiting for the first full pgBackRest backup of the primary to finish.</span>
+          <span className="text-muted-foreground text-sm">{translateText("Waiting for the first full pgBackRest backup of the primary to finish.")}</span>
         )}
 
         {['pending', 'configuring', 'seeding'].includes(replica.status) && replica.setup_step && (
-          <span className="text-muted-foreground text-sm">Current step: {replica.setup_step}.</span>
+          <span className="text-muted-foreground text-sm">{translateText("Current step:")} {replica.setup_step}.</span>
         )}
 
         {replica.message && (
@@ -80,7 +82,7 @@ export default function ShowDatabaseReplica() {
             {replica.message}{' '}
             {replica.status === 'failed' && (
               <a href="#logs" className="underline">
-                View logs
+                {translateText('View logs')}
               </a>
             )}
           </p>
@@ -120,10 +122,10 @@ export default function ShowDatabaseReplica() {
         {['pending', 'configuring', 'seeding', 'failed'].includes(replica.status) && <ReplicaLogs replica={replica} />}
 
         <div className="grid gap-4 md:grid-cols-2">
-          <ResourceUsageChart title="Lag behind primary" label="Lag" color="var(--color-chart-1)" dataKey="lag_bytes" chartData={page.props.metrics} valueFormatter={formatByteValue} formatter={(value) => formatByteValue(value)} height="medium" showXAxis />
-          <ResourceUsageChart title="Replay latency" label="Replay" color="var(--color-chart-2)" dataKey="replay_lag_ms" chartData={page.props.metrics} valueFormatter={formatLatency} formatter={(value) => formatLatency(value)} height="medium" showXAxis />
-          <ResourceUsageChart title="Flush latency" label="Flush" color="var(--color-chart-3)" dataKey="flush_lag_ms" chartData={page.props.metrics} valueFormatter={formatLatency} formatter={(value) => formatLatency(value)} height="medium" showXAxis />
-          <ResourceUsageChart title="WAL kept by the slot" label="Retained" color="var(--color-chart-4)" dataKey="slot_retained_bytes" chartData={page.props.metrics} valueFormatter={formatByteValue} formatter={(value) => formatByteValue(value)} height="medium" showXAxis />
+          <ResourceUsageChart title={translateText("Lag behind primary")} label={translateText("Lag")} color="var(--color-chart-1)" dataKey="lag_bytes" chartData={page.props.metrics} valueFormatter={formatByteValue} formatter={(value) => formatByteValue(value)} height="medium" showXAxis />
+          <ResourceUsageChart title={translateText("Replay latency")} label="Replay" color="var(--color-chart-2)" dataKey="replay_lag_ms" chartData={page.props.metrics} valueFormatter={formatLatency} formatter={(value) => formatLatency(value)} height="medium" showXAxis />
+          <ResourceUsageChart title={translateText("Flush latency")} label="Flush" color="var(--color-chart-3)" dataKey="flush_lag_ms" chartData={page.props.metrics} valueFormatter={formatLatency} formatter={(value) => formatLatency(value)} height="medium" showXAxis />
+          <ResourceUsageChart title={translateText("WAL kept by the slot")} label={translateText("Retained")} color="var(--color-chart-4)" dataKey="slot_retained_bytes" chartData={page.props.metrics} valueFormatter={formatByteValue} formatter={(value) => formatByteValue(value)} height="medium" showXAxis />
         </div>
         {!['pending', 'configuring', 'seeding', 'failed'].includes(replica.status) && <ReplicaLogs replica={replica} />}
       </Container>

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { LoaderCircleIcon } from 'lucide-react';
 import { FormEvent } from 'react';
@@ -9,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import AuthLayout from '@/layouts/auth/layout';
 
 export default function Login() {
+  const translateText = useTranslate();
   const page = usePage<{
     demo: boolean;
   }>();
@@ -31,13 +33,13 @@ export default function Login() {
   };
 
   return (
-    <AuthLayout title="Log in" showFooter={false}>
-      <Head title="Log in" />
+    <AuthLayout title={translateText('Log in')} showFooter={false}>
+      <Head title={translateText('Log in')} />
 
       <form onSubmit={submit}>
         <div className="grid gap-6">
           <div className="grid gap-2">
-            <Label htmlFor="email">Email address</Label>
+            <Label htmlFor="email">{translateText('Email address')}</Label>
             <Input
               id="email"
               type="email"
@@ -53,7 +55,7 @@ export default function Login() {
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{translateText('Password')}</Label>
             <Input
               id="password"
               type="password"
@@ -62,7 +64,7 @@ export default function Login() {
               autoComplete="current-password"
               value={form.data.password}
               onChange={(e) => form.setData('password', e.target.value)}
-              placeholder="Password"
+              placeholder={translateText('Password')}
             />
             <InputError message={form.errors.password} />
           </div>
@@ -75,12 +77,12 @@ export default function Login() {
               onClick={() => form.setData('remember', !form.data.remember)}
               tabIndex={3}
             />
-            <Label htmlFor="remember">Remember me</Label>
+            <Label htmlFor="remember">{translateText('Remember me')}</Label>
           </div>
 
           <Button type="submit" className="mt-4 w-full" tabIndex={4} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
-            Log in
+            {translateText('Log in')}
           </Button>
         </div>
       </form>

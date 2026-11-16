@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/ui/input-error';
@@ -6,9 +7,10 @@ import SelectBranch from '@/pages/source-controls/components/select-branch';
 import FieldUpdateDialog from '@/components/field-update-dialog';
 
 export default function ChangeBranch({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   return (
     <FieldUpdateDialog
-      title="Change branch"
+      title={translateText("Change branch")}
       description="sr-only"
       initialValue={site.branch || ''}
       fieldName="branch"

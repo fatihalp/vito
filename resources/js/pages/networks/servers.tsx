@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -15,6 +16,7 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Network, NetworkMemberIp, NetworkServer, NetworkServerOption } from '@/types/network';
 
 export default function NetworkServers() {
+  const translateText = useTranslate();
   const page = usePage<{
     network: Network;
     members: InertiaTableData;
@@ -29,17 +31,17 @@ export default function NetworkServers() {
 
   return (
     <NetworkLayout>
-      <Head title={`Servers - ${network.name}`} />
+      <Head title={translateText("Servers - :value", { value: network.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Servers" description="Servers connected to this network" />
+          <Heading title={translateText('Servers')} description={translateText("Servers connected to this network")} />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
               onClick={() =>
                 dialog.confirm.open({
-                  title: `Sync network [${network.name}]`,
+                  title: translateText("Sync network [:value]", { value: network.name }),
                   description: isManaged
                     ? "Query the provider and update this network's members to match. The network is removed if it no longer exists at the provider."
                     : 'Re-apply configuration to every server in this network.',
@@ -50,12 +52,12 @@ export default function NetworkServers() {
               }
             >
               <RefreshCwIcon />
-              <span className="hidden lg:block">Sync</span>
+              <span className="hidden lg:block">{translateText('Sync')}</span>
             </Button>
             {!isManaged && (
               <Button onClick={() => dialog.networkAddServer.open({ networkId: network.id, isCustom, servers: page.props.servers })}>
                 <PlusIcon />
-                <span className="hidden lg:block">Add server</span>
+                <span className="hidden lg:block">{translateText("Add server")}</span>
               </Button>
             )}
           </div>
@@ -87,7 +89,7 @@ export default function NetworkServers() {
                           }
                         }}
                       >
-                        Edit
+                        {translateText('Edit')}
                       </DropdownMenuItem>
                     )}
                     {isWireGuard && (
@@ -100,7 +102,7 @@ export default function NetworkServers() {
                           })
                         }
                       >
-                        Configuration
+                        {translateText('Configuration')}
                       </DropdownMenuItem>
                     )}
                     {isWireGuard && (
@@ -115,7 +117,7 @@ export default function NetworkServers() {
                           })
                         }
                       >
-                        Regenerate
+                        {translateText('Regenerate')}
                       </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />
@@ -132,7 +134,7 @@ export default function NetworkServers() {
                         })
                       }
                     >
-                      Remove
+                      {translateText('Remove')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useCallback, useEffect, useState } from 'react';
 import { Server } from '@/types/server';
@@ -22,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 const autoRefreshedServers = new Set<number>();
 
 export default function ServerNetwork() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     ipAddresses: InertiaTableData;
@@ -54,25 +56,25 @@ export default function ServerNetwork() {
 
   return (
     <ServerLayout>
-      <Head title={`Network - ${page.props.server.name}`} />
+      <Head title={translateText("Network - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Network" description="Here you can manage the IP addresses configured on the server" />
+          <Heading title={translateText('Network')} description={translateText("Here you can manage the IP addresses configured on the server")} />
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" aria-label="Refresh" disabled={refreshing} onClick={refresh}>
+            <Button variant="outline" size="icon" aria-label={translateText('Refresh')} disabled={refreshing} onClick={refresh}>
               <RefreshCwIcon className={refreshing ? 'animate-spin' : undefined} />
             </Button>
             <Button onClick={() => dialog.serverIpForm.open({ serverId: page.props.server.id, interfaces: page.props.interfaces })}>
               <PlusIcon />
-              <span className="hidden lg:block">Add IP</span>
+              <span className="hidden lg:block">{translateText("Add IP")}</span>
             </Button>
           </div>
         </HeaderContainer>
 
         {page.props.networks.length > 0 && (
-          <section className="flex flex-col gap-3" aria-label="Private networks">
-            <h3 className="text-lg font-semibold">Private networks</h3>
+          <section className="flex flex-col gap-3" aria-label={translateText("Private networks")}>
+            <h3 className="text-lg font-semibold">{translateText("Private networks")}</h3>
             {page.props.networks.map((member) => (
               <div key={member.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 rounded-md border p-3 text-sm">
                 <span className="flex flex-wrap items-center gap-2">
@@ -90,7 +92,7 @@ export default function ServerNetwork() {
                   {member.connected === null ? (
                     <Badge variant={member.status_color}>{member.status}</Badge>
                   ) : (
-                    <Badge variant={member.connected ? 'success' : 'danger'}>{member.connected ? 'connected' : 'no recent handshake'}</Badge>
+                    <Badge variant={member.connected ? 'success' : 'danger'}>{member.connected ? translateText("connected") : translateText("no recent handshake")}</Badge>
                   )}
                 </span>
               </div>

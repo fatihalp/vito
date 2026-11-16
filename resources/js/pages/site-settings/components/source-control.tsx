@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ReactNode } from 'react';
 import { Label } from '@/components/ui/label';
 import InputError from '@/components/ui/input-error';
@@ -6,9 +7,10 @@ import SourceControlSelect from '@/pages/source-controls/components/source-contr
 import FieldUpdateDialog from '@/components/field-update-dialog';
 
 export default function ChangeSourceControl({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   return (
     <FieldUpdateDialog
-      title="Change source control"
+      title={translateText("Change source control")}
       description="sr-only"
       initialValue={site.source_control_id?.toString() || ''}
       fieldName="source_control"
@@ -17,7 +19,7 @@ export default function ChangeSourceControl({ site, children }: { site: Site; ch
     >
       {(form) => (
         <>
-          <Label htmlFor="source_control">Source control</Label>
+          <Label htmlFor="source_control">{translateText('Source control')}</Label>
           <SourceControlSelect
             value={form.data.source_control}
             onValueChange={(value) => form.setData('source_control', value)}

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
 import { useEffect, useMemo, useState } from 'react';
 import { Server } from '@/types/server';
@@ -28,6 +29,7 @@ type Page = {
 };
 
 export default function Files() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const [showLogs, setShowLogs] = useState(false);
   const [files] = useRealtime<BackupFile>(page.props.files, 'backup-file', { backup_id: page.props.backup.id });
@@ -58,25 +60,25 @@ export default function Files() {
 
   return (
     <ServerLayout>
-      <Head title={`Backup files - ${page.props.server.name}`} />
+      <Head title={translateText("Backup files - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
           <div className="space-y-0.5">
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-              {isPgBackRest ? 'pgBackRest backups of' : 'Backup files of'}
+              {isPgBackRest ? translateText("pgBackRest backups of") : translateText("Backup files of")}
               {page.props.backup.type === 'database' && <CopyableBadge text={page.props.backup.database?.name} />}
               {isPgBackRest && <CopyableBadge text={page.props.backup.pgbackrest?.stanza ?? undefined} />}
             </h2>
             <p className="text-muted-foreground text-sm">
               {isPgBackRest
-                ? 'Each backup covers the whole PostgreSQL cluster and runs on a healthy replica when there is one. pgBackRest removes expired backups based on the strategy.'
-                : 'Here you can manage the backup files'}
+                ? translateText("Each backup covers the whole PostgreSQL cluster and runs on a healthy replica when there is one. pgBackRest removes expired backups based on the strategy.")
+                : translateText("Here you can manage the backup files")}
             </p>
             {isPgBackRest && page.props.backup.pgbackrest && (
               <p className="text-muted-foreground text-sm">
-                {page.props.backup.pgbackrest.strategy === 'standard' ? 'Standard strategy' : 'Custom strategy'} · last verify:{' '}
-                {page.props.backup.pgbackrest.last_verify_result ?? 'not yet'} · last check: {page.props.backup.pgbackrest.last_check_result ?? 'not yet'}
+                {page.props.backup.pgbackrest.strategy === 'standard' ? translateText("Standard strategy") : translateText("Custom strategy")} {translateText("· last verify:")}{' '}
+                {page.props.backup.pgbackrest.last_verify_result ?? translateText("not yet")} {translateText("· last check:")} {page.props.backup.pgbackrest.last_check_result ?? translateText("not yet")}
               </p>
             )}
           </div>
@@ -84,20 +86,20 @@ export default function Files() {
             {isPgBackRest && (
               <>
                 <Button variant="outline" onClick={() => dialog.backupRestoreToServer.open({ backup: page.props.backup })}>
-                  Restore to a new server
+                  {translateText('Restore to a new server')}
                 </Button>
                 <Button variant="outline" onClick={() => dialog.pgBackRestRestore.open({ backup: page.props.backup })}>
-                  Restore commands
+                  {translateText('Restore commands')}
                 </Button>
               </>
             )}
             <Button variant="outline" onClick={() => setShowLogs((visible) => !visible)} aria-expanded={showLogs} aria-controls="backup-server-logs">
               <FileTextIcon />
-              {showLogs ? 'Hide logs' : 'View logs'}
+              {showLogs ? translateText("Hide logs") : translateText("View logs")}
             </Button>
             <Button onClick={runBackup}>
               {runBackupForm.processing ? <LoaderCircleIcon className="animate-spin" /> : <CloudUploadIcon />}
-              <span className="hidden lg:block">Run backup</span>
+              <span className="hidden lg:block">{translateText("Run backup")}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -109,8 +111,8 @@ export default function Files() {
 
         <DataTable columns={visibleColumns} paginatedData={files} />
         {page.props.restores.length > 0 && (
-          <section className="flex flex-col gap-3" aria-label="Restores to new servers">
-            <h3 className="text-lg font-semibold">Restores to new servers</h3>
+          <section className="flex flex-col gap-3" aria-label={translateText("Restores to new servers")}>
+            <h3 className="text-lg font-semibold">{translateText("Restores to new servers")}</h3>
             {page.props.restores.map((restore) => (
               <div key={restore.id} className="flex flex-col gap-1 rounded-md border p-3 text-sm">
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -120,7 +122,7 @@ export default function Files() {
                         {restore.server_name}
                       </Link>
                     ) : (
-                      <span className="font-medium">deleted server</span>
+                      <span className="font-medium">{translateText("deleted server")}</span>
                     )}{' '}
                     <span className="text-muted-foreground">
                       ·{' '}
@@ -128,8 +130,8 @@ export default function Files() {
                         ? `backup ${restore.backup_file_name ?? ''}`
                         : restore.target === 'time' && restore.target_time
                           ? `point in time ${new Date(restore.target_time).toLocaleString('en-US')}`
-                          : 'latest'}{' '}
-                      · started {new Date(restore.created_at).toLocaleString('en-US')}
+                          : translateText("latest")}{' '}
+                      {translateText("· started")} {new Date(restore.created_at).toLocaleString('en-US')}
                     </span>
                   </span>
                   <Badge variant={restore.status_color}>{restore.status}</Badge>
@@ -141,12 +143,11 @@ export default function Files() {
           </section>
         )}
         {showLogs && (
-          <section id="backup-server-logs" className="flex flex-col gap-4" aria-label="Server diagnostic logs">
+          <section id="backup-server-logs" className="flex flex-col gap-4" aria-label={translateText("Server diagnostic logs")}>
             <div className="flex flex-col gap-1">
-              <h3 className="text-lg font-semibold">Server diagnostic logs</h3>
+              <h3 className="text-lg font-semibold">{translateText("Server diagnostic logs")}</h3>
               <p className="text-muted-foreground text-sm">
-                Logs from all operations on this server. Match the time of the failed backup, then open the backup, upload, or deletion log to see its output.
-                This list refreshes every five seconds.
+                {translateText("Logs from all operations on this server. Match the time of the failed backup, then open the backup, upload, or deletion log to see its output. This list refreshes every five seconds.")}
               </p>
             </div>
             <Logs server={page.props.server} />

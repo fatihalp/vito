@@ -16,6 +16,15 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: 'translations-tr', test: /[\\/]lang[\\/]tr\.json$/ }],
+        },
+      },
+    },
+  },
   optimizeDeps: {
     include: ['recharts'],
   },

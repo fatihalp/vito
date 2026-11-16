@@ -1,3 +1,5 @@
+import { useTranslate } from '@/hooks/use-translate';
+import RuntimeProcesses from '@/components/runtime-processes';
 import { useCallback, useEffect, useState } from 'react';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { CircleIcon, PlusIcon, RefreshCwIcon } from 'lucide-react';
@@ -78,6 +80,7 @@ function LiveStatusBadge({ serviceId, liveStatuses }: { serviceId: number; liveS
 }
 
 export default function ServicesIndex() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const { server, services, refreshing } = page.props;
   const isOffline = server.status === 'disconnected';
@@ -116,20 +119,21 @@ export default function ServicesIndex() {
 
   return (
     <ServerLayout>
-      <Head title={`Services - ${server.name}`} />
+      <Head title={translateText("Services - :value", { value: server.name })} />
 
       <Container>
+        <RuntimeProcesses kind="service" />
         <HeaderContainer>
-          <Heading title="Services" description="Here you can manage server's services" />
+          <Heading title={translateText('Services')} description={translateText("Here you can manage server's services")} />
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={refresh} disabled={busy || isOffline}>
               <RefreshCwIcon className={cn(busy && 'animate-spin')} />
-              <span className="hidden lg:block">Refresh</span>
+              <span className="hidden lg:block">{translateText('Refresh')}</span>
             </Button>
             <InstallService>
               <Button disabled={isOffline}>
                 <PlusIcon />
-                <span className="hidden lg:block">Install</span>
+                <span className="hidden lg:block">{translateText('Install')}</span>
               </Button>
             </InstallService>
           </div>
@@ -142,7 +146,7 @@ export default function ServicesIndex() {
             return (
               <div className="flex items-center gap-3">
                 {isOffline ? (
-                  <span className="text-muted-foreground text-xs">Live status unavailable</span>
+                  <span className="text-muted-foreground text-xs">{translateText("Live status unavailable")}</span>
                 ) : (
                   <>
                     <ServiceActions service={service} />

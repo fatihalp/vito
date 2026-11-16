@@ -9,12 +9,11 @@ use Illuminate\Validation\ValidationException;
 
 class DeleteWorker
 {
-    
     public function delete(Worker $worker): void
     {
         if ($worker->isSiteBootstrap()) {
             throw ValidationException::withMessages([
-                'name' => 'This worker is managed by its site. Delete the site to remove it.',
+                'name' => __('This worker is managed by its site and cannot be deleted independently.'),
             ]);
         }
 

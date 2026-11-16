@@ -18,7 +18,7 @@ class SyncManagedEnvironment
         $managed = [];
 
         foreach ($site->resources as $resource) {
-            if ($resource->status !== SiteResourceStatus::READY) {
+            if ($resource->status !== SiteResourceStatus::READY || ($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
                 continue;
             }
 

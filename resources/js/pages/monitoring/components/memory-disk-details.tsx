@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Server } from '@/types/server';
 import { MetricsFilter } from '@/types/metric';
 import { DataTable } from '@/components/data-table';
@@ -8,6 +9,7 @@ import { useMetrics } from '@/pages/monitoring/components/use-metrics';
 type DetailRow = { label: string; value: string };
 
 export default function MemoryDiskDetails({ server, filter }: { server: Server; filter?: MetricsFilter }) {
+  const translateText = useTranslate();
   const metrics = useMetrics(server, filter);
   const history = metrics.data?.history ?? [];
   const latest = history.length > 0 ? history[history.length - 1] : null;
@@ -26,8 +28,8 @@ export default function MemoryDiskDetails({ server, filter }: { server: Server; 
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-      <DetailsTable title="Memory details" rows={memoryRows} />
-      <DetailsTable title="Disk details" rows={diskRows} />
+      <DetailsTable title={translateText("Memory details")} rows={memoryRows} />
+      <DetailsTable title={translateText("Disk details")} rows={diskRows} />
     </div>
   );
 }

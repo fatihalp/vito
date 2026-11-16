@@ -3,8 +3,8 @@
 namespace App\Actions\VitoSetting;
 
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Storage;
 use RuntimeException;
+use Throwable;
 use ZipArchive;
 
 class ExportVitoSettings
@@ -20,27 +20,60 @@ class ExportVitoSettings
 
     public function export(string $zipFileName): string
     {
-        $zipPath = Storage::disk('tmp')->path($zipFileName);
+        $workspace = app(BackupWorkspace::class);
+        $directory = $workspace->create();
+        $zipPath = $directory.'/'.basename($zipFileName);
+        $snapshot = $directory.'/database.sqlite';
         $zip = new ZipArchive;
 
-        if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {
-            throw new RuntimeException('Could not create zip file at '.$zipPath);
-        }
+        try {
+            $workspace->snapshot(base_path(self::PATHS['database.sqlite']), $snapshot);
 
-        foreach (self::PATHS as $name => $relative) {
-            $path = base_path($relative);
+            if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::EXCL) !== true) {
+                throw new RuntimeException('Could not create the backup archive.');
+            }
 
-            if (File::isFile($path)) {
-                $zip->addFile($path, $name);
-            } elseif (File::isDirectory($path)) {
-                foreach (File::allFiles($path) as $file) {
-                    $zip->addFile($file->getRealPath(), $name.'/'.$file->getRelativePathname());
+            foreach (self::PATHS as $name => $relative) {
+                $path = $name === 'database.sqlite' ? $snapshot : base_path($relative);
+
+                if (is_link($path)) {
+                    throw new RuntimeException('Backup paths must not be symbolic links.');
+                }
+
+                if (File::isFile($path)) {
+                    $added = $zip->addFile($path, $name);
+                } elseif (File::isDirectory($path)) {
+                    $added = $zip->addEmptyDir($name);
+                    foreach (File::allFiles($path) as $file) {
+                        if ($file->isLink() || ! $zip->addFile($file->getPathname(), $name.'/'.$file->getRelativePathname())) {
+                            throw new RuntimeException('Could not add a backup file.');
+                        }
+                    }
+                } else {
+                    if ($name !== 'key-pairs' && $name !== 'server-logs') {
+                        throw new RuntimeException('A required backup file is missing.');
+                    }
+                    $added = $zip->addEmptyDir($name);
+                }
+
+                if (! $added) {
+                    throw new RuntimeException('Could not add a backup entry.');
                 }
             }
+
+            if (! $zip->close()) {
+                throw new RuntimeException('Could not finish the backup archive.');
+            }
+
+            unlink($snapshot);
+            chmod($zipPath, 0600);
+
+            return $zipPath;
+        } catch (Throwable $exception) {
+            unset($zip);
+            $workspace->remove($directory);
+
+            throw $exception;
         }
-
-        $zip->close();
-
-        return $zipPath;
     }
 }

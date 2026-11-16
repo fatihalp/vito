@@ -1,4 +1,7 @@
 import moment from 'moment';
+import { usePage } from '@inertiajs/react';
+import { SharedData } from '@/types';
+import { formatRelativeDate } from '@/lib/format-relative-date';
 
 export default function DateTime({
   date,
@@ -12,9 +15,11 @@ export default function DateTime({
   
   relative?: boolean;
 }) {
+  const { locale = 'en' } = usePage<SharedData>().props;
+  const value = moment(date);
   return (
-    <time dateTime={date} className={className} title={relative ? moment(date).format(format) : undefined}>
-      {relative ? moment(date).fromNow() : moment(date).format(format)}
+    <time dateTime={date} className={className} title={relative ? value.format(format) : undefined}>
+      {relative ? formatRelativeDate(value.valueOf(), locale) : value.format(format)}
     </time>
   );
 }

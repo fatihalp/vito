@@ -57,26 +57,30 @@ class GetCommitsBehind
         }
 
         $sites = (clone $query)
-            ->whereNotNull('repository')
-            ->whereNotNull('branch')
-            ->whereNotNull('source_control_id')
-            ->whereHas('deployments', fn (Builder $deployments) => $deployments->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING]))
-            ->select(['sites.id', 'sites.branch'])
-            ->addSelect(['deployed_commit_id' => Deployment::query()
-                ->select('commit_id')
+            ->select('sites.*')
+            ->addSelect(['deployed_commit_id' => Deployment::select('commit_id')
                 ->whereColumn('site_id', 'sites.id')
                 ->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING])
                 ->latest('id')
                 ->limit(1),
             ])
-            ->get();
+            ->whereNotNull('repository')
+            ->whereNotNull('branch')
+            ->whereNotNull('source_control_id')
+            ->whereHas('deployments', fn (Builder $deployments) => $deployments->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING]))
+            ->lazyById(200, 'sites.id', 'id');
 
-        $results = Cache::many($sites->map(fn (Site $site): string => $this->key($site, (string) $site->deployed_commit_id))->all());
         $behindBySite = [];
         $checking = 0;
 
         foreach ($sites as $site) {
-            $result = $results[$this->key($site, (string) $site->deployed_commit_id)];
+            $commitId = (string) $site->getAttribute('deployed_commit_id');
+
+            if ($commitId === '') {
+                continue;
+            }
+
+            $result = Cache::get($this->key($site, $commitId));
 
             if ($result === null) {
                 $checking++;

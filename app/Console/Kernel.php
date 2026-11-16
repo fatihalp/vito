@@ -15,11 +15,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('backups:reconcile')->everyThirtyMinutes();
         $schedule->command('backups:check-archiving')->everyFifteenMinutes();
         $schedule->command('backups:check-health')->everyFifteenMinutes();
+        $schedule->command('backup-monitors:refresh')->everyFiveMinutes()->withoutOverlapping(5);
         $schedule->command('database-replicas:check')->everyMinute()->withoutOverlapping(5);
         $schedule->command('postgres-clusters:rotate-certificates')->dailyAt('03:15');
         $schedule->command('metrics:delete-older-metrics')->daily();
         $schedule->command('db:vacuum')->daily();
         $schedule->command('metrics:get')->everyMinute()->withoutOverlapping(5);
+        $schedule->command('runtime:refresh')->everyTwoMinutes()->withoutOverlapping(5);
         $schedule->command('servers:check')->everyFiveMinutes();
         $schedule->command('workers:sync-statuses')->everyFiveMinutes();
         $schedule->command('servers:check-updates')->dailyAt('02:00');

@@ -12,7 +12,6 @@ use Illuminate\Validation\ValidationException;
 
 class EditWorker
 {
-    
     public function edit(Worker $worker, array $input): Worker
     {
         if ($worker->isSiteBootstrap()) {

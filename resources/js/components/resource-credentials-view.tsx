@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CheckIcon, CopyIcon, EyeIcon, EyeOffIcon } from 'lucide-react';
@@ -14,6 +15,8 @@ interface ResourceCredentialsViewProps {
   subtitle?: string;
   type?: 'database' | 'cache' | 'storage' | 'websocket' | string;
   className?: string;
+  redacted?: boolean;
+  onReveal?: () => void;
 }
 
 export default function ResourceCredentialsView({
@@ -22,7 +25,10 @@ export default function ResourceCredentialsView({
   subtitle,
   type,
   className,
+  redacted = false,
+  onReveal,
 }: ResourceCredentialsViewProps) {
+  const translateText = useTranslate();
   const [masked, setMasked] = useState(true);
   const [copiedEnv, setCopiedEnv] = useState(false);
   const [copiedDeeplink, setCopiedDeeplink] = useState(false);
@@ -102,9 +108,10 @@ export default function ResourceCredentialsView({
               variant="ghost"
               size="icon"
               className="size-6 text-muted-foreground hover:text-foreground"
-              onClick={() => setMasked((m) => !m)}
-              aria-label={masked ? 'Reveal secret values' : 'Hide secret values'}
-              title={masked ? 'Reveal values' : 'Hide values'}
+              onClick={() => redacted ? onReveal?.() : setMasked((m) => !m)}
+              disabled={redacted && !onReveal}
+              aria-label={masked ? translateText("Reveal secret values") : translateText("Hide secret values")}
+              title={masked ? translateText("Reveal values") : translateText("Hide values")}
             >
               {masked ? <EyeIcon className="size-3" /> : <EyeOffIcon className="size-3" />}
             </Button>
@@ -115,8 +122,9 @@ export default function ResourceCredentialsView({
               size="icon"
               className="size-6 text-muted-foreground hover:text-foreground"
               onClick={copyEnv}
-              aria-label="Copy environment variables"
-              title="Copy to clipboard"
+              disabled={redacted}
+              aria-label={translateText("Copy environment variables")}
+              title={translateText('Copy to clipboard')}
             >
               {copiedEnv ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
             </Button>
@@ -157,8 +165,9 @@ export default function ResourceCredentialsView({
             size="icon"
             className="size-6 shrink-0 text-muted-foreground hover:text-foreground"
             onClick={copyDeeplink}
-            aria-label={`Copy ${deeplinkLabel}`}
-            title="Copy"
+            disabled={redacted}
+            aria-label={translateText("Copy :value", { value: deeplinkLabel })}
+            title={translateText('Copy')}
           >
             {copiedDeeplink ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
           </Button>

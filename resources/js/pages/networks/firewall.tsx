@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
@@ -15,6 +16,7 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Network, NetworkFirewallRule } from '@/types/network';
 
 export default function NetworkFirewall() {
+  const translateText = useTranslate();
   const page = usePage<{
     network: Network;
     rules: InertiaTableData;
@@ -24,18 +26,18 @@ export default function NetworkFirewall() {
 
   return (
     <NetworkLayout>
-      <Head title={`Firewall - ${network.name}`} />
+      <Head title={translateText("Firewall - :value", { value: network.name })} />
 
       <Container>
         <HeaderContainer>
           <Heading
             title="Firewall"
-            description="Rules allow traffic from the network. The default 'Allow all' rule permits everything - delete it to lock the network down"
+            description={translateText("Rules allow traffic from the network. The default 'Allow all' rule permits everything - delete it to lock the network down")}
           />
           <div className="flex items-center gap-2">
             <Button onClick={() => dialog.networkFirewallForm.open({ networkId: network.id })}>
               <PlusIcon />
-              <span className="hidden lg:block">Rule</span>
+              <span className="hidden lg:block">{translateText("Rule")}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -51,13 +53,13 @@ export default function NetworkFirewall() {
                     <TableActionTrigger />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
-                    <DropdownMenuItem onSelect={() => dialog.networkFirewallForm.open({ networkId: network.id, rule })}>Edit</DropdownMenuItem>
+                    <DropdownMenuItem onSelect={() => dialog.networkFirewallForm.open({ networkId: network.id, rule })}>{translateText('Edit')}</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       variant="destructive"
                       onSelect={() =>
                         dialog.confirm.open({
-                          title: `Delete rule [${rule.name}]`,
+                          title: translateText("Delete rule [:value]", { value: rule.name }),
                           description: 'Are you sure you want to delete this firewall rule?',
                           variant: 'destructive',
                           confirmLabel: 'Delete',
@@ -66,7 +68,7 @@ export default function NetworkFirewall() {
                         })
                       }
                     >
-                      Delete
+                      {translateText('Delete')}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

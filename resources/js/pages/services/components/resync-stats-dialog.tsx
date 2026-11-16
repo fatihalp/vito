@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Service } from '@/types/service';
 import { useForm } from '@inertiajs/react';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,6 +9,7 @@ import InputError from '@/components/ui/input-error';
 import type { DialogControlProps } from '@/components/dialogs/registry';
 
 export default function ResyncStatsDialog({ service, open, onOpenChange }: { service: Service } & DialogControlProps) {
+  const translateText = useTranslate();
   const form = useForm();
 
   const submit = () => {
@@ -20,13 +22,12 @@ export default function ResyncStatsDialog({ service, open, onOpenChange }: { ser
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Re-sync stats scripts</DialogTitle>
-          <DialogDescription className="sr-only">Re-sync GoAccess scripts and cron on the server</DialogDescription>
+          <DialogTitle>{translateText("Re-sync stats scripts")}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Re-sync GoAccess scripts and cron on the server")}</DialogDescription>
         </DialogHeader>
         <div className="space-y-2 p-4">
           <p>
-            This re-writes the GoAccess processing scripts and per-site configs on the server and ensures the cron is in place. Run this after a Pure
-            update.
+            {translateText("This re-writes the GoAccess processing scripts and per-site configs on the server and ensures the cron is in place. Run this after a Pure update.")}
           </p>
           {Object.entries(form.errors).map(([key, value]) => (
             <InputError key={key} message={value as string | undefined} />
@@ -34,12 +35,12 @@ export default function ResyncStatsDialog({ service, open, onOpenChange }: { ser
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button disabled={form.processing} onClick={submit}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            Re-sync
+            {translateText("Re-sync")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import Container from '@/components/container';
 import HeaderContainer from '@/components/header-container';
 import Heading from '@/components/heading';
@@ -13,13 +14,14 @@ import { Head, usePage } from '@inertiajs/react';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
 
 export default function SiteTopology() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
     resources: SiteResource[];
     hostedDomains: HostedDomain[];
     dnsProviders: DNSProvider[];
-    domainProxyStatus: Record<string, boolean>;
+    domainProxyStatus: Record<string, boolean | null>;
     overviewWorkersCount: number;
     overviewCronJobsCount: number;
   }>();
@@ -28,12 +30,12 @@ export default function SiteTopology() {
 
   return (
     <ServerLayout>
-      <Head title={`Topology - ${site.domain}`} />
+      <Head title={translateText("Topology - :value", { value: site.domain })} />
       <Container className="gap-6">
         <HeaderContainer>
           <Heading
-            title="Infrastructure Topology"
-            description="Interactive diagram of domain routing, runtime environment, connected databases, cache, storage, and background workers."
+            title={translateText('Infrastructure Topology')}
+            description={translateText("Interactive diagram of domain routing, runtime environment, connected databases, cache, storage, and background workers.")}
           />
           {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}
         </HeaderContainer>

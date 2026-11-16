@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useState } from 'react';
 import {
   Dialog,
@@ -10,7 +11,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { useForm } from '@inertiajs/react';
+import { InertiaFormProps, useForm } from '@inertiajs/react';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { LoaderCircleIcon } from 'lucide-react';
 
@@ -21,7 +22,7 @@ interface FieldUpdateDialogProps {
   fieldName: string;
   url: string;
   trigger: ReactNode;
-  children: (form: any) => ReactNode;
+  children: (form: InertiaFormProps<Record<string, string>>) => ReactNode;
 }
 
 export default function FieldUpdateDialog({
@@ -33,6 +34,7 @@ export default function FieldUpdateDialog({
   trigger,
   children,
 }: FieldUpdateDialogProps) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const form = useForm({
     [fieldName]: initialValue,
@@ -52,9 +54,9 @@ export default function FieldUpdateDialog({
       <DialogTrigger asChild>{trigger}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
+          <DialogTitle>{translateText(title)}</DialogTitle>
           <DialogDescription className={typeof description === 'string' && description === 'sr-only' ? 'sr-only' : undefined}>
-            {description !== 'sr-only' ? description : "Update field"}
+            {description === 'sr-only' ? translateText('Update field') : typeof description === 'string' ? translateText(description) : description}
           </DialogDescription>
         </DialogHeader>
 
@@ -66,12 +68,12 @@ export default function FieldUpdateDialog({
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
 
           <Button form={`${fieldName}-form`} disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

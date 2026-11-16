@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useId } from 'react';
 import { Area, AreaChart, XAxis, YAxis } from 'recharts';
 
@@ -18,6 +19,7 @@ interface Props {
 }
 
 export function StatsChart({ title, value, color, dataKey, labelKey, data, formatLabel, valueFormatter, height = 'medium' }: Props) {
+  const translateText = useTranslate();
   const gradientId = useId();
   const chartConfig = {
     [dataKey]: { label: title, color },
@@ -36,7 +38,7 @@ export function StatsChart({ title, value, color, dataKey, labelKey, data, forma
         </div>
         {data.length === 0 ? (
           <div className={cn('text-muted-foreground flex w-full items-center justify-center rounded-b-xl border-t text-sm', heightClass)}>
-            No data
+            {translateText("No data")}
           </div>
         ) : (
           <ChartContainer config={chartConfig} className={cn('aspect-auto w-full overflow-hidden rounded-b-xl', heightClass)}>

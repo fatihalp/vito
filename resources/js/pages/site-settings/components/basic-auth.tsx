@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, ReactNode, useState } from 'react';
 import {
   Dialog,
@@ -24,6 +25,7 @@ import { rowId } from '@/lib/utils';
 type FormUser = { id: string; username: string; password: string; existing: boolean };
 
 export default function BasicAuth({ site, children }: { site: Site; children: ReactNode }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const initialUsers = (): FormUser[] =>
@@ -85,7 +87,7 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Basic Auth</DialogTitle>
-          <DialogDescription>Protect this site with HTTP Basic Authentication.</DialogDescription>
+          <DialogDescription>{translateText("Protect this site with HTTP Basic Authentication.")}</DialogDescription>
         </DialogHeader>
 
         <Form id="basic-auth-form" onSubmit={submit} className="p-4">
@@ -93,9 +95,9 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
             <FormField>
               <div className="flex items-center justify-between gap-4">
                 <div className="space-y-1">
-                  <Label htmlFor="basic-auth-enabled">Enable Basic Auth</Label>
+                  <Label htmlFor="basic-auth-enabled">{translateText("Enable Basic Auth")}</Label>
                   <p className="text-muted-foreground text-sm">
-                    {hasUsers ? 'Require credentials to access the site.' : 'Add at least one user to enable.'}
+                    {hasUsers ? translateText("Require credentials to access the site.") : translateText("Add at least one user to enable.")}
                   </p>
                 </div>
                 <Switch
@@ -109,18 +111,18 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
             </FormField>
 
             <FormField>
-              <Label>Users</Label>
+              <Label>{translateText('Users')}</Label>
               <div className="space-y-2">
-                {form.data.users.length === 0 && <p className="text-muted-foreground text-sm">No users yet. Add a user to start using basic auth.</p>}
+                {form.data.users.length === 0 && <p className="text-muted-foreground text-sm">{translateText("No users yet. Add a user to start using basic auth.")}</p>}
                 {form.data.users.map((u, i) => (
                   <div key={u.id} className="flex items-start gap-2">
                     <div className="flex-1">
-                      <Input placeholder="username" value={u.username} onChange={(e) => setUser(i, { username: e.target.value })} />
+                      <Input placeholder={translateText("username")} value={u.username} onChange={(e) => setUser(i, { username: e.target.value })} />
                       <InputError message={(form.errors as Record<string, string>)[`users.${i}.username`]} />
                     </div>
                     <div className="flex-1">
                       <PasswordInput
-                        placeholder={u.existing ? 'Leave blank to keep current' : 'password'}
+                        placeholder={u.existing ? translateText("Leave blank to keep current") : translateText("password")}
                         value={u.password}
                         onChange={(e) => setUser(i, { password: e.target.value })}
                       />
@@ -133,7 +135,7 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
                 ))}
                 <Button type="button" variant="outline" size="sm" onClick={addUser}>
                   <PlusIcon className="size-4" />
-                  Add user
+                  {translateText('Add user')}
                 </Button>
               </div>
               <InputError message={form.errors.users} />
@@ -143,11 +145,11 @@ export default function BasicAuth({ site, children }: { site: Site; children: Re
 
         <DialogFooter className="gap-2">
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="basic-auth-form" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="size-4 animate-spin" />}
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -1,3 +1,5 @@
+import { translate } from '@/lib/translate';
+import { useTranslate } from '@/hooks/use-translate';
 import { Link, router, useForm } from '@inertiajs/react';
 import { OctagonAlertIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +14,7 @@ import { toast } from 'sonner';
 import { BannerItem, WarningsBlock, WarningsPopover } from '@/components/banners';
 
 function GenerateAppKeyButton({ site }: { site: Site }) {
+  const translateText = useTranslate();
   const form = useForm<{ only_if_missing: boolean; env?: string }>({ only_if_missing: true });
 
   return (
@@ -22,7 +25,7 @@ function GenerateAppKeyButton({ site }: { site: Site }) {
         disabled={form.processing}
         onClick={() => form.post(`/servers/${site.server_id}/sites/${site.id}/env/generate-key`, { preserveScroll: true })}
       >
-        {form.processing ? 'Generating...' : 'Generate Key'}
+        {form.processing ? translateText("Generating...") : translateText("Generate Key")}
       </Button>
       {form.errors.env && <p role="alert" className="text-destructive max-w-64 text-sm">{form.errors.env}</p>}
     </div>
@@ -30,6 +33,7 @@ function GenerateAppKeyButton({ site }: { site: Site }) {
 }
 
 function InstallationFailedBanner({ site }: { site: Site }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -52,8 +56,8 @@ function InstallationFailedBanner({ site }: { site: Site }) {
           <OctagonAlertIcon className="text-destructive h-4 w-4" />
         </div>
         <div className="flex min-w-0 flex-1 flex-col gap-1">
-          <p className="text-sm leading-tight font-medium">Site installation failed{step ? ` while ${step.toLowerCase()}` : ''}</p>
-          <p className="text-muted-foreground text-sm">You can retry the installation; steps that have already completed will be skipped.</p>
+          <p className="text-sm leading-tight font-medium">{translateText("Site installation failed")}{step ? ` while ${step.toLowerCase()}` : ''}</p>
+          <p className="text-muted-foreground text-sm">{translateText("You can retry the installation; steps that have already completed will be skipped.")}</p>
         </div>
       </div>
 
@@ -73,21 +77,20 @@ function InstallationFailedBanner({ site }: { site: Site }) {
         >
           <DialogTrigger asChild>
             <Button variant="destructive" size="sm">
-              Retry installation
+              {translateText("Retry installation")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Retry site installation?</DialogTitle>
+              <DialogTitle>{translateText("Retry site installation?")}</DialogTitle>
               <DialogDescription>
-                This will re-run the installation for <strong>{site.domain}</strong>. Steps that already completed (isolated user, vhost, cloned
-                repository, deployed key) will be detected and skipped.
+                {translateText("This will re-run the installation for")} <strong>{site.domain}</strong>{translateText(". Steps that already completed (isolated user, vhost, cloned repository, deployed key) will be detected and skipped.")}
               </DialogDescription>
             </DialogHeader>
 
             {canEditComposerCommand && (
               <div className="space-y-1.5">
-                <Label htmlFor="composer-install-command">Composer install command</Label>
+                <Label htmlFor="composer-install-command">{translateText('Composer install command')}</Label>
                 <Textarea
                   id="composer-install-command"
                   value={composerCommand}
@@ -96,7 +99,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
                   rows={2}
                 />
                 <p className="text-muted-foreground text-xs">
-                  This is what failed above. Edit it (e.g. add a flag, drop a package) and retry, or leave it as-is.
+                  {translateText("This is what failed above. Edit it (e.g. add a flag, drop a package) and retry, or leave it as-is.")}
                 </p>
               </div>
             )}
@@ -104,7 +107,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
             {submitError && <p className="text-destructive text-sm">{submitError}</p>}
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpen(false)} disabled={submitting}>
-                Cancel
+                {translateText('Cancel')}
               </Button>
               <Button
                 variant="destructive"
@@ -136,7 +139,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
                   );
                 }}
               >
-                {submitting ? 'Retrying...' : 'Retry installation'}
+                {submitting ? translateText("Retrying...") : translateText("Retry installation")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -146,7 +149,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   );
 }
 
-export function getSiteWarningItems(site: Site, includeAppDebug = false): BannerItem[] {
+export function getSiteWarningItems(site: Site, includeAppDebug = false, translateText: ReturnType<typeof useTranslate> = (message, replacements) => translate(message, 'en', replacements)): BannerItem[] {
   if (site.status !== 'ready') {
     return [];
   }
@@ -206,7 +209,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
             );
           }}
         >
-          Enable SSL
+          {translateText("Enable SSL")}
         </Button>
       ),
     });
@@ -215,17 +218,17 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   if (pendingDomainsWarning && pendingDomainsWarning.key === 'pending_domains') {
     items.push({
       key: 'pending-domains',
-      title: `${pendingDomainsWarning.count} pending ${pendingDomainsWarning.count === 1 ? 'domain' : 'domains'}`,
+      title: translateText(pendingDomainsWarning.count === 1 ? ':count pending domain' : ':count pending domains', { count: pendingDomainsWarning.count }),
       description: (
         <>
-          We could not confirm that <strong>{pendingDomainsWarning.domains.join(', ')}</strong> {pendingDomainsWarning.count === 1 ? 'is' : 'are'}{' '}
-          pointing to this server. Update your DNS records or activate by force via the Manage Domains page.
+          {translateText("We could not confirm that")} <strong>{pendingDomainsWarning.domains.join(', ')}</strong> {pendingDomainsWarning.count === 1 ? 'is' : 'are'}{' '}
+          {translateText("pointing to this server. Update your DNS records or activate by force via the Manage Domains page.")}
         </>
       ),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/domains`}>
           <Button variant="outline" size="sm">
-            Manage Domains
+            {translateText("Manage Domains")}
           </Button>
         </Link>
       ),
@@ -236,17 +239,17 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
     const daysLeft = Math.max(0, Math.ceil((new Date(sslExpiringWarning.earliest_expiry).getTime() - Date.now()) / 86400000));
     items.push({
       key: 'ssl-expiring',
-      title: `${sslExpiringWarning.count} SSL ${sslExpiringWarning.count === 1 ? 'certificate' : 'certificates'} expiring in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}`,
+      title: translateText(':count SSL :certificates expiring in :days :dayLabel', { count: sslExpiringWarning.count, certificates: translateText(sslExpiringWarning.count === 1 ? 'certificate' : 'certificates'), days: daysLeft, dayLabel: translateText(daysLeft === 1 ? 'day' : 'days') }),
       description: (
         <>
-          SSL certificates for <strong>{sslExpiringWarning.domains.join(', ')}</strong>{' '}
-          {daysLeft === 0 ? 'expire today.' : `will expire in ${daysLeft} ${daysLeft === 1 ? 'day' : 'days'}.`}
+          {translateText("SSL certificates for")} <strong>{sslExpiringWarning.domains.join(', ')}</strong>{' '}
+          {daysLeft === 0 ? translateText('expire today.') : translateText(daysLeft === 1 ? 'will expire in :days day.' : 'will expire in :days days.', { days: daysLeft })}
         </>
       ),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/domains`}>
           <Button variant="outline" size="sm">
-            Manage Domains
+            {translateText("Manage Domains")}
           </Button>
         </Link>
       ),
@@ -256,31 +259,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
   if (vhostWarning) {
     items.push({
       key: 'vhost-disabled',
-      title: 'VHost generation is disabled',
-      description: (
-        <>
-          Automatic VHost generation has been disabled. Changes to SSL, domains, or redirects will not update the VHost config. Review your template
-          on the{' '}
-          <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`} className="underline">
-            Settings page
-          </Link>{' '}
-          before re-enabling.
-        </>
-      ),
+      severity: 'info',
+      title: 'Existing webserver configuration is preserved',
+      description: 'Vito is not generating this site’s webserver configuration. This does not mean the site or HTTPS is offline. Review the existing configuration before enabling automatic management.',
       action: (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            router.patch(
-              `/servers/${site.server_id}/sites/${site.id}/settings/vhost-generation`,
-              { vhost_generation_enabled: true },
-              { preserveScroll: true, onError: (errors) => toast.error(Object.values(errors)[0]) },
-            );
-          }}
-        >
-          Re-enable
-        </Button>
+        <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`}>
+          <Button variant="outline" size="sm">{translateText("Review settings")}</Button>
+        </Link>
       ),
     });
   }
@@ -291,14 +276,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'PHP settings are not applied',
       description: (
         <>
-          This site has custom PHP settings, but a custom VHost template is in use so they are not written to the server. Add the directives to your
-          template manually, or reset the template to apply them automatically.
+          {translateText("This site has custom PHP settings, but a custom VHost template is in use so they are not written to the server. Add the directives to your template manually, or reset the template to apply them automatically.")}
         </>
       ),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/settings`}>
           <Button variant="outline" size="sm">
-            Go to Settings
+            {translateText("Go to Settings")}
           </Button>
         </Link>
       ),
@@ -311,14 +295,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'Site needs first deploy',
       description: (
         <>
-          Customise your deploy script if needed, then deploy this site to bring it online. The application worker is created on the first successful
-          deploy.
+          {translateText("Customise your deploy script if needed, then deploy this site to bring it online. The application worker is created on the first successful deploy.")}
         </>
       ),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}`}>
           <Button variant="outline" size="sm">
-            Go to Application
+            {translateText("Go to Application")}
           </Button>
         </Link>
       ),
@@ -331,14 +314,13 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       title: 'Composer dependencies were not installed',
       description: (
         <>
-          The site was set up, but installing Composer dependencies failed (often a PHP version mismatch with a locked package). Fix your deploy
-          script if needed, then deploy — this also installs dependencies.
+          {translateText("The site was set up, but installing Composer dependencies failed (often a PHP version mismatch with a locked package). Fix your deploy script if needed, then deploy — this also installs dependencies.")}
         </>
       ),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}`}>
           <Button variant="outline" size="sm">
-            Go to Application
+            {translateText("Go to Application")}
           </Button>
         </Link>
       ),
@@ -358,16 +340,11 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
     items.push({
       key: 'app-debug-enabled',
       title: 'APP_DEBUG is not disabled on this production server',
-      description: (
-        <>
-          This server's environment stage is <strong>Production</strong>, but <code>APP_DEBUG</code> is missing or not set to <code>false</code> in
-          this site's <code>.env</code>. Leaving debug mode on in production can leak sensitive data in error pages.
-        </>
-      ),
+      description: translateText("This server's environment stage is Production, but APP_DEBUG is missing or not set to false in this site's .env file. Leaving debug mode on in production can leak sensitive data in error pages."),
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/environment`}>
           <Button variant="outline" size="sm">
-            Review .env
+            {translateText("Review .env")}
           </Button>
         </Link>
       ),
@@ -378,14 +355,14 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
     const workerLabel = workerWarning.name ?? `#${workerWarning.worker_id}`;
     items.push({
       key: `worker-not-running-${workerWarning.worker_id}`,
-      title: `Worker "${workerLabel}" needs attention`,
+      title: translateText('Worker ":name" needs attention', { name: workerLabel }),
       description: (
         <>
           <span className="inline-flex flex-wrap items-center gap-1.5">
             <Badge variant={workerWarning.status_color} className="text-xs">
-              {workerWarning.status}
+              {translateText(workerWarning.status)}
             </Badge>
-            Restart the worker to bring it back online.
+            {translateText("Restart the worker to bring it back online.")}
           </span>
           {workerWarning.error && (
             <pre className="text-muted-foreground bg-muted/40 mt-2 max-h-40 overflow-auto rounded-md p-3 font-mono text-xs whitespace-pre-wrap">
@@ -397,7 +374,7 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
       action: (
         <Link href={`/servers/${site.server_id}/sites/${site.id}/workers`}>
           <Button variant="outline" size="sm">
-            Manage Workers
+            {translateText("Manage Workers")}
           </Button>
         </Link>
       ),
@@ -408,8 +385,9 @@ export function getSiteWarningItems(site: Site, includeAppDebug = false): Banner
 }
 
 export default function SiteBanners({ site, compact = false, includeAppDebug = false }: { site: Site; compact?: boolean; includeAppDebug?: boolean }) {
+  const translateText = useTranslate();
   const installationFailed = site.status === 'installation_failed';
-  const items = getSiteWarningItems(site, includeAppDebug);
+  const items = getSiteWarningItems(site, includeAppDebug, translateText);
 
   if (!installationFailed && items.length === 0) {
     return null;

@@ -38,5 +38,11 @@ export default [
   {
     ignores: ['vendor', 'node_modules', 'public', 'storage', 'bootstrap/ssr', 'tailwind.config.js'],
   },
-  prettier, // Turn off all rules that might conflict with Prettier
+  {
+    files: ['resources/js/lib/ansi.tsx', 'resources/js/lib/log.ts'],
+    rules: {
+      'no-control-regex': 'off',
+    },
+  },
+  prettier,
 ];

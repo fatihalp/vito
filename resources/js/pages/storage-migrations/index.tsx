@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useEffect } from 'react';
 import { useSocketStore } from '@/stores/socket-store';
 import { Head, router, usePage } from '@inertiajs/react';
@@ -19,6 +20,7 @@ type Page = {
 };
 
 export default function StorageMigrations() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const dialog = useDialog();
 
@@ -35,15 +37,15 @@ export default function StorageMigrations() {
 
   return (
     <SettingsLayout>
-      <Head title="Storage Migrations" />
+      <Head title={translateText("Storage Migrations")} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Storage Migrations" description="Move backup objects between storage providers" />
+          <Heading title={translateText("Storage Migrations")} description={translateText("Move backup objects between storage providers")} />
           <div className="flex items-center gap-2">
             <Button onClick={() => dialog.storageMigrationCreate.open({})}>
               <ArrowLeftRightIcon />
-              <span className="hidden lg:block">Migrate storage</span>
+              <span className="hidden lg:block">{translateText("Migrate storage")}</span>
             </Button>
           </div>
         </HeaderContainer>

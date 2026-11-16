@@ -7,28 +7,27 @@ use App\Models\Server;
 use App\Models\StorageProvider;
 use App\SSH\Storage\S3 as S3Storage;
 use App\SSH\Storage\Storage;
-use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
-class S3 extends AbstractStorageProvider
+class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
 {
     protected StorageProvider $storageProvider;
 
     protected ?S3Client $client = null;
 
-    
     protected array $clientConfig = [];
+
+    protected ?string $lastConnectionError = null;
 
     public static function id(): string
     {
         return 's3';
     }
 
-    
     public function getApiUrl(?array $credentials = null): string
     {
         $credentials ??= $this->storageProvider->credentials;
@@ -36,10 +35,10 @@ class S3 extends AbstractStorageProvider
         if (isset($credentials['api_url']) && trim($credentials['api_url']) !== '') {
             $url = trim($credentials['api_url']);
             if (! str_starts_with($url, 'http://') && ! str_starts_with($url, 'https://')) {
-                $url = 'https://' . $url;
+                $url = 'https://'.$url;
             }
 
-            return $url;
+            return rtrim($url, '/');
         }
 
         $region = $credentials['region'] ?? 'us-east-1';
@@ -49,14 +48,21 @@ class S3 extends AbstractStorageProvider
 
     public function getClient(): S3Client
     {
-        return new S3Client($this->clientConfig);
+        return $this->client ??= new S3Client($this->clientConfig);
+    }
+
+    public function forgetCachedState(): void
+    {
+        $this->client = null;
+        $this->clientConfig = [];
+        $this->lastConnectionError = null;
     }
 
     public function buildClientConfig(?array $credentials = null): array
     {
         $credentials ??= $this->storageProvider->credentials;
 
-        $this->clientConfig = [
+        $config = [
             'credentials' => [
                 'key' => trim($credentials['key']),
                 'secret' => trim($credentials['secret']),
@@ -65,7 +71,14 @@ class S3 extends AbstractStorageProvider
             'version' => 'latest',
             'endpoint' => $this->getApiUrl($credentials),
             'use_path_style_endpoint' => true,
+            'http' => ['connect_timeout' => 5, 'timeout' => 30],
+            'retries' => 2,
         ];
+
+        if ($config !== $this->clientConfig) {
+            $this->client = null;
+            $this->clientConfig = $config;
+        }
 
         return $this->clientConfig;
     }
@@ -73,12 +86,12 @@ class S3 extends AbstractStorageProvider
     public function validationRules(): array
     {
         return [
-            'api_url' => 'nullable',
-            'key' => 'required',
-            'secret' => 'required',
-            'region' => 'required',
-            'bucket' => ['required', 'regex:/^\s*[A-Za-z0-9][A-Za-z0-9._-]{1,254}\s*$/'],
-            'path' => 'nullable',
+            'api_url' => ['nullable', 'string', 'max:2048'],
+            'key' => ['required', 'string', 'max:255'],
+            'secret' => ['required', 'string', 'max:1000'],
+            'region' => ['required', 'string', 'max:255'],
+            'bucket' => ['required', 'string', 'regex:/^\s*[A-Za-z0-9][A-Za-z0-9._-]{1,254}\s*$/'],
+            'path' => ['nullable', 'string', 'max:1024'],
         ];
     }
 
@@ -86,7 +99,7 @@ class S3 extends AbstractStorageProvider
     {
         $apiUrl = trim($input['api_url'] ?? '');
         if ($apiUrl !== '' && ! str_starts_with($apiUrl, 'http://') && ! str_starts_with($apiUrl, 'https://')) {
-            $apiUrl = 'https://' . $apiUrl;
+            $apiUrl = 'https://'.$apiUrl;
         }
 
         return [
@@ -136,24 +149,69 @@ class S3 extends AbstractStorageProvider
 
     public function connect(array $credentials): bool
     {
+        $this->lastConnectionError = null;
+
         try {
             $this->buildClientConfig($credentials);
             $this->probe($credentials);
 
             return true;
         } catch (Throwable $e) {
-            $secrets = array_filter([$credentials['key'] ?? null, $credentials['secret'] ?? null], fn (?string $value): bool => (string) $value !== '');
-
-            Log::error('Failed to connect to the provider', [
-                'error' => str_replace([...$secrets, ...array_map(rawurlencode(...), $secrets)], '<redacted>', $e->getMessage()),
-            ]);
+            $this->recordConnectionError($e, 'Failed to connect to the provider');
 
             return false;
         }
     }
 
+    public function listBuckets(array $credentials): array
+    {
+        $this->lastConnectionError = null;
+
+        try {
+            $this->buildClientConfig($credentials);
+            $names = [];
+
+            foreach ($this->getClient()->getPaginator('ListBuckets') as $page) {
+                foreach ($page->get('Buckets') ?? [] as $bucket) {
+                    $name = $bucket['Name'] ?? null;
+
+                    if (is_string($name) && $name !== '') {
+                        $names[] = $name;
+                    }
+                }
+            }
+
+            sort($names, SORT_NATURAL | SORT_FLAG_CASE);
+
+            return array_values(array_unique($names));
+        } catch (Throwable $e) {
+            $this->recordConnectionError($e, 'Failed to list S3 buckets');
+
+            throw new RuntimeException($this->lastConnectionError, previous: $e);
+        }
+    }
+
+    public function connectionError(): ?string
+    {
+        return $this->lastConnectionError;
+    }
+
+    public static function connectionErrorMessage(Throwable $e): string
+    {
+        $code = method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null;
+
+        return match ($code) {
+            'NoSuchBucket' => __('Bucket not found. Check the bucket name.'),
+            'AccessDenied', 'AllAccessDisabled' => __('Access was denied. Check the storage token permissions.'),
+            'InvalidAccessKeyId', 'SignatureDoesNotMatch', 'InvalidToken', 'ExpiredToken' => __('The access key or secret key is invalid.'),
+            default => __('Couldn\'t connect to the provider.'),
+        };
+    }
+
     public function canRead(array $credentials): bool
     {
+        $this->lastConnectionError = null;
+
         try {
             $this->buildClientConfig($credentials);
             $client = $this->getClient();
@@ -168,7 +226,7 @@ class S3 extends AbstractStorageProvider
 
             return true;
         } catch (Throwable $e) {
-            Log::error('Failed to verify read access to the provider', ['exception' => $e]);
+            $this->recordConnectionError($e, 'Failed to verify read access to the provider');
 
             return false;
         }
@@ -195,39 +253,53 @@ class S3 extends AbstractStorageProvider
         $prefix = trim((string) ($credentials['path'] ?? ''), '/');
         $key = ($prefix !== '' ? $prefix.'/' : '').'.vito-connection-test-'.Str::random(8);
         $body = 'vito-connection-test-'.Str::random(8);
+        $written = false;
+        $failure = null;
 
         try {
             $client->putObject([
                 'Bucket' => $bucket,
                 'Key' => $key,
                 'Body' => $body,
-                'ContentMD5' => base64_encode(md5($body, true)),
+            ]);
+            $written = true;
+
+            $object = $client->getObject([
+                'Bucket' => $bucket,
+                'Key' => $key,
             ]);
 
-            try {
-                $object = $client->getObject([
-                    'Bucket' => $bucket,
-                    'Key' => $key,
-                ]);
-
-                if ((string) $object['Body'] !== $body) {
-                    throw new RuntimeException('The connection test object did not round-trip correctly.');
-                }
-            } catch (S3Exception $e) {
-                if (! in_array($e->getAwsErrorCode(), ['AccessDenied', 'AllAccessDisabled'], true)) {
-                    throw $e;
-                }
+            if ((string) $object['Body'] !== $body) {
+                throw new RuntimeException('The connection test object did not round-trip correctly.');
             }
-        } finally {
+        } catch (Throwable $e) {
+            $failure = $e;
+        }
+
+        if ($written) {
             try {
                 $client->deleteObject([
                     'Bucket' => $bucket,
                     'Key' => $key,
                 ]);
-            } catch (Throwable) {
-
+            } catch (Throwable $e) {
+                $failure ??= $e;
             }
         }
+
+        if ($failure) {
+            throw $failure;
+        }
+    }
+
+    private function recordConnectionError(Throwable $e, string $message): void
+    {
+        $this->lastConnectionError = static::connectionErrorMessage($e);
+
+        Log::error($message, [
+            'exception' => get_class($e),
+            'code' => method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null,
+        ]);
     }
 
     public function ssh(Server $server): Storage

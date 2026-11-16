@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormEvent, useState } from 'react';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Form, FormField, FormFields } from '@/components/ui/form';
@@ -16,6 +17,7 @@ import axios from 'axios';
 import { toast } from 'sonner';
 
 function TestConnectionButton({ storageId, label, mode }: { storageId: string; label: string; mode: 'read' | 'write' }) {
+  const translateText = useTranslate();
   const [testing, setTesting] = useState(false);
   const access = mode === 'read' ? 'read' : 'write';
 
@@ -42,12 +44,13 @@ function TestConnectionButton({ storageId, label, mode }: { storageId: string; l
   return (
     <Button type="button" variant="outline" size="sm" disabled={!storageId || testing} onClick={() => void test()}>
       {testing ? <LoaderCircle className="animate-spin" /> : <PlugZapIcon />}
-      Test connection
+      {translateText("Test connection")}
     </Button>
   );
 }
 
 export default function CreateStorageMigration({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+  const translateText = useTranslate();
   const [server, setServer] = useState<Server>();
   const form = useForm<{
     name: string;
@@ -76,19 +79,19 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="sm:max-w-3xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <SheetHeader>
-          <SheetTitle>Migrate storage</SheetTitle>
-          <SheetDescription>Copies everything under the source storage's path to the target, including data not created by Pure. New backups switch to the target immediately.</SheetDescription>
+          <SheetTitle>{translateText("Migrate storage")}</SheetTitle>
+          <SheetDescription>{translateText("Copies everything under the source storage's path to the target, including data not created by Pure. New backups switch to the target immediately.")}</SheetDescription>
         </SheetHeader>
         <Form id="create-storage-migration-form" onSubmit={submit} className="p-4">
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input id="name" value={form.data.name} onChange={(e) => form.setData('name', e.target.value)} />
               <InputError message={form.errors.name} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="source_storage_id">Source storage</Label>
+              <Label htmlFor="source_storage_id">{translateText("Source storage")}</Label>
               <div className="flex items-center gap-2">
                 <StorageProviderSelect
                   id="source_storage_id"
@@ -97,13 +100,13 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                   filter={(storageProvider) => storageProvider.provider === 's3'}
                   className="flex-1"
                 />
-                <TestConnectionButton storageId={form.data.source_storage_id} label="source" mode="read" />
+                <TestConnectionButton storageId={form.data.source_storage_id} label={translateText("source")} mode="read" />
               </div>
               <InputError message={form.errors.source_storage_id} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="target_storage_id">Target storage</Label>
+              <Label htmlFor="target_storage_id">{translateText("Target storage")}</Label>
               <div className="flex items-center gap-2">
                 <StorageProviderSelect
                   id="target_storage_id"
@@ -113,7 +116,7 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                   filter={(storageProvider) => storageProvider.provider === 's3'}
                   className="flex-1"
                 />
-                <TestConnectionButton storageId={form.data.target_storage_id} label="target" mode="write" />
+                <TestConnectionButton storageId={form.data.target_storage_id} label={translateText("target")} mode="write" />
               </div>
               <InputError message={form.errors.target_storage_id} />
             </FormField>
@@ -125,16 +128,16 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                   checked={form.data.overwrite}
                   onCheckedChange={(checked) => form.setData('overwrite', !!checked)}
                 />
-                <Label htmlFor="overwrite" className="cursor-pointer">Overwrite mismatched objects on the target</Label>
+                <Label htmlFor="overwrite" className="cursor-pointer">{translateText("Overwrite mismatched objects on the target")}</Label>
               </div>
               <div className="text-muted-foreground mt-1 text-sm">
-                If an object already exists at the target path with a different size, overwrite it instead of failing that file.
+                {translateText("If an object already exists at the target path with a different size, overwrite it instead of failing that file.")}
               </div>
               <InputError message={form.errors.overwrite} />
             </FormField>
 
             <FormField>
-              <Label htmlFor="server_id">Scan database server</Label>
+              <Label htmlFor="server_id">{translateText("Scan database server")}</Label>
               <ServerSelect
                 id="server_id"
                 value={form.data.server_id}
@@ -144,16 +147,14 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                 }}
               />
               <div className="text-muted-foreground text-sm">
-                Discovered objects and their transfer status are stored here instead of Pure's own database. Pure creates a database user for this
-                migration. For another server, Pure also opens the database port to the Pure server, which restarts the database service if remote
-                access is off.
+                {translateText("Discovered objects and their transfer status are stored here instead of Pure's own database. Pure creates a database user for this migration. For another server, Pure also opens the database port to the Pure server, which restarts the database service if remote access is off.")}
               </div>
               <InputError message={form.errors.server_id} />
             </FormField>
 
             {server && (
               <FormField>
-                <Label htmlFor="database_id">Scan database</Label>
+                <Label htmlFor="database_id">{translateText("Scan database")}</Label>
                 {server.services.database ? (
                   <DatabaseSelect
                     id="database_id"
@@ -162,7 +163,7 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
                     onValueChange={(value) => form.setData('database_id', value)}
                   />
                 ) : (
-                  <div className="text-muted-foreground text-sm">This server has no database service.</div>
+                  <div className="text-muted-foreground text-sm">{translateText("This server has no database service.")}</div>
                 )}
                 <InputError message={form.errors.database_id} />
               </FormField>
@@ -177,10 +178,10 @@ export default function CreateStorageMigration({ open, onOpenChange }: { open: b
               disabled={form.processing || !form.data.name || !form.data.source_storage_id || !form.data.target_storage_id || !form.data.database_id}
             >
               {form.processing && <LoaderCircle className="animate-spin" />}
-              Start migration
+              {translateText("Start migration")}
             </Button>
             <SheetClose asChild>
-              <Button variant="outline">Cancel</Button>
+              <Button variant="outline">{translateText('Cancel')}</Button>
             </SheetClose>
           </div>
         </SheetFooter>

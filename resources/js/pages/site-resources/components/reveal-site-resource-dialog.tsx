@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
@@ -25,6 +26,7 @@ export default function RevealSiteResourceDialog({
   siteId: number;
   resource: SiteResource;
 }) {
+  const translateText = useTranslate();
   const query = useQuery({
     queryKey: ['site-resources.reveal', serverId, siteId, resource?.id],
     queryFn: async () => {
@@ -35,6 +37,7 @@ export default function RevealSiteResourceDialog({
     },
     enabled: open && !!resource?.id,
     retry: false,
+    gcTime: 0,
     refetchOnWindowFocus: false,
   });
 
@@ -44,9 +47,9 @@ export default function RevealSiteResourceDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{resource?.type} credentials</DialogTitle>
+          <DialogTitle>{resource?.type} {translateText("credentials")}</DialogTitle>
           <DialogDescription>
-            Configured environment variables and credentials for <strong>{targetName}</strong>.
+            {translateText("Configured environment variables and credentials for")} <strong>{targetName}</strong>.
           </DialogDescription>
         </DialogHeader>
 
@@ -57,7 +60,7 @@ export default function RevealSiteResourceDialog({
               type={resource?.type_value}
             />
           ) : query.isError ? (
-            <p className="text-destructive text-sm">Failed to load resource credentials.</p>
+            <p className="text-destructive text-sm">{translateText("Failed to load resource credentials.")}</p>
           ) : (
             <div className="space-y-2">
               <Skeleton className="h-32 w-full rounded-lg" />
@@ -69,7 +72,7 @@ export default function RevealSiteResourceDialog({
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" size="sm">
-              Close
+              {translateText('Close')}
             </Button>
           </DialogClose>
         </DialogFooter>

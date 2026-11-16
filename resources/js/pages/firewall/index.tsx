@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { FirewallRule } from '@/types/firewall';
@@ -18,6 +19,7 @@ import { useDialog } from '@/hooks/use-dialog';
 const uppercaseCell = ({ value }: CellRenderProps) => <span className="uppercase">{value == null || value === '' ? '-' : String(value)}</span>;
 
 export default function Firewall() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     rules: InertiaTableData;
@@ -28,7 +30,7 @@ export default function Firewall() {
 
   return (
     <ServerLayout>
-      <Head title={`Firewall - ${page.props.server.name}`} />
+      <Head title={translateText("Firewall - :value", { value: page.props.server.name })} />
 
       <Container>
         <HeaderContainer>
@@ -36,7 +38,7 @@ export default function Firewall() {
           <div className="flex items-center gap-2">
             <Button onClick={() => dialog.firewallForm.open({ serverId: page.props.server.id })}>
               <PlusIcon />
-              <span className="hidden lg:block">Create</span>
+              <span className="hidden lg:block">{translateText('Create')}</span>
             </Button>
           </div>
         </HeaderContainer>
@@ -54,7 +56,7 @@ export default function Firewall() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start">
                     <DropdownMenuItem onSelect={() => dialog.firewallForm.open({ serverId: firewallRule.server_id, firewallRule })}>
-                      Edit
+                      {translateText('Edit')}
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <Delete firewallRule={firewallRule} />
@@ -68,9 +70,9 @@ export default function Firewall() {
         {hasNetworkRules && (
           <div className="flex flex-col gap-4">
             <div>
-              <h2 className="text-base font-medium">Private network rules</h2>
+              <h2 className="text-base font-medium">{translateText("Private network rules")}</h2>
               <p className="text-muted-foreground text-sm">
-                These rules are applied by the private networks this server belongs to. They are read-only here &mdash; edit them from the network.
+                {translateText("These rules are applied by the private networks this server belongs to. They are read-only here — edit them from the network.")}
               </p>
             </div>
             <VitoTable tableData={page.props.networkRules} />

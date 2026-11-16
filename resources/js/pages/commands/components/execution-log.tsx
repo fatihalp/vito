@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import DateTime from '@/components/date-time';
 import LogOutput from '@/components/log-output';
 import { Badge } from '@/components/ui/badge';
@@ -9,6 +10,7 @@ import { ChevronDownIcon, DownloadIcon, LoaderCircleIcon, TerminalIcon } from 'l
 import { useState } from 'react';
 
 export default function ExecutionLog({ execution, initiallyOpen = false }: { execution: CommandExecution; initiallyOpen?: boolean }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(initiallyOpen);
   const { content, isLoading, error } = useLogContent({
     serverId: execution.server_id,
@@ -26,7 +28,7 @@ export default function ExecutionLog({ execution, initiallyOpen = false }: { exe
             </div>
             <div className="flex min-w-0 flex-1 flex-col items-start gap-1">
               <div className="flex items-center gap-2">
-                <span className="font-medium">Execution #{execution.id}</span>
+                <span className="font-medium">{translateText("Execution #")}{execution.id}</span>
                 <Badge variant={execution.status_color}>{execution.status}</Badge>
               </div>
               <span className="text-muted-foreground text-xs"><DateTime date={execution.created_at} /></span>
@@ -36,7 +38,7 @@ export default function ExecutionLog({ execution, initiallyOpen = false }: { exe
         </CollapsibleTrigger>
         {execution.log && (
           <Button variant="outline" size="icon" className="size-8 shrink-0" asChild>
-            <a href={`/servers/${execution.server_id}/logs/${execution.log.id}/download`} target="_blank" rel="noopener noreferrer" aria-label="Download log">
+            <a href={`/servers/${execution.server_id}/logs/${execution.log.id}/download`} target="_blank" rel="noopener noreferrer" aria-label={translateText('Download log')}>
               <DownloadIcon />
             </a>
           </Button>
@@ -53,9 +55,9 @@ export default function ExecutionLog({ execution, initiallyOpen = false }: { exe
           </div>
         )}
         <LogOutput className="h-80 rounded-none border-0">
-          {isLoading && 'Loading output...'}
+          {isLoading && translateText("Loading output...")}
           {error && <span className="text-destructive">{error}</span>}
-          {!isLoading && !error && (content || (execution.status === 'executing' ? 'Waiting for output...' : 'No output was recorded.'))}
+          {!isLoading && !error && (content || (execution.status === 'executing' ? translateText("Waiting for output...") : translateText("No output was recorded.")))}
         </LogOutput>
       </CollapsibleContent>
     </Collapsible>

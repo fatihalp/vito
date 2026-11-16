@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import React, { useState, useEffect } from 'react';
 
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ interface SelectRepoProps {
 }
 
 export default function SelectRepo({ sourceControlId, value, onValueChange, placeholder = 'Enter repository' }: SelectRepoProps) {
+  const translateText = useTranslate();
   const [repos, setRepos] = useState<string[]>([]);
   const [gettingRepos, setGettingRepos] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
@@ -66,7 +68,7 @@ export default function SelectRepo({ sourceControlId, value, onValueChange, plac
   return (
     <div className="space-y-1.5">
       <div className="flex items-center gap-2">
-        {gettingRepos && <Input id="repository" type="text" value="" disabled={true} placeholder="Fetching..." />}
+        {gettingRepos && <Input id="repository" type="text" value="" disabled={true} placeholder={translateText("Fetching...")} />}
         {!gettingRepos && (repos.length === 0 || !sourceControlId) && (
           <Input id="repository" type="text" value={value ?? ''} onChange={(e) => onValueChange(e.target.value)} placeholder={placeholder} />
         )}

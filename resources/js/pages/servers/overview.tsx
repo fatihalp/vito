@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import Container from '@/components/container';
 import ServerBanners from '@/components/server-banners';
 import { Badge } from '@/components/ui/badge';
@@ -15,6 +16,7 @@ import { type OverviewSite, useOverviewResources } from '@/hooks/use-overview-re
 import { RecentSitesSkeleton } from '@/components/page-skeleton';
 
 export default function ServerOverview() {
+  const translateText = useTranslate();
   const page = usePage<SharedData & { server: Server }>();
   const server = useRealtimeRecord<Server>(page.props.server, 'server')!;
   const [recentSiteIds, setRecentSiteIds] = useState<number[]>([]);
@@ -43,17 +45,17 @@ export default function ServerOverview() {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-4 border-b px-4 py-3">
-          <CardTitle className="text-sm font-semibold">Recent sites</CardTitle>
+          <CardTitle className="text-sm font-semibold">{translateText('Recent sites')}</CardTitle>
           <Button variant="outline" size="sm" className="h-7 px-2.5 text-xs" asChild>
-            <Link href={`/servers/${server.id}/sites`}>All</Link>
+            <Link href={`/servers/${server.id}/sites`}>{translateText('All')}</Link>
           </Button>
         </CardHeader>
         <CardContent className="p-0">
           {resources.isError ? (
             <div className="flex flex-col items-center gap-3 px-6 py-10 text-center">
-              <span className="text-destructive text-sm">Recent sites could not be loaded.</span>
+              <span className="text-destructive text-sm">{translateText("Recent sites could not be loaded.")}</span>
               <Button variant="outline" size="sm" onClick={() => void resources.refetch()}>
-                Retry
+                {translateText('Retry')}
               </Button>
             </div>
           ) : resources.isLoading ? (
@@ -89,7 +91,7 @@ export default function ServerOverview() {
                       href={site.domain.includes('.') ? `https://${site.domain}` : '/'}
                       target="_blank"
                       rel="noreferrer"
-                      aria-label={`Open ${site.domain}`}
+                      aria-label={translateText("Open :value", { value: site.domain })}
                       className="text-muted-foreground hover:text-foreground rounded p-1 transition-colors"
                     >
                       <ExternalLinkIcon className="size-3.5" />
@@ -103,15 +105,15 @@ export default function ServerOverview() {
             <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
               <GlobeIcon className="text-muted-foreground size-5" />
               <div className="flex flex-col gap-0.5">
-                <h3 className="text-sm font-medium">No recent sites</h3>
-                <p className="text-muted-foreground text-xs">Sites you open on this server will appear here.</p>
+                <h3 className="text-sm font-medium">{translateText('No recent sites')}</h3>
+                <p className="text-muted-foreground text-xs">{translateText('Sites you open on this server will appear here.')}</p>
               </div>
               {!server.is_self && (
                 <div className="pt-2">
                   <Button size="sm" className="gap-1.5 cursor-pointer" asChild>
                     <Link href={`/servers/${server.id}/sites/create`}>
                       <PlusIcon className="size-3.5" />
-                      Create site
+                      {translateText('Create site')}
                     </Link>
                   </Button>
                 </div>

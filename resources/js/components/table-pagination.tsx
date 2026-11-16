@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useMemo } from 'react';
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,7 @@ export function TablePagination({
   onPageChange,
   onPerPageChange,
 }: TablePaginationProps) {
+  const translateText = useTranslate();
   const pageNumbers = useMemo(() => getPaginationPages(currentPage, lastPage), [currentPage, lastPage]);
 
   return (
@@ -60,15 +62,16 @@ export function TablePagination({
       <div className="text-muted-foreground flex items-center text-sm">
         {from && to && (
           <span>
-            Showing {from} to {to}
-            {total && ` of ${total}`} results
+            {total !== undefined && total !== null
+              ? translateText('Showing :from to :to of :total results', { from, to, total })
+              : translateText('Showing :from to :to', { from, to })}
           </span>
         )}
       </div>
 
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">
-          {perPageLabel && <span className="text-muted-foreground text-sm whitespace-nowrap">{perPageLabel}</span>}
+          {perPageLabel && <span className="text-muted-foreground text-sm whitespace-nowrap">{translateText(perPageLabel)}</span>}
           <Select value={perPage} onValueChange={onPerPageChange}>
             <SelectTrigger className="h-8 w-[70px]">
               <SelectValue placeholder={perPage} />
@@ -88,7 +91,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(1)}
             disabled={currentPage <= 1 || disabled}
-            title="First page"
+            title={translateText('First page')}
           >
             <ChevronsLeft className="h-4 w-4" />
           </Button>
@@ -99,7 +102,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(currentPage - 1)}
             disabled={currentPage <= 1 || disabled}
-            title="Previous page"
+            title={translateText('Previous page')}
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
@@ -140,7 +143,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(currentPage + 1)}
             disabled={(lastPage ? currentPage >= lastPage : !hasNextLink) || disabled}
-            title="Next page"
+            title={translateText('Next page')}
           >
             <ChevronRight className="h-4 w-4" />
           </Button>
@@ -151,7 +154,7 @@ export function TablePagination({
             className="h-8 w-8 cursor-pointer"
             onClick={() => onPageChange(lastPage || currentPage + 1)}
             disabled={(lastPage ? currentPage >= lastPage : !hasLastLink) || disabled}
-            title="Last page"
+            title={translateText('Last page')}
           >
             <ChevronsRight className="h-4 w-4" />
           </Button>

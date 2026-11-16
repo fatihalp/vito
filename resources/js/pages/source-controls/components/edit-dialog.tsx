@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { useForm } from '@inertiajs/react';
@@ -25,6 +26,7 @@ export default function SourceControlEditDialog({
   onOpenChange: (open: boolean) => void;
   sourceControl: SourceControl;
 }) {
+  const translateText = useTranslate();
   const isGithubApp = sourceControl.provider === 'github-app';
   const configs = useConfigs()!;
   const providerConfig = configs.source_control?.providers?.[sourceControl.provider];
@@ -51,13 +53,13 @@ export default function SourceControlEditDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>Edit {sourceControl.name}</DialogTitle>
-          <DialogDescription className="sr-only">Edit source control</DialogDescription>
+          <DialogTitle>{translateText('Edit')} {sourceControl.name}</DialogTitle>
+          <DialogDescription className="sr-only">{translateText("Edit source control")}</DialogDescription>
         </DialogHeader>
         <Form id="edit-source-control-form" className="p-4" onSubmit={submit}>
           <FormFields>
             <FormField>
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{translateText('Name')}</Label>
               <Input
                 type="text"
                 id="name"
@@ -67,7 +69,7 @@ export default function SourceControlEditDialog({
                 disabled={isGithubApp}
                 readOnly={isGithubApp}
               />
-              {isGithubApp && <p className="text-muted-foreground text-xs">The name is the GitHub organization and cannot be changed.</p>}
+              {isGithubApp && <p className="text-muted-foreground text-xs">{translateText("The name is the GitHub organization and cannot be changed.")}</p>}
               <InputError message={form.errors.name as string | undefined} />
             </FormField>
             {editableFormFields.map((field) => (
@@ -87,7 +89,7 @@ export default function SourceControlEditDialog({
                   checked={form.data.global as boolean}
                   onCheckedChange={(checked) => form.setData('global', checked === true)}
                 />
-                <Label htmlFor="global">Is global (accessible in all projects)</Label>
+                <Label htmlFor="global">{translateText('Is global (accessible in all projects)')}</Label>
               </div>
               <InputError message={form.errors.global as string | undefined} />
             </FormField>
@@ -95,12 +97,12 @@ export default function SourceControlEditDialog({
         </Form>
         <DialogFooter>
           <DialogClose asChild>
-            <Button variant="outline">Cancel</Button>
+            <Button variant="outline">{translateText('Cancel')}</Button>
           </DialogClose>
           <Button form="edit-source-control-form" type="submit" disabled={form.processing}>
             {form.processing && <LoaderCircleIcon className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            Save
+            {translateText('Save')}
           </Button>
         </DialogFooter>
       </DialogContent>

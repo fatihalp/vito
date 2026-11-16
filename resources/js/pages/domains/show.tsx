@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { useMemo } from 'react';
 import Container from '@/components/container';
@@ -22,6 +23,7 @@ type Page = {
 };
 
 export default function DomainShow() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const configs = useConfigs()!;
   const dialog = useDialog();
@@ -44,17 +46,17 @@ export default function DomainShow() {
 
   return (
     <SettingsLayout>
-      <Head title={`DNS Records - ${page.props.domain.domain}`} />
+      <Head title={translateText("DNS Records - :value", { value: page.props.domain.domain })} />
       <Container>
         <HeaderContainer>
           <BreadcrumbHeader breadcrumbs={breadcrumbs}>
-            <Heading title={`DNS Records for ${page.props.domain.domain}`} />
+            <Heading title={translateText("DNS Records for :value", { value: page.props.domain.domain })} />
           </BreadcrumbHeader>
           <div className="flex items-center gap-2">
             <SyncRecords domain={page.props.domain} />
             <Button onClick={() => dialog.dnsRecordForm.open({ domain: page.props.domain })}>
               <PlusIcon />
-              Add Record
+              {translateText("Add Record")}
             </Button>
           </div>
         </HeaderContainer>

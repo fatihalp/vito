@@ -28,6 +28,13 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
+        'key',
+        'secret',
+        'token',
+        'app_key',
+        'app_secret',
+        'private_key',
+        'credentials',
     ];
 
     

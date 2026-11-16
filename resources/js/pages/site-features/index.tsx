@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import Container from '@/components/container';
@@ -10,6 +11,7 @@ import FeaturesCard from '@/components/features-card';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function SiteFeatures() {
+  const translateText = useTranslate();
   const page = usePage<{
     server: Server;
     site: Site;
@@ -21,17 +23,17 @@ export default function SiteFeatures() {
 
   return (
     <ServerLayout>
-      <Head title={`Features - ${page.props.site.domain}`} />
+      <Head title={translateText("Features - :value", { value: page.props.site.domain })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Features" description="Manage the built-in features available for your site" />
+          <Heading title={translateText('Features')} description={translateText('Manage the built-in features available for your site')} />
         </HeaderContainer>
 
         <SiteBanners site={page.props.site} />
 
         <FeaturesCard
-          title="Site features"
+          title={translateText("Site features")}
           features={page.props.features}
           onActionSelect={(featureId, actionId, action) => 
             dialog.siteFeatureAction.open({ site: page.props.site, featureId, actionId, action })

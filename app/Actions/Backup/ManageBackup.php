@@ -124,7 +124,7 @@ class ManageBackup
         $rules = [
             'keep' => [
                 'required',
-                'numeric',
+                'integer',
                 'min:1',
             ],
             'interval' => [
@@ -136,6 +136,7 @@ class ManageBackup
         if (($input['interval'] ?? null) === 'custom') {
             $rules['custom_interval'] = [
                 'required',
+                'string',
                 new CronRule,
             ];
         }

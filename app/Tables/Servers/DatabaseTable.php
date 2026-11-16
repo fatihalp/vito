@@ -6,6 +6,7 @@ use Forjed\InertiaTable\Column;
 use Forjed\InertiaTable\Columns\DateTimeColumn;
 use Forjed\InertiaTable\Columns\EnumColumn;
 use Forjed\InertiaTable\Columns\TextColumn;
+use Forjed\InertiaTable\Columns\LinkColumn;
 use App\Tables\AbstractTable as Table;
 
 class DatabaseTable extends Table
@@ -19,8 +20,8 @@ class DatabaseTable extends Table
     protected function columns(): array
     {
         return [
-            TextColumn::make('name', 'Name')->withIcon('database')->sortable(),
-            TextColumn::make('size', 'Approx. size')->fallback('Not measured'),
+            LinkColumn::make('name', 'Name')->sortable()->route('databases.browse', ['server' => ':server_id', 'database' => ':id']),
+            TextColumn::make('size', __('Approx. size'))->fallback(__('Not measured')),
             TextColumn::make('charset', 'Charset')->sortable(),
             TextColumn::make('collation', 'Collation')->sortable(),
             DateTimeColumn::make('created_at', 'Created at')->sortable()->toLocal(),

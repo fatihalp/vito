@@ -1,8 +1,10 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { NotificationChannel } from '@/types/notification-channel';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function Delete({ notificationChannel }: { notificationChannel: NotificationChannel }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
 
   return (
@@ -10,8 +12,8 @@ export default function Delete({ notificationChannel }: { notificationChannel: N
       variant="destructive"
       onSelect={() =>
         dialog.confirm.open({
-          title: `Delete ${notificationChannel.name}`,
-          description: `Are you sure you want to delete ${notificationChannel.name}?`,
+          title: translateText("Delete :value", { value: notificationChannel.name }),
+          description: translateText("Are you sure you want to delete :value?", { value: notificationChannel.name }),
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -19,7 +21,7 @@ export default function Delete({ notificationChannel }: { notificationChannel: N
         })
       }
     >
-      Delete
+      {translateText('Delete')}
     </DropdownMenuItem>
   );
 }

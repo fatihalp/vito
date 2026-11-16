@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import { LoaderCircleIcon, ChevronsUpDownIcon, ChevronUpIcon, ChevronDownIcon } from 'lucide-react';
 import { router } from '@inertiajs/react';
@@ -59,6 +60,7 @@ export function DataTable<TData, TValue>({
   sortable = true,
   onRowClick,
 }: DataTableProps<TData, TValue>) {
+  const translateText = useTranslate();
   
   const tableData = paginatedData?.data || data || [];
   const orderedColumns = useMemo(
@@ -221,7 +223,7 @@ export function DataTable<TData, TValue>({
         {searchable && (
           <div className="flex items-center gap-2">
             <Input
-              placeholder="Search..."
+              placeholder={translateText('Search...')}
               className="max-w-sm"
               value={searchQuery}
               onChange={(e) => {
@@ -257,11 +259,11 @@ export function DataTable<TData, TValue>({
                           className="flex cursor-pointer items-center gap-2"
                           onClick={() => handleSort(sortKey)}
                         >
-                          {flexRender(header.column.columnDef.header, header.getContext())}
+                          {typeof header.column.columnDef.header === 'string' ? translateText(header.column.columnDef.header) : flexRender(header.column.columnDef.header, header.getContext())}
                           <SortIndicator sortKey={sortKey} />
                         </button>
                       ) : (
-                        flexRender(header.column.columnDef.header, header.getContext())
+                        typeof header.column.columnDef.header === 'string' ? translateText(header.column.columnDef.header) : flexRender(header.column.columnDef.header, header.getContext())
                       )}
                     </TableHead>
                   );
@@ -286,7 +288,7 @@ export function DataTable<TData, TValue>({
             ) : (
               <TableRow>
                 <TableCell colSpan={table.getVisibleLeafColumns().length} className="h-24 text-center">
-                  No results.
+                  {translateText('No results.')}
                 </TableCell>
               </TableRow>
             )}

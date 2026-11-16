@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { PlusIcon } from 'lucide-react';
 import type { InertiaTableData, Row } from '@forjedio/inertia-table-react';
@@ -23,6 +24,7 @@ type Page = {
 };
 
 export default function DatabaseReplicas() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const dialog = useDialog();
   const { cluster, server } = page.props;
@@ -42,21 +44,21 @@ export default function DatabaseReplicas() {
 
   return (
     <ServerLayout>
-      <Head title={`Replication - ${server.name}`} />
+      <Head title={translateText("Replication - :value", { value: server.name })} />
 
       <Container>
         <HeaderContainer>
-          <Heading title="Replication" description="PostgreSQL streaming replicas built from pgBackRest backups, checked every minute." />
+          <Heading title={translateText("Replication")} description={translateText("PostgreSQL streaming replicas built from pgBackRest backups, checked every minute.")} />
           <div className="flex items-center gap-2">
             {cluster && <Badge variant={cluster.status_color}>{cluster.status}</Badge>}
             {isPrimary ? (
               <Button onClick={() => dialog.databaseReplicaCreate.open({ server, cluster })} disabled={cluster?.status === 'failing_over'}>
                 <PlusIcon />
-                <span className="hidden lg:block">Create replica</span>
+                <span className="hidden lg:block">{translateText("Create replica")}</span>
               </Button>
             ) : (
               <Button variant="outline" asChild>
-                <Link href={`/servers/${cluster.primary_server_id}/database-replicas`}>Go to primary</Link>
+                <Link href={`/servers/${cluster.primary_server_id}/database-replicas`}>{translateText("Go to primary")}</Link>
               </Button>
             )}
           </div>
@@ -64,7 +66,7 @@ export default function DatabaseReplicas() {
 
         {cluster?.failover && (
           <Alert variant={cluster.failover.error ? 'destructive' : 'default'}>
-            <AlertTitle>{cluster.failover.error ? 'Failover stopped' : 'Failing over'}</AlertTitle>
+            <AlertTitle>{cluster.failover.error ? translateText("Failover stopped") : translateText("Failing over")}</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
               <span>
                 {cluster.failover.error
@@ -86,7 +88,7 @@ export default function DatabaseReplicas() {
                       })
                     }
                   >
-                    Continue failover
+                    {translateText("Continue failover")}
                   </Button>
                 </div>
               )}
@@ -113,20 +115,20 @@ export default function DatabaseReplicas() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex flex-col gap-1">
                   <p className="flex flex-wrap items-center gap-2 font-medium">
-                    Private network {cluster.network.name}
+                    {translateText("Private network")} {cluster.network.name}
                     <Badge variant={cluster.network.type === 'wireguard' ? 'success' : 'info'}>{cluster.network.kind}</Badge>
                   </p>
                   <p className="text-muted-foreground">
                     {cluster.network.type === 'wireguard'
                       ? `Encrypted WireGuard tunnels between the servers${cluster.network.managed ? ', created by Pure for this cluster' : ''}`
                       : cluster.network.type === 'provider'
-                        ? "Traffic stays on the provider's private network"
-                        : 'Private addresses you assigned to the servers'}
+                        ? translateText("Traffic stays on the provider's private network")
+                        : translateText("Private addresses you assigned to the servers")}
                     {cluster.network.cidr ? ` · ${cluster.network.cidr}` : ''}
                   </p>
                 </div>
                 <Button variant="outline" size="sm" asChild>
-                  <Link href={`/networks/${cluster.network.id}/servers`}>Open network</Link>
+                  <Link href={`/networks/${cluster.network.id}/servers`}>{translateText("Open network")}</Link>
                 </Button>
               </div>
               {cluster.network.nodes.map((node) => (
@@ -140,7 +142,7 @@ export default function DatabaseReplicas() {
                       <Badge variant="gray">{node.status}</Badge>
                     ) : (
                       <Badge variant={node.connected ? 'success' : 'danger'}>
-                        {node.connected ? 'connected' : 'no recent handshake'}
+                        {node.connected ? translateText("connected") : translateText("no recent handshake")}
                       </Badge>
                     )}
                   </span>

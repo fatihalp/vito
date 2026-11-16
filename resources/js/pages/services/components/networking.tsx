@@ -1,8 +1,10 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Service } from '@/types/service';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function Networking({ service }: { service: Service }) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const isRemoteOpen = service.networking_enabled;
 
@@ -22,10 +24,10 @@ export default function Networking({ service }: { service: Service }) {
           })
         }
       >
-        {isRemoteOpen ? 'Close Remote Access' : 'Open to Remote'}
+        {isRemoteOpen ? translateText("Close Remote Access") : translateText("Open to Remote")}
       </DropdownMenuItem>
       <DropdownMenuItem onSelect={() => dialog.serviceNetworking.open({ service })}>
-        Networking Settings
+        {translateText("Networking Settings")}
       </DropdownMenuItem>
     </>
   );

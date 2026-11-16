@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { withQuery } from '@/lib/url';
 import { Button } from '@/components/ui/button';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -22,6 +23,7 @@ export default function InviteeSelect({
   onCreateUserRequest?: (email: string) => void;
   id?: string;
 }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
@@ -60,21 +62,21 @@ export default function InviteeSelect({
           {selectedUser ? (
             <span className="truncate">{selectedUser.name} ({selectedUser.email})</span>
           ) : (
-            <span className="text-muted-foreground">Select a user...</span>
+            <span className="text-muted-foreground">{translateText("Select a user...")}</span>
           )}
           <ChevronsUpDownIcon className="shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-(--radix-popover-trigger-width) p-0" align="start">
         <Command shouldFilter={false}>
-          <CommandInput placeholder="Search user by name or email..." value={query} onValueChange={setQuery} />
+          <CommandInput placeholder={translateText("Search user by name or email...")} value={query} onValueChange={setQuery} />
           <CommandList>
             <CommandEmpty className="p-3 text-center text-xs">
               {isFetching ? (
-                <span className="text-muted-foreground">Searching...</span>
+                <span className="text-muted-foreground">{translateText("Searching...")}</span>
               ) : (
                 <div className="flex flex-col items-center gap-2">
-                  <span className="text-muted-foreground">No users found.</span>
+                  <span className="text-muted-foreground">{translateText("No users found.")}</span>
                   {onCreateUserRequest && (
                     <Button
                       type="button"
@@ -87,7 +89,7 @@ export default function InviteeSelect({
                       }}
                     >
                       <UserPlusIcon className="size-3.5" />
-                      <span>Create user</span>
+                      <span>{translateText('Create user')}</span>
                     </Button>
                   )}
                 </div>

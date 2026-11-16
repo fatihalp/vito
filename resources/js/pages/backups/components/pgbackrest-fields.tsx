@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { FormField } from '@/components/ui/form';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
@@ -39,29 +40,29 @@ export default function PgBackRestFields({
   errors: Partial<Record<keyof PgBackRestSettings, string>>;
   onChange: (key: keyof PgBackRestSettings, value: string) => void;
 }) {
+  const translateText = useTranslate();
   return (
     <>
       <FormField>
-        <Label>Backup strategy</Label>
+        <Label>{translateText("Backup strategy")}</Label>
         <div className="text-muted-foreground rounded-md border p-3 text-sm">
-          <strong className="text-foreground">Standard.</strong> Full backup every Sunday 02:00, differential the other days at 02:00, incremental every hour.
-          Keeps 4 full backups with continuous WAL, so you can restore to any second of the last 4 weeks. Verified every Saturday, checked daily.
+          <strong className="text-foreground">{translateText("Standard.")}</strong> {translateText("Full backup every Sunday 02:00, differential the other days at 02:00, incremental every hour. Keeps 4 full backups with continuous WAL, so you can restore to any second of the last 4 weeks. Verified every Saturday, checked daily.")}
         </div>
         <InputError message={errors.strategy} />
       </FormField>
 
       <FormField>
-        <Label htmlFor="process_max">Parallel processes</Label>
+        <Label htmlFor="process_max">{translateText("Parallel processes")}</Label>
         <Input id="process_max" type="number" min={1} value={data.process_max} onChange={(e) => onChange('process_max', e.target.value)} />
-        <div className="text-muted-foreground text-sm">Processes that compress and upload at the same time. Keep this below the server's CPU count so PostgreSQL stays responsive.</div>
+        <div className="text-muted-foreground text-sm">{translateText("Processes that compress and upload at the same time. Keep this below the server's CPU count so PostgreSQL stays responsive.")}</div>
         <InputError message={errors.process_max} />
       </FormField>
 
       <FormField>
-        <Label htmlFor="wal_queue_max_gb">WAL queue limit (GiB)</Label>
+        <Label htmlFor="wal_queue_max_gb">{translateText("WAL queue limit (GiB)")}</Label>
         <Input id="wal_queue_max_gb" type="number" min={1} value={data.wal_queue_max_gb} onChange={(e) => onChange('wal_queue_max_gb', e.target.value)} />
         <div className="text-muted-foreground text-sm">
-          If S3 is unreachable and unarchived WAL grows past this size, pgBackRest drops it so the disk doesn't fill. Point-in-time recovery then has a gap until the next backup, and Pure notifies you.
+          {translateText("If S3 is unreachable and unarchived WAL grows past this size, pgBackRest drops it so the disk doesn't fill. Point-in-time recovery then has a gap until the next backup, and Pure notifies you.")}
         </div>
         <InputError message={errors.wal_queue_max_gb} />
       </FormField>

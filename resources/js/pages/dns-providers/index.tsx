@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import SettingsLayout from '@/layouts/settings/layout';
 import { Head, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -19,17 +20,18 @@ type Page = {
 };
 
 export default function DNSProviders() {
+  const translateText = useTranslate();
   const page = usePage<Page & SharedData>();
 
   return (
     <SettingsLayout>
-      <Head title="DNS Providers" />
+      <Head title={translateText('DNS Providers')} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="DNS Providers" />
+          <Heading title={translateText('DNS Providers')} />
           <div className="flex items-center gap-2">
             <ConnectDNSProvider>
-              <Button>Connect</Button>
+              <Button>{translateText('Connect')}</Button>
             </ConnectDNSProvider>
           </div>
         </div>

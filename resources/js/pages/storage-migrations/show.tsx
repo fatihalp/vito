@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useEffect } from 'react';
 import { Head, router, useForm, usePage } from '@inertiajs/react';
 import Container from '@/components/container';
@@ -28,6 +29,7 @@ type Page = {
 };
 
 export default function ShowStorageMigration() {
+  const translateText = useTranslate();
   const page = usePage<Page>();
   const storageMigration = useRealtimeRecord<StorageMigration>(page.props.storageMigration, 'storage-migration') ?? page.props.storageMigration;
 
@@ -49,13 +51,13 @@ export default function ShowStorageMigration() {
 
   return (
     <SettingsLayout>
-      <Head title={storageMigration.name ?? 'Storage Migration'} />
+      <Head title={storageMigration.name ?? translateText("Storage Migration")} />
 
       <Container>
         <HeaderContainer>
           <Heading title={storageMigration.name ?? direction} description={storageMigration.name ? direction : undefined} />
           <div className="flex items-center gap-2">
-            <Badge variant={storageMigration.syncing ? 'success' : 'gray'}>{storageMigration.syncing ? 'syncing' : 'not syncing'}</Badge>
+            <Badge variant={storageMigration.syncing ? 'success' : 'gray'}>{storageMigration.syncing ? translateText("syncing") : translateText("not syncing")}</Badge>
             <Badge variant={storageMigration.status_color}>{storageMigration.status}</Badge>
             <StorageMigrationActions storageMigration={storageMigration} />
           </div>
@@ -63,31 +65,31 @@ export default function ShowStorageMigration() {
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">Scan: {storageMigration.scan_completed_at ? 'complete' : storageMigration.scan_paused ? 'paused' : storageMigration.status === 'cancelled' || storageMigration.status === 'failed' ? 'stopped' : storageMigration.target_scan_completed_at ? 'discovering' : 'listing target'}</Badge>
-            <Badge variant="outline">Transfers: {transferLabel}</Badge>
+            <Badge variant="outline">{translateText("Scan:")} {storageMigration.scan_completed_at ? translateText("complete") : storageMigration.scan_paused ? translateText("paused") : storageMigration.status === 'cancelled' || storageMigration.status === 'failed' ? translateText("stopped") : storageMigration.target_scan_completed_at ? translateText("discovering") : translateText("listing target")}</Badge>
+            <Badge variant="outline">{translateText("Transfers:")} {transferLabel}</Badge>
             {page.props.scanDatabase && (
               <Badge variant="outline">
-                Scan database: {page.props.scanDatabase.server} / {page.props.scanDatabase.database}
+                {translateText("Scan database:")} {page.props.scanDatabase.server} / {page.props.scanDatabase.database}
               </Badge>
             )}
           </div>
           <Progress value={progress} />
           <div className="text-muted-foreground flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
             <span>{progressText}</span>
-            <span>{(storageMigration.items_copied + storageMigration.items_skipped).toLocaleString('en-US')} / {storageMigration.items_total.toLocaleString('en-US')} objects</span>
-            {storageMigration.items_processing > 0 && <span>{storageMigration.items_processing.toLocaleString('en-US')} files assigned to workers</span>}
+            <span>{(storageMigration.items_copied + storageMigration.items_skipped).toLocaleString('en-US')} / {storageMigration.items_total.toLocaleString('en-US')} {translateText("objects")}</span>
+            {storageMigration.items_processing > 0 && <span>{storageMigration.items_processing.toLocaleString('en-US')} {translateText("files assigned to workers")}</span>}
             <span>{formatBytes(storageMigration.bytes_copied, 2)} / {formatBytes(storageMigration.bytes_total, 2)}</span>
-            {storageMigration.items_skipped > 0 && <span>{storageMigration.items_skipped} already on target</span>}
-            {storageMigration.items_failed > 0 && <span className="text-destructive">{storageMigration.items_failed} failed</span>}
+            {storageMigration.items_skipped > 0 && <span>{storageMigration.items_skipped} {translateText("already on target")}</span>}
+            {storageMigration.items_failed > 0 && <span className="text-destructive">{storageMigration.items_failed} {translateText("failed")}</span>}
           </div>
           {storageMigration.status === 'scanning' && !storageMigration.scan_paused && (
             <div className="text-muted-foreground text-sm">
-              Still discovering objects on the source storage. Totals grow as more objects are found.
-              {storageMigration.transfer_paused ? ' Transfers are paused.' : ' Discovered objects can transfer before scanning finishes.'}
+              {translateText("Still discovering objects on the source storage. Totals grow as more objects are found.")}
+              {storageMigration.transfer_paused ? translateText(" Transfers are paused.") : translateText(" Discovered objects can transfer before scanning finishes.")}
             </div>
           )}
           {(storageMigration.scan_paused || storageMigration.transfer_paused) && (
-            <p className="text-muted-foreground text-sm">Paused work finishes its current page or file before stopping. Resume each phase from the actions menu.</p>
+            <p className="text-muted-foreground text-sm">{translateText("Paused work finishes its current page or file before stopping. Resume each phase from the actions menu.")}</p>
           )}
           {storageMigration.error && <div className="text-destructive text-sm">{storageMigration.error}</div>}
         </div>
@@ -97,23 +99,21 @@ export default function ShowStorageMigration() {
             event.preventDefault();
             workers.post(`/storage-migrations/${storageMigration.id}/workers`, { preserveScroll: true });
           }}>
-            <Label htmlFor="migration-workers">Transfer workers for this migration</Label>
+            <Label htmlFor="migration-workers">{translateText("Transfer workers for this migration")}</Label>
             <div className="flex items-center gap-2">
               <Input id="migration-workers" type="number" min={1} max={storageMigration.max_worker_count} value={workers.data.worker_count}
                 onChange={(event) => workers.setData('worker_count', Number(event.target.value))} className="w-24" />
-              <Button type="submit" disabled={workers.processing}>Save workers</Button>
+              <Button type="submit" disabled={workers.processing}>{translateText("Save workers")}</Button>
             </div>
             <InputError message={workers.errors.worker_count} />
             <p className="text-muted-foreground text-sm">
-              Current limit: {storageMigration.worker_count}. Shared worker capacity: {storageMigration.worker_capacity}.
-              Changes apply between files. The shared queue capacity limits how many workers can run across all migrations.
-              If transfers keep waiting, check that Horizon is running the storage-migration queue.
+              {translateText("Current limit:")} {storageMigration.worker_count}{translateText(". Shared worker capacity:")} {storageMigration.worker_capacity}{translateText(". Changes apply between files. The shared queue capacity limits how many workers can run across all migrations. If transfers keep waiting, check that Horizon is running the storage-migration queue.")}
             </p>
           </form>
         )}
 
         {!page.props.itemsAvailable && (
-          <p className="text-muted-foreground text-sm">Scan data is not available yet. It appears once Pure can reach the scan database.</p>
+          <p className="text-muted-foreground text-sm">{translateText("Scan data is not available yet. It appears once Pure can reach the scan database.")}</p>
         )}
 
         <DataTable columns={columns} paginatedData={page.props.items} />

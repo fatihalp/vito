@@ -1,10 +1,11 @@
+import { RequestFeedback } from '@/components/request-feedback';
+import { useTranslate } from '@/hooks/use-translate';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppHeader } from '@/components/app-header';
 import { NavGroup, NavItem, SharedData } from '@/types';
 import { type CSSProperties, type PropsWithChildren, useCallback, useEffect, useState } from 'react';
 import { getStoredSidebarOpen, SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { usePage } from '@inertiajs/react';
-import { Toaster } from '@/components/ui/sonner';
 import { toast } from 'sonner';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -30,6 +31,7 @@ export default function Layout({
   secondNavSubtitle?: string;
   defaultPrimaryNavOpen?: boolean;
 }>) {
+  const translateText = useTranslate();
   const page = usePage<SharedData & { server?: { id: number }; site?: { id: number } }>();
   const queryClient = getQueryClient(page.props.auth.user.id);
   const { status: socketStatus, reconnect: socketReconnect } = useSocketEvents();
@@ -87,15 +89,16 @@ export default function Layout({
     for (const type of ['success', 'error', 'warning', 'info'] as const) {
       const message = page.props.flash?.[type];
       if (message) {
-        toast[type](<div className="flex items-center gap-2">{message}</div>);
+        toast[type](<div className="flex items-center gap-2">{translateText(message)}</div>);
       }
     }
-  }, [page.props.flash]);
+  }, [page.props.flash, translateText]);
 
   const showBootstrapError = bootstrapStatus === 'error' && !bootstrapConfigsLoaded;
 
   return (
     <QueryClientProvider client={queryClient}>
+      <RequestFeedback />
       <TooltipProvider>
         <SidebarProvider
           open={primaryNavOpen}
@@ -126,12 +129,12 @@ export default function Layout({
                   <div className="flex max-w-md flex-col items-center gap-4 text-center">
                     <AlertCircleIcon className="text-destructive size-8" />
                     <div>
-                      <h2 className="text-lg font-semibold">Failed to load application data</h2>
+                      <h2 className="text-lg font-semibold">{translateText("Failed to load application data")}</h2>
                       <p className="text-muted-foreground mt-1 text-sm">
-                        Check your connection and try again.
+                        {translateText("Check your connection and try again.")}
                       </p>
                     </div>
-                    <Button onClick={() => fetchBootstrap()}>Retry</Button>
+                    <Button onClick={() => fetchBootstrap()}>{translateText('Retry')}</Button>
                   </div>
                 </div>
               ) : bootstrapConfigsLoaded ? (
@@ -141,7 +144,6 @@ export default function Layout({
                 </>
               ) : null}
             </div>
-            <Toaster richColors position="bottom-center" />
           </SidebarInset>
         </SidebarProvider>
       </TooltipProvider>

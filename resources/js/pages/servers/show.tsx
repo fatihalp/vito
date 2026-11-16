@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { Head, usePage } from '@inertiajs/react';
 
 import { type Configs } from '@/types';
@@ -16,10 +17,11 @@ type Response = {
 };
 
 export default function ShowServer() {
+  const translateText = useTranslate();
   const page = usePage<Response>();
   return (
     <ServerLayout>
-      <Head title={`Overview - ${page.props.server.name}`} />
+      <Head title={translateText("Overview - :value", { value: page.props.server.name })} />
 
       {['installing', 'installation_failed'].includes(page.props.server.status) ? (
         <InstallingServer />

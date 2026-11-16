@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\User\UpdateLocale;
 use App\Actions\User\UpdateUserPassword;
 use App\Actions\User\UpdateUserProfileInformation;
 use Illuminate\Http\RedirectResponse;
@@ -50,6 +51,15 @@ class ProfileController extends Controller
         app(UpdateUserPassword::class)->update($request->user(), $request->only('current_password', 'password', 'password_confirmation'));
 
         return to_route('profile');
+    }
+
+    #[Post('/locale', name: 'profile.locale', middleware: ['throttle:30,1'])]
+    public function locale(Request $request): RedirectResponse
+    {
+        $this->authorize('updateLocale', $request->user());
+        $locale = app(UpdateLocale::class)->update($request->only('locale'));
+
+        return back()->withCookie(cookie('vito_locale', $locale, 525600, '/', null, $request->isSecure(), true, false, 'lax'));
     }
 
     #[Post('/enable-two-factor', name: 'profile.enable-two-factor')]

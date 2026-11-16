@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -20,6 +21,7 @@ export default function StorageProviderSelect({
   excludeId?: string;
   filter?: (storageProvider: StorageProvider) => boolean;
 } & SelectTriggerProps) {
+  const translateText = useTranslate();
   const query = useQuery<StorageProvider[]>({
     queryKey: ['storageProvider'],
     queryFn: async () => {
@@ -35,7 +37,7 @@ export default function StorageProviderSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a provider'} />
+          <SelectValue placeholder={query.isFetching ? translateText("Loading...") : translateText("Select a provider")} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

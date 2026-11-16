@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import { CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
@@ -7,13 +8,14 @@ import { useDialog } from '@/hooks/use-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 function ControlBadge({ status, color, secure }: { status: string; color: 'gray' | 'success' | 'info' | 'warning' | 'danger'; secure: boolean }) {
+  const translateText = useTranslate();
   if (status === 'disabled' || (status === 'active' && !secure)) {
-    return <Badge variant="gray">not applied</Badge>;
+    return <Badge variant="gray">{translateText('not applied')}</Badge>;
   }
   return (
     <Badge variant={color} aria-busy={status === 'updating'}>
       {status === 'updating' && <LoaderCircleIcon className="animate-spin" />}
-      {status === 'active' ? 'applied' : status}
+      {status === 'active' ? translateText("applied") : status}
     </Badge>
   );
 }
@@ -42,6 +44,7 @@ export default function SecurityToggleCard({
   state,
   onToggle,
 }: SecurityToggleCardProps) {
+  const translateText = useTranslate();
   const dialog = useDialog();
   const updating = state.status === 'updating';
   const secure = !state.enabled;
@@ -53,7 +56,7 @@ export default function SecurityToggleCard({
       dialog.logViewer.open({
         serverId,
         logId: state.log_id,
-        title: `${title} - Log`,
+        title: translateText(":value - Log", { value: title }),
       });
     }
   };
@@ -66,7 +69,7 @@ export default function SecurityToggleCard({
             <CardTitle className="flex flex-wrap items-center gap-2">
               {title}
               <ControlBadge status={state.status} color={state.status_color} secure={secure} />
-              {drift && <Badge variant="warning">drift detected</Badge>}
+              {drift && <Badge variant="warning">{translateText("drift detected")}</Badge>}
             </CardTitle>
             <CardDescription>{description}</CardDescription>
           </div>
@@ -79,13 +82,13 @@ export default function SecurityToggleCard({
                     size="icon"
                     className="size-8"
                     onClick={openLog}
-                    aria-label="View console output"
+                    aria-label={translateText("View console output")}
                   >
                     <TerminalIcon className="size-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>View console output</p>
+                  <p>{translateText("View console output")}</p>
                 </TooltipContent>
               </Tooltip>
             )}

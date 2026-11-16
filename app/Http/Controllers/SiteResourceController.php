@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Database\BrowsePostgresDatabase;
 use App\Actions\SiteResource\ConnectSiteResource;
 use App\Actions\SiteResource\DisconnectSiteResource;
 use App\Enums\ServerRole;
@@ -29,6 +30,25 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class SiteResourceController extends Controller
 {
+    #[Get('/{resource}/browse', name: 'site-resources.browse')]
+    public function browse(Server $server, Site $site, SiteResource $resource): Response
+    {
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
+
+        return Inertia::render('databases/browse', [
+            'databaseName' => $resource->configuration['database_name'] ?? $resource->environment['DB_DATABASE'] ?? 'Database',
+            'dataUrl' => url("/servers/{$server->id}/sites/{$site->id}/resources/{$resource->id}/browse/data"),
+            'backUrl' => url("/servers/{$server->id}/sites/{$site->id}/resources"),
+        ]);
+    }
+
+    #[Get('/{resource}/browse/data', name: 'site-resources.browse.data')]
+    public function browseData(Request $request, Server $server, Site $site, SiteResource $resource, BrowsePostgresDatabase $action): JsonResponse
+    {
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
+
+        return response()->json($action->resource($resource, $request->query()))->header('Cache-Control', 'no-store, private');
+    }
 
     #[Get('/', name: 'site-resources')]
     public function index(Server $server, Site $site): Response
@@ -66,7 +86,7 @@ class SiteResourceController extends Controller
     #[Get('/{resource}/reveal', name: 'site-resources.reveal')]
     public function reveal(Server $server, Site $site, SiteResource $resource): JsonResponse
     {
-        $this->authorize('view', [$resource, $site, $server]);
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
 
         $target = $resource->server
             ? $resource->server->name
@@ -76,7 +96,7 @@ class SiteResourceController extends Controller
             'type' => $resource->type->getText(),
             'target' => $target,
             'environment' => $resource->environment,
-        ]);
+        ])->header('Cache-Control', 'no-store, private');
     }
 
     #[Post('/', name: 'site-resources.store')]
@@ -85,6 +105,10 @@ class SiteResourceController extends Controller
         $this->authorize('create', [SiteResource::class, $site, $server]);
 
         $resource = app(ConnectSiteResource::class)->connect($site, $request->all());
+
+        if (($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
+            return back()->with('success', 'Existing connection registered. Application settings were preserved.');
+        }
 
         return $resource->status === SiteResourceStatus::READY
             ? back()->with('success', 'Resource connected and environment configured successfully.')

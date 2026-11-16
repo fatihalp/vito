@@ -4,6 +4,7 @@ export interface SSL {
   id: number;
   server_id: number;
   site_id: number | null;
+  site_domain?: string | null;
   domain_id?: number;
   is_wildcard: boolean;
   has_csr: boolean;

@@ -1,3 +1,4 @@
+import { useTranslate } from '@/hooks/use-translate';
 import CopyableField from '@/components/copyable-field';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -9,6 +10,7 @@ import { KeyRoundIcon, TerminalIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export default function ConnectSshDialog({ server, children }: { server: Server; children?: React.ReactNode }) {
+  const translateText = useTranslate();
   const [open, setOpen] = useState(false);
 
   const availableUsers = server.ssh_users && server.ssh_users.length > 0 ? server.ssh_users : [server.ssh_user || 'root'];
@@ -26,7 +28,7 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
         {children || (
           <Button variant="outline" size="sm" className="gap-1.5">
             <KeyRoundIcon className="size-4" />
-            Connect
+            {translateText('Connect')}
           </Button>
         )}
       </DialogTrigger>
@@ -37,9 +39,9 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
               <TerminalIcon className="size-4" />
             </div>
             <div>
-              <DialogTitle>Connect to {server.name}</DialogTitle>
+              <DialogTitle>{translateText("Connect to")} {server.name}</DialogTitle>
               <DialogDescription>
-                SSH access for {server.ip}{sshPort}
+                {translateText("SSH access for")} {server.ip}{sshPort}
               </DialogDescription>
             </div>
           </div>
@@ -48,16 +50,16 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
         <div className="space-y-4 px-4 pb-2">
           {availableUsers.length > 1 && (
             <div className="space-y-1.5">
-              <Label className="text-muted-foreground text-xs">SSH user</Label>
+              <Label className="text-muted-foreground text-xs">{translateText("SSH user")}</Label>
               <Select value={selectedUser} onValueChange={setSelectedUser}>
                 <SelectTrigger className="h-9 w-full text-xs">
-                  <SelectValue placeholder="Select user" />
+                  <SelectValue placeholder={translateText("Select user")} />
                 </SelectTrigger>
                 <SelectContent>
                   {availableUsers.map((availableUser) => (
                     <SelectItem key={availableUser} value={availableUser}>
                       {availableUser}
-                      {availableUser === server.ssh_user && ' (default)'}
+                      {availableUser === server.ssh_user && translateText(" (default)")}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -66,13 +68,13 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
           )}
 
           <div className="space-y-1.5">
-            <Label className="text-muted-foreground text-xs">Command</Label>
+            <Label className="text-muted-foreground text-xs">{translateText('Command')}</Label>
             <div className="flex items-center gap-2">
               <CopyableField value={command} className="h-9 flex-1 font-mono text-xs" />
               <Button size="sm" className="h-9 gap-1.5 shrink-0 cursor-pointer" asChild>
                 <a href={sshUrl}>
                   <TerminalIcon className="size-3.5" />
-                  <span>Launch</span>
+                  <span>{translateText("Launch")}</span>
                 </a>
               </Button>
             </div>
@@ -81,10 +83,10 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
 
         <DialogFooter className="flex items-center justify-between border-t pt-3">
           <Button variant="link" size="sm" className="text-muted-foreground h-auto p-0 text-xs" asChild>
-            <Link href={`/servers/${server.id}/ssh-keys`}>Manage SSH keys</Link>
+            <Link href={`/servers/${server.id}/ssh-keys`}>{translateText("Manage SSH keys")}</Link>
           </Button>
           <Button type="button" variant="outline" size="sm" onClick={() => setOpen(false)}>
-            Close
+            {translateText('Close')}
           </Button>
         </DialogFooter>
       </DialogContent>
