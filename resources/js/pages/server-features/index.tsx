@@ -22,7 +22,7 @@ export default function ServerFeatures() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Features" description="Manage the built-in features available for your server" />
+          <Heading title={'Features'} description={'Manage the built-in features available for your server'} />
         </HeaderContainer>
 
         <FeaturesCard

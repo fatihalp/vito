@@ -106,7 +106,7 @@ export default function StorageProviderEditDialog({
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground font-medium py-1.5 transition-colors cursor-pointer"
               >
                 <ChevronDownIcon className={cn('size-3.5 transition-transform duration-200', showOptional && 'rotate-180')} />
-                <span>{showOptional ? 'Hide optional fields' : 'Show optional fields (Path, Global)'}</span>
+                <span>{showOptional ? "Hide optional fields" : "Show optional fields (Path, Global)"}</span>
               </button>
 
               {showOptional && (

@@ -54,7 +54,7 @@ class ServerController extends Controller
                 ->withGrouping($result['groupBy'])
                 ->withScope($result['scope'])
                 ->simplePaginate(),
-            'public_key' => __('servers.create.public_key_text', ['public_key' => get_public_key_content()]),
+            'public_key' => 'servers.create.public_key_text',
             'server_providers' => ServerProviderResource::collection($serverProviders),
             'serverScope' => $result['scope'],
             'groupBy' => $result['groupBy'],
@@ -72,8 +72,8 @@ class ServerController extends Controller
         $count = app(CheckPhpVersions::class)->dispatch($result['query']);
 
         return back()->with('info', $count > 0
-            ? __('PHP version checks queued for :count servers.', ['count' => $count])
-            : __('No new PHP version checks to start.'));
+            ? 'PHP version checks queued for '.$count.' servers.'
+            : 'No new PHP version checks to start.');
     }
 
     #[Get('/json', name: 'servers.json')]
@@ -120,7 +120,7 @@ class ServerController extends Controller
         $serverProviders = ServerProvider::getByProjectId($project->id, user())->get();
 
         return Inertia::render('servers/create', [
-            'public_key' => __('servers.create.public_key_text', ['public_key' => get_public_key_content()]),
+            'public_key' => 'servers.create.public_key_text',
             'server_providers' => ServerProviderResource::collection($serverProviders),
         ]);
     }
@@ -147,9 +147,7 @@ class ServerController extends Controller
         $server->refresh();
 
         return back()
-            ->with($server->status->getColor(), __('Server status is :status', [
-                'status' => $server->status->getText(),
-            ]));
+            ->with($server->status->getColor(), 'Server status is '.$server->status->getText());
     }
 
     #[Get('/{server}/restart', name: 'servers.restart')]
@@ -302,7 +300,7 @@ class ServerController extends Controller
         user()->update(['current_project_id' => $server->project_id]);
 
         return redirect()->route('server-settings', ['server' => $server->id])
-            ->with('success', __('Server transferred successfully.'));
+            ->with('success', 'Server transferred successfully.');
     }
 
     #[Delete('/{server}', name: 'servers.destroy')]
@@ -313,6 +311,6 @@ class ServerController extends Controller
         app(DeleteServer::class)->delete($server, $request->all());
 
         return redirect()->route('servers')
-            ->with('success', __('Server deleted successfully.'));
+            ->with('success', 'Server deleted successfully.');
     }
 }

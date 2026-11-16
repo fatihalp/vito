@@ -11,25 +11,17 @@ class DatabaseReplicaFailed extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("Setting up the PostgreSQL replica [:replica] of [:primary] failed.\n:message\n:link", [
-            'replica' => $this->replica->replica->name,
-            'primary' => $this->replica->primary->name,
-            'message' => $this->replica->message,
-            'link' => $this->link(),
-        ]);
+        return strtr("Setting up the PostgreSQL replica [:replica] of [:primary] failed.\n:message\n:link", [':replica' => $this->replica->replica->name, ':primary' => $this->replica->primary->name, ':message' => $this->replica->message, ':link' => $this->link()]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->error()
-            ->subject(__('PostgreSQL replica failed'))
-            ->line(__('Setting up the PostgreSQL replica [:replica] of your server [:primary] failed.', [
-                'replica' => $this->replica->replica->name,
-                'primary' => $this->replica->primary->name,
-            ]))
+            ->subject('PostgreSQL replica failed')
+            ->line('Setting up the PostgreSQL replica ['.$this->replica->replica->name.'] of your server ['.$this->replica->primary->name.'] failed.')
             ->line((string) $this->replica->message)
-            ->action(__('View replica'), $this->link());
+            ->action('View replica', $this->link());
     }
 
     private function link(): string

@@ -1,9 +1,10 @@
-import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator } from '@/components/ui/dropdown-menu';
+import { DropdownMenuGroup, DropdownMenuItem, DropdownMenuLabel, DropdownMenuRadioGroup, DropdownMenuRadioItem, DropdownMenuSeparator, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger } from '@/components/ui/dropdown-menu';
 import { UserInfo } from '@/components/user-info';
 import { useMobileNavigation } from '@/hooks/use-mobile-navigation';
 import { type User } from '@/types/user';
 import { Link, router } from '@inertiajs/react';
-import { LogOut, Settings, ShieldCheckIcon } from 'lucide-react';
+import { LogOut, PaletteIcon, Settings, ShieldCheckIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { useBootstrapStore } from '@/stores/bootstrap-store';
 import { useSocketStore } from '@/stores/socket-store';
 import { clearQueryClient } from '@/lib/query-client';
@@ -16,6 +17,7 @@ interface UserMenuContentProps {
 
 export function UserMenuContent({ user }: UserMenuContentProps) {
   const cleanup = useMobileNavigation();
+  const { theme, setTheme } = useTheme();
 
   const handleLogout = () => {
     cleanup();
@@ -36,8 +38,21 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
       <DropdownMenuGroup>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <PaletteIcon className="mr-2 size-4" />
+            Appearance
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+              <DropdownMenuRadioItem value="light">Light</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="dark">Dark</DropdownMenuRadioItem>
+              <DropdownMenuRadioItem value="system">System</DropdownMenuRadioItem>
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
         <DropdownMenuItem asChild>
-          <Link className="block w-full" href={"/settings"} as="button" prefetch onClick={cleanup}>
+          <Link className="block w-full" href="/settings/profile" as="button" prefetch onClick={cleanup}>
             <Settings className="mr-2" />
             Settings
           </Link>
@@ -45,7 +60,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
         {user.is_admin && (
           <>
             <DropdownMenuItem asChild>
-              <Link className="block w-full" href={"/admin/vito"} as="button" prefetch onClick={cleanup}>
+              <Link className="block w-full" href="/admin/vito" as="button" prefetch onClick={cleanup}>
                 <ShieldCheckIcon className="mr-2" />
                 Pure Settings
               </Link>
@@ -55,7 +70,7 @@ export function UserMenuContent({ user }: UserMenuContentProps) {
       </DropdownMenuGroup>
       <DropdownMenuSeparator />
       <DropdownMenuItem asChild>
-        <Link className="block w-full" method="post" href={"/logout"} as="button" onClick={handleLogout}>
+        <Link className="block w-full" method="post" href="/logout" as="button" onClick={handleLogout}>
           <LogOut className="mr-2" />
           Log out
         </Link>

@@ -62,11 +62,7 @@ export default function Databases() {
       <Container>
         <HeaderContainer>
           <Heading
-            title={
-              page.props.server.counts?.databases !== undefined
-                ? `Databases (${page.props.server.counts.databases})`
-                : 'Databases'
-            }
+            title={`Databases (${page.props.server.counts?.databases ?? 0})`}
           />
           <div className="flex flex-wrap items-center gap-2">
             {showSizes && page.props.canRefreshDatabaseSizes && (
@@ -111,8 +107,7 @@ export default function Databases() {
             <AlertTitle>This server is a PostgreSQL replica of {page.props.replicaOf.name}</AlertTitle>
             <AlertDescription>
               <p>
-                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Pure imports the list when
-                the replica is built; use Sync to refresh it.
+                Everything here is a copy of {page.props.replicaOf.name} and is read-only, so create and delete on the primary. Pure imports the list when the replica is built; use Sync to refresh it.
               </p>
               {page.props.replicaOf.server_id && (
                 <Link href={`/servers/${page.props.replicaOf.server_id}/database`} className="text-foreground underline">
@@ -136,16 +131,16 @@ export default function Databases() {
           toolbar={
             <>
               {showSizes && (
-                <span className="text-xs text-muted-foreground" role="status" title="Approximate sizes from PostgreSQL statistics, last updated by ANALYZE or VACUUM. Recent changes may not be reflected.">
+                <span className="text-xs text-muted-foreground" role="status" title={'Approximate sizes from PostgreSQL statistics, last updated by ANALYZE or VACUUM. Recent changes may not be reflected.'}>
                   {databaseSizes.failed
                     ? 'Size calculation failed. Previous results are preserved.'
                     : databaseSizes.checked_at
-                      ? `Last measured: ${new Date(databaseSizes.checked_at).toLocaleString('en-US')}`
+                      ? `Last measured: ${(new Date(databaseSizes.checked_at).toLocaleString())}`
                       : 'Sizes have not been measured yet.'}
                 </span>
               )}
               <div className="ml-auto">
-                <PanelViewToggle label="Database view" />
+                <PanelViewToggle label={'Database view'} />
               </div>
             </>
           }

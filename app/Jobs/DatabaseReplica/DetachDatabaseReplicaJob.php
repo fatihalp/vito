@@ -34,7 +34,7 @@ class DetachDatabaseReplicaJob implements ShouldQueue
 
         if ($replica) {
             ServerLog::log($replica->replica, 'database-replica-delete-failed', $e->getMessage());
-            app(ManageDatabaseReplica::class)->fail($replica, __('Removing the replica failed: :error', ['error' => $e->getMessage()]));
+            app(ManageDatabaseReplica::class)->fail($replica, 'Removing the replica failed: '.$e->getMessage());
         }
     }
 }

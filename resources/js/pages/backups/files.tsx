@@ -64,19 +64,19 @@ export default function Files() {
         <HeaderContainer>
           <div className="space-y-0.5">
             <h2 className="flex items-center gap-2 text-xl font-semibold tracking-tight">
-              {isPgBackRest ? 'pgBackRest backups of' : 'Backup files of'}
+              {isPgBackRest ? "pgBackRest backups of" : "Backup files of"}
               {page.props.backup.type === 'database' && <CopyableBadge text={page.props.backup.database?.name} />}
               {isPgBackRest && <CopyableBadge text={page.props.backup.pgbackrest?.stanza ?? undefined} />}
             </h2>
             <p className="text-muted-foreground text-sm">
               {isPgBackRest
-                ? 'Each backup covers the whole PostgreSQL cluster and runs on a healthy replica when there is one. pgBackRest removes expired backups based on the strategy.'
-                : 'Here you can manage the backup files'}
+                ? "Each backup covers the whole PostgreSQL cluster and runs on a healthy replica when there is one. pgBackRest removes expired backups based on the strategy."
+                : "Here you can manage the backup files"}
             </p>
             {isPgBackRest && page.props.backup.pgbackrest && (
               <p className="text-muted-foreground text-sm">
-                {page.props.backup.pgbackrest.strategy === 'standard' ? 'Standard strategy' : 'Custom strategy'} · last verify:{' '}
-                {page.props.backup.pgbackrest.last_verify_result ?? 'not yet'} · last check: {page.props.backup.pgbackrest.last_check_result ?? 'not yet'}
+                {page.props.backup.pgbackrest.strategy === 'standard' ? "Standard strategy" : "Custom strategy"} · last verify:{' '}
+                {page.props.backup.pgbackrest.last_verify_result ?? "not yet"} · last check: {page.props.backup.pgbackrest.last_check_result ?? "not yet"}
               </p>
             )}
           </div>
@@ -93,7 +93,7 @@ export default function Files() {
             )}
             <Button variant="outline" onClick={() => setShowLogs((visible) => !visible)} aria-expanded={showLogs} aria-controls="backup-server-logs">
               <FileTextIcon />
-              {showLogs ? 'Hide logs' : 'View logs'}
+              {showLogs ? "Hide logs" : "View logs"}
             </Button>
             <Button onClick={runBackup}>
               {runBackupForm.processing ? <LoaderCircleIcon className="animate-spin" /> : <CloudUploadIcon />}
@@ -128,7 +128,7 @@ export default function Files() {
                         ? `backup ${restore.backup_file_name ?? ''}`
                         : restore.target === 'time' && restore.target_time
                           ? `point in time ${new Date(restore.target_time).toLocaleString('en-US')}`
-                          : 'latest'}{' '}
+                          : "latest"}{' '}
                       · started {new Date(restore.created_at).toLocaleString('en-US')}
                     </span>
                   </span>
@@ -145,8 +145,7 @@ export default function Files() {
             <div className="flex flex-col gap-1">
               <h3 className="text-lg font-semibold">Server diagnostic logs</h3>
               <p className="text-muted-foreground text-sm">
-                Logs from all operations on this server. Match the time of the failed backup, then open the backup, upload, or deletion log to see its output.
-                This list refreshes every five seconds.
+                Logs from all operations on this server. Match the time of the failed backup, then open the backup, upload, or deletion log to see its output. This list refreshes every five seconds.
               </p>
             </div>
             <Logs server={page.props.server} />

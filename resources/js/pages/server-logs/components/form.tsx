@@ -52,8 +52,8 @@ export default function LogForm({ serverLog, children }: { serverLog?: ServerLog
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{serverLog ? 'Edit' : 'Create'} remote log</DialogTitle>
-          <DialogDescription className="sr-only">{serverLog ? 'Edit' : 'Create new'} remote log</DialogDescription>
+          <DialogTitle>{serverLog ? "Edit" : "Create"} remote log</DialogTitle>
+          <DialogDescription className="sr-only">{serverLog ? "Edit" : "Create new"} remote log</DialogDescription>
         </DialogHeader>
         <Form id="remote-log-form" onSubmit={submit} className="p-4">
           <FormFields>

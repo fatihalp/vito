@@ -86,7 +86,7 @@ export default function Show() {
                 <AlertCircleIcon className="size-4" />
                 <AlertTitle>Missing site directory in command</AlertTitle>
                 <AlertDescription>
-                  This command runs <code className="font-mono font-semibold">artisan</code> without first changing directory. In background execution via the server's cron daemon, the shell starts in the user's home folder (<code className="font-mono font-semibold">/home/{cronjob.user}</code>), where <code className="font-mono font-semibold">artisan</code> cannot be found. Consider updating the command to:
+                  This command runs <code className="font-mono font-semibold">artisan</code> {"without first changing directory. In background execution via the server's cron daemon, the shell starts in the user's home folder ("}<code className="font-mono font-semibold">/home/{cronjob.user}</code>), where <code className="font-mono font-semibold">artisan</code> cannot be found. Consider updating the command to:
                   <code className="mt-1.5 block overflow-x-auto rounded bg-muted/60 p-2 font-mono text-xs">
                     cd {site?.path || `/home/${cronjob.user}/${site?.domain || 'site-path'}`} &amp;&amp; {cronjob.command}
                   </code>
@@ -132,7 +132,7 @@ export default function Show() {
           <div>
             <h2 className="text-lg font-semibold">Execution logs</h2>
             <p className="text-muted-foreground text-sm">
-              Live stream from manual runs. Scheduled background executions run directly via the server's cron daemon and do not stream here.
+              {"Live stream from manual runs. Scheduled background executions run directly via the server's cron daemon and do not stream here."}
             </p>
           </div>
           {executions.data.length > 0 ? (

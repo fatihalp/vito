@@ -32,6 +32,7 @@ function buildItems(server: Server, site: Site): SiteNavItem[] {
 
   return [
     { title: 'Application', href: base, exact: true, activePrefixes: [`${base}/deployments/`], primary: true },
+    { title: 'CI', href: `${base}/ci`, primary: true },
     { title: 'Commands', href: `${base}/commands`, primary: true },
     { title: 'Workers', href: `${base}/workers`, count: workers, primary: workers > 0 },
     { title: 'Domains', href: `${base}/domains`, count: domains, primary: domains >= 2 },
@@ -167,7 +168,7 @@ export function SiteHeaderNav() {
       <div className="ml-auto flex shrink-0 items-center gap-2 pl-2">
         {site.status === 'installation_failed' && <Badge variant={site.status_color}>{site.status}</Badge>}
         <Button variant="outline" size="icon" className="size-8" asChild>
-          <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label="Open site">
+          <a href={site.url} target="_blank" rel="noopener noreferrer" aria-label={'Open site'}>
             <ExternalLinkIcon className="size-3.5" />
           </a>
         </Button>

@@ -45,7 +45,7 @@ class TransferServer
 
         Validator::make($input, $rules)->after(function ($validator) use ($server): void {
             if ($server->siteResources()->exists() || $server->sites()->whereHas('resources')->exists()) {
-                $validator->errors()->add('project_id', __('Disconnect all site resources before transferring this server.'));
+                $validator->errors()->add('project_id', 'Disconnect all site resources before transferring this server.');
             }
         })->validate();
     }

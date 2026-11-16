@@ -8,9 +8,9 @@ use App\Actions\StorageProvider\ConnectDropbox;
 use App\Actions\StorageProvider\CreateStorageProvider;
 use App\Actions\StorageProvider\DeleteStorageProvider;
 use App\Actions\StorageProvider\EditStorageProvider;
+use App\Actions\StorageProvider\TestStorageProviderConnection;
 use App\Http\Resources\StorageProviderResource;
 use App\Models\StorageProvider;
-use App\StorageProviders\S3;
 use App\Tables\StorageProviderTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -33,7 +33,6 @@ use Throwable;
 #[Middleware(['auth'])]
 class StorageProviderController extends Controller
 {
-
     #[Get('/', name: 'storage-providers')]
     public function index(): Response
     {
@@ -94,37 +93,21 @@ class StorageProviderController extends Controller
         } catch (Throwable $e) {
             Log::error('Dropbox OAuth callback failed', ['exception' => get_class($e)]);
 
-            return to_route('storage-providers')->with('error', __('Failed to connect to Dropbox.'));
+            return to_route('storage-providers')->with('error', 'Failed to connect to Dropbox.');
         }
 
         return to_route('storage-providers')->with('success', 'Storage provider created.');
     }
 
     #[Post('/{storageProvider}/test', name: 'storage-providers.test')]
-    public function test(Request $request, StorageProvider $storageProvider): JsonResponse
-    {
+    public function test(
+        Request $request,
+        StorageProvider $storageProvider,
+        TestStorageProviderConnection $action,
+    ): JsonResponse {
         $this->authorize('view', $storageProvider);
 
-        if (! $storageProvider->hasProviderHandler()) {
-            return response()->json(['connected' => false]);
-        }
-
-        $handler = $storageProvider->provider();
-        $readOnly = $request->query('mode') === 'read' && $handler instanceof S3;
-
-        try {
-            $connected = $readOnly
-                ? $handler->canRead($storageProvider->credentials)
-                : $handler->connect($storageProvider->credentials);
-        } catch (Throwable $e) {
-            Log::error('Failed to test storage provider connection', [
-                'storage_provider_id' => $storageProvider->id,
-                'exception' => get_class($e),
-            ]);
-            $connected = false;
-        }
-
-        return response()->json(['connected' => $connected]);
+        return response()->json($action->test($storageProvider, $request->query('mode')));
     }
 
     #[Patch('/{storageProvider}', name: 'storage-providers.update')]

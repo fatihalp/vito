@@ -48,7 +48,7 @@ const siteCell = ({ row, value }: CellRenderProps) => (
 );
 
 function SiteWarnings({ row }: { row: Row }) {
-  const warningItems = getSiteWarningItems(row as unknown as Site);
+  const warningItems = getSiteWarningItems(row as unknown as Site, false);
 
   return (
     <>
@@ -105,7 +105,7 @@ export default function Sites() {
 
   return (
     <Comp>
-      <Head title={`Sites ${page.props.server ? ' - ' + page.props.server.name : ''}`} />
+      <Head title={`Sites ${(page.props.server ? ' - ' + page.props.server.name : '')}`} />
       <Container className="py-3">
         <VitoTable
           fitContent
@@ -167,7 +167,7 @@ export default function Sites() {
               {advanced && gitStatusChecking > 0 && (
                 <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
                   <LoaderCircleIcon className="size-3.5 animate-spin" />
-                  Checking {gitStatusChecking} {gitStatusChecking === 1 ? 'site' : 'sites'}
+                  {gitStatusChecking === 1 ? `Checking ${gitStatusChecking} site` : `Checking ${gitStatusChecking} sites`}
                 </span>
               )}
               <div className="ml-auto flex shrink-0 items-center gap-2">

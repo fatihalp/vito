@@ -111,9 +111,7 @@ class ServiceController extends Controller
 
         app(Install::class)->install($server, $request->input());
 
-        return back()->with('success', __(':service is being installed.', [
-            'service' => $request->input('name'),
-        ]));
+        return back()->with('success', $request->input('name').' is being installed.');
     }
 
     #[Post('/{service}', name: 'services.manage')]
@@ -131,14 +129,10 @@ class ServiceController extends Controller
                 'server' => $server->id,
                 'service' => $service->type,
                 'refresh' => 1,
-            ])->with('success', __(":service is being {$action}ed.", [
-                'service' => $service->name,
-            ]));
+            ])->with('success', strtr(":service is being {$action}ed.", [':service' => $service->name]));
         }
 
-        return back()->with('success', __(":service is being {$action}ed.", [
-            'service' => $service->name,
-        ]));
+        return back()->with('success', strtr(":service is being {$action}ed.", [':service' => $service->name]));
     }
 
     #[Post('/refresh', name: 'services.refresh')]
@@ -147,8 +141,8 @@ class ServiceController extends Controller
         $this->authorize('refresh', [Service::class, $server]);
 
         return back()->with('info', app(RefreshServices::class)->refresh($server)
-            ? __('Refreshing services…')
-            : __('A services refresh is already running.'));
+            ? 'Refreshing services…'
+            : 'A services refresh is already running.');
     }
 
     #[Get('/{service}/networking', name: 'services.networking')]
@@ -166,7 +160,7 @@ class ServiceController extends Controller
 
         app(ToggleNetworking::class)->enable($service);
 
-        return back()->with('info', __('Enabling remote networking for :service…', ['service' => $service->name]));
+        return back()->with('info', 'Enabling remote networking for '.$service->name.'…');
     }
 
     #[Post('/{service}/networking/disable', name: 'services.networking.disable')]
@@ -176,7 +170,7 @@ class ServiceController extends Controller
 
         app(ToggleNetworking::class)->disable($service);
 
-        return back()->with('info', __('Disabling remote networking for :service…', ['service' => $service->name]));
+        return back()->with('info', 'Disabling remote networking for '.$service->name.'…');
     }
 
     #[Post('/{service}/networking/secret', name: 'services.networking.secret.regenerate')]
@@ -206,9 +200,7 @@ class ServiceController extends Controller
 
         app(Uninstall::class)->uninstall($service);
 
-        return back()->with('warning', __(':service is being uninstalled.', [
-            'service' => $service->name,
-        ]));
+        return back()->with('warning', $service->name.' is being uninstalled.');
     }
 
     #[Get('/{service}/config', name: 'services.config')]
@@ -230,6 +222,6 @@ class ServiceController extends Controller
 
         app(UpdateConfigFile::class)->update($service, $request->input());
 
-        return back()->with('success', __('Config file updated successfully.'));
+        return back()->with('success', 'Config file updated successfully.');
     }
 }

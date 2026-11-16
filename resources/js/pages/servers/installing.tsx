@@ -23,7 +23,7 @@ export default function InstallingServer() {
 
   return (
     <Container>
-      <Heading title="Installing" description="Here you can see the installation logs" />
+      <Heading title={'Installing'} description="Here you can see the installation logs" />
       <Deferred data="logs" fallback={<TableSkeleton cells={4} rows={5} />}>
         <InstallingLogs serverId={page.props.server.id} initialLogs={page.props.logs} />
       </Deferred>

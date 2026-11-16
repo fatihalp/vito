@@ -147,7 +147,7 @@ class StorageMigration extends AbstractModel
         $handler = $service?->handler();
 
         if (! $handler instanceof SupportsNetworking || ! $this->databaseUser) {
-            throw new RuntimeException(__('The scan database of this storage migration is no longer available.'));
+            throw new RuntimeException('The scan database of this storage migration is no longer available.');
         }
 
         $driver = $service->name === 'postgresql' ? 'pgsql' : 'mysql';

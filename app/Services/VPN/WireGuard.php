@@ -42,7 +42,7 @@ class WireGuard extends AbstractService implements VPN
                         ->exists();
 
                     if ($isMember) {
-                        $fail(__('This server is a member of one or more WireGuard networks. Remove it from those networks before uninstalling WireGuard.'));
+                        $fail('This server is a member of one or more WireGuard networks. Remove it from those networks before uninstalling WireGuard.');
                     }
                 },
             ],
@@ -115,7 +115,7 @@ class WireGuard extends AbstractService implements VPN
             'address' => $membership->ip,
             'prefix' => $this->prefix($membership->network),
             'listenPort' => $membership->network->port,
-            'privateKey' => $withPrivateKey ? $membership->private_key : __('(hidden, stored only on the server)'),
+            'privateKey' => $withPrivateKey ? $membership->private_key : '(hidden, stored only on the server)',
             'peers' => $this->peers($membership),
         ])->render();
     }

@@ -12,7 +12,7 @@ class UpdateForceSsl
     {
         if (! $site->webserver()->canConfigureSSL()) {
             throw ValidationException::withMessages([
-                'force_ssl' => __('Force SSL cannot be changed for this webserver.'),
+                'force_ssl' => 'Force SSL cannot be changed for this webserver.',
             ]);
         }
 

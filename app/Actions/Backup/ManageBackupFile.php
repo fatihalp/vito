@@ -61,7 +61,7 @@ class ManageBackupFile
 
         if (! $file->isAvailable() || ! $provider instanceof S3 || $file->backup->type === BackupType::PGBACKREST) {
             throw ValidationException::withMessages([
-                'file' => __('Only available backup files stored on S3 can be downloaded.'),
+                'file' => 'Only available backup files stored on S3 can be downloaded.',
             ]);
         }
 

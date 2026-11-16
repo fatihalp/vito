@@ -224,7 +224,7 @@ export default function QuickCreateUserDialog({
             className="text-xs"
           >
             {loading && <LoaderCircleIcon className="mr-1.5 size-3.5 animate-spin" />}
-            Create & Select
+            {"Create & Select"}
           </Button>
         </DialogFooter>
       </DialogContent>

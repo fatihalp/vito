@@ -8,7 +8,6 @@ return new class extends Migration
 {
     private const array TABLES = [
         'servers',
-        'databases',
         'server_providers',
         'storage_providers',
         'users',

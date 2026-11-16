@@ -33,7 +33,7 @@ export default function NetworkServers() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Servers" description="Servers connected to this network" />
+          <Heading title={'Servers'} description="Servers connected to this network" />
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

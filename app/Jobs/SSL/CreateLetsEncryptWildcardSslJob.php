@@ -30,6 +30,9 @@ class CreateLetsEncryptWildcardSslJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
+    private const RELOAD_NGINX_IF_ACTIVE = 'if sudo -n systemctl is-active --quiet nginx.service; '
+        .'then sudo -n nginx -t && sudo -n systemctl reload nginx.service; fi';
+
     public int $timeout = 600;
 
     public function __construct(protected Server $server, protected Ssl $ssl, protected bool $isRenewal = false) {}
@@ -56,6 +59,7 @@ class CreateLetsEncryptWildcardSslJob implements ShouldQueue
             $pid = $this->startCertbot($ssh, $basePath, $certName, $domain->domain);
             $this->processChallenges($ssh, $basePath, $domain, $pid);
             $this->readAndStoreCertificate($ssh, $certName);
+            $ssh->exec(self::RELOAD_NGINX_IF_ACTIVE);
 
             
             $ssh->exec(view('ssh.ssl.wildcard-cleanup-artifacts', ['basePath' => $basePath]));

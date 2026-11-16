@@ -195,7 +195,7 @@ export default function Processes() {
             {selectedUser !== 'all' && (
               <Button variant="destructive" size="sm" className="h-8 px-2 text-xs gap-1" onClick={killUserProcesses}>
                 <SkullIcon className="size-3.5" />
-                <span className="hidden sm:inline">Kill {selectedUser}'s</span>
+                <span className="hidden sm:inline">{`Kill processes for ${selectedUser}`}</span>
                 <span className="sm:hidden">Kill</span>
               </Button>
             )}
@@ -270,7 +270,7 @@ export default function Processes() {
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="h-24 text-center text-xs text-muted-foreground">
-                    {search ? 'No processes match your filter.' : 'No processes found.'}
+                    {search ? "No processes match your filter." : "No processes found."}
                   </TableCell>
                 </TableRow>
               ) : (
@@ -321,7 +321,7 @@ export default function Processes() {
 
         <div className="flex items-center justify-between text-xs text-muted-foreground">
           <span>
-            {filtered.length} process{filtered.length !== 1 ? 'es' : ''} shown
+            {filtered.length === 1 ? `${filtered.length} process shown` : `${filtered.length} processes shown`}
             {selectedUser !== 'all' && ` (user: ${selectedUser})`}
             {search && ` (filter: "${search}")`}
           </span>

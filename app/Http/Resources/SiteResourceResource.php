@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Helpers\EnvParser;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -26,8 +27,11 @@ class SiteResourceResource extends JsonResource
                 'role' => $this->server->role->getText(),
             ] : null,
             'storage_provider' => $this->storageProvider ? new StorageProviderResource($this->storageProvider) : null,
-            'environment' => $this->environment,
+            'environment' => collect($this->environment)->mapWithKeys(fn ($value, string $key): array => [
+                $key => EnvParser::isSecretKey($key) ? '••••••••' : $value,
+            ])->all(),
             'environment_keys' => array_keys($this->environment),
+            'secrets_redacted' => true,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

@@ -93,8 +93,8 @@ function SecretField({
       </div>
       <p className="text-muted-foreground text-xs">
         {onRemove
-          ? 'Both restart the service. Every client must be updated to the new password, or to no password at all.'
-          : 'Regenerating restarts the service - every client must be updated to the new password. The password can only be removed while the service is local only.'}
+          ? "Both restart the service. Every client must be updated to the new password, or to no password at all."
+          : "Regenerating restarts the service - every client must be updated to the new password. The password can only be removed while the service is local only."}
       </p>
     </div>
   );
@@ -185,8 +185,7 @@ export default function ServiceNetworkingDialog({
             Networking for <span className="capitalize">{service.name}</span>
           </DialogTitle>
           <DialogDescription>
-            Networking opens this service on all IPv4 interfaces (0.0.0.0) so other servers can reach it. Access is only gated by authentication and
-            your firewall.
+            Networking opens this service on all IPv4 interfaces (0.0.0.0) so other servers can reach it. Access is only gated by authentication and your firewall.
           </DialogDescription>
         </DialogHeader>
 
@@ -204,7 +203,7 @@ export default function ServiceNetworkingDialog({
               <AlertCircleIcon />
               <AlertTitle>Could not load networking state</AlertTitle>
               <AlertDescription>
-                {(axios.isAxiosError(query.error) ? query.error.response?.data?.message : null) ?? 'Please try again in a moment.'}
+                {(axios.isAxiosError(query.error) ? query.error.response?.data?.message : null) ?? "Please try again in a moment."}
               </AlertDescription>
             </Alert>
           )}
@@ -220,13 +219,13 @@ export default function ServiceNetworkingDialog({
           {details && (
             <>
               <div className="flex flex-col gap-2">
-                <StateRow label="Networking">
+                <StateRow label={'Networking'}>
                   {pending ? (
                     <Badge variant="gray">Applying…</Badge>
                   ) : unknown ? (
                     <Badge variant="gray">Unknown</Badge>
                   ) : (
-                    <Badge variant={networked ? 'success' : 'gray'}>{networked ? 'Listening on all interfaces' : 'Local only'}</Badge>
+                    <Badge variant={networked ? 'success' : 'gray'}>{networked ? "Listening on all interfaces" : "Local only"}</Badge>
                   )}
                 </StateRow>
                 <StateRow label="Default port">
@@ -261,14 +260,14 @@ export default function ServiceNetworkingDialog({
                   <AlertDescription>
                     <p>
                       {neverChecked ? (
-                        <>Pure hasn&apos;t checked this service&apos;s live state yet.</>
+                        <>{"Pure hasn't checked this service's live state yet."}</>
                       ) : (
                         <>
-                          Pure couldn&apos;t read this service&apos;s live state on the last check (<DateTime date={details.checked_at as string} />
+                          {"Pure couldn't read this service's live state on the last check ("}<DateTime date={details.checked_at as string} />
                           ). Check that the service is healthy first.
                         </>
                       )}{' '}
-                      Close this dialog and use Refresh on the Services page - networking can&apos;t be changed until Pure knows the current state.
+                      {"Close this dialog and use Refresh on the Services page - networking can't be changed until Pure knows the current state."}
                     </p>
                   </AlertDescription>
                 </Alert>
@@ -279,8 +278,7 @@ export default function ServiceNetworkingDialog({
                   <TriangleAlertIcon />
                   <AlertTitle>A password will be set</AlertTitle>
                   <AlertDescription>
-                    Pure generates a password when networking is enabled. Every existing client on this server (apps, workers, queues) must be updated
-                    to authenticate with it, or it will fail with NOAUTH.
+                    Pure generates a password when networking is enabled. Every existing client on this server (apps, workers, queues) must be updated to authenticate with it, or it will fail with NOAUTH.
                   </AlertDescription>
                 </Alert>
               )}
@@ -290,8 +288,7 @@ export default function ServiceNetworkingDialog({
                   <TriangleAlertIcon />
                   <AlertTitle>A password has been generated</AlertTitle>
                   <AlertDescription>
-                    Networking is off. If it was ever enabled, this password is still in effect on the server and every client must keep
-                    authenticating with it. Enabling networking applies it again.
+                    Networking is off. If it was ever enabled, this password is still in effect on the server and every client must keep authenticating with it. Enabling networking applies it again.
                   </AlertDescription>
                 </Alert>
               )}
@@ -352,7 +349,7 @@ export default function ServiceNetworkingDialog({
               onClick={() => toggle(networked ? 'disable' : 'enable')}
             >
               {(submitting || pending) && <LoaderCircleIcon className="animate-spin" />}
-              {networked ? 'Close Remote Access (Disable)' : 'Open to Remote (Enable)'}
+              {networked ? "Close Remote Access (Disable)" : "Open to Remote (Enable)"}
             </Button>
           )}
         </DialogFooter>

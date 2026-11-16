@@ -12,7 +12,7 @@ class StopServer
     public function stop(Server $server): Server
     {
         if (! $server->canPowerManage()) {
-            throw new AppError(__('The :provider provider does not support power management for this server.', ['provider' => $server->provider]));
+            throw new AppError('The '.$server->provider.' provider does not support power management for this server.');
         }
 
         $server->provider()->stop();

@@ -49,13 +49,13 @@ export default function ShowStorageMigration() {
 
   return (
     <SettingsLayout>
-      <Head title={storageMigration.name ?? 'Storage Migration'} />
+      <Head title={storageMigration.name ?? "Storage Migration"} />
 
       <Container>
         <HeaderContainer>
           <Heading title={storageMigration.name ?? direction} description={storageMigration.name ? direction : undefined} />
           <div className="flex items-center gap-2">
-            <Badge variant={storageMigration.syncing ? 'success' : 'gray'}>{storageMigration.syncing ? 'syncing' : 'not syncing'}</Badge>
+            <Badge variant={storageMigration.syncing ? 'success' : 'gray'}>{storageMigration.syncing ? "syncing" : "not syncing"}</Badge>
             <Badge variant={storageMigration.status_color}>{storageMigration.status}</Badge>
             <StorageMigrationActions storageMigration={storageMigration} />
           </div>
@@ -63,7 +63,7 @@ export default function ShowStorageMigration() {
 
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap gap-2">
-            <Badge variant="outline">Scan: {storageMigration.scan_completed_at ? 'complete' : storageMigration.scan_paused ? 'paused' : storageMigration.status === 'cancelled' || storageMigration.status === 'failed' ? 'stopped' : storageMigration.target_scan_completed_at ? 'discovering' : 'listing target'}</Badge>
+            <Badge variant="outline">Scan: {storageMigration.scan_completed_at ? "complete" : storageMigration.scan_paused ? "paused" : storageMigration.status === 'cancelled' || storageMigration.status === 'failed' ? "stopped" : storageMigration.target_scan_completed_at ? "discovering" : "listing target"}</Badge>
             <Badge variant="outline">Transfers: {transferLabel}</Badge>
             {page.props.scanDatabase && (
               <Badge variant="outline">
@@ -83,7 +83,7 @@ export default function ShowStorageMigration() {
           {storageMigration.status === 'scanning' && !storageMigration.scan_paused && (
             <div className="text-muted-foreground text-sm">
               Still discovering objects on the source storage. Totals grow as more objects are found.
-              {storageMigration.transfer_paused ? ' Transfers are paused.' : ' Discovered objects can transfer before scanning finishes.'}
+              {storageMigration.transfer_paused ? " Transfers are paused." : " Discovered objects can transfer before scanning finishes."}
             </div>
           )}
           {(storageMigration.scan_paused || storageMigration.transfer_paused) && (
@@ -105,9 +105,7 @@ export default function ShowStorageMigration() {
             </div>
             <InputError message={workers.errors.worker_count} />
             <p className="text-muted-foreground text-sm">
-              Current limit: {storageMigration.worker_count}. Shared worker capacity: {storageMigration.worker_capacity}.
-              Changes apply between files. The shared queue capacity limits how many workers can run across all migrations.
-              If transfers keep waiting, check that Horizon is running the storage-migration queue.
+              Current limit: {storageMigration.worker_count}. Shared worker capacity: {storageMigration.worker_capacity}. Changes apply between files. The shared queue capacity limits how many workers can run across all migrations. If transfers keep waiting, check that Horizon is running the storage-migration queue.
             </p>
           </form>
         )}

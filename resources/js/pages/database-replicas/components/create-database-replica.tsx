@@ -98,9 +98,7 @@ export default function CreateDatabaseReplica({
         <Form id="create-database-replica-form" onSubmit={submit} className="p-4">
           <FormFields>
             <div className="text-muted-foreground rounded-md border p-3 text-sm">
-              Pure connects both servers over a private network (a provider network such as a Hetzner Cloud Network when it can, else an encrypted WireGuard
-              network), opens PostgreSQL and pgBackRest only to the replica, restores the replica from the latest pgBackRest backup and streams WAL from this
-              server. Backups then run on the replica straight to S3. PostgreSQL on this server restarts once to listen on its private address.
+              Pure connects both servers over a private network (a provider network such as a Hetzner Cloud Network when it can, else an encrypted WireGuard network), opens PostgreSQL and pgBackRest only to the replica, restores the replica from the latest pgBackRest backup and streams WAL from this server. Backups then run on the replica straight to S3. PostgreSQL on this server restarts once to listen on its private address.
             </div>
 
             <FormField>
@@ -129,7 +127,7 @@ export default function CreateDatabaseReplica({
                     <p className="text-muted-foreground">
                       It needs <span className="text-foreground font-medium">at least {requirements.storage_gb ?? '?'} GB of disk</span>,{' '}
                       {requirements.cores ?? '?'} vCPU and {requirements.memory_gb ?? '?'} GB of memory to keep up with {server.name}, on a{' '}
-                      {requirements.architecture ?? 'matching'} processor — a streaming replica copies the data files byte for byte.
+                      {requirements.architecture ?? "matching"} processor — a streaming replica copies the data files byte for byte.
                     </p>
                   )}
                 </div>
@@ -149,7 +147,7 @@ export default function CreateDatabaseReplica({
                   <Label htmlFor="replica_server_id">Server</Label>
                   <Select value={form.data.replica_server_id} onValueChange={(value) => form.setData((data) => ({ ...data, replica_server_id: value, confirmation: '' }))}>
                     <SelectTrigger id="replica_server_id">
-                      <SelectValue placeholder={candidates.length === 0 ? 'Loading the servers…' : 'Select a server'} />
+                      <SelectValue placeholder={candidates.length === 0 ? "Loading the servers…" : "Select a server"} />
                     </SelectTrigger>
                     <SelectContent>
                       {candidates.map((candidate) => (
@@ -163,8 +161,7 @@ export default function CreateDatabaseReplica({
                   </Select>
                   {candidates.length > 0 && usable.length === 0 && (
                     <p className="text-muted-foreground text-sm">
-                      No server in this project can hold a replica. Create a new server instead, or install PostgreSQL {requirements?.postgresql ?? ''} on an
-                      empty server.
+                      No server in this project can hold a replica. Create a new server instead, or install PostgreSQL {requirements?.postgresql ?? ''} on an empty server.
                     </p>
                   )}
                   <InputError message={errors.replica_server_id} />
@@ -175,9 +172,8 @@ export default function CreateDatabaseReplica({
                     <Alert variant="destructive">
                       <AlertTitle>Everything PostgreSQL holds on {selected.name} is destroyed</AlertTitle>
                       <AlertDescription>
-                        Pure wipes the PostgreSQL data directory of {selected.name} and restores this server's backup over it. The server keeps{' '}
-                        {selected.sites === 1 ? '1 site' : `${selected.sites} sites`} and everything outside PostgreSQL, but its databases cannot be recovered
-                        afterwards unless you have your own backup of them.
+                        Pure wipes the PostgreSQL data directory of {selected.name} {"and restores this server's backup over it. The server keeps"}{' '}
+                        {selected.sites === 1 ? '1 site' : `${selected.sites} sites`} and everything outside PostgreSQL, but its databases cannot be recovered afterwards unless you have your own backup of them.
                       </AlertDescription>
                     </Alert>
 
@@ -207,7 +203,7 @@ export default function CreateDatabaseReplica({
                 onChange={(e) => form.setData('max_slot_wal_keep_size_gb', e.target.value)}
               />
               <p className="text-muted-foreground text-sm">
-                When a replica falls this far behind, PostgreSQL drops its WAL instead of filling this server's disk, and the replica needs a rebuild.
+                {"When a replica falls this far behind, PostgreSQL drops its WAL instead of filling this server's disk, and the replica needs a rebuild."}
               </p>
               <InputError message={errors.max_slot_wal_keep_size_gb} />
             </FormField>
@@ -215,8 +211,7 @@ export default function CreateDatabaseReplica({
             {needsBackup && (
               <>
                 <div className="text-muted-foreground rounded-md border p-3 text-sm">
-                  Replicas are built from pgBackRest backups, and this server has none yet. Choose where to keep them and a strategy. The replica is
-                  created as soon as the first full backup finishes.
+                  Replicas are built from pgBackRest backups, and this server has none yet. Choose where to keep them and a strategy. The replica is created as soon as the first full backup finishes.
                 </div>
                 <FormField>
                   <Label htmlFor="storage">S3 storage</Label>

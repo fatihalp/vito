@@ -142,7 +142,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
   const fetchProviders = async () => {
     setLoadingProviders(true);
     try {
-      const response = await axios.get("/settings/dns-providers/json");
+      const response = await axios.get('/settings/dns-providers/json');
       const providers = (response.data || []) as DNSProvider[];
       setDnsProviders(providers);
 
@@ -250,7 +250,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                   <div className="flex items-center gap-2">
                     <Select value={form.data.dns_provider_id} onValueChange={handleProviderChange}>
                       <SelectTrigger id="dns_provider_id">
-                        <SelectValue placeholder={loadingProviders ? 'Loading providers...' : 'Select DNS Provider'} />
+                        <SelectValue placeholder={loadingProviders ? "Loading providers..." : "Select DNS Provider"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -263,7 +263,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                       </SelectContent>
                     </Select>
                     <ConnectDNSProvider onProviderAdded={fetchProviders}>
-                      <Button variant="outline" size="icon" type="button" aria-label="Connect DNS Provider">
+                      <Button variant="outline" size="icon" type="button" aria-label={'Connect DNS Provider'}>
                         <CloudIcon className="h-4 w-4" />
                       </Button>
                     </ConnectDNSProvider>
@@ -280,7 +280,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                       disabled={!form.data.dns_provider_id || loadingDomains}
                     >
                       <SelectTrigger id="provider_domain_id">
-                        <SelectValue placeholder={loadingDomains ? 'Loading domains...' : 'Select a domain zone'} />
+                        <SelectValue placeholder={loadingDomains ? "Loading domains..." : "Select a domain zone"} />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
@@ -358,7 +358,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                           Automatically create A record on Cloudflare
                         </Label>
                         <p className="text-muted-foreground text-xs">
-                          Creates an A record pointing <span className="font-mono font-medium">{computedDomain || 'this domain'}</span> to server IP{' '}
+                          Creates an A record pointing <span className="font-mono font-medium">{computedDomain || "this domain"}</span> to server IP{' '}
                           <span className="font-mono font-medium">{serverIp || 'N/A'}</span>.
                         </p>
                       </div>
@@ -373,7 +373,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                         />
                         <div className="grid gap-0.5 leading-none">
                           <Label htmlFor="dns_record_proxied" className="cursor-pointer font-medium">
-                            Enable Cloudflare Proxy (CDN & DDoS Protection)
+                            {"Enable Cloudflare Proxy (CDN & DDoS Protection)"}
                           </Label>
                           <p className="text-muted-foreground text-xs">
                             Turn on orange cloud proxy on Cloudflare for this record.
@@ -404,7 +404,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
               <Label htmlFor="type">Type</Label>
               <Select onValueChange={(value) => form.setData('type', value)} value={form.data.type}>
                 <SelectTrigger id="type">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="alias">Alias</SelectItem>
@@ -436,7 +436,7 @@ export default function CreateHostedDomain({ open, onOpenChange, site }: { open:
                 <Label htmlFor="ssl_id">SSL Certificate</Label>
                 <Select onValueChange={(value) => form.setData('ssl_id', value)} value={form.data.ssl_id}>
                   <SelectTrigger id="ssl_id">
-                    <SelectValue placeholder={loadingSsls ? 'Loading...' : 'Select a certificate'} />
+                    <SelectValue placeholder={loadingSsls ? "Loading..." : "Select a certificate"} />
                   </SelectTrigger>
                   <SelectContent>
                     {matchingSsls.map((ssl) => (

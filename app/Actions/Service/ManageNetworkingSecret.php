@@ -25,7 +25,7 @@ class ManageNetworkingSecret
 
         if ($handler->networkingEnabled() || ($service->type_data['networking_effective'] ?? null) === true) {
             throw ValidationException::withMessages([
-                'service' => __('Disable networking before removing the password.'),
+                'service' => 'Disable networking before removing the password.',
             ]);
         }
 
@@ -49,19 +49,19 @@ class ManageNetworkingSecret
 
         if (! $handler instanceof SupportsNetworkingSecret) {
             throw ValidationException::withMessages([
-                'service' => __('This service does not use a networking password.'),
+                'service' => 'This service does not use a networking password.',
             ]);
         }
 
         if ($handler->networkingSecret() === null) {
             throw ValidationException::withMessages([
-                'service' => __('This service does not have a password.'),
+                'service' => 'This service does not have a password.',
             ]);
         }
 
         if (! in_array($service->status, SyncServiceStatus::SETTLED_STATUSES, true)) {
             throw ValidationException::withMessages([
-                'service' => __('Wait for the service to settle before changing its password.'),
+                'service' => 'Wait for the service to settle before changing its password.',
             ]);
         }
 

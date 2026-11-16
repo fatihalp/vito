@@ -162,7 +162,7 @@ class ApplicationController extends Controller
 
         $isDuplicate = $deployment->isDuplicate();
         $message = $isDuplicate
-            ? "Deployment #{$deployment->id} started. Note: commit {$deployment->commit_id_short} was already deployed previously."
+            ? 'Deployment #'.$deployment->id.' started. Note: commit '.$deployment->commit_id_short.' was already deployed previously.'
             : 'Deployment started, please wait...';
 
         return redirect()->route('application.deployments.show', [

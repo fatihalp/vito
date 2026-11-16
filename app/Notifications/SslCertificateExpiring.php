@@ -11,24 +11,17 @@ class SslCertificateExpiring extends AbstractNotification
 
     public function rawText(): string
     {
-        return __("The SSL certificate for [:domain] :expiry.\nRenew it to keep the site served over HTTPS.\n:link", [
-            'domain' => $this->domainLabel(),
-            'expiry' => $this->expiryLabel(),
-            'link' => $this->link(),
-        ]);
+        return strtr("The SSL certificate for [:domain] :expiry.\nRenew it to keep the site served over HTTPS.\n:link", [':domain' => $this->domainLabel(), ':expiry' => $this->expiryLabel(), ':link' => $this->link()]);
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
             ->error()
-            ->subject(__('SSL certificate expiring soon'))
-            ->line(__('The SSL certificate for [:domain] :expiry.', [
-                'domain' => $this->domainLabel(),
-                'expiry' => $this->expiryLabel(),
-            ]))
-            ->line(__('Renew the certificate to keep the site served over HTTPS without interruption.'))
-            ->action(__('Manage certificates'), $this->link());
+            ->subject('SSL certificate expiring soon')
+            ->line('The SSL certificate for ['.$this->domainLabel().'] '.$this->expiryLabel().'.')
+            ->line('Renew the certificate to keep the site served over HTTPS without interruption.')
+            ->action('Manage certificates', $this->link());
     }
 
     private function domainLabel(): string
@@ -47,17 +40,14 @@ class SslCertificateExpiring extends AbstractNotification
         $expiresAt = $this->ssl->expires_at;
 
         if ($expiresAt === null) {
-            return __('is expiring soon');
+            return 'is expiring soon';
         }
 
         if ($expiresAt->isPast()) {
-            return __('has expired');
+            return 'has expired';
         }
 
-        return __('expires in :days day(s) (:date)', [
-            'days' => (int) ceil(now()->diffInDays($expiresAt, false)),
-            'date' => $expiresAt->toFormattedDayDateString(),
-        ]);
+        return 'expires in '.((int) ceil(now()->diffInDays($expiresAt, false))).' day(s) ('.$expiresAt->toFormattedDayDateString().')';
     }
 
     private function link(): string

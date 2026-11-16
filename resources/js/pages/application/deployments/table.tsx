@@ -114,7 +114,7 @@ export default function DeploymentsTable({
           : ''
       }
       cellRenderers={{
-        commit: commitCell,
+        commit: (props) => commitCell(props),
         created_at: deployedAtCell,
       }}
       actions={(row: Row) => <DeploymentRowActions deployment={asRow<Deployment>(row, ['id', 'site_id', 'server_id'])} />}

@@ -307,7 +307,7 @@ export default function CreateSitePage({
 
   return (
     <PageLayout>
-      <Head title="Create site" />
+      <Head title={'Create site'} />
 
       <Container className="max-w-3xl py-8">
         <div className="mb-6">
@@ -322,8 +322,8 @@ export default function CreateSitePage({
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Create a new site</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             {step === 1
-              ? 'Select the type of site you want to create. Each type has different configurations and features.'
-              : 'Configure repository, runtime, and domain settings for your new site.'}
+              ? "Select the type of site you want to create. Each type has different configurations and features."
+              : "Configure repository, runtime, and domain settings for your new site."}
           </p>
         </div>
 
@@ -393,7 +393,7 @@ export default function CreateSitePage({
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-foreground">
-                      {isVitoType ? 'Install with Pure Config' : `Install a ${selectedTypeLabel} application`}
+                      {isVitoType ? "Install with Pure Config" : `Install a ${selectedTypeLabel} application`}
                     </h2>
                   </div>
                 </div>

@@ -13,7 +13,7 @@ function ControlBadge({ status, color, secure }: { status: string; color: 'gray'
   return (
     <Badge variant={color} aria-busy={status === 'updating'}>
       {status === 'updating' && <LoaderCircleIcon className="animate-spin" />}
-      {status === 'active' ? 'applied' : status}
+      {status === 'active' ? "applied" : status}
     </Badge>
   );
 }

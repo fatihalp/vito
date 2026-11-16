@@ -181,7 +181,7 @@ export default function ServerSelect({
             {header && <div className="border-b">{header}</div>}
             {servers.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
-                {isFetching ? 'Searching...' : query === '' ? 'Start typing to search servers' : 'No servers found.'}
+                {isFetching ? "Searching..." : query === '' ? "Start typing to search servers" : "No servers found."}
               </div>
             ) : (
               <CommandGroup>

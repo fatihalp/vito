@@ -60,7 +60,7 @@ class CheckDatabaseReplicaHealth
         $previous = $replica->health;
         $replica->update([
             'health' => DatabaseReplicaHealth::CRITICAL,
-            'health_reasons' => [__('The former primary :server came back and accepted writes. Vito stopped PostgreSQL on it again. Rebuild it as a replica.', ['server' => $replica->replica->name])],
+            'health_reasons' => ['The former primary '.$replica->replica->name.' came back and accepted writes. Vito stopped PostgreSQL on it again. Rebuild it as a replica.'],
             'last_checked_at' => now(),
         ]);
 
@@ -73,13 +73,13 @@ class CheckDatabaseReplicaHealth
         try {
             $status = $replica->replication()->primaryStatus();
         } catch (SSHError) {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('Vito could not reach the primary server :server.', ['server' => $replica->primary->name]));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'Vito could not reach the primary server '.$replica->primary->name.'.');
 
             return;
         }
 
         if ($status === null) {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('The replication slot :slot is missing on the primary. Resync the replica.', ['slot' => $replica->slot_name]));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'The replication slot '.$replica->slot_name.' is missing on the primary. Resync the replica.');
 
             return;
         }
@@ -95,41 +95,41 @@ class CheckDatabaseReplicaHealth
         ]);
 
         match ($metric->slot_wal_status) {
-            'lost' => $this->flag(DatabaseReplicaHealth::CRITICAL, __('The primary removed WAL this replica still needed. Resync the replica.')),
-            'unreserved' => $this->flag(DatabaseReplicaHealth::CRITICAL, __('The replica is so far behind that the primary is about to remove WAL it needs.')),
-            'extended' => $this->flag(DatabaseReplicaHealth::WARNING, __('The primary keeps more WAL than wal_keep_size for this replica.')),
+            'lost' => $this->flag(DatabaseReplicaHealth::CRITICAL, 'The primary removed WAL this replica still needed. Resync the replica.'),
+            'unreserved' => $this->flag(DatabaseReplicaHealth::CRITICAL, 'The replica is so far behind that the primary is about to remove WAL it needs.'),
+            'extended' => $this->flag(DatabaseReplicaHealth::WARNING, 'The primary keeps more WAL than wal_keep_size for this replica.'),
             default => null,
         };
 
         if ($status['slot_active'] !== 't') {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('The replica is not connected. The primary keeps :size of WAL for it.', ['size' => Number::fileSize($metric->slot_retained_bytes)]));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'The replica is not connected. The primary keeps '.Number::fileSize($metric->slot_retained_bytes).' of WAL for it.');
 
             return;
         }
 
         if ($metric->state !== 'streaming') {
-            $this->flag(DatabaseReplicaHealth::WARNING, __('The replica is connected but :state, not streaming.', ['state' => $metric->state ?? 'starting']));
+            $this->flag(DatabaseReplicaHealth::WARNING, 'The replica is connected but '.($metric->state ?? 'starting').', not streaming.');
         }
 
         $this->threshold(
             $metric->lag_bytes,
             config('database-replication.lag_warning_mb') * 1048576,
             config('database-replication.lag_critical_mb') * 1048576,
-            fn (int|float $value): string => __('The replica is :size behind the primary.', ['size' => Number::fileSize($value)]),
+            fn (int|float $value): string => 'The replica is '.Number::fileSize($value).' behind the primary.',
         );
 
         $this->threshold(
             $metric->replay_lag_ms,
             config('database-replication.replay_lag_warning_seconds') * 1000,
             config('database-replication.replay_lag_critical_seconds') * 1000,
-            fn (int|float $value): string => __('Commits on the primary take :seconds s to become visible on the replica.', ['seconds' => round($value / 1000, 1)]),
+            fn (int|float $value): string => 'Commits on the primary take '.(round($value / 1000, 1)).' s to become visible on the replica.',
         );
 
         $capMb = (int) $status['max_slot_wal_keep_size_mb'];
         $percent = $capMb > 0 ? $metric->slot_retained_bytes / ($capMb * 1048576) * 100 : 0;
 
         if ($percent >= config('database-replication.slot_retention_warning_percent')) {
-            $this->flag(DatabaseReplicaHealth::WARNING, __('The slot holds :percent% of max_slot_wal_keep_size.', ['percent' => round($percent)]));
+            $this->flag(DatabaseReplicaHealth::WARNING, 'The slot holds '.round($percent).'% of max_slot_wal_keep_size.');
         }
     }
 
@@ -138,34 +138,34 @@ class CheckDatabaseReplicaHealth
         try {
             $status = $replica->replication()->replicaStatus();
         } catch (SSHError) {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('Vito could not reach the replica server :server.', ['server' => $replica->replica->name]));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'Vito could not reach the replica server '.$replica->replica->name.'.');
 
             return;
         }
 
         if ($status === null) {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('PostgreSQL is not accepting connections on the replica server.'));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'PostgreSQL is not accepting connections on the replica server.');
 
             return;
         }
 
         if ($status['in_recovery'] !== 't') {
-            $this->flag(DatabaseReplicaHealth::CRITICAL, __('The replica is no longer in recovery, it was promoted outside Vito.'));
+            $this->flag(DatabaseReplicaHealth::CRITICAL, 'The replica is no longer in recovery, it was promoted outside Vito.');
 
             return;
         }
 
         if ($status['receiver_status'] !== 'streaming') {
             $this->flag(DatabaseReplicaHealth::CRITICAL, $status['receiver_status'] === ''
-                ? __('The WAL receiver is not running on the replica.')
-                : __('The WAL receiver on the replica is :status.', ['status' => $status['receiver_status']]));
+                ? 'The WAL receiver is not running on the replica.'
+                : 'The WAL receiver on the replica is '.$status['receiver_status'].'.');
         }
 
         $gap = (int) $status['replay_gap_bytes'];
         $metric->replay_delay_seconds = $gap === 0 || $status['replay_delay_seconds'] === '' ? 0 : round((float) $status['replay_delay_seconds'], 2);
 
         if ($metric->replay_delay_seconds >= config('database-replication.replay_delay_warning_seconds')) {
-            $this->flag(DatabaseReplicaHealth::WARNING, __('The replica last replayed a transaction :seconds s ago and still has WAL to apply.', ['seconds' => round($metric->replay_delay_seconds)]));
+            $this->flag(DatabaseReplicaHealth::WARNING, 'The replica last replayed a transaction '.round($metric->replay_delay_seconds).' s ago and still has WAL to apply.');
         }
     }
 

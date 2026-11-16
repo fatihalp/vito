@@ -54,9 +54,9 @@ class Network extends AbstractModel
     public function kind(): string
     {
         return match ($this->type) {
-            NetworkType::PROVIDER => __(':provider private network', ['provider' => config('server-provider.providers.'.$this->serverProvider?->provider.'.label') ?? __('Cloud')]),
-            NetworkType::WIREGUARD => __('WireGuard'),
-            NetworkType::CUSTOM => __('Custom private network'),
+            NetworkType::PROVIDER => (config('server-provider.providers.'.$this->serverProvider?->provider.'.label') ?? 'Cloud').' private network',
+            NetworkType::WIREGUARD => 'WireGuard',
+            NetworkType::CUSTOM => 'Custom private network',
         };
     }
 

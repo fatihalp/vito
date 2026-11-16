@@ -29,7 +29,7 @@ export default function DeployKey({ children }: { children?: ReactNode }) {
 
   const query = useQuery<SshKey[]>({
     queryKey: ['sshKey'],
-    queryFn: async () => (await axios.get("/settings/ssh-keys/json")).data,
+    queryFn: async () => (await axios.get('/settings/ssh-keys/json')).data,
     enabled: open,
   });
 

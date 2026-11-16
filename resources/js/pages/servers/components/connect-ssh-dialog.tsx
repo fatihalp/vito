@@ -57,7 +57,7 @@ export default function ConnectSshDialog({ server, children }: { server: Server;
                   {availableUsers.map((availableUser) => (
                     <SelectItem key={availableUser} value={availableUser}>
                       {availableUser}
-                      {availableUser === server.ssh_user && ' (default)'}
+                      {availableUser === server.ssh_user && " (default)"}
                     </SelectItem>
                   ))}
                 </SelectContent>

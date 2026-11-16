@@ -36,7 +36,7 @@ class ServerLimitController extends Controller
 
         app(UpdateNginxLimits::class)->update($server, $request->input());
 
-        return back()->with('success', __('Nginx limits updated and service reloaded successfully.'));
+        return back()->with('success', 'Nginx limits updated and service reloaded successfully.');
     }
 
     #[Patch('/php', name: 'servers.limits.php')]
@@ -46,8 +46,6 @@ class ServerLimitController extends Controller
 
         app(UpdatePhpLimits::class)->update($server, $request->input());
 
-        return back()->with('success', __('PHP :version limits updated and service restarted successfully.', [
-            'version' => $request->input('version'),
-        ]));
+        return back()->with('success', 'PHP '.$request->input('version').' limits updated and service restarted successfully.');
     }
 }

@@ -82,7 +82,7 @@ export function AppSidebar({
   const mainNavItems: NavItem[] = [
     {
       title: 'Overview',
-      href: "/overview",
+      href: withQuery('/overview', { project: page.props.auth.projectScope }),
       onlyActivePath: "/overview",
       icon: LayoutDashboardIcon,
     },
@@ -141,7 +141,7 @@ export function AppSidebar({
         <SidebarHeader className="min-h-10 justify-center border-b px-2.5 group-data-[state=collapsed]:px-1.5">
           <div className="flex items-center justify-between gap-2 group-data-[state=collapsed]:justify-center">
             <Link
-              href={"/overview"}
+              href="/overview"
               prefetch
               className="flex min-w-0 items-center gap-2 group-data-[state=collapsed]:hidden"
               aria-label={`Pure ${page.props.version}`}

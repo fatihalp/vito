@@ -14,13 +14,13 @@ class UpdateSiteSuspension
 
         if ($site->isSelf()) {
             throw ValidationException::withMessages([
-                'suspended' => __('The Vito application site cannot be suspended.'),
+                'suspended' => 'The Vito application site cannot be suspended.',
             ]);
         }
 
         if (! $site->vhost_generation_enabled) {
             throw ValidationException::withMessages([
-                'suspended' => __('Re-enable VHost generation before changing the suspension of this site.'),
+                'suspended' => 'Re-enable VHost generation before changing the suspension of this site.',
             ]);
         }
 

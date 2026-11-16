@@ -97,9 +97,7 @@ export default function CreateBackup({ open, onOpenChange, server }: { open: boo
 
             {isPgBackRest && (
               <div className="text-muted-foreground rounded-md border p-3 text-sm">
-                Backs up the whole PostgreSQL cluster straight to S3 with pgBackRest: parallel, compressed and encrypted, with point-in-time recovery from
-                continuously archived WAL. Pure installs pgBackRest and turns on WAL archiving, which restarts PostgreSQL once if archiving is off. Copy the
-                encryption passphrase from the backup's menu and keep it somewhere safe; the backups can't be restored without it.
+                {"Backs up the whole PostgreSQL cluster straight to S3 with pgBackRest: parallel, compressed and encrypted, with point-in-time recovery from continuously archived WAL. Pure installs pgBackRest and turns on WAL archiving, which restarts PostgreSQL once if archiving is off. Copy the encryption passphrase from the backup's menu and keep it somewhere safe; the backups can't be restored without it."}
               </div>
             )}
 

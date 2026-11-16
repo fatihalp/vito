@@ -53,7 +53,7 @@ class DatabaseUpgradeController extends Controller
             return response()->json(app(ManageDatabaseUpgrade::class)->requirements($server));
         } catch (SSHError $e) {
             return response()->json([
-                'message' => __('Vito could not read the PostgreSQL settings of :server: :error', ['server' => $server->name, 'error' => $e->getMessage()]),
+                'message' => 'Vito could not read the PostgreSQL settings of '.$server->name.': '.$e->getMessage(),
             ], 422);
         }
     }

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\SSL\DownloadCsr;
+use App\Actions\SSL\InspectExistingCertificates;
+use App\Actions\SSL\ListServerSsls;
+use Illuminate\Http\JsonResponse;
 use App\Actions\SSL\ActivateServerSsl;
 use App\Actions\SSL\CreateServerSsl;
 use App\Actions\SSL\DeleteSsl;
@@ -28,7 +31,7 @@ class ServerSslController extends Controller
 {
 
     #[Get('/', name: 'server-ssls')]
-    public function index(Server $server): Response
+    public function index(Server $server, ListServerSsls $listServerSsls): Response
     {
         $this->authorize('viewAny', [Ssl::class, $server]);
 
@@ -37,7 +40,7 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
-        $ssls = QueryBuilder::for($server->ssls()->whereNull('site_id')->with('log'))
+        $ssls = QueryBuilder::for($listServerSsls->query($server))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 
@@ -45,6 +48,15 @@ class ServerSslController extends Controller
             'ssls' => SslResource::collection($ssls),
             'domains' => $domains,
         ]);
+    }
+
+    #[Get('/observed', name: 'server-ssls.observed')]
+    #[Middleware('throttle:6,1')]
+    public function observed(Server $server, InspectExistingCertificates $action): JsonResponse
+    {
+        $this->authorize('viewAny', [Ssl::class, $server]);
+
+        return response()->json($action->inspect($server))->header('Cache-Control', 'no-store, private');
     }
 
     #[Post('/', name: 'server-ssls.store')]

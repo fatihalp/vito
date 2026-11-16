@@ -45,8 +45,8 @@ export default function ProjectForm({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{project ? 'Edit Project' : 'Create Project'}</DialogTitle>
-          <DialogDescription className="sr-only">{project ? 'Edit the project details.' : 'Here you can create a new project.'}</DialogDescription>
+          <DialogTitle>{project ? "Edit Project" : "Create Project"}</DialogTitle>
+          <DialogDescription className="sr-only">{project ? "Edit the project details." : "Here you can create a new project."}</DialogDescription>
         </DialogHeader>
         <Form id="project-form" onSubmit={submit} className="p-4">
           <FormFields>

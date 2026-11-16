@@ -18,7 +18,7 @@ import InputError from '@/components/ui/input-error';
 import { Form, FormField, FormFields } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
-import { DynamicFieldConfig } from '@/types/dynamic-field-config';
+import { DynamicFieldConfig, DynamicFieldValue } from '@/types/dynamic-field-config';
 import DynamicField from '@/components/ui/dynamic-field';
 import { useConfigs } from '@/stores/bootstrap-store';
 
@@ -26,7 +26,7 @@ type ServerProviderForm = {
   provider: string;
   name: string;
   global: boolean;
-  [key: string]: any;
+  [key: string]: DynamicFieldValue;
 };
 
 export default function ConnectServerProvider({
@@ -93,7 +93,7 @@ export default function ConnectServerProvider({
                 }}
               >
                 <SelectTrigger id="provider">
-                  <SelectValue placeholder="Select a provider" />
+                  <SelectValue placeholder={'Select a provider'} />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectGroup>

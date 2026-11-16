@@ -68,7 +68,7 @@ export default function AddServer({
                   keywords: [server.name],
                 }))}
                 value={selectedServerId ? String(selectedServerId) : ''}
-                placeholder="Select a server"
+                placeholder={'Select a server'}
                 searchText="Filter servers..."
                 noneFoundText="No eligible servers available."
                 onValueChange={(value) => selectServer(Number(value))}

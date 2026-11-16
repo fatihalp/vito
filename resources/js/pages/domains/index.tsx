@@ -19,10 +19,10 @@ export default function Domains() {
 
   return (
     <SettingsLayout>
-      <Head title="Domains" />
+      <Head title={'Domains'} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="Domains" />
+          <Heading title={'Domains'} />
           <div className="flex items-center gap-2">
             <AddDomain>
               <Button>

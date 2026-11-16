@@ -27,7 +27,7 @@ class ConnectSourceControl
         try {
             if (! $sourceControl->provider()->connect()) {
                 throw ValidationException::withMessages([
-                    'provider' => __('Cannot connect to :provider or invalid credentials!', ['provider' => $sourceControl->provider]),
+                    'provider' => 'Cannot connect to '.$sourceControl->provider.' or invalid credentials!',
                 ]);
             }
         } catch (\Exception $e) {

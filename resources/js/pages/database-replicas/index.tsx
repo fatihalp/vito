@@ -64,7 +64,7 @@ export default function DatabaseReplicas() {
 
         {cluster?.failover && (
           <Alert variant={cluster.failover.error ? 'destructive' : 'default'}>
-            <AlertTitle>{cluster.failover.error ? 'Failover stopped' : 'Failing over'}</AlertTitle>
+            <AlertTitle>{cluster.failover.error ? "Failover stopped" : "Failing over"}</AlertTitle>
             <AlertDescription className="flex flex-col gap-2">
               <span>
                 {cluster.failover.error
@@ -121,7 +121,7 @@ export default function DatabaseReplicas() {
                       ? `Encrypted WireGuard tunnels between the servers${cluster.network.managed ? ', created by Pure for this cluster' : ''}`
                       : cluster.network.type === 'provider'
                         ? "Traffic stays on the provider's private network"
-                        : 'Private addresses you assigned to the servers'}
+                        : "Private addresses you assigned to the servers"}
                     {cluster.network.cidr ? ` · ${cluster.network.cidr}` : ''}
                   </p>
                 </div>
@@ -140,7 +140,7 @@ export default function DatabaseReplicas() {
                       <Badge variant="gray">{node.status}</Badge>
                     ) : (
                       <Badge variant={node.connected ? 'success' : 'danger'}>
-                        {node.connected ? 'connected' : 'no recent handshake'}
+                        {node.connected ? "connected" : "no recent handshake"}
                       </Badge>
                     )}
                   </span>

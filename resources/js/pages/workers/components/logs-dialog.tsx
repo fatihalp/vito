@@ -64,7 +64,7 @@ export default function WorkerLogsDialog({ open, onOpenChange, serverId, workerI
         </DialogHeader>
 
         {activeTab === 'output' ? (
-          <LogOutput>{query.isLoading ? 'Loading...' : (query.data?.logs || 'No log output available.')}</LogOutput>
+          <LogOutput>{query.isLoading ? "Loading..." : (query.data?.logs || "No log output available.")}</LogOutput>
         ) : (
           <div className="max-h-[500px] min-h-[300px] overflow-y-auto flex flex-col gap-2 p-1">
             {historyList.length === 0 ? (
@@ -85,7 +85,7 @@ export default function WorkerLogsDialog({ open, onOpenChange, serverId, workerI
                           {item.description || `Worker ${item.type}`}
                         </span>
                         <span className="text-[11px] text-muted-foreground">
-                          {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : 'by System')}
+                          {item.user ? `by ${item.user.name} (${item.user.email})` : (item.user_name ? `by ${item.user_name}` : "by System")}
                         </span>
                       </div>
                     </div>

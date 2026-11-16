@@ -31,13 +31,13 @@ class CreateSite
     {
         if ($server->role !== ServerRole::APP) {
             throw ValidationException::withMessages([
-                'server' => __('Sites can only be created on app servers.'),
+                'server' => 'Sites can only be created on app servers.',
             ]);
         }
 
         if ($server->is_self) {
             throw ValidationException::withMessages([
-                'server' => __('Sites cannot be created on this server.'),
+                'server' => 'Sites cannot be created on this server.',
             ]);
         }
 
@@ -232,7 +232,7 @@ class CreateSite
         }
 
         throw ValidationException::withMessages([
-            'domain' => __('Could not derive an available isolated username for this domain.'),
+            'domain' => 'Could not derive an available isolated username for this domain.',
         ]);
     }
 

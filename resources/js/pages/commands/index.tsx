@@ -104,7 +104,7 @@ export default function Commands() {
       <Head title={`Commands - ${site.domain} - ${server.name}`} />
 
       <Container>
-        <Heading title="Commands" />
+        <Heading title={'Commands'} />
 
         <SiteBanners site={site} />
 

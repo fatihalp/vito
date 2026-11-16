@@ -16,7 +16,7 @@ class DeleteDNSRecord
 
         try {
             if (! $provider->deleteRecord($dnsRecord->domain->provider_domain_id, $dnsRecord->provider_record_id)) {
-                throw new RuntimeException(__('The DNS provider refused to delete this record. Check the provider logs and try again.'));
+                throw new RuntimeException('The DNS provider refused to delete this record. Check the provider logs and try again.');
             }
         } catch (Throwable $e) {
             throw ValidationException::withMessages([

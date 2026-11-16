@@ -118,7 +118,7 @@ export default function DomainPicker({
   const fetchProviders = async () => {
     setLoadingProviders(true);
     try {
-      const response = await axios.get("/settings/dns-providers/json");
+      const response = await axios.get('/settings/dns-providers/json');
       const providers = (response.data || []) as DNSProvider[];
       setDnsProviders(providers);
       const connected = providers.filter((p) => p.connected);
@@ -215,7 +215,7 @@ export default function DomainPicker({
             <CloudIcon className="size-4 text-primary shrink-0" />
             <span>
               Connected to <strong className="text-foreground">{activeProviderName}</strong>
-              {value.create_dns_record && ' • Auto A-record'}
+              {value.create_dns_record && " • Auto A-record"}
               {value.dns_record_proxied && ' • Cloudflare Proxy'}
             </span>
           </div>
@@ -263,7 +263,7 @@ export default function DomainPicker({
                 <div className="flex items-center gap-2">
                   <Select value={tempProviderId} onValueChange={handleProviderSelect}>
                     <SelectTrigger id="dns_provider_modal_id" className="h-9">
-                      <SelectValue placeholder={loadingProviders ? 'Loading providers...' : 'Select DNS Provider'} />
+                      <SelectValue placeholder={loadingProviders ? "Loading providers..." : "Select DNS Provider"} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -276,7 +276,7 @@ export default function DomainPicker({
                     </SelectContent>
                   </Select>
                   <ConnectDNSProvider onProviderAdded={fetchProviders}>
-                    <Button variant="outline" size="icon" type="button" className="h-9 w-9 shrink-0" aria-label="Connect DNS Provider">
+                    <Button variant="outline" size="icon" type="button" className="h-9 w-9 shrink-0" aria-label={'Connect DNS Provider'}>
                       <CloudIcon className="size-4" />
                     </Button>
                   </ConnectDNSProvider>
@@ -438,7 +438,7 @@ export default function DomainPicker({
                     Automatically create an A record
                   </span>
                   <p className="text-[11px] text-muted-foreground leading-relaxed">
-                    Points <span className="font-mono text-foreground">{computedDialogDomain || 'domain'}</span> at server IP
+                    Points <span className="font-mono text-foreground">{computedDialogDomain || "domain"}</span> at server IP
                     {serverIp ? <> (<span className="font-mono text-foreground font-medium">{serverIp}</span>)</> : ''}.
                   </p>
                 </div>
@@ -461,7 +461,7 @@ export default function DomainPicker({
                   <div className="grid gap-1">
                     <span className="text-xs font-medium leading-none text-foreground flex items-center gap-1.5">
                       <span>Enable Cloudflare Proxy</span>
-                      <span className="text-[10px] font-normal text-muted-foreground">(CDN &amp; DDoS Protection)</span>
+                      <span className="text-[10px] font-normal text-muted-foreground">{"(CDN & DDoS Protection)"}</span>
                     </span>
                     <p className="text-[11px] text-muted-foreground leading-relaxed">
                       Routes web traffic through Cloudflare for caching, edge SSL, and DDoS mitigation.

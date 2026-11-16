@@ -29,7 +29,7 @@ export default function ShowSite() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Application" description="Here you can manage the deployed application" />
+          <Heading title={'Application'} description="Here you can manage the deployed application" />
           <div className="flex items-center gap-2">
           </div>
         </HeaderContainer>

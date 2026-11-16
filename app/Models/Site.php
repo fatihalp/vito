@@ -20,6 +20,7 @@ use App\Traits\HasProjectThroughServer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
@@ -35,6 +36,11 @@ class Site extends AbstractModel
     use HasFactory;
 
     use HasProjectThroughServer;
+
+    public function runtimeProcesses(): BelongsToMany
+    {
+        return $this->belongsToMany(RuntimeProcess::class, 'runtime_process_site');
+    }
 
     protected $fillable = [
         'server_id',
@@ -508,11 +514,14 @@ class Site extends AbstractModel
         $stored = data_get($this->type_data, 'env_path');
 
         if ($path === null) {
-            return is_string($stored) ? $stored : $this->path.'/.env';
+            $path = is_string($stored) && $stored !== '' ? $stored : $this->path.'/.env';
         }
 
         if ($stored !== null && $path === $stored) {
-            return $path;
+            if (str_starts_with($path, '/')) {
+                return $path;
+            }
+            $path = $this->path.'/'.$path;
         }
 
         if (
@@ -521,7 +530,7 @@ class Site extends AbstractModel
             || ! str_starts_with($path, $this->path.'/')
         ) {
             throw ValidationException::withMessages([
-                'path' => __('The path must be within the site directory.'),
+                'path' => 'The path must be within the site directory.',
             ]);
         }
 

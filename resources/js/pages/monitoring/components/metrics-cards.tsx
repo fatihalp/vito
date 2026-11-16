@@ -37,7 +37,7 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
         <>
           {(!metric || metric === 'load') && (
             <ResourceUsageChart
-              title="CPU Load"
+              title={'CPU Load'}
               label="CPU load"
               dataKey="load"
               color="var(--color-chart-1)"
@@ -48,7 +48,7 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
           )}
           {(!metric || metric === 'memory') && (
             <ResourceUsageChart
-              title="Memory Usage"
+              title={'Memory Usage'}
               label="Memory usage"
               dataKey="memory_used_percent"
               color="var(--color-chart-2)"
@@ -61,7 +61,7 @@ export default function MetricsCards({ server, filter, metric }: { server: Serve
           )}
           {(!metric || metric === 'disk') && (
             <ResourceUsageChart
-              title="Disk Usage"
+              title={'Disk Usage'}
               label="Disk usage"
               dataKey="disk_used_percent"
               color="var(--color-chart-3)"

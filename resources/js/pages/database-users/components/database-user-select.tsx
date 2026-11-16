@@ -31,7 +31,7 @@ export default function DatabaseUserSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a database user'} />
+          <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a database user"} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

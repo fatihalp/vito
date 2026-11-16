@@ -30,7 +30,7 @@ export default function Redirects() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Redirect" description="Here you can Redirect certificates" />
+          <Heading title={'Redirect'} description="Here you can Redirect certificates" />
           <div className="flex items-center gap-2">
             <CreateRedirect site={page.props.site}>
               <Button>

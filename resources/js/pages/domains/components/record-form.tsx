@@ -120,8 +120,8 @@ export default function RecordForm({ open, onOpenChange, domain, record }: Recor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-screen overflow-y-auto sm:max-w-xl" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{record ? 'Edit DNS Record' : 'Create DNS Record'}</DialogTitle>
-          <DialogDescription className="sr-only">{record ? 'Edit DNS record' : `Create a new DNS record for ${domain.domain}`}</DialogDescription>
+          <DialogTitle>{record ? "Edit DNS Record" : "Create DNS Record"}</DialogTitle>
+          <DialogDescription className="sr-only">{record ? "Edit DNS record" : `Create a new DNS record for ${domain.domain}`}</DialogDescription>
         </DialogHeader>
         <Form id={record ? 'edit-record-form' : 'create-record-form'} onSubmit={submit} className="p-4">
           <FormFields>
@@ -259,7 +259,7 @@ export default function RecordForm({ open, onOpenChange, domain, record }: Recor
           <Button type="button" onClick={submit} disabled={form.processing}>
             {form.processing && <LoaderCircle className="animate-spin" />}
             <FormSuccessful successful={form.recentlySuccessful} />
-            {record ? 'Save' : 'Create Record'}
+            {record ? "Save" : "Create Record"}
           </Button>
         </DialogFooter>
       </DialogContent>

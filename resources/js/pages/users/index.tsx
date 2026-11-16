@@ -11,11 +11,11 @@ export default function Users() {
   const dialog = useDialog();
   return (
     <Layout>
-      <Head title="Users" />
+      <Head title={'Users'} />
 
       <Container className="space-y-6">
         <div className="flex items-start justify-between">
-          <Heading title="Users" />
+          <Heading title={'Users'} />
           <Button onClick={() => dialog.userForm.open({})}>Create user</Button>
         </div>
         <UsersList />

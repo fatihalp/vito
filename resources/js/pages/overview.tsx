@@ -173,7 +173,7 @@ function QuickAccessCard({
         </Link>
       </div>
       {loading || count === 0 ? (
-        <p className="py-8 text-sm text-muted-foreground">{loading ? 'Loading…' : emptyText}</p>
+        <p className="py-8 text-sm text-muted-foreground">{loading ? "Loading…" : emptyText}</p>
       ) : (
         <div className="flex flex-col divide-y divide-border/50">{children}</div>
       )}
@@ -213,10 +213,10 @@ export default function Overview() {
 
   return (
     <Layout>
-      <Head title="Overview" />
+      <Head title={'Overview'} />
       <Container>
         <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <Heading title="Overview" />
+          <Heading title={'Overview'} />
           <Input
             type="search"
             aria-label="Search servers and sites"
@@ -229,8 +229,8 @@ export default function Overview() {
 
         <div className="grid items-start gap-3 md:grid-cols-2">
               <QuickAccessCard
-                title="Servers"
-                viewAllHref={"/servers"}
+                title={'Servers'}
+                viewAllHref="/servers"
                 emptyText={query ? 'No matching servers.' : 'No servers yet.'}
                 loading={isLoading}
                 count={recentServers.length}
@@ -252,7 +252,7 @@ export default function Overview() {
               </QuickAccessCard>
 
               <QuickAccessCard
-                title="Sites"
+                title={'Sites'}
                 viewAllHref={withQuery("/sites", { project: 'all' })}
                 emptyText={query ? 'No matching sites.' : 'No sites yet.'}
                 loading={isLoading}

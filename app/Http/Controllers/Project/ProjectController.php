@@ -58,7 +58,7 @@ class ProjectController extends Controller
         app(CreateProject::class)->create(user(), $request->input());
 
         return redirect()->route('projects')
-            ->with('success', __('Project created successfully.'));
+            ->with('success', 'Project created successfully.');
     }
 
     #[Patch('/{project}', name: 'projects.update')]
@@ -69,7 +69,7 @@ class ProjectController extends Controller
         app(UpdateProject::class)->update($project, $request->input());
 
         return redirect()->route('projects')
-            ->with('success', __('Project updated successfully.'));
+            ->with('success', 'Project updated successfully.');
     }
 
     #[Patch('/{project}/star', name: 'projects.star')]
@@ -90,6 +90,6 @@ class ProjectController extends Controller
         app(DeleteProject::class)->delete($project);
 
         return redirect()->route('projects')
-            ->with('success', __('Project deleted successfully.'));
+            ->with('success', 'Project deleted successfully.');
     }
 }

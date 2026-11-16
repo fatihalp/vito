@@ -16,7 +16,7 @@ class SshKeyRule implements ValidationRule
 
             return;
         } catch (NoKeyLoadedException) {
-            $fail('Invalid key')->translate();
+            $fail('Invalid key');
         }
     }
 }

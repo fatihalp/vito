@@ -39,9 +39,9 @@ class Discord extends AbstractNotificationChannel
     public function connect(): bool
     {
         $connect = $this->checkConnection(
-            __('Congratulations! 🎉'),
-            __("You've connected your Discord to :app", ['app' => config('app.name')])."\n".
-            __('Manage your notification channels')."\n".
+            'Congratulations! 🎉',
+            'You\'ve connected your Discord to '.config('app.name')."\n".
+            'Manage your notification channels'."\n".
             '/settings/notification-channels',
         );
 

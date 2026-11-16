@@ -188,7 +188,7 @@ function CleanupSuggestions({ serverId, logsTotalSize }: { serverId: number; log
         <div className="flex items-center gap-2">
           {categories && categories.length > 0 && (
             <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={selectAll}>
-              {selected.length === categories.length ? 'Deselect all' : 'Select all'}
+              {selected.length === categories.length ? "Deselect all" : "Select all"}
             </Button>
           )}
           <Button variant="outline" size="sm" className="h-8" onClick={() => query.refetch()} disabled={query.isFetching}>
@@ -267,7 +267,7 @@ function CleanupSuggestions({ serverId, logsTotalSize }: { serverId: number; log
                     </Badge>
                   ) : (
                     <span className="text-muted-foreground text-[10px]">
-                      {category.count} file{category.count !== 1 ? 's' : ''}
+                      {category.count === 1 ? `${category.count} file` : `${category.count} files`}
                     </span>
                   )}
 
@@ -500,11 +500,11 @@ export default function LogRotation() {
                   onClick={() => setSortBySize(!sortBySize)}
                 >
                   <ArrowUpDownIcon className="size-3" />
-                  <span>{sortBySize ? 'Largest first' : 'Default order'}</span>
+                  <span>{sortBySize ? "Largest first" : "Default order"}</span>
                 </Button>
 
                 <span className="text-muted-foreground text-xs hidden sm:inline">
-                  Showing <strong>{filteredLogs.length}</strong> of {logs.length} (<strong>{formatBytes(filteredTotalSize)}</strong>)
+                  {`Showing ${filteredLogs.length} of ${logs.length}`} (<strong>{formatBytes(filteredTotalSize)}</strong>)
                 </span>
               </div>
             </div>

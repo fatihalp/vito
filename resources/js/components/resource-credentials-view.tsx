@@ -14,6 +14,8 @@ interface ResourceCredentialsViewProps {
   subtitle?: string;
   type?: 'database' | 'cache' | 'storage' | 'websocket' | string;
   className?: string;
+  redacted?: boolean;
+  onReveal?: () => void;
 }
 
 export default function ResourceCredentialsView({
@@ -22,6 +24,8 @@ export default function ResourceCredentialsView({
   subtitle,
   type,
   className,
+  redacted = false,
+  onReveal,
 }: ResourceCredentialsViewProps) {
   const [masked, setMasked] = useState(true);
   const [copiedEnv, setCopiedEnv] = useState(false);
@@ -102,9 +106,10 @@ export default function ResourceCredentialsView({
               variant="ghost"
               size="icon"
               className="size-6 text-muted-foreground hover:text-foreground"
-              onClick={() => setMasked((m) => !m)}
-              aria-label={masked ? 'Reveal secret values' : 'Hide secret values'}
-              title={masked ? 'Reveal values' : 'Hide values'}
+              onClick={() => redacted ? onReveal?.() : setMasked((m) => !m)}
+              disabled={redacted && !onReveal}
+              aria-label={masked ? "Reveal secret values" : "Hide secret values"}
+              title={masked ? "Reveal values" : "Hide values"}
             >
               {masked ? <EyeIcon className="size-3" /> : <EyeOffIcon className="size-3" />}
             </Button>
@@ -115,8 +120,9 @@ export default function ResourceCredentialsView({
               size="icon"
               className="size-6 text-muted-foreground hover:text-foreground"
               onClick={copyEnv}
+              disabled={redacted}
               aria-label="Copy environment variables"
-              title="Copy to clipboard"
+              title={'Copy to clipboard'}
             >
               {copiedEnv ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
             </Button>
@@ -157,8 +163,9 @@ export default function ResourceCredentialsView({
             size="icon"
             className="size-6 shrink-0 text-muted-foreground hover:text-foreground"
             onClick={copyDeeplink}
+            disabled={redacted}
             aria-label={`Copy ${deeplinkLabel}`}
-            title="Copy"
+            title={'Copy'}
           >
             {copiedDeeplink ? <CheckIcon className="text-success size-3" /> : <CopyIcon className="size-3" />}
           </Button>

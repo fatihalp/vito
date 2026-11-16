@@ -67,7 +67,7 @@ export default function ServerConfigDialog({
               <section className="space-y-2">
                 <p className="text-sm font-medium">Live status (wg show)</p>
                 {data.status !== null ? (
-                  <pre className="bg-muted/50 max-h-64 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed">{data.status || 'The interface is not up.'}</pre>
+                  <pre className="bg-muted/50 max-h-64 overflow-auto rounded-md border p-3 font-mono text-xs leading-relaxed">{data.status || "The interface is not up."}</pre>
                 ) : (
                   <p className="text-muted-foreground text-sm">Pure could not reach the server to read the live status.</p>
                 )}

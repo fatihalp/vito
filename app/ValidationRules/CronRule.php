@@ -18,6 +18,6 @@ class CronRule implements ValidationRule
         if ($this->acceptCustom && $value === 'custom') {
             return;
         }
-        $fail('Invalid frequency')->translate();
+        $fail('Invalid frequency');
     }
 }

@@ -254,7 +254,7 @@ export default function DiskUsage() {
 
       <Container className="space-y-3">
         <div className="flex items-center justify-between gap-3">
-          <Heading title="Disk Usage" />
+          <Heading title={'Disk Usage'} />
 
           <div className="flex items-center gap-1.5">
             <div className="flex items-center gap-1">
@@ -311,7 +311,7 @@ export default function DiskUsage() {
                     onClick={() => fetchDiskUsage(currentPath, limit)}
                     className="size-7 text-muted-foreground hover:text-foreground cursor-pointer disabled:opacity-50"
                     disabled={loading}
-                    aria-label="Refresh"
+                    aria-label={'Refresh'}
                   >
                     <RefreshCwIcon className={cn('size-3.5', loading && 'animate-spin')} />
                   </Button>
@@ -406,7 +406,7 @@ export default function DiskUsage() {
                     setIsEditing(true);
                   }}
                   className="p-1 rounded text-muted-foreground/40 hover:text-foreground transition-colors cursor-pointer shrink-0 ml-1 disabled:opacity-30"
-                  aria-label="Edit"
+                  aria-label={'Edit'}
                 >
                   <PencilIcon className="size-2.5" />
                 </button>
@@ -529,7 +529,7 @@ export default function DiskUsage() {
                                 e.stopPropagation();
                                 handleCopy(folder.path);
                               }}
-                              aria-label="Copy"
+                              aria-label={'Copy'}
                             >
                               {copiedPath === folder.path ? (
                                 <CheckIcon className="size-3 text-neutral-500" />
@@ -646,7 +646,7 @@ export default function DiskUsage() {
                               type="button"
                               className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded text-muted-foreground/50 hover:text-foreground cursor-pointer ml-auto shrink-0 self-center"
                               onClick={() => handleCopy(file.path)}
-                              aria-label="Copy"
+                              aria-label={'Copy'}
                             >
                               {copiedPath === file.path ? (
                                 <CheckIcon className="size-3 text-neutral-500" />

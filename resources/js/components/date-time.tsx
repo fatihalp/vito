@@ -1,4 +1,5 @@
 import moment from 'moment';
+import { formatRelativeDate } from '@/lib/format-relative-date';
 
 export default function DateTime({
   date,
@@ -12,9 +13,10 @@ export default function DateTime({
   
   relative?: boolean;
 }) {
+  const value = moment(date);
   return (
-    <time dateTime={date} className={className} title={relative ? moment(date).format(format) : undefined}>
-      {relative ? moment(date).fromNow() : moment(date).format(format)}
+    <time dateTime={date} className={className} title={relative ? value.format(format) : undefined}>
+      {relative ? formatRelativeDate(value.valueOf()) : value.format(format)}
     </time>
   );
 }

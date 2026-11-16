@@ -1,4 +1,3 @@
-import { withQuery } from '@/lib/url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Head, Link, usePage } from '@inertiajs/react';
 import {
@@ -98,15 +97,6 @@ export default function ServerUpdate() {
     [csrf_token, isTriggering, server.id, server.status]
   );
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      const type = params.get('type') === 'kernel' ? 'kernel' : 'os';
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerUpdate(type);
-    }
-  }, [triggerUpdate]);
-
   const copyAllLogs = () => {
     copy(content || '');
   };
@@ -132,11 +122,11 @@ export default function ServerUpdate() {
             {isUpdating ? (
               <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
                 <LoaderCircleIcon className="size-3.5 animate-spin" />
-                <span>Updating {updateType === 'kernel' ? 'kernel' : 'packages'}...</span>
+                <span>Updating {updateType === 'kernel' ? 'kernel' : "packages"}...</span>
               </Badge>
             ) : server.updates > 0 ? (
               <Badge variant="warning" className="gap-1.5 px-2.5 py-1 text-xs">
-                {server.updates} {server.updates === 1 ? 'update' : 'updates'} available
+                {server.updates} {server.updates === 1 ? "update" : "updates"} available
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1.5 px-2.5 py-1 text-xs text-neutral-600 border-neutral-500/30 dark:text-neutral-400">
@@ -154,7 +144,7 @@ export default function ServerUpdate() {
               <span className="truncate">A restart is required to apply kernel or core system updates.</span>
             </div>
             <Button size="sm" asChild className="h-7 text-xs shrink-0 cursor-pointer" variant="outline">
-              <Link href={withQuery(`/servers/${server.id}/restart`, { start: 1 })}>
+              <Link href={`/servers/${server.id}/restart`}>
                 Restart server
               </Link>
             </Button>
@@ -187,7 +177,7 @@ export default function ServerUpdate() {
               ) : (
                 <>
                   <RefreshCwIcon className="size-3.5" />
-                  <span>{server.updates > 0 ? `Update ${server.updates} packages` : 'Update packages'}</span>
+                  <span>{server.updates > 0 ? `Update ${server.updates} packages` : "Update packages"}</span>
                 </>
               )}
             </Button>
@@ -201,7 +191,7 @@ export default function ServerUpdate() {
                 className="h-7.5 text-xs gap-1.5 cursor-pointer border-neutral-500/40 text-neutral-600 hover:bg-neutral-500/10"
               >
                 <RefreshCwIcon className="size-3" />
-                <span>Update kernel &amp; restart</span>
+                <span>{"Update kernel & restart"}</span>
               </Button>
             )}
 
@@ -231,7 +221,7 @@ export default function ServerUpdate() {
                 className="size-7 text-muted-foreground hover:text-foreground cursor-pointer"
                 asChild
                 title="Download log file"
-                aria-label="Download log"
+                aria-label={'Download log'}
               >
                 <a
                   href={`/servers/${server.id}/logs/${activeLogId}/download`}
@@ -301,7 +291,7 @@ export default function ServerUpdate() {
               <div className="text-neutral-500">
                 {server.updates > 0
                   ? `${server.updates} package updates available. Click "Update packages" to apply.`
-                  : 'Ready. No package updates pending.'}
+                  : "Ready. No package updates pending."}
               </div>
             )}
 

@@ -48,7 +48,7 @@ export default function UpdateProfile() {
                 value={form.data.name}
                 onChange={(e) => form.setData('name', e.target.value)}
                 autoComplete="name"
-                placeholder="Full name"
+                placeholder={'Full name'}
               />
               <InputError message={form.errors.name} />
             </div>
@@ -60,7 +60,7 @@ export default function UpdateProfile() {
                 value={form.data.email}
                 onChange={(e) => form.setData('email', e.target.value)}
                 autoComplete="username"
-                placeholder="Email address"
+                placeholder={'Email address'}
               />
               <InputError message={form.errors.email} />
             </div>

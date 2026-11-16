@@ -19,7 +19,7 @@ export default function SiteTopology() {
     resources: SiteResource[];
     hostedDomains: HostedDomain[];
     dnsProviders: DNSProvider[];
-    domainProxyStatus: Record<string, boolean>;
+    domainProxyStatus: Record<string, boolean | null>;
     overviewWorkersCount: number;
     overviewCronJobsCount: number;
   }>();
@@ -32,7 +32,7 @@ export default function SiteTopology() {
       <Container className="gap-6">
         <HeaderContainer>
           <Heading
-            title="Infrastructure Topology"
+            title={'Infrastructure Topology'}
             description="Interactive diagram of domain routing, runtime environment, connected databases, cache, storage, and background workers."
           />
           {site.status !== 'installation_failed' && <SiteBanners site={site} compact />}

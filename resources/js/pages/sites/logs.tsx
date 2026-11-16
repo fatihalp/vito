@@ -30,7 +30,7 @@ export default function ShowSite() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Logs" description="Here you can see your site's logs" />
+          <Heading title={'Logs'} description="Here you can see your site's logs" />
           {page.props.site.php_version && (
             <Button variant="outline" asChild>
               <Link

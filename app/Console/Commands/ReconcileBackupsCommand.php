@@ -83,7 +83,7 @@ class ReconcileBackupsCommand extends Command
             BackupFileStatus::DELETING => BackupFileStatus::DELETE_FAILED,
             default => BackupFileStatus::FAILED,
         };
-        $file->message = __('Interrupted — no active job. Marked failed by reconciliation.');
+        $file->message = 'Interrupted — no active job. Marked failed by reconciliation.';
         $file->save();
 
         SocketEvent::dispatch(new SocketEventDTO(

@@ -41,7 +41,7 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
             <DropdownMenuItem
               onSelect={() =>
                 dialog.confirm.open({
-                  title: `Rebuild ${replica.replica_server_name}`,
+                  title: `Rebuild ${((replica.replica_server_name ?? '—'))}`,
                   description:
                     'Pure restores this server again from the latest pgBackRest backup and replaces its PostgreSQL data. Use it when the replica lost WAL it needed, setup failed, or it is a former primary.',
                   confirmLabel: 'Rebuild',
@@ -61,7 +61,7 @@ export default function DatabaseReplicaActions({ replica, failoverEnabled = fals
             variant="destructive"
             onSelect={() =>
               dialog.confirm.open({
-                title: `Delete replica ${replica.replica_server_name}`,
+                title: `Delete replica ${((replica.replica_server_name ?? '—'))}`,
                 description:
                   'Removes the replication slot, user and firewall access from the primary, stops WAL archiving on the replica and turns it into an independent writable server. No data is deleted. If the replica cannot be reached, Pure asks you to delete it a second time.',
                 variant: 'destructive',

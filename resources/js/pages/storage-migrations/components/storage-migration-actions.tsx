@@ -86,7 +86,7 @@ export default function StorageMigrationActions({ storageMigration }: { storageM
               storageMigration={storageMigration}
               phase="scan"
               action={storageMigration.scan_paused ? 'resume' : 'pause'}
-              label={storageMigration.scan_paused ? 'Resume scanning' : 'Pause scanning'}
+              label={storageMigration.scan_paused ? "Resume scanning" : "Pause scanning"}
             />
           )}
           {isOpen && (
@@ -94,7 +94,7 @@ export default function StorageMigrationActions({ storageMigration }: { storageM
               storageMigration={storageMigration}
               phase="transfer"
               action={storageMigration.transfer_paused ? 'resume' : 'pause'}
-              label={storageMigration.transfer_paused ? 'Resume transfers' : 'Pause transfers'}
+              label={storageMigration.transfer_paused ? "Resume transfers" : "Pause transfers"}
             />
           )}
           {['partial', 'failed'].includes(storageMigration.status) && (

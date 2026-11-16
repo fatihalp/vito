@@ -63,7 +63,7 @@ export default function NetworkSettings() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Settings" description="Manage this network's settings" />
+          <Heading title={'Settings'} description="Manage this network's settings" />
         </HeaderContainer>
 
         <Card className="overflow-hidden">
@@ -160,8 +160,7 @@ export default function NetworkSettings() {
             <CardHeader>
               <CardTitle>Provider managed</CardTitle>
               <CardDescription>
-                This network mirrors a private network at your cloud provider. Its members are synced automatically, and it is removed from Pure when
-                the network no longer exists at the provider.
+                This network mirrors a private network at your cloud provider. Its members are synced automatically, and it is removed from Pure when the network no longer exists at the provider.
               </CardDescription>
             </CardHeader>
             <CardContent className="bg-background p-0">
@@ -177,7 +176,7 @@ export default function NetworkSettings() {
               <Separator />
               <div className="flex items-center justify-between p-4">
                 <span>Last synced</span>
-                <span className="text-muted-foreground">{network.last_synced_at ? formatDateString(network.last_synced_at) : 'Never'}</span>
+                <span className="text-muted-foreground">{network.last_synced_at ? formatDateString(network.last_synced_at) : "Never"}</span>
               </div>
             </CardContent>
           </Card>
@@ -188,8 +187,7 @@ export default function NetworkSettings() {
             <TriangleAlertIcon className="size-4" />
             <AlertTitle>Provider connection removed</AlertTitle>
             <AlertDescription>
-              The cloud provider connection this network came from no longer exists, so it can no longer be synced or removed automatically. Deleting
-              it here is the only way to clear it.
+              The cloud provider connection this network came from no longer exists, so it can no longer be synced or removed automatically. Deleting it here is the only way to clear it.
             </AlertDescription>
           </Alert>
         )}
@@ -199,8 +197,7 @@ export default function NetworkSettings() {
             <TriangleAlertIcon className="size-4" />
             <AlertTitle>Cannot be synced</AlertTitle>
             <AlertDescription>
-              None of this network's servers still carries the identifier its cloud provider knows them by, so Pure can no longer sync it or remove it
-              automatically. Deleting it here is the only way to clear it.
+              {"None of this network's servers still carries the identifier its cloud provider knows them by, so Pure can no longer sync it or remove it automatically. Deleting it here is the only way to clear it."}
             </AlertDescription>
           </Alert>
         )}

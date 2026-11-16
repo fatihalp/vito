@@ -38,7 +38,7 @@ class CreateNetworkPeer
             $ip = Cidr::nextHost((string) $network->cidr, $used);
             if ($ip === null) {
                 throw ValidationException::withMessages([
-                    'name' => __('The network address block is full.'),
+                    'name' => 'The network address block is full.',
                 ]);
             }
 

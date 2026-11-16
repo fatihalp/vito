@@ -28,6 +28,6 @@ class PrivateRangeRule implements ValidationRule
             }
         }
 
-        $fail('The :attribute must be a private range inside 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10 or fc00::/7.')->translate();
+        $fail('The :attribute must be a private range inside 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16, 100.64.0.0/10 or fc00::/7.');
     }
 }

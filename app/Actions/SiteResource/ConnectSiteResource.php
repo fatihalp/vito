@@ -60,12 +60,13 @@ class ConnectSiteResource
                 'exclude_unless:type,storage',
                 'required',
                 'integer',
-                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId, $isAdmin): void {
-                    if (! $isAdmin) {
-                        $query->where('project_id', $projectId)
-                            ->orWhereNull('project_id');
+                Rule::exists('storage_providers', 'id')->where(
+                    function (Builder $query) use ($projectId, $isAdmin, $user): void {
+                        if (! $isAdmin) {
+                            $this->restrictToUserStorage($query, $user?->id, $projectId);
+                        }
                     }
-                }),
+                ),
             ],
             'database_id' => ['nullable', 'integer'],
             'database_name' => ['nullable', 'string', 'max:64'],
@@ -77,7 +78,7 @@ class ConnectSiteResource
         $type = SiteResourceType::from($data['type']);
 
         if ($site->resources()->where('type', $type->value)->exists()) {
-            throw ValidationException::withMessages(['type' => __('This resource type is already connected to the site.')]);
+            throw ValidationException::withMessages(['type' => 'This resource type is already connected to the site.']);
         }
 
         if ($type === SiteResourceType::STORAGE) {
@@ -94,13 +95,13 @@ class ConnectSiteResource
 
         if (! $isOwnServer && $server->role !== $type->serverRole()) {
             throw ValidationException::withMessages([
-                'server_id' => __('Select a ready :role.', ['role' => $type->serverRole()?->getText()]),
+                'server_id' => 'Select a ready '.$type->serverRole()?->getText().'.',
             ]);
         }
 
         if (! $server->isReady()) {
             throw ValidationException::withMessages([
-                'server_id' => __('Select a ready :role.', ['role' => $type->serverRole()?->getText()]),
+                'server_id' => 'Select a ready '.$type->serverRole()?->getText().'.',
             ]);
         }
 
@@ -122,7 +123,7 @@ class ConnectSiteResource
         $handler = $service?->handler();
 
         if (! $service || ! $handler instanceof DatabaseHandler || ! $handler instanceof SupportsNetworking) {
-            throw ValidationException::withMessages(['server_id' => __('The selected server has no network-capable database service.')]);
+            throw ValidationException::withMessages(['server_id' => 'The selected server has no network-capable database service.']);
         }
 
         $charsetData = $handler->getCharsets();
@@ -130,7 +131,7 @@ class ConnectSiteResource
         $collation = (string) ($charsetData['charsets'][$charset]['default'] ?? $charsetData['charsets'][$charset]['list'][0] ?? '');
 
         if ($charset === '' || $collation === '') {
-            throw ValidationException::withMessages(['server_id' => __('Could not determine database charset settings.')]);
+            throw ValidationException::withMessages(['server_id' => 'Could not determine database charset settings.']);
         }
 
         $name = ! empty($options['database_name']) ? $options['database_name'] : 'site_'.$site->id;
@@ -220,7 +221,7 @@ class ConnectSiteResource
         $handler = $service?->handler();
 
         if (! $service || ! $handler instanceof SupportsNetworkingSecret) {
-            throw ValidationException::withMessages(['server_id' => __('The selected server has no network-capable Redis service.')]);
+            throw ValidationException::withMessages(['server_id' => 'The selected server has no network-capable Redis service.']);
         }
 
         if ($isLocal) {
@@ -260,6 +261,12 @@ class ConnectSiteResource
         }
     }
 
+    private function restrictToUserStorage($query, ?int $userId, int $projectId): void
+    {
+        $query->where('user_id', $userId)
+            ->where(fn ($scope) => $scope->where('project_id', $projectId)->orWhereNull('project_id'));
+    }
+
     private function connectStorage(Site $site, int $storageProviderId, bool $isAdmin, bool $confirmOverwrite = false): SiteResource
     {
         if (! $confirmOverwrite) {
@@ -269,8 +276,7 @@ class ConnectSiteResource
         $storageProvider = StorageProvider::query()
             ->where(function ($query) use ($site, $isAdmin): void {
                 if (! $isAdmin) {
-                    $query->where('project_id', $site->server->project_id)
-                        ->orWhereNull('project_id');
+                    $this->restrictToUserStorage($query, auth()->id(), $site->server->project_id);
                 }
             })
             ->findOrFail($storageProviderId);

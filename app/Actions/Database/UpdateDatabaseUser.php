@@ -114,7 +114,7 @@ class UpdateDatabaseUser
         $newHost = $this->changedHost($databaseUser, $input);
         if ($newHost !== null && $handler->databaseUserExists($databaseUser->server, $databaseUser->username, $newHost, $databaseUser)) {
             throw ValidationException::withMessages([
-                'host' => __('A database user with this username and host already exists.'),
+                'host' => 'A database user with this username and host already exists.',
             ]);
         }
     }

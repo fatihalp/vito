@@ -34,7 +34,7 @@ export default function DatabaseSelect({
     <div className="flex items-center gap-2">
       <Select value={value} onValueChange={onValueChange} disabled={query.isFetching}>
         <SelectTrigger {...props}>
-          <SelectValue placeholder={query.isFetching ? 'Loading...' : 'Select a database'} />
+          <SelectValue placeholder={query.isFetching ? "Loading..." : "Select a database"} />
         </SelectTrigger>
         <SelectContent>
           <SelectGroup>

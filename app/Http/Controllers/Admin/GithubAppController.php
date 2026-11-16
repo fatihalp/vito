@@ -89,11 +89,11 @@ class GithubAppController extends Controller
         $state = $request->session()->pull('github-app.manifest-state');
 
         if ($code === '') {
-            return to_route('github-app')->with('error', __('GitHub did not return a manifest code.'));
+            return to_route('github-app')->with('error', 'GitHub did not return a manifest code.');
         }
 
         if ($state === null || ! hash_equals($state, (string) $request->query('state'))) {
-            return to_route('github-app')->with('error', __('The GitHub App creation request did not originate from this session. Try again.'));
+            return to_route('github-app')->with('error', 'The GitHub App creation request did not originate from this session. Try again.');
         }
 
         try {
@@ -101,10 +101,10 @@ class GithubAppController extends Controller
         } catch (\Throwable $e) {
             Log::error('GitHub App manifest conversion failed', ['error' => $e->getMessage()]);
 
-            return to_route('github-app')->with('error', __('Failed to create GitHub App: :error', ['error' => $e->getMessage()]));
+            return to_route('github-app')->with('error', 'Failed to create GitHub App: '.$e->getMessage());
         }
 
-        return to_route('github-app')->with('success', __('GitHub App created successfully.'));
+        return to_route('github-app')->with('success', 'GitHub App created successfully.');
     }
 
     #[Post('/manual', name: 'github-app.manual')]
@@ -114,7 +114,7 @@ class GithubAppController extends Controller
 
         $request->session()->forget('github_app_pending_webhook_secret');
 
-        return to_route('github-app')->with('success', __('GitHub App configured.'));
+        return to_route('github-app')->with('success', 'GitHub App configured.');
     }
 
     private function pendingWebhookSecret(Request $request): string
@@ -133,7 +133,7 @@ class GithubAppController extends Controller
     {
         $app = GithubApp::current();
         if (! $app) {
-            return to_route('github-app')->with('error', __('GitHub App is not configured.'));
+            return to_route('github-app')->with('error', 'GitHub App is not configured.');
         }
 
         return redirect("https://github.com/apps/{$app->app_slug}/installations/new");
@@ -144,12 +144,12 @@ class GithubAppController extends Controller
     {
         $installationId = (int) $request->query('installation_id');
         if ($installationId === 0) {
-            return to_route('source-controls')->with('error', __('Missing installation_id from GitHub.'));
+            return to_route('source-controls')->with('error', 'Missing installation_id from GitHub.');
         }
 
         $action->import($installationId);
 
-        return to_route('source-controls')->with('success', __('GitHub App installation connected.'));
+        return to_route('source-controls')->with('success', 'GitHub App installation connected.');
     }
 
     #[Post('/sync', name: 'github-app.sync')]
@@ -159,7 +159,7 @@ class GithubAppController extends Controller
 
         return to_route('github-app')->with(
             'success',
-            __('Sync complete. :added added, :removed removed, :kept kept.', $result)
+            "Sync complete. {$result['added']} added, {$result['removed']} removed, {$result['kept']} kept."
         );
     }
 
@@ -168,7 +168,7 @@ class GithubAppController extends Controller
     {
         $action->remove();
 
-        return to_route('github-app')->with('success', __('GitHub App removed.'));
+        return to_route('github-app')->with('success', 'GitHub App removed.');
     }
 
     

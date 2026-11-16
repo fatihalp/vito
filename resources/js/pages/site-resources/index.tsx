@@ -146,7 +146,7 @@ export default function SiteResources() {
               data: { ...data, confirm_overwrite: true },
             });
           } else {
-            toast.error(serverError || storageError || typeError || 'Failed to connect resource');
+            toast.error(serverError || storageError || typeError || Object.values(errors).find((message) => typeof message === 'string' && message) || 'Failed to connect resource');
           }
         },
       },
@@ -238,6 +238,10 @@ export default function SiteResources() {
   };
 
   const copyEnv = (resource: SiteResource) => {
+    if (resource.secrets_redacted) {
+      dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource });
+      return;
+    }
     if (!resource.environment || Object.keys(resource.environment).length === 0) {
       toast.error('No environment variables to copy');
       return;
@@ -275,9 +279,9 @@ export default function SiteResources() {
       <Container>
         <HeaderContainer>
           <div className="flex items-center gap-2.5">
-            <Heading title="Resources" />
+            <Heading title={'Resources'} />
             <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
-              {connectedCount} of 3 connected
+              {connectedCount} resources registered
             </Badge>
           </div>
           {page.props.site.status !== 'installation_failed' && <SiteBanners site={page.props.site} compact />}
@@ -298,7 +302,7 @@ export default function SiteResources() {
                     {dbResource ? (
                       <Badge variant={dbResource.status_color}>
                         {dbResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {dbResource.status === 'ready' ? 'Connected' : dbResource.status}
+                        {dbResource.status === 'ready' ? "Connected" : dbResource.status}
                       </Badge>
                     ) : isDbInstalling ? (
                       <Badge variant="warning" className="text-xs">
@@ -307,7 +311,7 @@ export default function SiteResources() {
                       </Badge>
                     ) : isDbReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {"Ready"}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -317,7 +321,7 @@ export default function SiteResources() {
                   </div>
                   {dbResource && (
                     <p className="text-xs text-muted-foreground truncate">
-                      {getResourceTitle(dbResource)} · {dbResource.server?.name ?? 'Server'} ({dbResource.server?.ip ?? ''})
+                      {getResourceTitle(dbResource)} · {dbResource.server?.name ?? "Server"} ({dbResource.server?.ip ?? ''})
                     </p>
                   )}
                 </div>
@@ -332,7 +336,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(dbResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -352,6 +356,7 @@ export default function SiteResources() {
                       </>
                     )}
                   </Button>
+                  <Button variant="outline" size="sm" asChild><Link href={`/servers/${page.props.server.id}/sites/${page.props.site.id}/resources/${dbResource.id}/browse`}>Browse tables</Link></Button>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -396,7 +401,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Database
+                      {"Connect database"}
                     </Button>
                   ) : (
                     <Button
@@ -411,7 +416,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Install PostgreSQL &amp; Connect
+                      {"Install PostgreSQL & Connect"}
                     </Button>
                   )}
                 </div>
@@ -425,6 +430,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={dbResource.environment}
+                    redacted={dbResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: dbResource })}
                     type="database"
                     title={null}
                   />
@@ -440,11 +447,11 @@ export default function SiteResources() {
                 </div>
                 <div className="min-w-0 space-y-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-sm font-semibold">Cache &amp; Queue (Redis)</span>
+                    <span className="text-sm font-semibold">{"Cache & Queue (Redis)"}</span>
                     {cacheResource ? (
                       <Badge variant={cacheResource.status_color}>
                         {cacheResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {cacheResource.status === 'ready' ? 'Connected' : cacheResource.status}
+                        {cacheResource.status === 'ready' ? "Connected" : cacheResource.status}
                       </Badge>
                     ) : isCacheInstalling ? (
                       <Badge variant="warning" className="text-xs">
@@ -453,7 +460,7 @@ export default function SiteResources() {
                       </Badge>
                     ) : isCacheReady ? (
                       <Badge variant="outline" className="text-xs font-normal text-neutral-600 dark:text-neutral-400 border-neutral-500/30">
-                        Ready
+                        {"Ready"}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -463,7 +470,7 @@ export default function SiteResources() {
                   </div>
                   {cacheResource && (
                     <p className="text-xs text-muted-foreground truncate">
-                      Redis · {cacheResource.server?.name ?? 'Server'} ({cacheResource.server?.ip ?? ''})
+                      Redis · {cacheResource.server?.name ?? "Server"} ({cacheResource.server?.ip ?? ''})
                     </p>
                   )}
                 </div>
@@ -478,7 +485,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(cacheResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -542,7 +549,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Connect Redis
+                      {"Connect Redis"}
                     </Button>
                   ) : (
                     <Button
@@ -557,7 +564,7 @@ export default function SiteResources() {
                       ) : (
                         <PlusIcon className="size-3.5" />
                       )}
-                      Install Redis &amp; Connect
+                      {"Install Redis & Connect"}
                     </Button>
                   )}
                 </div>
@@ -571,6 +578,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={cacheResource.environment}
+                    redacted={cacheResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: cacheResource })}
                     type="cache"
                     title={null}
                   />
@@ -590,7 +599,7 @@ export default function SiteResources() {
                     {storageResource ? (
                       <Badge variant={storageResource.status_color}>
                         {storageResource.status === 'connecting' && <LoaderCircleIcon className="mr-1 size-3 animate-spin" />}
-                        {storageResource.status === 'ready' ? 'Connected' : storageResource.status}
+                        {storageResource.status === 'ready' ? "Connected" : storageResource.status}
                       </Badge>
                     ) : (
                       <Badge variant="outline" className="text-xs font-normal text-muted-foreground">
@@ -615,7 +624,7 @@ export default function SiteResources() {
                     onClick={() => copyEnv(storageResource)}
                   >
                     <CopyIcon className="size-3.5" />
-                    <span>Copy .env</span>
+                    <span>Details</span>
                   </Button>
                   <Button
                     variant="ghost"
@@ -682,12 +691,12 @@ export default function SiteResources() {
                         ) : (
                           <PlusIcon className="size-3.5" />
                         )}
-                        Connect Storage
+                        {"Connect storage"}
                       </Button>
                     </>
                   ) : (
                     <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" asChild>
-                      <Link href={"/settings/storage-providers"}>
+                      <Link href="/settings/storage-providers">
                         <ExternalLinkIcon className="size-3.5" />
                         Configure Provider
                       </Link>
@@ -704,6 +713,8 @@ export default function SiteResources() {
                 <CardContent className="border-t border-border/50 bg-muted/10 p-4 pt-3">
                   <ResourceCredentialsView
                     environment={storageResource.environment}
+                    redacted={storageResource.secrets_redacted}
+                    onReveal={() => dialog.siteResourceReveal.open({ serverId: page.props.server.id, siteId: page.props.site.id, resource: storageResource })}
                     type="storage"
                     title={null}
                   />

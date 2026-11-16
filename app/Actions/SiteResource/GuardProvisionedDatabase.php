@@ -13,7 +13,7 @@ class GuardProvisionedDatabase
     {
         if ($this->isReferenced($user->server_id, 'database_user_id', $user->id)) {
             throw ValidationException::withMessages([
-                'database_user' => __('Disconnect the site resource before changing its Vito-managed database user.'),
+                'database_user' => 'Disconnect the site resource before changing its Vito-managed database user.',
             ]);
         }
     }

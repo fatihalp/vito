@@ -49,8 +49,7 @@ export default function PromoteDatabaseReplica({
                 <li>Mark {replica.primary_server_name} as needing a rebuild, so you can add it back as a replica.</li>
               </ol>
               <p>
-                Lag at the last check: <strong>{lag != null ? formatBytes(lag) : 'unknown'}</strong>. Commits that did not reach the replica are lost.
-                This cannot be undone.
+                Lag at the last check: <strong>{lag != null ? formatBytes(lag) : "unknown"}</strong>. Commits that did not reach the replica are lost. This cannot be undone.
               </p>
               <p className="text-muted-foreground">Pure does not change your applications. Point them at the new primary afterwards.</p>
             </div>

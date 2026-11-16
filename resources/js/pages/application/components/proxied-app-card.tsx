@@ -51,7 +51,7 @@ export default function ProxiedAppCard({ site, initialWorker }: { site: Site; in
             <StartCommand site={site}>
               <Button variant="outline" className="h-6 max-w-full min-w-0 overflow-hidden font-mono text-xs">
                 <span className="block min-w-0 truncate" title={site.start_command ?? undefined}>
-                  {site.start_command ?? 'Not set'}
+                  {site.start_command ?? "Not set"}
                 </span>
               </Button>
             </StartCommand>
@@ -63,7 +63,7 @@ export default function ProxiedAppCard({ site, initialWorker }: { site: Site; in
           <div className="flex items-center gap-1">
             <ErrorIndicator error={worker?.error ?? null} label="Worker error" />
             <Badge variant={worker?.status_color ?? 'gray'} className="text-xs">
-              {worker?.status ?? 'pending_deploy'}
+              {worker?.status ?? "pending_deploy"}
             </Badge>
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>

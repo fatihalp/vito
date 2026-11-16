@@ -2,49 +2,35 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Actions\VitoSetting\ExportVitoSettings;
-use App\Actions\VitoSetting\ImportVitoSettings;
+use App\Actions\VitoSetting\BackupVitoDatabase;
+use App\Actions\VitoSetting\ListBackupStorageProviders;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
-use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 #[Prefix('admin/vito')]
 #[Middleware(['auth', 'must-be-admin'])]
 class VitoSettingController extends Controller
 {
     #[Get('/', name: 'vito-settings')]
-    public function index(): Response
+    public function index(ListBackupStorageProviders $action): Response
     {
-        return Inertia::render('vito-settings/index');
+        return Inertia::render('vito-settings/index', [
+            'storageProviders' => $action->list(user()),
+        ]);
     }
 
-    #[Get('/export', name: 'vito-settings.export')]
-    public function downloadExport(): BinaryFileResponse
+    #[Post('/backup', name: 'vito-settings.backup')]
+    public function backup(Request $request, BackupVitoDatabase $action): RedirectResponse
     {
-        $exportName = 'vito-backup-'.date('Y-m-d').'.zip';
+        $key = $action->backup($request->user(), $request->all());
 
-        $export = app(ExportVitoSettings::class)->export($exportName);
-        app()->terminating(fn () => File::deleteDirectory(dirname($export)));
-
-        return response()->download($export, $exportName);
-    }
-
-    #[Post('/import', name: 'vito-settings.import')]
-    public function import(Request $request): RedirectResponse
-    {
-        config(['session.driver' => 'file']);
-
-        app(ImportVitoSettings::class)->import($request->all());
-
-        return redirect()->route('vito-settings')
-            ->with('success', 'Settings imported successfully.');
+        return back()->with('success', 'Database backed up to '.$key);
     }
 }

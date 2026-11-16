@@ -160,7 +160,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
           {orderedTableData.searchable && (
             <>
               <Input
-                placeholder="Search..."
+                placeholder={'Search...'}
                 aria-label="Search table"
                 className={cn('max-w-sm', toolbar && 'min-w-48 flex-1')}
                 value={searchTerm}
@@ -195,7 +195,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                     >
                       {colDef.sortable ? (
                         <button type="button" className="flex cursor-pointer items-center gap-2" onClick={() => onSort(colDef.sort_key)}>
-                          {colDef.header}
+                          {typeof colDef.header === 'string' ? colDef.header : colDef.header}
                           {sortState.active ? (
                             sortState.direction === 'asc' ? (
                               <ChevronUpIcon className="text-muted-foreground inline-block h-4 w-4" />
@@ -207,7 +207,7 @@ export function VitoTable({ tableData, children, modal, isFetching, showPaginati
                           )}
                         </button>
                       ) : (
-                        colDef.header
+                        typeof colDef.header === 'string' ? colDef.header : colDef.header
                       )}
                     </TableHead>
                   );

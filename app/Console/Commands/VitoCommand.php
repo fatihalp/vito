@@ -22,7 +22,7 @@ class VitoCommand extends Command
         }
 
         if (! $this->option('no-build')) {
-            if (! is_dir(base_path('node_modules')) && ! $this->runProcess(['npm', 'install'], 600)) {
+            if (! $this->runProcess(['npm', 'ci', '--include=dev', '--no-audit', '--no-fund'], 600)) {
                 return self::FAILURE;
             }
 

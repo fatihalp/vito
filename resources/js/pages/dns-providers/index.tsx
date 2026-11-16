@@ -23,10 +23,10 @@ export default function DNSProviders() {
 
   return (
     <SettingsLayout>
-      <Head title="DNS Providers" />
+      <Head title={'DNS Providers'} />
       <Container>
         <div className="flex items-start justify-between">
-          <Heading title="DNS Providers" />
+          <Heading title={'DNS Providers'} />
           <div className="flex items-center gap-2">
             <ConnectDNSProvider>
               <Button>Connect</Button>

@@ -14,7 +14,7 @@ class RemoveGithubApp
     {
         if (config('app.demo')) {
             throw ValidationException::withMessages([
-                'github_app' => __('Cannot modify on Demo!'),
+                'github_app' => 'Cannot modify on Demo!',
             ]);
         }
 
@@ -26,7 +26,7 @@ class RemoveGithubApp
 
         if ($hasSites) {
             throw ValidationException::withMessages([
-                'github_app' => __('Cannot remove the GitHub App while sites are still attached to its installations.'),
+                'github_app' => 'Cannot remove the GitHub App while sites are still attached to its installations.',
             ]);
         }
 

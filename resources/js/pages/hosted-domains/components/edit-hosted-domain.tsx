@@ -77,8 +77,8 @@ export default function EditHostedDomain({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg" onCloseAutoFocus={(e) => e.preventDefault()}>
         <DialogHeader>
-          <DialogTitle>{installSsl ? `Install SSL for ${hostedDomain.domain}` : 'Edit Domain'}</DialogTitle>
-          <DialogDescription className="sr-only">{installSsl ? 'Install SSL certificate' : 'Edit hosted domain'}</DialogDescription>
+          <DialogTitle>{installSsl ? `Install SSL for ${hostedDomain.domain}` : "Edit Domain"}</DialogTitle>
+          <DialogDescription className="sr-only">{installSsl ? "Install SSL certificate" : "Edit hosted domain"}</DialogDescription>
         </DialogHeader>
         <Form className="p-4" id="edit-hosted-domain-form" onSubmit={submit}>
           <FormFields>
@@ -99,7 +99,7 @@ export default function EditHostedDomain({
               <Label htmlFor="edit-type">Type</Label>
               <Select onValueChange={(value) => form.setData('type', value)} value={form.data.type} disabled={isPrimary}>
                 <SelectTrigger id="edit-type">
-                  <SelectValue placeholder="Select type" />
+                  <SelectValue placeholder={'Select type'} />
                 </SelectTrigger>
                 <SelectContent>
                   {isPrimary && <SelectItem value="primary">Primary</SelectItem>}
@@ -109,8 +109,7 @@ export default function EditHostedDomain({
               </Select>
               {!isPrimary && (
                 <p className="text-muted-foreground text-sm">
-                  <strong>Alias</strong> serves the same site content under another domain. <strong>Redirect</strong> sends visitors to the primary
-                  domain via an HTTP redirect.
+                  <strong>Alias</strong> serves the same site content under another domain. <strong>Redirect</strong> sends visitors to the primary domain via an HTTP redirect.
                 </p>
               )}
               <InputError message={form.errors.type} />
@@ -136,7 +135,7 @@ export default function EditHostedDomain({
                 <Label htmlFor="edit-ssl_id">SSL Certificate</Label>
                 <Select onValueChange={(value) => form.setData('ssl_id', value)} value={form.data.ssl_id}>
                   <SelectTrigger id="edit-ssl_id">
-                    <SelectValue placeholder={loadingSsls ? 'Loading...' : 'Select a certificate'} />
+                    <SelectValue placeholder={loadingSsls ? "Loading..." : "Select a certificate"} />
                   </SelectTrigger>
                   <SelectContent>
                     {matchingSsls.map((ssl) => (

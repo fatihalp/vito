@@ -98,7 +98,7 @@ export default function HostedDomains() {
       <Container>
         <HeaderContainer>
           <Heading
-            title={`Domains${typeof domainsCount === 'number' && domainsCount > 0 ? ` (${domainsCount})` : ''}`}
+            title={domainsCount ? `Domains (${domainsCount})` : 'Domains'}
             description="Manage domains and SSL assignments for this site"
           />
           <div className="flex items-center gap-2">

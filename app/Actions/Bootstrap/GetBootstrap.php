@@ -109,6 +109,6 @@ final class GetBootstrap
 
     private function publicKeyText(): string
     {
-        return $this->cachedPublicKeyText ??= __('servers.create.public_key_text', ['public_key' => get_public_key_content()]);
+        return $this->cachedPublicKeyText ??= 'servers.create.public_key_text';
     }
 }

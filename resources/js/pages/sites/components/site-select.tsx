@@ -163,7 +163,7 @@ export default function SiteSelect({
           <CommandList data-slot="command-list" className="min-h-0 flex-1 overflow-y-auto" onWheel={(e) => e.stopPropagation()}>
             {sites.length === 0 ? (
               <div className="text-muted-foreground py-6 text-center text-sm">
-                {isFetching ? 'Searching...' : query === '' ? 'Start typing to search sites' : 'No sites found.'}
+                {isFetching ? "Searching..." : query === '' ? "Start typing to search sites" : "No sites found."}
               </div>
             ) : (
               <CommandGroup>

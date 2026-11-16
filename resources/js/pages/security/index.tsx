@@ -42,7 +42,7 @@ function AutoUpdateRow({ server, autoUpdate }: { server: number; autoUpdate: Aut
           <div className="flex min-w-0 flex-col gap-1.5">
             <CardTitle className="flex flex-wrap items-center gap-2">
               Automatic updates
-              <Badge variant={autoUpdate.enabled ? 'success' : 'gray'}>{autoUpdate.enabled ? 'applied' : 'not applied'}</Badge>
+              <Badge variant={autoUpdate.enabled ? 'success' : 'gray'}>{autoUpdate.enabled ? "applied" : "not applied"}</Badge>
             </CardTitle>
             <CardDescription>Pure applies package updates to this server on a schedule (times are UTC).</CardDescription>
           </div>
@@ -248,7 +248,7 @@ export default function Security() {
 
       <Container>
         <HeaderContainer>
-          <Heading title="Security" description="Harden this server: automatic updates, firewall, Fail2ban, and SSH access." />
+          <Heading title={'Security'} description="Harden this server: automatic updates, firewall, Fail2ban, and SSH access." />
           <Button variant="outline" onClick={check} disabled={checking} aria-label="Check security status">
             {checking ? <LoaderCircleIcon className="animate-spin" /> : <RefreshCwIcon />}
             <span className="hidden lg:block">Check status</span>
@@ -259,7 +259,7 @@ export default function Security() {
           <Alert>
             <TriangleAlertIcon className="text-warning" />
             <AlertDescription>
-              Before applying changes, make sure you can access your provider's recovery console in case you need to restore SSH access.
+              {"Before applying changes, make sure you can access your provider's recovery console in case you need to restore SSH access."}
             </AlertDescription>
           </Alert>
 
@@ -293,7 +293,7 @@ export default function Security() {
             <SecurityToggleCard
               serverId={serverId}
               title="Disable root SSH login"
-              description={page.props.rootLogin.manageable ? 'When on, the root user cannot log in over SSH.' : 'Pure currently connects to this server as root; switch to a non-root SSH user before disabling root login.'}
+              description={page.props.rootLogin.manageable ? "When on, the root user cannot log in over SSH." : "Pure currently connects to this server as root; switch to a non-root SSH user before disabling root login."}
               state={page.props.rootLogin}
               onToggle={(nextSecure) => {
                 dialog.confirm.open({

@@ -141,7 +141,7 @@ export default function ServerSettings() {
       <Container>
         <HeaderContainer>
           <div className="flex flex-col gap-1">
-            <Heading title="Settings" description="Manage server configuration, network settings, and project assignment." />
+            <Heading title={'Settings'} description="Manage server configuration, network settings, and project assignment." />
           </div>
           <div className="flex items-center gap-2">
             <TooltipProvider delayDuration={0}>
@@ -279,7 +279,7 @@ export default function ServerSettings() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                       <NetworkIcon className="size-3.5" />
-                      <span>Network & Connectivity</span>
+                      <span>{"Network & Connectivity"}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
                       Updating IP or Port will automatically test SSH connectivity.
@@ -311,7 +311,7 @@ export default function ServerSettings() {
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent side="top">
-                              {ipCopied ? 'Copied!' : 'Copy IP address'}
+                              {ipCopied ? "Copied!" : "Copy IP address"}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -427,7 +427,7 @@ export default function ServerSettings() {
                           </button>
                         </TooltipTrigger>
                         <TooltipContent side="top">
-                          {idCopied ? 'Copied!' : 'Copy server ID'}
+                          {idCopied ? "Copied!" : "Copy server ID"}
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -459,7 +459,7 @@ export default function ServerSettings() {
                 <div className="flex items-center justify-between px-6 py-3">
                   <span className="text-muted-foreground">Last Update Check</span>
                   <span className="text-xs text-muted-foreground">
-                    {server.last_update_check ? <DateTime date={server.last_update_check} /> : 'Never'}
+                    {server.last_update_check ? <DateTime date={server.last_update_check} /> : "Never"}
                   </span>
                 </div>
 
@@ -556,8 +556,8 @@ export default function ServerSettings() {
                     <p className="font-medium text-destructive text-sm">Remove Server</p>
                     <p className="text-muted-foreground text-xs">
                       {server.is_self
-                        ? 'This server hosts Pure itself and cannot be removed.'
-                        : 'Remove this server from Pure. The cloud instance remains active on your provider.'}
+                        ? "This server hosts Pure itself and cannot be removed."
+                        : "Remove this server from Pure. The cloud instance remains active on your provider."}
                     </p>
                   </div>
                   {server.is_self ? (

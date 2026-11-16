@@ -13,13 +13,10 @@ class DeploymentCompleted extends AbstractNotification
 
     public function rawText(): string
     {
-        $text = __('Deployment for site [:site] has completed with status: :status', [
-            'site' => $this->site->domain,
-            'status' => $this->deployment->status->getText(),
-        ]);
+        $text = 'Deployment for site ['.$this->site->domain.'] has completed with status: '.$this->deployment->status->getText();
 
         if ($this->commitSummary() !== null) {
-            $text .= "\n".__('Commit: :summary', ['summary' => $this->commitSummary()]);
+            $text .= "\n".'Commit: '.$this->commitSummary();
         }
 
         return $text;
@@ -28,21 +25,18 @@ class DeploymentCompleted extends AbstractNotification
     public function toEmail(object $notifiable): MailMessage
     {
         $message = (new MailMessage)
-            ->subject(__('Deployment completed'))
-            ->line(__('Deployment for site [:site] completed with status: :status.', [
-                'site' => $this->site->domain,
-                'status' => $this->deployment->status->getText(),
-            ]));
+            ->subject('Deployment completed')
+            ->line('Deployment for site ['.$this->site->domain.'] completed with status: '.$this->deployment->status->getText().'.');
 
         if ($this->commitSummary() !== null) {
-            $message->line(__('Commit: :summary', ['summary' => $this->commitSummary()]));
+            $message->line('Commit: '.$this->commitSummary());
         }
 
         if (! empty($this->deployment->commit_data['name'])) {
-            $message->line(__('Author: :name', ['name' => $this->deployment->commit_data['name']]));
+            $message->line('Author: '.$this->deployment->commit_data['name']);
         }
 
-        $message->action(__('View site'), url('/servers/'.$this->site->server_id.'/sites/'.$this->site->id));
+        $message->action('View site', url('/servers/'.$this->site->server_id.'/sites/'.$this->site->id));
 
         if ($this->deployment->status === DeploymentStatus::FINISHED) {
             return $message->success();

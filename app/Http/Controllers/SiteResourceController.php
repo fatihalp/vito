@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Database\BrowsePostgresDatabase;
 use App\Actions\SiteResource\ConnectSiteResource;
 use App\Actions\SiteResource\DisconnectSiteResource;
+use App\Actions\SiteResource\ResolveSiteResourceDatabaseName;
 use App\Enums\ServerRole;
 use App\Enums\SiteResourceStatus;
 use App\Http\Resources\SiteResourceResource;
@@ -29,6 +31,38 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 #[Middleware(['auth'])]
 class SiteResourceController extends Controller
 {
+    #[Get('/{resource}/browse', name: 'site-resources.browse')]
+    public function browse(
+        Server $server,
+        Site $site,
+        SiteResource $resource,
+        ResolveSiteResourceDatabaseName $databaseName,
+    ): Response {
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
+
+        $resourcesUrl = "/servers/{$server->id}/sites/{$site->id}/resources";
+
+        return Inertia::render('databases/browse', [
+            'databaseName' => $databaseName->resolve($resource),
+            'dataUrl' => url("{$resourcesUrl}/{$resource->id}/browse/data"),
+            'backUrl' => url($resourcesUrl),
+        ]);
+    }
+
+    #[Get('/{resource}/browse/data', name: 'site-resources.browse.data')]
+    public function browseData(
+        Request $request,
+        Server $server,
+        Site $site,
+        SiteResource $resource,
+        BrowsePostgresDatabase $action,
+    ): JsonResponse {
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
+
+        return response()
+            ->json($action->resource($resource, $request->query()))
+            ->header('Cache-Control', 'no-store, private');
+    }
 
     #[Get('/', name: 'site-resources')]
     public function index(Server $server, Site $site): Response
@@ -66,7 +100,7 @@ class SiteResourceController extends Controller
     #[Get('/{resource}/reveal', name: 'site-resources.reveal')]
     public function reveal(Server $server, Site $site, SiteResource $resource): JsonResponse
     {
-        $this->authorize('view', [$resource, $site, $server]);
+        $this->authorize('revealCredentials', [$resource, $site, $server]);
 
         $target = $resource->server
             ? $resource->server->name
@@ -76,7 +110,7 @@ class SiteResourceController extends Controller
             'type' => $resource->type->getText(),
             'target' => $target,
             'environment' => $resource->environment,
-        ]);
+        ])->header('Cache-Control', 'no-store, private');
     }
 
     #[Post('/', name: 'site-resources.store')]

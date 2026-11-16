@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { useRealtimeRecord } from '@/hooks/use-socket-events';
+import { httpErrorMessage } from '@/lib/request-error';
 import { toast } from 'sonner';
 
 type PageProps = {
@@ -68,6 +69,12 @@ export default function ServerRestart() {
       if (!response.ok) return false;
 
       const data = await response.json();
+      if (data.stage === 'unconfirmed') {
+        addMilestone(data.message);
+        toast.error('The restart could not be confirmed. Review the server logs before retrying.');
+        setPhase('idle');
+        return true;
+      }
 
       if (data.online) {
         setUptime(data.uptime ?? null);
@@ -97,26 +104,17 @@ export default function ServerRestart() {
           Accept: 'application/json',
         },
       });
-
       if (!response.ok) {
-        throw new Error(`Failed to reboot the server (HTTP ${response.status})`);
+        toast.error(httpErrorMessage(response.status, 'The restart request failed. Please try again.'));
+        setPhase('idle');
+        return;
       }
-
-      setPhase('probing');
-    } catch (error) {
-      setMilestones([]);
-      setPhase('idle');
-      toast.error(error instanceof Error ? error.message : 'Failed to reboot the server');
+    } catch {
+      addMilestone('The response was interrupted. Checking whether the server is reconnecting.');
     }
-  }, [csrf_token, server.id]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get('start') === '1' || params.get('auto') === '1') {
-      window.history.replaceState(null, '', window.location.pathname);
-      triggerReboot();
-    }
-  }, [triggerReboot]);
+    setPhase('probing');
+  }, [addMilestone, csrf_token, server.id]);
 
   useEffect(() => {
     if (phase !== 'probing') return;
@@ -190,21 +188,21 @@ export default function ServerRestart() {
             <div className="space-y-1">
               <h2 className="text-sm font-semibold text-foreground">
                 {phase === 'online'
-                  ? 'Server is back online'
+                  ? "Server is back online"
                   : phase === 'probing' || phase === 'rebooting'
-                  ? 'Restarting server...'
-                  : 'Restart server'}
+                  ? "Restarting server..."
+                  : "Restart server"}
               </h2>
               <p className="text-xs text-muted-foreground leading-relaxed">
                 {phase === 'online'
                   ? uptime
                     ? `System is responsive (${uptime}).`
-                    : 'SSH connection re-established.'
+                    : "SSH connection re-established."
                   : phase === 'probing' || phase === 'rebooting'
                   ? probeAttempt > 0
                     ? `Reconnecting (attempt #${probeAttempt})...`
-                    : 'Waiting for server to reconnect...'
-                  : 'Reboot the system and reload all running services.'}
+                    : "Waiting for server to reconnect..."
+                  : "Reboot the system and reload all running services."}
               </p>
             </div>
 
@@ -236,7 +234,7 @@ export default function ServerRestart() {
               className="text-[11px] text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors cursor-pointer py-1"
             >
               <TerminalIcon className="size-3" />
-              <span>{showDetails ? 'Hide details' : 'Show details'}</span>
+              <span>{showDetails ? "Hide details" : "Show details"}</span>
             </button>
 
             {showDetails && (

@@ -4,7 +4,7 @@ import { FormEvent } from 'react';
 import { useForm } from '@inertiajs/react';
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
-import { Editor, useMonaco } from '@monaco-editor/react';
+import { Editor, useMonaco } from '@/components/ui/code-editor';
 import { Sheet, SheetClose, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Form } from '@/components/ui/form';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -70,7 +70,6 @@ export default function PhpIniDialog({
             <Editor
               defaultLanguage="ini"
               value={form.data.ini}
-              theme="vs-dark"
               className="h-full"
               onChange={(value) => form.setData('ini', value ?? '')}
               options={{

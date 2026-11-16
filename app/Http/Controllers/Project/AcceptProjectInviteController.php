@@ -20,6 +20,6 @@ class AcceptProjectInviteController extends Controller
     {
         app(AcceptProjectInvite::class)->accept($project, user());
 
-        return redirect()->route('projects')->with('success', __('You joined the project successfully.'));
+        return redirect()->route('projects')->with('success', 'You joined the project successfully.');
     }
 }

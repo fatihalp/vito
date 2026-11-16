@@ -28,6 +28,13 @@ class Handler extends ExceptionHandler
         'current_password',
         'password',
         'password_confirmation',
+        'key',
+        'secret',
+        'token',
+        'app_key',
+        'app_secret',
+        'private_key',
+        'credentials',
     ];
 
     
@@ -54,7 +61,7 @@ class Handler extends ExceptionHandler
 
         if ($e instanceof AuthorizationException) {
             if ($request->header('X-Inertia')) {
-                return back()->with('error', __('You don\'t have permission to perform this action.'));
+                return back()->with('error', 'You don\'t have permission to perform this action.');
             }
         }
 
@@ -67,7 +74,7 @@ class Handler extends ExceptionHandler
         }
 
         if ($this->shouldRenderGenericError($e)) {
-            $message = __('Something went wrong on our end. Please try again, and contact support if the problem continues.');
+            $message = 'Something went wrong on our end. Please try again, and contact support if the problem continues.';
 
             if ($request->header('X-Inertia')) {
                 return back()->with('error', $message);
