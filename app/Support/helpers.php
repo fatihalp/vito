@@ -186,6 +186,11 @@ function user(): ?User
     return Auth::user();
 }
 
+function app_url(string $path): string
+{
+    return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
+}
+
 function move_directory(string $from, string $to): void
 {
     
