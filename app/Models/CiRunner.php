@@ -6,9 +6,24 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class CiRunner extends AbstractModel
 {
-    protected $fillable = ['site_id', 'server_id', 'repository', 'source_control_id', 'source_fingerprint', 'source_origin', 'user', 'executable', 'enabled'];
+    protected $fillable = [
+        'site_id',
+        'server_id',
+        'repository',
+        'source_control_id',
+        'source_fingerprint',
+        'source_origin',
+        'user',
+        'executable',
+        'enabled',
+    ];
 
-    protected $casts = ['site_id' => 'integer', 'server_id' => 'integer', 'source_control_id' => 'integer', 'enabled' => 'boolean'];
+    protected $casts = [
+        'site_id' => 'integer',
+        'server_id' => 'integer',
+        'source_control_id' => 'integer',
+        'enabled' => 'boolean',
+    ];
 
     public function site(): BelongsTo
     {

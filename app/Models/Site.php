@@ -20,6 +20,7 @@ use App\Traits\HasProjectThroughServer;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Log;
@@ -36,7 +37,7 @@ class Site extends AbstractModel
 
     use HasProjectThroughServer;
 
-    public function runtimeProcesses(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function runtimeProcesses(): BelongsToMany
     {
         return $this->belongsToMany(RuntimeProcess::class, 'runtime_process_site');
     }

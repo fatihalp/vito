@@ -14,10 +14,16 @@ class RequestBackupMonitorTask
 {
     public function request(User $user, BackupMonitor $monitor, array $input): void
     {
-        $task = Validator::make($input, ['task' => ['required', 'string', Rule::in(BackupMonitor::TASKS)]])->validate()['task'];
+        $task = Validator::make($input, [
+            'task' => ['required', 'string', Rule::in(BackupMonitor::TASKS)],
+        ])->validate()['task'];
         Gate::forUser($user)->authorize('run', [$monitor, $monitor->server]);
         $this->unit($monitor, $task);
-        $monitor->update(['task_state' => 'requested', 'last_task' => $task, 'task_requested_at' => now()]);
+        $monitor->update([
+            'task_state' => 'requested',
+            'last_task' => $task,
+            'task_requested_at' => now(),
+        ]);
         RunBackupMonitorTask::dispatch($monitor->id, $user->id, $task);
     }
 
@@ -25,7 +31,11 @@ class RequestBackupMonitorTask
     {
         Gate::forUser($user)->authorize('run', [$monitor, $monitor->server]);
         $unit = $this->unit($monitor, $task);
-        $monitor->reportServer->ssh()->clearLog()->exec(view('ssh.backups.run-monitor-task', ['unit' => $unit]), timeout: 15, outputLimit: 4096);
+        $monitor->reportServer->ssh()->clearLog()->exec(
+            view('ssh.backups.run-monitor-task', ['unit' => $unit]),
+            timeout: 15,
+            outputLimit: 4096,
+        );
         $monitor->update(['task_state' => 'submitted']);
     }
 
@@ -33,8 +43,14 @@ class RequestBackupMonitorTask
     {
         $unit = $monitor->configuration[$task.'_unit'] ?? null;
 
-        if (! $monitor->reportServer || ! is_string($unit) || ! preg_match(BackupMonitor::UNIT_PATTERN, $unit)) {
-            throw ValidationException::withMessages(['task' => __('This backup task has not been configured by an administrator.')]);
+        $isConfigured = $monitor->reportServer
+            && is_string($unit)
+            && preg_match(BackupMonitor::UNIT_PATTERN, $unit);
+
+        if (! $isConfigured) {
+            throw ValidationException::withMessages([
+                'task' => __('This backup task has not been configured by an administrator.'),
+            ]);
         }
 
         return $unit;

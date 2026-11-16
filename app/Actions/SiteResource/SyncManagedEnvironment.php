@@ -18,7 +18,7 @@ class SyncManagedEnvironment
         $managed = [];
 
         foreach ($site->resources as $resource) {
-            if ($resource->status !== SiteResourceStatus::READY || ($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
+            if ($resource->status !== SiteResourceStatus::READY || $this->isObserved($resource)) {
                 continue;
             }
 
@@ -119,5 +119,10 @@ class SyncManagedEnvironment
             ->all();
 
         return EnvParser::patch($raw, $values);
+    }
+
+    private function isObserved(SiteResource $resource): bool
+    {
+        return ($resource->configuration['management_mode'] ?? 'managed') === 'observed';
     }
 }

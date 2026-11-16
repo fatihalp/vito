@@ -31,13 +31,11 @@ class VitoSettingController extends Controller
         $exportName = 'vito-backup-'.date('Y-m-d').'.zip';
 
         $path = app(ExportVitoSettings::class)->export($exportName);
-        app()->terminating(function () use ($path): void {
-            if (is_dir(dirname($path)) && count(scandir(dirname($path))) === 2) {
-                rmdir(dirname($path));
-            }
-        });
+        app()->terminating(fn () => $this->removeDirectoryIfEmpty(dirname($path)));
 
-        return response()->download($path, $exportName, ['Cache-Control' => 'no-store, private'])->deleteFileAfterSend();
+        return response()
+            ->download($path, $exportName, ['Cache-Control' => 'no-store, private'])
+            ->deleteFileAfterSend();
     }
 
     #[Post('/import', name: 'vito-settings.import')]
@@ -49,5 +47,12 @@ class VitoSettingController extends Controller
 
         return redirect()->route('vito-settings')
             ->with('success', 'Settings imported successfully.');
+    }
+
+    private function removeDirectoryIfEmpty(string $directory): void
+    {
+        if (is_dir($directory) && count(scandir($directory)) === 2) {
+            rmdir($directory);
+        }
     }
 }

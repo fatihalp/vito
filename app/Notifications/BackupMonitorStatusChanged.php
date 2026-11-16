@@ -21,9 +21,16 @@ class BackupMonitorStatusChanged extends AbstractNotification
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__($this->recovered ? 'Backup monitoring recovered on :server' : 'Backup monitoring needs attention on :server', ['server' => $this->monitor->server->name]))
+            ->subject(__($this->subject(), ['server' => $this->monitor->server->name]))
             ->line($this->rawText())
             ->action(__('View backup monitoring'), $this->link());
+    }
+
+    private function subject(): string
+    {
+        return $this->recovered
+            ? 'Backup monitoring recovered on :server'
+            : 'Backup monitoring needs attention on :server';
     }
 
     private function link(): string

@@ -169,11 +169,14 @@ class CreateServer
 
     private function providerRules(array $input): array
     {
-        if (
-            ! isset($input['provider']) ||
-            (! in_array($input['provider'], [Custom::id(), Existing::id()]) && ! isset($input['server_provider'])) ||
-            ! config('server-provider.providers.'.$input['provider'])
-        ) {
+        if (! isset($input['provider'])) {
+            return [];
+        }
+        $isStoredProvider = ! in_array($input['provider'], [Custom::id(), Existing::id()]);
+        if ($isStoredProvider && ! isset($input['server_provider'])) {
+            return [];
+        }
+        if (! config('server-provider.providers.'.$input['provider'])) {
             return [];
         }
 

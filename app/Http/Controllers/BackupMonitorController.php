@@ -37,12 +37,19 @@ class BackupMonitorController extends Controller
     }
 
     #[Post('/{backupMonitor}/run', name: 'backup-monitors.run')]
-    public function run(Request $request, Server $server, BackupMonitor $backupMonitor, RequestBackupMonitorTask $action): RedirectResponse
-    {
+    public function run(
+        Request $request,
+        Server $server,
+        BackupMonitor $backupMonitor,
+        RequestBackupMonitorTask $action,
+    ): RedirectResponse {
         $this->authorize('run', [$backupMonitor, $server]);
         $action->request($request->user(), $backupMonitor, $request->all());
 
-        return back()->with('success', __('Backup task requested. Its result will appear after the report is refreshed.'));
+        return back()->with(
+            'success',
+            __('Backup task requested. Its result will appear after the report is refreshed.'),
+        );
     }
 
     #[Delete('/{backupMonitor}', name: 'backup-monitors.destroy')]
@@ -51,6 +58,9 @@ class BackupMonitorController extends Controller
         $this->authorize('delete', [$backupMonitor, $server]);
         $backupMonitor->delete();
 
-        return back()->with('success', __('Monitoring removed. The backup repository and external schedules were preserved.'));
+        return back()->with(
+            'success',
+            __('Monitoring removed. The backup repository and external schedules were preserved.'),
+        );
     }
 }

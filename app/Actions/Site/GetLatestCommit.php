@@ -18,7 +18,9 @@ class GetLatestCommit
         try {
             $commit = $provider->getLastCommit($site->repository, $site->branch);
         } catch (Throwable) {
-            return ['error' => __('Could not retrieve the latest commit. Check the source control connection and try again.')];
+            return [
+                'error' => __('Could not retrieve the latest commit. Check the source control connection and try again.'),
+            ];
         }
 
         if (! $commit) {

@@ -6,6 +6,7 @@ use App\Models\Project;
 use App\Models\Server;
 use App\Models\ServerProvider;
 use App\ServerProviders\Hetzner;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Throwable;
@@ -142,49 +143,41 @@ class ResolveHetznerServerSpecs
 
     public function projectCostOrderSql(): string
     {
-        $servers = Server::query()
-            ->where('provider', Hetzner::id())
-            ->with('serverProvider')
-            ->get(['id', 'project_id', 'provider', 'provider_id', 'provider_data']);
-
         $totals = [];
-        foreach ($servers as $server) {
+        foreach ($this->hetznerServers() as $server) {
             $cost = $this->resolveCost($server);
             if ($cost !== null && $server->project_id !== null) {
                 $totals[$server->project_id] = round(($totals[$server->project_id] ?? 0.0) + $cost['amount'], 2);
             }
         }
 
-        if ($totals === []) {
-            return '0';
-        }
-
-        $cases = [];
-        foreach ($totals as $projectId => $amount) {
-            if ($amount > 0) {
-                $cases[] = sprintf('WHEN %d THEN %s', (int) $projectId, number_format($amount, 2, '.', ''));
-            }
-        }
-
-        if ($cases === []) {
-            return '0';
-        }
-
-        return 'CASE projects.id '.implode(' ', $cases).' ELSE 0 END';
+        return $this->caseSql('projects.id', $totals);
     }
 
     public function serverCostOrderSql(): string
     {
-        $servers = Server::query()
+        $amounts = [];
+        foreach ($this->hetznerServers() as $server) {
+            $amounts[$server->id] = $this->resolveCost($server)['amount'] ?? 0.0;
+        }
+
+        return $this->caseSql('servers.id', $amounts);
+    }
+
+    private function hetznerServers(): Collection
+    {
+        return Server::query()
             ->where('provider', Hetzner::id())
             ->with('serverProvider')
             ->get(['id', 'project_id', 'provider', 'provider_id', 'provider_data']);
+    }
 
+    private function caseSql(string $column, array $amounts): string
+    {
         $cases = [];
-        foreach ($servers as $server) {
-            $cost = $this->resolveCost($server);
-            if ($cost !== null && $cost['amount'] > 0) {
-                $cases[] = sprintf('WHEN %d THEN %s', (int) $server->id, number_format($cost['amount'], 2, '.', ''));
+        foreach ($amounts as $id => $amount) {
+            if ($amount > 0) {
+                $cases[] = sprintf('WHEN %d THEN %s', (int) $id, number_format($amount, 2, '.', ''));
             }
         }
 
@@ -192,7 +185,7 @@ class ResolveHetznerServerSpecs
             return '0';
         }
 
-        return 'CASE servers.id '.implode(' ', $cases).' ELSE 0 END';
+        return 'CASE '.$column.' '.implode(' ', $cases).' ELSE 0 END';
     }
 
     private function resolvePlanPrice(?ServerProvider $serverProvider, string $plan, ?string $region): ?float
@@ -210,69 +203,90 @@ class ResolveHetznerServerSpecs
             return [];
         }
 
-        if (isset(self::$liveTypesCache[$serverProvider->id])) {
-            return self::$liveTypesCache[$serverProvider->id];
-        }
+        return self::$liveTypesCache[$serverProvider->id] ??= $this->loadServerTypes($serverProvider);
+    }
 
+    private function loadServerTypes(ServerProvider $serverProvider): array
+    {
         $cacheKey = 'hetzner_server_types_'.$serverProvider->id;
 
         $cached = Cache::get($cacheKey);
         if (is_array($cached) && $cached !== []) {
-            return self::$liveTypesCache[$serverProvider->id] = $cached;
+            return $cached;
         }
 
         try {
-            $token = $serverProvider->getCredentials()['token'] ?? null;
-            if (! is_string($token) || $token === '') {
-                return self::$liveTypesCache[$serverProvider->id] = [];
+            $types = $this->requestServerTypes($serverProvider);
+
+            if ($types !== []) {
+                Cache::put($cacheKey, $types, now()->addHours(12));
             }
 
-            $mapped = [];
-            $page = 1;
-            $deadline = microtime(true) + 8;
-            do {
-                $remaining = $deadline - microtime(true);
-                if ($remaining <= 0 || $page > 10) {
-                    return self::$liveTypesCache[$serverProvider->id] = [];
-                }
-                $response = Http::connectTimeout(min(2, $remaining))->timeout(min(4, $remaining))
-                    ->withToken($token)
-                    ->get('https://api.hetzner.cloud/v1/server_types', ['per_page' => 50, 'page' => $page]);
-
-                if (! $response->successful()) {
-                    return self::$liveTypesCache[$serverProvider->id] = [];
-                }
-
-                foreach ($response->json('server_types') ?? [] as $type) {
-                    $name = strtolower((string) ($type['name'] ?? ''));
-                    if ($name === '') {
-                        continue;
-                    }
-                    $prices = [];
-                    foreach ($type['prices'] ?? [] as $priceRow) {
-                        $location = strtolower((string) ($priceRow['location'] ?? ''));
-                        $net = $priceRow['price_monthly']['net'] ?? null;
-                        if ($location !== '' && is_numeric($net) && is_finite((float) $net) && (float) $net >= 0) {
-                            $prices[$location] = round((float) $net, 2);
-                        }
-                    }
-                    $mapped[$name] = ['cores' => (int) ($type['cores'] ?? 0), 'prices' => $prices];
-                }
-
-                $next = $response->json('meta.pagination.next_page');
-                if ($next !== null && (! is_int($next) || $next <= $page)) {
-                    return self::$liveTypesCache[$serverProvider->id] = [];
-                }
-                $page = $next;
-            } while ($page !== null);
-
-            if ($mapped !== []) {
-                Cache::put($cacheKey, $mapped, now()->addHours(12));
-            }
-
-            return self::$liveTypesCache[$serverProvider->id] = $mapped;
+            return $types;
         } catch (Throwable) {
-            return self::$liveTypesCache[$serverProvider->id] = [];
+            return [];
         }
+    }
+
+    private function requestServerTypes(ServerProvider $serverProvider): array
+    {
+        $token = $serverProvider->getCredentials()['token'] ?? null;
+        if (! is_string($token) || $token === '') {
+            return [];
+        }
+
+        $mapped = [];
+        $page = 1;
+        $deadline = microtime(true) + 8;
+
+        do {
+            $remaining = $deadline - microtime(true);
+            if ($remaining <= 0 || $page > 10) {
+                return [];
+            }
+
+            $response = Http::connectTimeout(min(2, $remaining))
+                ->timeout(min(4, $remaining))
+                ->withToken($token)
+                ->get('https://api.hetzner.cloud/v1/server_types', ['per_page' => 50, 'page' => $page]);
+
+            if (! $response->successful()) {
+                return [];
+            }
+
+            foreach ($response->json('server_types') ?? [] as $type) {
+                $name = strtolower((string) ($type['name'] ?? ''));
+                if ($name !== '') {
+                    $mapped[$name] = [
+                        'cores' => (int) ($type['cores'] ?? 0),
+                        'prices' => $this->monthlyPrices($type),
+                    ];
+                }
+            }
+
+            $next = $response->json('meta.pagination.next_page');
+            if ($next !== null && (! is_int($next) || $next <= $page)) {
+                return [];
+            }
+            $page = $next;
+        } while ($page !== null);
+
+        return $mapped;
+    }
+
+    private function monthlyPrices(array $type): array
+    {
+        $prices = [];
+
+        foreach ($type['prices'] ?? [] as $priceRow) {
+            $location = strtolower((string) ($priceRow['location'] ?? ''));
+            $net = $priceRow['price_monthly']['net'] ?? null;
+
+            if ($location !== '' && is_numeric($net) && is_finite((float) $net) && (float) $net >= 0) {
+                $prices[$location] = round((float) $net, 2);
+            }
+        }
+
+        return $prices;
     }
 }

@@ -31,25 +31,15 @@ class ProbeServerConnection
         try {
             $server->ssh()->connect();
 
-            $pending = Cache::get('server.pending-reboot.'.$server->id);
-            if ($pending) {
-                $bootId = trim($server->ssh()->exec('cat /proc/sys/kernel/random/boot_id', timeout: 10));
-                if (hash_equals($pending['boot_id'], $bootId)) {
-                    return [
-                        'online' => false,
-                        'stage' => now()->timestamp - $pending['requested_at'] > 180 ? 'unconfirmed' : 'waiting',
-                        'message' => 'SSH is reachable, but a new boot session has not been verified.',
-                        'timestamp' => $timestamp,
-                    ];
-                }
-                Cache::forget('server.pending-reboot.'.$server->id);
+            $unverifiedReboot = $this->unverifiedReboot($server, $timestamp);
+            if ($unverifiedReboot) {
+                return $unverifiedReboot;
             }
 
             $uptime = null;
             try {
                 $uptime = trim($server->ssh()->exec('uptime -p 2>/dev/null || uptime', timeout: 10));
             } catch (Throwable) {
-                $uptime = null;
             }
 
             if ($server->status === ServerStatus::DISCONNECTED) {
@@ -57,12 +47,7 @@ class ProbeServerConnection
                 $server->save();
             }
 
-            try {
-                $required = trim($server->ssh()->exec('if [ -f /var/run/reboot-required ]; then echo 1; else echo 0; fi', timeout: 10)) === '1';
-                $server->latestMetric()->update(['reboot_required' => $required]);
-            } catch (Throwable) {
-                report(new \RuntimeException('Could not refresh reboot-required metadata for server '.$server->id));
-            }
+            $this->refreshRebootRequired($server);
 
             app(BroadcastServerUpdate::class)->broadcast($server);
 
@@ -80,6 +65,45 @@ class ProbeServerConnection
                 'message' => "Port {$port} open, SSH daemon initializing...",
                 'timestamp' => $timestamp,
             ];
+        }
+    }
+
+    private function unverifiedReboot(Server $server, string $timestamp): ?array
+    {
+        $cacheKey = 'server.pending-reboot.'.$server->id;
+        $pending = Cache::get($cacheKey);
+
+        if (! $pending) {
+            return null;
+        }
+
+        $bootId = trim($server->ssh()->exec('cat /proc/sys/kernel/random/boot_id', timeout: 10));
+
+        if (! hash_equals($pending['boot_id'], $bootId)) {
+            Cache::forget($cacheKey);
+
+            return null;
+        }
+
+        $waitedTooLong = now()->timestamp - $pending['requested_at'] > 180;
+
+        return [
+            'online' => false,
+            'stage' => $waitedTooLong ? 'unconfirmed' : 'waiting',
+            'message' => 'SSH is reachable, but a new boot session has not been verified.',
+            'timestamp' => $timestamp,
+        ];
+    }
+
+    private function refreshRebootRequired(Server $server): void
+    {
+        $command = 'if [ -f /var/run/reboot-required ]; then echo 1; else echo 0; fi';
+
+        try {
+            $required = trim($server->ssh()->exec($command, timeout: 10)) === '1';
+            $server->latestMetric()->update(['reboot_required' => $required]);
+        } catch (Throwable) {
+            report(new \RuntimeException('Could not refresh reboot-required metadata for server '.$server->id));
         }
     }
 }

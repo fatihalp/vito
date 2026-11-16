@@ -13,11 +13,18 @@ class RegisterRuntimeProcess
 {
     public function register(Server $server, array $input): RuntimeProcess
     {
+        $reservedRuntimeNames = ($input['driver'] ?? '') === 'supervisor' ? ['all'] : [];
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
             'driver' => ['required', Rule::in(RuntimeCommand::DRIVERS)],
             'unix_user' => ['nullable', 'string', 'max:32'],
-            'runtime_name' => ['required', 'string', 'max:128', 'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*$/', Rule::notIn(($input['driver'] ?? '') === 'supervisor' ? ['all'] : [])],
+            'runtime_name' => [
+                'required',
+                'string',
+                'max:128',
+                'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*$/',
+                Rule::notIn($reservedRuntimeNames),
+            ],
             'kind' => ['required', Rule::in(['worker', 'scheduler', 'service'])],
             'site_ids' => ['sometimes', 'array', 'max:100'],
             'site_ids.*' => ['integer', 'distinct', Rule::exists('sites', 'id')->where('server_id', $server->id)],
@@ -33,7 +40,12 @@ class RegisterRuntimeProcess
 
         return DB::transaction(function () use ($server, $data): RuntimeProcess {
             $process = RuntimeProcess::query()->updateOrCreate(
-                ['server_id' => $server->id, 'driver' => $data['driver'], 'runtime_name' => $data['runtime_name'], 'unix_user' => $data['unix_user']],
+                [
+                    'server_id' => $server->id,
+                    'driver' => $data['driver'],
+                    'runtime_name' => $data['runtime_name'],
+                    'unix_user' => $data['unix_user'],
+                ],
                 ['label' => $data['label'], 'kind' => $data['kind']],
             );
             $process->sites()->sync($data['site_ids'] ?? []);

@@ -40,9 +40,7 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
-        $ssls = QueryBuilder::for(Ssl::query()
-            ->where(fn (Builder $query) => $query->where('server_id', $server->id)->orWhereHas('site', fn (Builder $sites) => $sites->where('server_id', $server->id)))
-            ->with(['log', 'site:id,domain,server_id']))
+        $ssls = QueryBuilder::for($this->serverSsls($server))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 
@@ -104,5 +102,16 @@ class ServerSslController extends Controller
         $this->authorize('downloadCsr', [$ssl, $server]);
 
         return app(DownloadCsr::class)->download($server, $ssl);
+    }
+
+    private function serverSsls(Server $server): Builder
+    {
+        return Ssl::query()
+            ->where(
+                fn (Builder $query) => $query
+                    ->where('server_id', $server->id)
+                    ->orWhereHas('site', fn (Builder $sites) => $sites->where('server_id', $server->id))
+            )
+            ->with(['log', 'site:id,domain,server_id']);
     }
 }

@@ -153,9 +153,11 @@ class StorageProviderController extends Controller
             $connected = false;
         }
 
+        $reportsError = ! $connected && $handler instanceof ReportsConnectionErrors;
+
         return response()->json([
             'connected' => $connected,
-            'error' => ! $connected && $handler instanceof ReportsConnectionErrors ? $handler->connectionError() : null,
+            'error' => $reportsError ? $handler->connectionError() : null,
         ]);
     }
 

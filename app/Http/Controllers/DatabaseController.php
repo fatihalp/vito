@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Database\CreateDatabase;
-use App\Actions\Database\ListRegisteredContainerDatabases;
 use App\Actions\Database\BrowsePostgresDatabase;
+use App\Actions\Database\ListRegisteredContainerDatabases;
 use App\Actions\Database\RefreshDatabaseSizes;
 use App\Actions\Database\SyncDatabases;
 use App\Http\Resources\DatabaseResource;
@@ -40,11 +40,17 @@ class DatabaseController extends Controller
     }
 
     #[Get('/{database}/browse/data', name: 'databases.browse.data')]
-    public function browseData(Request $request, Server $server, Database $database, BrowsePostgresDatabase $action): JsonResponse
-    {
+    public function browseData(
+        Request $request,
+        Server $server,
+        Database $database,
+        BrowsePostgresDatabase $action,
+    ): JsonResponse {
         $this->authorize('browse', [$database, $server]);
 
-        return response()->json($action->database($database, $request->query()))->header('Cache-Control', 'no-store, private');
+        return response()
+            ->json($action->database($database, $request->query()))
+            ->header('Cache-Control', 'no-store, private');
     }
 
     #[Get('/', name: 'databases')]

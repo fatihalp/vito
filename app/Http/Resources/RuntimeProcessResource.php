@@ -20,7 +20,13 @@ class RuntimeProcessResource extends JsonResource
             'status_label' => $this->status->getText(),
             'details' => $this->details ?? [],
             'last_checked_at' => $this->last_checked_at?->toIso8601String(),
-            'sites' => $this->whenLoaded('sites', fn () => $this->sites->map(fn ($site) => ['id' => $site->id, 'domain' => $site->domain])),
+            'sites' => $this->whenLoaded(
+                'sites',
+                fn () => $this->sites->map(fn ($site) => [
+                    'id' => $site->id,
+                    'domain' => $site->domain,
+                ]),
+            ),
         ];
     }
 }

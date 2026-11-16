@@ -41,7 +41,7 @@ class Server extends AbstractModel
         'role' => ServerRole::APP->value,
     ];
 
-    public function runtimeProcesses(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function runtimeProcesses(): HasMany
     {
         return $this->hasMany(RuntimeProcess::class);
     }

@@ -24,9 +24,12 @@ class DeleteKeyFromServer
         ]);
         try {
             $server->os()->deleteSSHKey($sshKey->public_key, $user);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             $server->sshKeys()->updateExistingPivot($sshKey->id, ['status' => SshKeyStatus::FAILED]);
-            throw ValidationException::withMessages(['key' => __('SSH key removal could not be confirmed. Access may still be active. Check the target user and connection, then retry.')]);
+
+            throw ValidationException::withMessages([
+                'key' => __('SSH key removal could not be confirmed. Access may still be active. Check the target user and connection, then retry.'),
+            ]);
         }
         $server->sshKeys()->detach($sshKey);
     }

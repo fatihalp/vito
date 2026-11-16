@@ -20,8 +20,15 @@ class RuntimeCommand
 
     public function validateName(string $driver, string $name): void
     {
+        $notInNames = $driver === 'supervisor' ? ['all'] : [];
         Validator::make(['runtime_name' => $name], [
-            'runtime_name' => ['required', 'string', 'max:128', 'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*$/D', Rule::notIn($driver === 'supervisor' ? ['all'] : [])],
+            'runtime_name' => [
+                'required',
+                'string',
+                'max:128',
+                'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*$/D',
+                Rule::notIn($notInNames),
+            ],
         ])->validate();
     }
 
@@ -29,12 +36,24 @@ class RuntimeCommand
     {
         Validator::make(['driver' => $driver, 'unix_user' => $user], [
             'driver' => ['required', Rule::in(self::DRIVERS)],
-            'unix_user' => ['string', 'max:32', Rule::requiredIf(self::usesUser($driver)), Rule::prohibitedIf(! self::usesUser($driver)), 'regex:/^[A-Za-z_][A-Za-z0-9_-]*$/D', Rule::notIn(['root'])],
+            'unix_user' => [
+                'string',
+                'max:32',
+                Rule::requiredIf(self::usesUser($driver)),
+                Rule::prohibitedIf(! self::usesUser($driver)),
+                'regex:/^[A-Za-z_][A-Za-z0-9_-]*$/D',
+                Rule::notIn(['root']),
+            ],
         ])->validate();
         if (self::usesUser($driver)) {
-            $registered = IsolatedUser::query()->where('server_id', $server->id)->where('username', $user)->first(['username']);
+            $registered = IsolatedUser::query()
+                ->where('server_id', $server->id)
+                ->where('username', $user)
+                ->first(['username']);
             if ($registered?->username !== $user) {
-                throw ValidationException::withMessages(['unix_user' => __('Select an isolated Linux user registered on this server.')]);
+                throw ValidationException::withMessages([
+                    'unix_user' => __('Select an isolated Linux user registered on this server.'),
+                ]);
             }
         }
     }
@@ -49,30 +68,70 @@ class RuntimeCommand
                 'supervisor' => 'supervisorctl',
             };
         }
-        try {
-            $uid = trim($server->ssh()->clearLog()->exec('id -u -- '.escapeshellarg($user), timeout: 10, outputLimit: 64));
-        } catch (Throwable) {
-            throw ValidationException::withMessages(['unix_user' => __('Could not verify the runtime user on this server.')]);
-        }
-        if (! ctype_digit($uid) || strlen($uid) > 10 || (int) $uid < 1000 || (int) $uid > 4294967294) {
-            throw ValidationException::withMessages(['unix_user' => __('User runtimes require a verified, non-system Linux user.')]);
-        }
-        $directory = '/run/user/'.(int) $uid;
-        $prefix = 'sudo -n -u '.escapeshellarg($user).' -- env XDG_RUNTIME_DIR='.escapeshellarg($directory).' DBUS_SESSION_BUS_ADDRESS='.escapeshellarg('unix:path='.$directory.'/bus');
+        $uid = $this->verifiedUserId($server, $user);
+        $directory = '/run/user/'.$uid;
+        $prefix = implode(' ', [
+            'sudo -n -u',
+            escapeshellarg($user),
+            '-- env XDG_RUNTIME_DIR='.escapeshellarg($directory),
+            'DBUS_SESSION_BUS_ADDRESS='.escapeshellarg('unix:path='.$directory.'/bus'),
+        ]);
         if ($driver === 'systemd_user') {
             return $prefix.' systemctl --user';
         }
         $socket = 'unix://'.$directory.'/docker.sock';
         $prefix .= ' DOCKER_HOST='.escapeshellarg($socket).' docker --host='.escapeshellarg($socket);
-        try {
-            $options = json_decode($server->ssh()->clearLog()->exec($prefix." info --format '{{json .SecurityOptions}}'", timeout: 15, outputLimit: 4096), true, flags: JSON_THROW_ON_ERROR);
-        } catch (Throwable) {
-            throw ValidationException::withMessages(['runtime' => __('Could not verify the selected rootless Docker daemon.')]);
-        }
-        if (! is_array($options) || (! in_array('name=rootless', $options, true) && ! in_array('rootless', $options, true))) {
-            throw ValidationException::withMessages(['runtime' => __('The selected Docker socket is not a verified rootless daemon.')]);
-        }
+        $this->assertRootlessDocker($server, $prefix);
 
         return $prefix;
+    }
+
+    private function verifiedUserId(Server $server, string $user): int
+    {
+        try {
+            $uid = trim($server->ssh()->clearLog()->exec(
+                'id -u -- '.escapeshellarg($user),
+                timeout: 10,
+                outputLimit: 64,
+            ));
+        } catch (Throwable) {
+            throw ValidationException::withMessages([
+                'unix_user' => __('Could not verify the runtime user on this server.'),
+            ]);
+        }
+        $isNonSystemUser = ctype_digit($uid) && strlen($uid) <= 10 && (int) $uid >= 1000 && (int) $uid <= 4294967294;
+        if (! $isNonSystemUser) {
+            throw ValidationException::withMessages([
+                'unix_user' => __('User runtimes require a verified, non-system Linux user.'),
+            ]);
+        }
+
+        return (int) $uid;
+    }
+
+    private function assertRootlessDocker(Server $server, string $prefix): void
+    {
+        try {
+            $options = json_decode(
+                $server->ssh()->clearLog()->exec(
+                    $prefix." info --format '{{json .SecurityOptions}}'",
+                    timeout: 15,
+                    outputLimit: 4096,
+                ),
+                true,
+                flags: JSON_THROW_ON_ERROR,
+            );
+        } catch (Throwable) {
+            throw ValidationException::withMessages([
+                'runtime' => __('Could not verify the selected rootless Docker daemon.'),
+            ]);
+        }
+        $isRootless = is_array($options)
+            && (in_array('name=rootless', $options, true) || in_array('rootless', $options, true));
+        if (! $isRootless) {
+            throw ValidationException::withMessages([
+                'runtime' => __('The selected Docker socket is not a verified rootless daemon.'),
+            ]);
+        }
     }
 }

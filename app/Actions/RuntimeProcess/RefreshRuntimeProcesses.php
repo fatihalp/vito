@@ -14,11 +14,16 @@ class RefreshRuntimeProcesses
     public function refresh(Server $server): void
     {
         $processes = RuntimeProcess::query()->where('server_id', $server->id)->get();
-        foreach ($processes->groupBy(fn (RuntimeProcess $process): string => $process->driver.':'.$process->unix_user) as $group) {
+        $groups = $processes->groupBy(
+            fn (RuntimeProcess $process): string => $process->driver.':'.$process->unix_user
+        );
+        foreach ($groups as $group) {
             try {
-                $states = $this->read($server, $group->first()->driver, $group, $group->first()->unix_user);
+                $first = $group->first();
+                $states = $this->read($server, $first->driver, $group, $first->unix_user);
                 foreach ($group as $process) {
-                    $state = $states[$process->runtime_name] ?? ['status' => RuntimeProcessStatus::UNKNOWN, 'details' => []];
+                    $state = $states[$process->runtime_name]
+                        ?? ['status' => RuntimeProcessStatus::UNKNOWN, 'details' => []];
                     $process->update([...$state, 'last_checked_at' => now()]);
                 }
             } catch (Throwable) {
@@ -41,17 +46,21 @@ class RefreshRuntimeProcesses
         }
         $prefix = $commands->prefix($server, $driver, $user);
         $ssh = $server->ssh()->clearLog();
+        $run = fn (string $command): string => $ssh->exec($command, timeout: 20, outputLimit: 1048576);
         if (in_array($driver, ['systemd', 'systemd_user'], true)) {
-            $names = $processes->map(fn (RuntimeProcess $process): string => escapeshellarg($process->runtime_name))->implode(' ');
-            $output = $ssh->exec($prefix.' show '.$names.' -p Id -p LoadState -p ActiveState -p SubState -p UnitFileState -p MainPID -p LastTriggerUSec -p NextElapseUSecRealtime', timeout: 20, outputLimit: 1048576);
+            $names = $processes
+                ->map(fn (RuntimeProcess $process): string => escapeshellarg($process->runtime_name))
+                ->implode(' ');
+            $properties = '-p Id -p LoadState -p ActiveState -p SubState -p UnitFileState -p MainPID '
+                .'-p LastTriggerUSec -p NextElapseUSecRealtime';
 
-            return $this->parseSystemd($output);
+            return $this->parseSystemd($run($prefix.' show '.$names.' '.$properties));
         }
         if (in_array($driver, ['docker', 'rootless_docker'], true)) {
-            return $this->parseDocker($ssh->exec($prefix." ps -a --format '{{.Names}}|{{.State}}|{{.Status}}'", timeout: 20, outputLimit: 1048576));
+            return $this->parseDocker($run($prefix." ps -a --format '{{.Names}}|{{.State}}|{{.Status}}'"));
         }
         if ($driver === 'supervisor') {
-            return $this->parseSupervisor($ssh->exec($prefix.' status || test "$?" -eq 3', timeout: 20, outputLimit: 1048576));
+            return $this->parseSupervisor($run($prefix.' status || test "$?" -eq 3'));
         }
 
         return [];
@@ -73,15 +82,25 @@ class RefreshRuntimeProcesses
             }
             $status = match (true) {
                 ($values['LoadState'] ?? '') === 'not-found' => RuntimeProcessStatus::UNKNOWN,
-                in_array($values['UnitFileState'] ?? '', ['masked', 'masked-runtime'], true) => RuntimeProcessStatus::MASKED,
+                in_array($values['UnitFileState'] ?? '', ['masked', 'masked-runtime'], true)
+                    => RuntimeProcessStatus::MASKED,
                 ($values['ActiveState'] ?? '') === 'failed' => RuntimeProcessStatus::FAILED,
                 ($values['ActiveState'] ?? '') === 'active' => RuntimeProcessStatus::RUNNING,
                 ($values['ActiveState'] ?? '') === 'inactive' => RuntimeProcessStatus::STOPPED,
                 default => RuntimeProcessStatus::UNKNOWN,
             };
-            $states[$values['Id']] = ['status' => $status, 'details' => array_intersect_key($values, array_flip([
-                'ActiveState', 'SubState', 'UnitFileState', 'MainPID', 'LastTriggerUSec', 'NextElapseUSecRealtime',
-            ]))];
+            $detailKeys = [
+                'ActiveState',
+                'SubState',
+                'UnitFileState',
+                'MainPID',
+                'LastTriggerUSec',
+                'NextElapseUSecRealtime',
+            ];
+            $states[$values['Id']] = [
+                'status' => $status,
+                'details' => array_intersect_key($values, array_flip($detailKeys)),
+            ];
         }
 
         return $states;
@@ -103,7 +122,10 @@ class RefreshRuntimeProcesses
                 $state === 'dead' => RuntimeProcessStatus::FAILED,
                 default => RuntimeProcessStatus::UNKNOWN,
             };
-            $states[$name] = ['status' => $status, 'details' => ['state' => $state, 'health' => mb_substr($health, 0, 160)]];
+            $states[$name] = [
+                'status' => $status,
+                'details' => ['state' => $state, 'health' => mb_substr($health, 0, 160)],
+            ];
         }
 
         return $states;

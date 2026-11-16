@@ -15,8 +15,8 @@ use App\Models\ServerLog;
 use App\Models\Site;
 use App\Models\User;
 use Illuminate\Support\Facades\Cache;
-use Throwable;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 class Deploy
 {
@@ -28,8 +28,11 @@ class Deploy
     ): Deployment
     {
         if ($site->status === SiteStatus::PLANNED) {
-            throw ValidationException::withMessages(['site' => __('This site is planned. Complete its runtime and deployment configuration before deploying.')]);
+            throw ValidationException::withMessages([
+                'site' => __('This site is planned. Complete its runtime and deployment configuration before deploying.'),
+            ]);
         }
+
         $site->type()->assertReadyToDeploy();
 
         if ($site->sourceControl) {

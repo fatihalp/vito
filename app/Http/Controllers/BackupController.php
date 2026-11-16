@@ -10,20 +10,22 @@ use App\Actions\Backup\RestoreToNewServer;
 use App\Actions\Backup\RunBackup;
 use App\Enums\BackupType;
 use App\Http\Resources\BackupFileResource;
+use App\Http\Resources\BackupMonitorResource;
 use App\Http\Resources\BackupResource;
 use App\Http\Resources\ServerLogResource;
 use App\Models\Backup;
-use App\Models\BackupMonitor;
-use App\Http\Resources\BackupMonitorResource;
 use App\Models\BackupFile;
+use App\Models\BackupMonitor;
 use App\Models\NotificationChannel;
 use App\Models\PostgresCluster;
 use App\Models\Server;
 use App\Models\ServerLog;
 use App\Tables\BackupTable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -46,7 +48,12 @@ class BackupController extends Controller
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make(clone $query)->simplePaginate(),
             'monitorServers' => $this->monitorServers(),
-            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->whereHas('server', fn ($servers) => $servers->whereIn('project_id', app(GetProjectScope::class)->ids(user())))->orderBy('label')->get()),
+            'backupMonitors' => $this->monitorResources(
+                BackupMonitor::query()->whereHas(
+                    'server',
+                    fn ($servers) => $servers->whereIn('project_id', app(GetProjectScope::class)->ids(user())),
+                ),
+            ),
             'attention' => app(CheckBackupHealth::class)->attention(clone $query),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
         ]);
@@ -62,7 +69,7 @@ class BackupController extends Controller
         return Inertia::render('backups/index', [
             'backups' => BackupTable::make($server->backups())->forServer($server)->simplePaginate(),
             'monitorServers' => $this->monitorServers(),
-            'backupMonitors' => BackupMonitorResource::collection(BackupMonitor::query()->with('server.project.users')->where('server_id', $server->id)->orderBy('label')->get()),
+            'backupMonitors' => $this->monitorResources(BackupMonitor::query()->where('server_id', $server->id)),
             'attention' => app(CheckBackupHealth::class)->attention($server->backups()),
             'hasNotificationChannels' => NotificationChannel::query()->exists(),
             'replicaOf' => $cluster !== null && $cluster->primary_server_id !== $server->id
@@ -215,8 +222,21 @@ class BackupController extends Controller
             return [];
         }
 
-        return Server::query()->with('project.users')->orderBy('name')->get(['id', 'name', 'project_id', 'is_self', 'status'])
-            ->filter(fn (Server $server): bool => user()->can('create', [BackupMonitor::class, $server]) && user()->can('update', $server))
-            ->map(fn (Server $server): array => $server->only(['id', 'name']))->values()->all();
+        return Server::query()
+            ->with('project.users')
+            ->orderBy('name')
+            ->get(['id', 'name', 'project_id', 'is_self', 'status'])
+            ->filter(fn (Server $server): bool => user()->can('create', [BackupMonitor::class, $server])
+                && user()->can('update', $server))
+            ->map(fn (Server $server): array => $server->only(['id', 'name']))
+            ->values()
+            ->all();
+    }
+
+    private function monitorResources(Builder $monitors): AnonymousResourceCollection
+    {
+        return BackupMonitorResource::collection(
+            $monitors->with('server.project.users')->orderBy('label')->get()
+        );
     }
 }

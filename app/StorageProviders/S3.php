@@ -198,12 +198,14 @@ class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
 
     public static function connectionErrorMessage(Throwable $e): string
     {
-        $code = method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null;
-
-        return match ($code) {
+        return match (static::awsErrorCode($e)) {
             'NoSuchBucket' => __('Bucket not found. Check the bucket name.'),
-            'AccessDenied', 'AllAccessDisabled' => __('Access was denied. Check the storage token permissions.'),
-            'InvalidAccessKeyId', 'SignatureDoesNotMatch', 'InvalidToken', 'ExpiredToken' => __('The access key or secret key is invalid.'),
+            'AccessDenied',
+            'AllAccessDisabled' => __('Access was denied. Check the storage token permissions.'),
+            'InvalidAccessKeyId',
+            'SignatureDoesNotMatch',
+            'InvalidToken',
+            'ExpiredToken' => __('The access key or secret key is invalid.'),
             default => __('Couldn\'t connect to the provider.'),
         };
     }
@@ -298,8 +300,13 @@ class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
 
         Log::error($message, [
             'exception' => get_class($e),
-            'code' => method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null,
+            'code' => static::awsErrorCode($e),
         ]);
+    }
+
+    private static function awsErrorCode(Throwable $e): ?string
+    {
+        return method_exists($e, 'getAwsErrorCode') ? $e->getAwsErrorCode() : null;
     }
 
     public function ssh(Server $server): Storage

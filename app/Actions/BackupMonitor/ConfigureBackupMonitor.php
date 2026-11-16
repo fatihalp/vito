@@ -13,25 +13,37 @@ use Illuminate\Validation\Rule;
 
 class ConfigureBackupMonitor
 {
+    private const REPORT_PATH_PATTERN = '~^/(?:var/(?:lib|log|backups)|srv)(?:/(?!\.{1,2}/)[A-Za-z0-9_.-]+)+\.json\z~';
+
+    private const CONFIGURATION_KEYS = ['report_path', 'max_age_hours', 'backup_unit', 'verify_unit'];
+
     private const UNIT_RULES = ['nullable', 'string', 'regex:'.BackupMonitor::UNIT_PATTERN];
 
     public function configure(User $user, Server $server, array $input): BackupMonitor
     {
         Gate::forUser($user)->authorize('create', [BackupMonitor::class, $server]);
+
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
             'report_server_id' => ['required', 'integer', Rule::exists('servers', 'id')],
-            'report_path' => ['required', 'string', 'max:512', 'regex:~^/(?:var/(?:lib|log|backups)|srv)(?:/(?!\.{1,2}/)[A-Za-z0-9_.-]+)+\.json\z~'],
+            'report_path' => ['required', 'string', 'max:512', 'regex:'.self::REPORT_PATH_PATTERN],
             'max_age_hours' => ['required', 'integer', 'between:1,168'],
             'backup_unit' => self::UNIT_RULES,
             'verify_unit' => self::UNIT_RULES,
         ])->validate();
+
         $source = Server::query()->findOrFail($data['report_server_id']);
         Gate::forUser($user)->authorize('update', $source);
 
         return BackupMonitor::query()->updateOrCreate(
             ['server_id' => $server->id, 'label' => $data['label']],
-            ['report_server_id' => $source->id, 'configuration' => Arr::only($data, ['report_path', 'max_age_hours', 'backup_unit', 'verify_unit']), 'status' => BackupMonitorStatus::UNKNOWN, 'details' => null, 'last_checked_at' => null],
+            [
+                'report_server_id' => $source->id,
+                'configuration' => Arr::only($data, self::CONFIGURATION_KEYS),
+                'status' => BackupMonitorStatus::UNKNOWN,
+                'details' => null,
+                'last_checked_at' => null,
+            ],
         );
     }
 }

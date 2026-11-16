@@ -178,8 +178,15 @@ class EnsureSelfServerExists
         );
 
         $currentContent = trim((string) $script->content);
-        $previousDefault = str_replace('git pull --ff-only origin "$BRANCH"', 'git pull origin $BRANCH', $defaultScriptContent);
-        if ($currentContent === '' || $currentContent === $previousDefault || str_starts_with($currentContent, "git pull\nphp artisan vito")) {
+        $previousDefault = str_replace(
+            'git pull --ff-only origin "$BRANCH"',
+            'git pull origin $BRANCH',
+            $defaultScriptContent,
+        );
+        $isOutdatedDefault = $currentContent === ''
+            || $currentContent === $previousDefault
+            || str_starts_with($currentContent, "git pull\nphp artisan vito");
+        if ($isOutdatedDefault) {
             $script->update(['content' => $defaultScriptContent, 'configs' => ['restart_workers' => false]]);
         }
 

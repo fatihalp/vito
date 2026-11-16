@@ -83,6 +83,14 @@ class SSH
         $this->log?->write($chunk);
     }
 
+    private function abortWhenOutputExceeds(int $size, int $limit): void
+    {
+        if ($limit > 0 && $size > $limit) {
+            $this->disconnect();
+            throw new RuntimeException('Remote output exceeded its size limit');
+        }
+    }
+
     public function setLog(?ServerLog $log): self
     {
         $this->log = $log;
@@ -113,7 +121,6 @@ class SSH
 
     public function connect(bool $sftp = false): void
     {
-
         $ip = $this->server->is_self ? '127.0.0.1' : $this->server->ip;
         if (str($ip)->contains(':')) {
             $ip = '['.$ip.']';
@@ -138,7 +145,15 @@ class SSH
         }
     }
 
-    public function exec(string|View $command, string $log = '', ?int $siteId = null, ?bool $stream = false, ?callable $streamCallback = null, int $timeout = 0, int $outputLimit = 0): string
+    public function exec(
+        string|View $command,
+        string $log = '',
+        ?int $siteId = null,
+        ?bool $stream = false,
+        ?callable $streamCallback = null,
+        int $timeout = 0,
+        int $outputLimit = 0,
+    ): string
     {
         $this->ensureLog($log, $siteId);
 
@@ -169,14 +184,10 @@ class SSH
 
             $this->connection->setTimeout($timeout);
             if ($stream === true) {
-
                 $received = 0;
                 $this->connection->exec($command, function ($output) use ($streamCallback, $outputLimit, &$received) {
                     $received += strlen($output);
-                    if ($outputLimit > 0 && $received > $outputLimit) {
-                        $this->disconnect();
-                        throw new RuntimeException('Remote output exceeded its size limit');
-                    }
+                    $this->abortWhenOutputExceeds($received, $outputLimit);
                     $this->writeOutput($output);
 
                     return $streamCallback($output);
@@ -186,10 +197,7 @@ class SSH
             }
             $output = '';
             $this->connection->exec($command, function (string $out) use (&$output, $outputLimit): void {
-                if ($outputLimit > 0 && strlen($output) + strlen($out) > $outputLimit) {
-                    $this->disconnect();
-                    throw new RuntimeException('Remote output exceeded its size limit');
-                }
+                $this->abortWhenOutputExceeds(strlen($output) + strlen($out), $outputLimit);
                 $this->writeOutput($out);
 
                 $output .= $out;
@@ -254,7 +262,6 @@ class SSH
         $tmpName = Str::random(10).strtotime('now');
 
         try {
-
             $storageDisk = Storage::disk('local');
             $storageDisk->put($tmpName, $content);
             $tmpRemotePath = '/tmp/'.$tmpName;

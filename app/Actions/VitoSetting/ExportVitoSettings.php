@@ -18,6 +18,8 @@ class ExportVitoSettings
         'server-logs' => 'storage/app/server-logs',
     ];
 
+    private const OPTIONAL_DIRECTORIES = ['key-pairs', 'server-logs'];
+
     public function export(string $zipFileName): string
     {
         $workspace = app(BackupWorkspace::class);
@@ -40,23 +42,7 @@ class ExportVitoSettings
                     throw new RuntimeException('Backup paths must not be symbolic links.');
                 }
 
-                if (File::isFile($path)) {
-                    $added = $zip->addFile($path, $name);
-                } elseif (File::isDirectory($path)) {
-                    $added = $zip->addEmptyDir($name);
-                    foreach (File::allFiles($path) as $file) {
-                        if ($file->isLink() || ! $zip->addFile($file->getPathname(), $name.'/'.$file->getRelativePathname())) {
-                            throw new RuntimeException('Could not add a backup file.');
-                        }
-                    }
-                } else {
-                    if ($name !== 'key-pairs' && $name !== 'server-logs') {
-                        throw new RuntimeException('A required backup file is missing.');
-                    }
-                    $added = $zip->addEmptyDir($name);
-                }
-
-                if (! $added) {
+                if (! $this->addEntry($zip, $name, $path)) {
                     throw new RuntimeException('Could not add a backup entry.');
                 }
             }
@@ -75,5 +61,35 @@ class ExportVitoSettings
 
             throw $exception;
         }
+    }
+
+    private function addEntry(ZipArchive $zip, string $name, string $path): bool
+    {
+        if (File::isFile($path)) {
+            return $zip->addFile($path, $name);
+        }
+
+        if (File::isDirectory($path)) {
+            return $this->addDirectory($zip, $name, $path);
+        }
+
+        if (! in_array($name, self::OPTIONAL_DIRECTORIES, true)) {
+            throw new RuntimeException('A required backup file is missing.');
+        }
+
+        return $zip->addEmptyDir($name);
+    }
+
+    private function addDirectory(ZipArchive $zip, string $name, string $path): bool
+    {
+        $added = $zip->addEmptyDir($name);
+
+        foreach (File::allFiles($path) as $file) {
+            if ($file->isLink() || ! $zip->addFile($file->getPathname(), $name.'/'.$file->getRelativePathname())) {
+                throw new RuntimeException('Could not add a backup file.');
+            }
+        }
+
+        return $added;
     }
 }

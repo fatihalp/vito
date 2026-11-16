@@ -38,8 +38,8 @@ class SiteResourcePolicy
 
     public function revealCredentials(User $user, SiteResource $resource, Site $site, Server $server): bool
     {
-        return $resource->site_id === $site->id &&
-            $site->server_id === $server->id &&
-            $this->hasServerOwnerAccess($user, $server);
+        return $resource->site_id === $site->id
+            && $site->server_id === $server->id
+            && $this->hasServerOwnerAccess($user, $server);
     }
 }

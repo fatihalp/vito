@@ -40,7 +40,10 @@ class RuntimeProcessController extends Controller
     public function data(Request $request, Server $server): JsonResponse
     {
         $this->authorize('viewAny', [RuntimeProcess::class, $server]);
-        $filters = $request->validate(['site_id' => ['nullable', 'integer'], 'kind' => ['nullable', 'in:worker,scheduler,service']]);
+        $filters = $request->validate([
+            'site_id' => ['nullable', 'integer'],
+            'kind' => ['nullable', 'in:worker,scheduler,service'],
+        ]);
         $query = RuntimeProcess::query()->where('server_id', $server->id)->with('sites:id,domain');
         if (! empty($filters['site_id'])) {
             $query->whereHas('sites', fn ($sites) => $sites->where('sites.id', $filters['site_id']));
@@ -52,10 +55,14 @@ class RuntimeProcessController extends Controller
         $canManage = Gate::allows('create', [RuntimeProcess::class, $server]);
 
         return response()->json([
-            'processes' => RuntimeProcessResource::collection($query->orderBy('kind')->orderBy('label')->limit(500)->get()),
+            'processes' => RuntimeProcessResource::collection(
+                $query->orderBy('kind')->orderBy('label')->limit(500)->get()
+            ),
             'sites' => $server->sites()->orderBy('domain')->get(['id', 'domain']),
             'can_manage' => $canManage,
-            'isolated_users' => $canManage ? $server->isolatedUsers()->orderBy('username')->pluck('username') : [],
+            'isolated_users' => $canManage
+                ? $server->isolatedUsers()->orderBy('username')->pluck('username')
+                : [],
         ])->header('Cache-Control', 'no-store, private');
     }
 
@@ -79,14 +86,28 @@ class RuntimeProcessController extends Controller
     }
 
     #[Post('/{runtimeProcess}/{operation}', name: 'runtime-processes.control')]
-    public function control(Request $request, Server $server, RuntimeProcess $runtimeProcess, string $operation): RedirectResponse
-    {
+    public function control(
+        Request $request,
+        Server $server,
+        RuntimeProcess $runtimeProcess,
+        string $operation,
+    ): RedirectResponse {
         $this->authorize('manage', [$runtimeProcess, $server]);
-        Validator::make(['operation' => $operation], ['operation' => ['required', Rule::in(['start', 'stop', 'restart'])]])->validate();
+        Validator::make(
+            ['operation' => $operation],
+            ['operation' => ['required', Rule::in(['start', 'stop', 'restart'])]],
+        )->validate();
         if ($runtimeProcess->status === RuntimeProcessStatus::MASKED) {
-            throw ValidationException::withMessages(['runtime' => __('This process is masked. Review its isolation before starting it.')]);
+            throw ValidationException::withMessages([
+                'runtime' => __('This process is masked. Review its isolation before starting it.'),
+            ]);
         }
-        $runtimeProcess->update(['details' => [...($runtimeProcess->details ?? []), 'command_result' => 'Command queued. Waiting for verification.']]);
+        $runtimeProcess->update([
+            'details' => [
+                ...($runtimeProcess->details ?? []),
+                'command_result' => 'Command queued. Waiting for verification.',
+            ],
+        ]);
         ControlRuntimeProcessJob::dispatch($runtimeProcess, $operation, $request->user());
 
         return back()->with('success', __('Process command queued. Its result will appear here shortly.'));

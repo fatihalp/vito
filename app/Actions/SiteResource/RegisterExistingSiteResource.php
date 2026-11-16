@@ -34,60 +34,68 @@ class RegisterExistingSiteResource
         $environment = [];
         $rootless = ($data['runtime_driver'] ?? 'native') === 'rootless_docker';
         $admin = auth()->user()?->isAdmin() ?? false;
-        $server = $type === SiteResourceType::STORAGE ? null : Server::query()
+        $isStorage = $type === SiteResourceType::STORAGE;
+        $server = $isStorage ? null : Server::query()
             ->when(! $admin, fn ($query) => $query->where('project_id', $site->server->project_id))
             ->findOrFail($data['server_id']);
-        $storage = $type === SiteResourceType::STORAGE
-            ? ($admin ? StorageProvider::query() : StorageProvider::getByProjectId($site->server->project_id, auth()->user()))->findOrFail($data['storage_provider_id'])
-            : null;
+        $storage = $isStorage ? $this->findStorageProvider($site, $data['storage_provider_id'], $admin) : null;
 
-        if ($type === SiteResourceType::STORAGE) {
-            $raw = $site->getEnv($site->resolveEnvPath(), timeout: 8);
-            $values = collect(EnvParser::parse($raw))->pluck('value', 'key')->all();
-            $bucket = $storage->credentials['bucket'] ?? null;
-            $environment = array_filter($values, fn ($value, $key) => preg_match('/(?:^|_)BUCKET(?:$|_)/', $key) === 1 && $value === $bucket, ARRAY_FILTER_USE_BOTH);
-            if ($environment === []) {
-                throw ValidationException::withMessages(['storage_provider_id' => __('This bucket was not found in the existing application configuration.')]);
-            }
+        if ($isStorage) {
+            $environment = $this->bucketEnvironment($site, $storage);
         }
 
         if (($type === SiteResourceType::DATABASE && ! $rootless) || $type === SiteResourceType::CACHE) {
-            $raw = $site->getEnv($site->resolveEnvPath(), timeout: 8);
-            $environment = collect(EnvParser::parse($raw))->pluck('value', 'key')->all();
             $keys = $type === SiteResourceType::DATABASE
                 ? ['DB_CONNECTION', 'DB_HOST', 'DB_PORT', 'DB_DATABASE', 'DB_USERNAME']
                 : ['REDIS_HOST', 'REDIS_PORT'];
-            $environment = array_intersect_key($environment, array_flip($keys));
+            $environment = array_intersect_key($this->applicationEnvironment($site), array_flip($keys));
         }
 
         if ($type === SiteResourceType::DATABASE) {
             if ($rootless) {
-                $environment = ['DB_DATABASE' => $data['database_name'] ?? '', 'DB_USERNAME' => $data['database_username'] ?? ''];
+                $environment = [
+                    'DB_DATABASE' => $data['database_name'] ?? '',
+                    'DB_USERNAME' => $data['database_username'] ?? '',
+                ];
             }
             $name = $data['database_name'] ?? $environment['DB_DATABASE'] ?? '';
             if ($name === '' || $name !== ($environment['DB_DATABASE'] ?? null)) {
-                throw ValidationException::withMessages(['database_name' => __('Select the database already configured in the application environment.')]);
+                throw ValidationException::withMessages([
+                    'database_name' => __('Select the database already configured in the application environment.'),
+                ]);
             }
             $configuration['database_name'] = $name;
             if (in_array($data['runtime_driver'] ?? 'native', ['docker', 'rootless_docker'], true)) {
                 if (empty($data['container']) || empty($environment['DB_USERNAME'])) {
-                    throw ValidationException::withMessages(['container' => __('Select the existing PostgreSQL container and configure the application database username.')]);
+                    throw ValidationException::withMessages([
+                        'container' => __(
+                            'Select the existing PostgreSQL container and configure the application database username.'
+                        ),
+                    ]);
                 }
-                $configuration['runtime'] = ['driver' => $data['runtime_driver'], 'container' => $data['container'], 'username' => $environment['DB_USERNAME']];
+                $configuration['runtime'] = [
+                    'driver' => $data['runtime_driver'],
+                    'container' => $data['container'],
+                    'username' => $environment['DB_USERNAME'],
+                ];
                 if ($rootless) {
                     $configuration['runtime']['unix_user'] = $data['runtime_user'] ?? '';
                 }
             } else {
                 $database = Database::query()->where('server_id', $server->id)->where('name', $name)->first();
                 if (! $database) {
-                    throw ValidationException::withMessages(['database_name' => __('Import the existing database into the server database list first.')]);
+                    throw ValidationException::withMessages([
+                        'database_name' => __('Import the existing database into the server database list first.'),
+                    ]);
                 }
                 $configuration['database_id'] = $database->id;
             }
         }
 
         if ($type === SiteResourceType::CACHE && (empty($environment['REDIS_HOST']) || ! $server->memoryDatabase())) {
-            throw ValidationException::withMessages(['server_id' => __('The existing application Redis connection could not be identified.')]);
+            throw ValidationException::withMessages([
+                'server_id' => __('The existing application Redis connection could not be identified.'),
+            ]);
         }
 
         $resource = new SiteResource([
@@ -107,5 +115,37 @@ class RegisterExistingSiteResource
         $resource->save();
 
         return $resource;
+    }
+    private function findStorageProvider(Site $site, ?int $storageProviderId, bool $admin): StorageProvider
+    {
+        $providers = $admin
+            ? StorageProvider::query()
+            : StorageProvider::getByProjectId($site->server->project_id, auth()->user());
+
+        return $providers->findOrFail($storageProviderId);
+    }
+
+    private function applicationEnvironment(Site $site): array
+    {
+        $raw = $site->getEnv($site->resolveEnvPath(), timeout: 8);
+
+        return collect(EnvParser::parse($raw))->pluck('value', 'key')->all();
+    }
+
+    private function bucketEnvironment(Site $site, StorageProvider $storage): array
+    {
+        $bucket = $storage->credentials['bucket'] ?? null;
+        $environment = array_filter(
+            $this->applicationEnvironment($site),
+            fn ($value, $key) => preg_match('/(?:^|_)BUCKET(?:$|_)/', $key) === 1 && $value === $bucket,
+            ARRAY_FILTER_USE_BOTH,
+        );
+        if ($environment === []) {
+            throw ValidationException::withMessages([
+                'storage_provider_id' => __('This bucket was not found in the existing application configuration.'),
+            ]);
+        }
+
+        return $environment;
     }
 }

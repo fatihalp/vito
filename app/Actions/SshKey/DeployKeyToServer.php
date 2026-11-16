@@ -21,19 +21,28 @@ class DeployKeyToServer
 
         $existing = $server->sshKeys()->whereKey($sshKey->id)->first();
         if ($existing && $existing->pivot->user !== $user) {
-            throw ValidationException::withMessages(['user' => __('Remove this key from its current user before deploying it to another user.')]);
+            throw ValidationException::withMessages([
+                'user' => __('Remove this key from its current user before deploying it to another user.'),
+            ]);
         }
 
-        $server->sshKeys()->syncWithoutDetaching([$sshKey->id => [
-            'status' => SshKeyStatus::ADDING,
-            'user' => $user,
-        ]]);
+        $server->sshKeys()->syncWithoutDetaching([
+            $sshKey->id => ['status' => SshKeyStatus::ADDING, 'user' => $user],
+        ]);
+
         try {
             $server->os()->deploySSHKey($sshKey->public_key, $user);
         } catch (Throwable $e) {
             $server->sshKeys()->updateExistingPivot($sshKey->id, ['status' => SshKeyStatus::FAILED]);
-            throw ValidationException::withMessages(['key' => __('SSH key deployment could not be confirmed. Check that the target user exists and Vito can connect as that user, then retry.')]);
+
+            throw ValidationException::withMessages([
+                'key' => __(
+                    'SSH key deployment could not be confirmed. '
+                    .'Check that the target user exists and Vito can connect as that user, then retry.'
+                ),
+            ]);
         }
+
         $sshKey->servers()->updateExistingPivot($server->id, [
             'status' => SshKeyStatus::ADDED,
             'user' => $user,

@@ -35,19 +35,31 @@ class SiteResourceController extends Controller
     {
         $this->authorize('revealCredentials', [$resource, $site, $server]);
 
+        $resourcesUrl = "/servers/{$server->id}/sites/{$site->id}/resources";
+        $databaseName = $resource->configuration['database_name']
+            ?? $resource->environment['DB_DATABASE']
+            ?? 'Database';
+
         return Inertia::render('databases/browse', [
-            'databaseName' => $resource->configuration['database_name'] ?? $resource->environment['DB_DATABASE'] ?? 'Database',
-            'dataUrl' => url("/servers/{$server->id}/sites/{$site->id}/resources/{$resource->id}/browse/data"),
-            'backUrl' => url("/servers/{$server->id}/sites/{$site->id}/resources"),
+            'databaseName' => $databaseName,
+            'dataUrl' => url("{$resourcesUrl}/{$resource->id}/browse/data"),
+            'backUrl' => url($resourcesUrl),
         ]);
     }
 
     #[Get('/{resource}/browse/data', name: 'site-resources.browse.data')]
-    public function browseData(Request $request, Server $server, Site $site, SiteResource $resource, BrowsePostgresDatabase $action): JsonResponse
-    {
+    public function browseData(
+        Request $request,
+        Server $server,
+        Site $site,
+        SiteResource $resource,
+        BrowsePostgresDatabase $action,
+    ): JsonResponse {
         $this->authorize('revealCredentials', [$resource, $site, $server]);
 
-        return response()->json($action->resource($resource, $request->query()))->header('Cache-Control', 'no-store, private');
+        return response()
+            ->json($action->resource($resource, $request->query()))
+            ->header('Cache-Control', 'no-store, private');
     }
 
     #[Get('/', name: 'site-resources')]
@@ -107,7 +119,10 @@ class SiteResourceController extends Controller
         $resource = app(ConnectSiteResource::class)->connect($site, $request->all());
 
         if (($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
-            return back()->with('success', 'Existing connection registered. Application settings were preserved.');
+            return back()->with(
+                'success',
+                'Existing connection registered. Application settings were preserved.',
+            );
         }
 
         return $resource->status === SiteResourceStatus::READY

@@ -14,7 +14,10 @@ class ListRegisteredContainerDatabases
     {
         $resources = SiteResource::query()->where('server_id', $server->id)
             ->where('type', SiteResourceType::DATABASE)
-            ->whereHas('site.server', fn ($query) => $query->when(! $user->isAdmin(), fn ($query) => $query->where('project_id', $server->project_id)))
+            ->whereHas('site.server', fn ($query) => $query->when(
+                ! $user->isAdmin(),
+                fn ($query) => $query->where('project_id', $server->project_id),
+            ))
             ->with('site.server.project')->get();
         $databases = [];
 
@@ -27,11 +30,15 @@ class ListRegisteredContainerDatabases
             $container = $configuration['runtime']['container'] ?? '';
             $key = $container.'|'.$name;
             $databases[$key] ??= ['name' => $name, 'container' => $container, 'applications' => []];
+            $resourcesUrl = "/servers/{$resource->site->server_id}/sites/{$resource->site_id}/resources";
             $databases[$key]['applications'][] = [
                 'domain' => $resource->site->domain,
-                'browse_url' => url("/servers/{$resource->site->server_id}/sites/{$resource->site_id}/resources/{$resource->id}/browse"),
-                'resources_url' => url("/servers/{$resource->site->server_id}/sites/{$resource->site_id}/resources"),
-                'can_browse' => Gate::forUser($user)->allows('revealCredentials', [$resource, $resource->site, $resource->site->server]),
+                'browse_url' => url("{$resourcesUrl}/{$resource->id}/browse"),
+                'resources_url' => url($resourcesUrl),
+                'can_browse' => Gate::forUser($user)->allows(
+                    'revealCredentials',
+                    [$resource, $resource->site, $resource->site->server],
+                ),
             ];
         }
 

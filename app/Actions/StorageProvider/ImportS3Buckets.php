@@ -16,9 +16,8 @@ class ImportS3Buckets
     public function availableBuckets(array $input): array
     {
         $credentials = $this->credentials($input);
-        $provider = new S3(new StorageProvider(['provider' => S3::id()]));
 
-        return $this->listBuckets($provider, $credentials);
+        return $this->listBuckets($this->s3Provider(), $credentials);
     }
 
     public function import(User $user, array $input, ?int $projectId): array
@@ -26,10 +25,15 @@ class ImportS3Buckets
         $credentials = $this->credentials($input);
         $buckets = Validator::make($input, [
             'buckets' => ['required', 'array', 'min:1'],
-            'buckets.*' => ['required', 'string', 'distinct', 'regex:/^[A-Za-z0-9][A-Za-z0-9._-]{1,254}$/'],
+            'buckets.*' => [
+                'required',
+                'string',
+                'distinct',
+                'regex:/^[A-Za-z0-9][A-Za-z0-9._-]{1,254}$/',
+            ],
         ])->validate()['buckets'];
 
-        $provider = new S3(new StorageProvider(['provider' => S3::id()]));
+        $provider = $this->s3Provider();
         $availableBuckets = $this->listBuckets($provider, $credentials);
         $unknownBuckets = array_values(array_diff($buckets, $availableBuckets));
 
@@ -39,18 +43,7 @@ class ImportS3Buckets
             ]);
         }
 
-        $endpoint = $provider->getApiUrl($credentials);
-        $existingBuckets = StorageProvider::query()
-            ->where('user_id', $user->id)
-            ->where('provider', S3::id())
-            ->when($projectId === null, fn ($query) => $query->whereNull('project_id'), fn ($query) => $query->where('project_id', $projectId))
-            ->select(['id', 'provider', 'credentials'])
-            ->cursor()
-            ->filter(fn (StorageProvider $storageProvider): bool => $storageProvider->provider()->getApiUrl() === $endpoint
-            )
-            ->map(fn (StorageProvider $storageProvider) => $storageProvider->credentials['bucket'] ?? null)
-            ->filter(fn (mixed $bucket): bool => is_string($bucket))
-            ->all();
+        $existingBuckets = $this->existingBuckets($user, $projectId, $provider->getApiUrl($credentials));
 
         $toCreate = array_values(array_diff($buckets, $existingBuckets));
         $storageProviders = [];
@@ -64,7 +57,10 @@ class ImportS3Buckets
             ]);
             $storageProvider->credentials = [...$credentials, 'bucket' => $bucket];
 
-            app(VerifyStorageConnection::class)->verify($storageProvider->provider(), $storageProvider->credentials);
+            app(VerifyStorageConnection::class)->verify(
+                $storageProvider->provider(),
+                $storageProvider->credentials,
+            );
 
             $storageProviders[] = $storageProvider;
         }
@@ -72,9 +68,37 @@ class ImportS3Buckets
         DB::transaction(fn () => collect($storageProviders)->each->save());
 
         return [
-            'created' => array_map(fn (StorageProvider $storageProvider) => $storageProvider->profile, $storageProviders),
+            'created' => array_map(
+                fn (StorageProvider $storageProvider) => $storageProvider->profile,
+                $storageProviders,
+            ),
             'skipped' => array_values(array_intersect($buckets, $existingBuckets)),
         ];
+    }
+
+    private function s3Provider(): S3
+    {
+        return new S3(new StorageProvider(['provider' => S3::id()]));
+    }
+
+    private function existingBuckets(User $user, ?int $projectId, string $endpoint): array
+    {
+        return StorageProvider::query()
+            ->where('user_id', $user->id)
+            ->where('provider', S3::id())
+            ->when(
+                $projectId === null,
+                fn ($query) => $query->whereNull('project_id'),
+                fn ($query) => $query->where('project_id', $projectId),
+            )
+            ->select(['id', 'provider', 'credentials'])
+            ->cursor()
+            ->filter(
+                fn (StorageProvider $storageProvider): bool => $storageProvider->provider()->getApiUrl() === $endpoint,
+            )
+            ->map(fn (StorageProvider $storageProvider) => $storageProvider->credentials['bucket'] ?? null)
+            ->filter(fn (mixed $bucket): bool => is_string($bucket))
+            ->all();
     }
 
     private function listBuckets(S3 $provider, array $credentials): array
@@ -83,7 +107,8 @@ class ImportS3Buckets
             return $provider->listBuckets($credentials);
         } catch (RuntimeException) {
             throw ValidationException::withMessages([
-                'provider' => $provider->connectionError() ?? __('Couldn\'t connect to the provider.'),
+                'provider' => $provider->connectionError()
+                    ?? __('Couldn\'t connect to the provider.'),
             ]);
         }
     }
@@ -99,7 +124,7 @@ class ImportS3Buckets
             'path' => ['nullable', 'string', 'max:1024'],
         ])->validate();
 
-        return (new S3(new StorageProvider(['provider' => S3::id()])))->credentialData([
+        return $this->s3Provider()->credentialData([
             ...$data,
             'bucket' => 'placeholder-bucket',
         ]);

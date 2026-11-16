@@ -60,12 +60,13 @@ class ConnectSiteResource
                 'exclude_unless:type,storage',
                 'required',
                 'integer',
-                Rule::exists('storage_providers', 'id')->where(function (Builder $query) use ($projectId, $isAdmin, $user): void {
-                    if (! $isAdmin) {
-                        $query->where('user_id', $user?->id)
-                            ->where(fn (Builder $scope) => $scope->where('project_id', $projectId)->orWhereNull('project_id'));
+                Rule::exists('storage_providers', 'id')->where(
+                    function (Builder $query) use ($projectId, $isAdmin, $user): void {
+                        if (! $isAdmin) {
+                            $this->restrictToUserStorage($query, $user?->id, $projectId);
+                        }
                     }
-                }),
+                ),
             ],
             'database_id' => ['nullable', 'integer'],
             'database_name' => ['nullable', 'string', 'max:64'],
@@ -269,6 +270,12 @@ class ConnectSiteResource
         }
     }
 
+    private function restrictToUserStorage($query, ?int $userId, int $projectId): void
+    {
+        $query->where('user_id', $userId)
+            ->where(fn ($scope) => $scope->where('project_id', $projectId)->orWhereNull('project_id'));
+    }
+
     private function connectStorage(Site $site, int $storageProviderId, bool $isAdmin, bool $confirmOverwrite = false): SiteResource
     {
         if (! $confirmOverwrite) {
@@ -278,8 +285,7 @@ class ConnectSiteResource
         $storageProvider = StorageProvider::query()
             ->where(function ($query) use ($site, $isAdmin): void {
                 if (! $isAdmin) {
-                    $query->where('user_id', auth()->id())
-                        ->where(fn ($scope) => $scope->where('project_id', $site->server->project_id)->orWhereNull('project_id'));
+                    $this->restrictToUserStorage($query, auth()->id(), $site->server->project_id);
                 }
             })
             ->findOrFail($storageProviderId);

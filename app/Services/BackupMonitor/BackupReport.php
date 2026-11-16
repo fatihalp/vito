@@ -16,11 +16,19 @@ class BackupReport
         $now ??= CarbonImmutable::now();
         $freshSince = $now->subHours($maxAgeHours);
         $state = $report['state'] ?? $report['status'] ?? null;
-        $success = $this->date($report['last_success_at'] ?? (in_array($state, self::PASSED, true) ? ($report['finished_at'] ?? null) : null), $now);
+        $finishedAt = in_array($state, self::PASSED, true) ? ($report['finished_at'] ?? null) : null;
+        $success = $this->date($report['last_success_at'] ?? $finishedAt, $now);
         $started = $this->date($report['started_at'] ?? null, $now);
         $restore = is_array($report['restore_test'] ?? null) ? $report['restore_test'] : [];
         $verified = $this->date($restore['verified_at'] ?? $restore['checked_at'] ?? null, $now);
-        $verification = $this->verification($restore['state'] ?? $restore['sqlite_restore'] ?? null, $this->date($restore['started_at'] ?? $restore['checked_at'] ?? null, $now), $verified, $freshSince, $now);
+        $restoreStarted = $this->date($restore['started_at'] ?? $restore['checked_at'] ?? null, $now);
+        $verification = $this->verification(
+            $restore['state'] ?? $restore['sqlite_restore'] ?? null,
+            $restoreStarted,
+            $verified,
+            $freshSince,
+            $now,
+        );
         $overdue = $success?->lt($freshSince) ?? false;
         $status = match (true) {
             in_array($state, self::FAILED, true) => 'failed',
@@ -49,8 +57,13 @@ class BackupReport
         ]];
     }
 
-    private function verification(mixed $state, ?CarbonImmutable $started, ?CarbonImmutable $verified, CarbonImmutable $freshSince, CarbonImmutable $now): string
-    {
+    private function verification(
+        mixed $state,
+        ?CarbonImmutable $started,
+        ?CarbonImmutable $verified,
+        CarbonImmutable $freshSince,
+        CarbonImmutable $now,
+    ): string {
         return match (true) {
             in_array($state, self::FAILED, true) => 'failed',
             $state === 'running' => $started?->gte($freshSince) ? 'running' : 'stale',
@@ -64,17 +77,27 @@ class BackupReport
         $values = $report['snapshots'] ?? [$report['snapshot'] ?? null];
 
         return collect(is_array($values) ? array_slice($values, 0, 16) : [])
-            ->filter(fn (mixed $value): bool => is_string($value) && preg_match('/^[a-f0-9]{8,64}$/', $value))
+            ->filter(fn (mixed $value): bool => is_string($value) && $this->isSnapshotId($value))
             ->unique()
             ->values()
             ->all();
     }
 
+    private function isSnapshotId(string $value): bool
+    {
+        return preg_match('/^[a-f0-9]{8,64}$/', $value) === 1;
+    }
+
     private function date(mixed $value, CarbonImmutable $now): ?CarbonImmutable
     {
-        if (! is_string($value) || strlen($value) > 64 || ! preg_match('/^\d{4}-\d{2}-\d{2}T/', $value)) {
+        $isIsoDateString = is_string($value)
+            && strlen($value) <= 64
+            && preg_match('/^\d{4}-\d{2}-\d{2}T/', $value);
+
+        if (! $isIsoDateString) {
             return null;
         }
+
         try {
             $date = CarbonImmutable::parse($value);
 

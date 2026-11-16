@@ -11,11 +11,33 @@ class BackupMonitor extends AbstractModel
 
     public const UNIT_PATTERN = '/\A[A-Za-z0-9][A-Za-z0-9_.@:-]{0,119}\.service\z/';
 
-    protected $fillable = ['server_id', 'report_server_id', 'label', 'configuration', 'status', 'details', 'last_checked_at', 'last_alert_status', 'last_alert_requested_at', 'last_task', 'task_state', 'task_requested_at'];
+    protected $fillable = [
+        'server_id',
+        'report_server_id',
+        'label',
+        'configuration',
+        'status',
+        'details',
+        'last_checked_at',
+        'last_alert_status',
+        'last_alert_requested_at',
+        'last_task',
+        'task_state',
+        'task_requested_at',
+    ];
 
     protected $attributes = ['status' => 'unknown'];
 
-    protected $casts = ['server_id' => 'integer', 'report_server_id' => 'integer', 'configuration' => 'encrypted:json', 'status' => BackupMonitorStatus::class, 'details' => 'array', 'last_checked_at' => 'datetime', 'last_alert_requested_at' => 'datetime', 'task_requested_at' => 'datetime'];
+    protected $casts = [
+        'server_id' => 'integer',
+        'report_server_id' => 'integer',
+        'configuration' => 'encrypted:json',
+        'status' => BackupMonitorStatus::class,
+        'details' => 'array',
+        'last_checked_at' => 'datetime',
+        'last_alert_requested_at' => 'datetime',
+        'task_requested_at' => 'datetime',
+    ];
 
     protected $hidden = ['configuration'];
 
@@ -27,6 +49,28 @@ class BackupMonitor extends AbstractModel
     public function reportServer(): BelongsTo
     {
         return $this->belongsTo(Server::class, 'report_server_id');
+    }
+
+    public function isHealthy(): bool
+    {
+        return $this->status === BackupMonitorStatus::HEALTHY;
+    }
+
+    public function alertSignature(): ?string
+    {
+        if ($this->isHealthy()) {
+            return null;
+        }
+
+        return $this->status->value.':'.($this->details['error_code'] ?? 'unverified');
+    }
+
+    public function isReminderDue(): bool
+    {
+        $reminderHours = (int) config('core.backup_alert_reminder_hours');
+
+        return $this->last_alert_requested_at === null
+            || $this->last_alert_requested_at->lte(now()->subHours($reminderHours));
     }
 
     public function markReadFailed(): void

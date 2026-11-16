@@ -67,7 +67,13 @@ class GetCommitsBehind
             ->whereNotNull('repository')
             ->whereNotNull('branch')
             ->whereNotNull('source_control_id')
-            ->whereHas('deployments', fn (Builder $deployments) => $deployments->whereIn('status', [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING]))
+            ->whereHas(
+                'deployments',
+                fn (Builder $deployments) => $deployments->whereIn(
+                    'status',
+                    [DeploymentStatus::FINISHED, DeploymentStatus::DEPLOYING],
+                ),
+            )
             ->lazyById(200, 'sites.id', 'id');
 
         $behindBySite = [];

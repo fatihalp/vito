@@ -9,9 +9,11 @@ class BackupMonitorResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $user = $request->user();
         $configuration = $this->configuration ?? [];
         $details = $this->details ?? [];
-        $canRun = $this->report_server_id !== null && ($request->user()?->can('run', [$this->resource, $this->server]) ?? false);
+        $canRun = $this->report_server_id !== null
+            && ($user?->can('run', [$this->resource, $this->server]) ?? false);
 
         return [
             'id' => $this->id,
@@ -24,10 +26,16 @@ class BackupMonitorResource extends JsonResource
             'last_task' => $this->last_task,
             'task_state' => $this->task_state,
             'task_requested_at' => $this->task_requested_at?->toIso8601String(),
-            'details' => array_intersect_key($details, array_flip(['last_success_at', 'restore_state', 'restore_verified_at', 'snapshots', 'error_code'])),
+            'details' => array_intersect_key($details, array_flip([
+                'last_success_at',
+                'restore_state',
+                'restore_verified_at',
+                'snapshots',
+                'error_code',
+            ])),
             'can_run_backup' => $canRun && ! empty($configuration['backup_unit']),
             'can_run_verify' => $canRun && ! empty($configuration['verify_unit']),
-            'can_delete' => $request->user()?->can('delete', [$this->resource, $this->server]) ?? false,
+            'can_delete' => $user?->can('delete', [$this->resource, $this->server]) ?? false,
         ];
     }
 }
