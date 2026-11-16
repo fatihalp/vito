@@ -71,11 +71,6 @@ class ConnectSiteResource
             'database_id' => ['nullable', 'integer'],
             'database_name' => ['nullable', 'string', 'max:64'],
             'confirm_overwrite' => ['nullable', 'boolean'],
-            'management_mode' => ['nullable', Rule::in(['managed', 'observed'])],
-            'runtime_driver' => ['nullable', Rule::in(['native', 'docker', 'rootless_docker'])],
-            'runtime_user' => ['nullable', 'string', 'max:32'],
-            'database_username' => ['nullable', 'string', 'max:63'],
-            'container' => ['nullable', 'string', 'regex:/^[a-zA-Z0-9][a-zA-Z0-9_.-]{0,127}$/'],
         ]);
 
         $data = $validator->validate();
@@ -84,10 +79,6 @@ class ConnectSiteResource
 
         if ($site->resources()->where('type', $type->value)->exists()) {
             throw ValidationException::withMessages(['type' => 'This resource type is already connected to the site.']);
-        }
-
-        if (($data['management_mode'] ?? 'managed') === 'observed') {
-            return app(RegisterExistingSiteResource::class)->register($site, $data);
         }
 
         if ($type === SiteResourceType::STORAGE) {

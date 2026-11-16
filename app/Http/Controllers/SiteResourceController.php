@@ -120,13 +120,6 @@ class SiteResourceController extends Controller
 
         $resource = app(ConnectSiteResource::class)->connect($site, $request->all());
 
-        if (($resource->configuration['management_mode'] ?? 'managed') === 'observed') {
-            return back()->with(
-                'success',
-                'Existing connection registered. Application settings were preserved.',
-            );
-        }
-
         return $resource->status === SiteResourceStatus::READY
             ? back()->with('success', 'Resource connected and environment configured successfully.')
             : back()->with('info', 'Resource connection started. Environment settings activate after networking is ready.');

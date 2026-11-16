@@ -17,7 +17,6 @@ class SiteResourceResource extends JsonResource
             'type' => $this->type->getText(),
             'type_value' => $this->type->value,
             'type_color' => $this->type->getColor(),
-            'management_mode' => $this->configuration['management_mode'] ?? 'managed',
             'status' => $this->status->getText(),
             'status_color' => $this->status->getColor(),
             'server' => $this->server ? [

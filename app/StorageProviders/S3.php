@@ -168,34 +168,6 @@ class S3 extends AbstractStorageProvider implements ReportsConnectionErrors
         }
     }
 
-    public function listBuckets(array $credentials): array
-    {
-        $this->lastConnectionError = null;
-
-        try {
-            $this->buildClientConfig($credentials);
-            $names = [];
-
-            foreach ($this->getClient()->getPaginator('ListBuckets') as $page) {
-                foreach ($page->get('Buckets') ?? [] as $bucket) {
-                    $name = $bucket['Name'] ?? null;
-
-                    if (is_string($name) && $name !== '') {
-                        $names[] = $name;
-                    }
-                }
-            }
-
-            sort($names, SORT_NATURAL | SORT_FLAG_CASE);
-
-            return array_values(array_unique($names));
-        } catch (Throwable $e) {
-            $this->recordConnectionError($e, 'Failed to list S3 buckets');
-
-            throw new RuntimeException($this->lastConnectionError, previous: $e);
-        }
-    }
-
     public function connectionError(): ?string
     {
         return $this->lastConnectionError;

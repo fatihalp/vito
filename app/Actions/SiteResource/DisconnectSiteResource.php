@@ -20,7 +20,7 @@ class DisconnectSiteResource
         DB::transaction(function () use ($resource, $restoreEnvironment, $removeFirewall): void {
             $site = $resource->site;
             $resource->delete();
-            if ($restoreEnvironment && ($resource->configuration['management_mode'] ?? 'managed') !== 'observed') {
+            if ($restoreEnvironment) {
                 $this->environment->sync($site, $resource);
             }
 

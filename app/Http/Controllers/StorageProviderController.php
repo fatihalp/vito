@@ -8,11 +8,9 @@ use App\Actions\StorageProvider\ConnectDropbox;
 use App\Actions\StorageProvider\CreateStorageProvider;
 use App\Actions\StorageProvider\DeleteStorageProvider;
 use App\Actions\StorageProvider\EditStorageProvider;
-use App\Actions\StorageProvider\ImportS3Buckets;
 use App\Actions\StorageProvider\TestStorageProviderConnection;
 use App\Http\Resources\StorageProviderResource;
 use App\Models\StorageProvider;
-use App\StorageProviders\S3;
 use App\Tables\StorageProviderTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -99,34 +97,6 @@ class StorageProviderController extends Controller
         }
 
         return to_route('storage-providers')->with('success', 'Storage provider created.');
-    }
-
-    #[Post('/s3/buckets', name: 'storage-providers.s3.buckets')]
-    public function s3Buckets(Request $request, ImportS3Buckets $action): JsonResponse
-    {
-        $this->authorize('create', StorageProvider::class);
-
-        try {
-            return response()->json(['buckets' => $action->availableBuckets($request->all())]);
-        } catch (ValidationException $e) {
-            throw $e;
-        } catch (Throwable $e) {
-            Log::error('Failed to list S3 buckets', ['exception' => get_class($e)]);
-
-            return response()->json(['message' => S3::connectionErrorMessage($e->getPrevious() ?? $e)], 422);
-        }
-    }
-
-    #[Post('/s3/buckets/import', name: 'storage-providers.s3.buckets.import')]
-    public function importS3Buckets(Request $request, ImportS3Buckets $action): JsonResponse
-    {
-        $this->authorize('create', StorageProvider::class);
-
-        $projectId = $request->boolean('global') ? null : user()->currentProject?->id;
-
-        $this->authorize('assignToProject', [StorageProvider::class, $projectId]);
-
-        return response()->json($action->import(user(), $request->all(), $projectId));
     }
 
     #[Post('/{storageProvider}/test', name: 'storage-providers.test')]

@@ -19,7 +19,6 @@ export interface SiteResource {
   environment?: Record<string, string>;
   environment_keys: string[];
   secrets_redacted?: boolean;
-  management_mode?: 'managed' | 'observed';
   created_at: string;
   updated_at: string;
 }
