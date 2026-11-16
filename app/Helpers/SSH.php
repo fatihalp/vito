@@ -20,6 +20,8 @@ use Throwable;
 
 class SSH
 {
+    public const MAX_OUTPUT_BYTES = 33554432;
+
     public Server $server;
 
     public ?ServerLog $log = null;
@@ -196,11 +198,13 @@ class SSH
                 return '';
             }
             $output = '';
-            $this->connection->exec($command, function (string $out) use (&$output, $outputLimit): void {
+            $this->connection->exec($command, function (string $out) use (&$output, $outputLimit): bool {
                 $this->abortWhenOutputExceeds(strlen($output) + strlen($out), $outputLimit);
                 $this->writeOutput($out);
 
                 $output .= $out;
+
+                return false;
             });
             if ($this->connection->getExitStatus() !== 0 || Str::contains($output, 'VITO_SSH_ERROR')) {
                 throw new SSHCommandError(

@@ -19,7 +19,7 @@ class Git
         $repoUrl = (string) $site->getFullRepositoryUrl();
         $ssh->exec(
             view('ssh.git.clone', [
-                'host' => $usesToken ? '' : str($repoUrl)->after('@')->before('-'),
+                'host' => $this->sshHost($repoUrl, $usesToken),
                 'repo' => escapeshellarg($repoUrl),
                 'path' => escapeshellarg((string) ($path ?? $site->path)),
                 'branch' => escapeshellarg((string) $site->branch),
@@ -85,10 +85,18 @@ class Git
                 'path' => escapeshellarg((string) $site->path),
                 'newRepoUrl' => escapeshellarg($newRepoUrl),
                 'usesToken' => $usesToken,
+                'host' => $this->sshHost($newRepoUrl, $usesToken),
+                'key' => $site->getSshKeyName(),
+                'port' => $site->sourceControl?->provider()?->getSshPort() ?? 22,
             ]),
             'set-remote',
             $site->id
         );
+    }
+
+    private function sshHost(string $repoUrl, bool $usesToken): string
+    {
+        return $usesToken ? '' : str($repoUrl)->after('@')->before('-')->toString();
     }
 
     public function prepareSelf(Site $site): void

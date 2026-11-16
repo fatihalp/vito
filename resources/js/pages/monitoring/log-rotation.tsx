@@ -125,13 +125,13 @@ function ClearAction({ entry, serverId }: { entry: LogEntry; serverId: number })
   );
 }
 
-function CleanupSuggestions({ serverId }: { serverId: number }) {
+function CleanupSuggestions({ serverId, logsTotalSize }: { serverId: number; logsTotalSize: number }) {
   const translateText = useTranslate();
   const [selected, setSelected] = useState<string[]>([]);
   const dialog = useDialog();
 
   const query = useQuery({
-    queryKey: ['serverCleanup', serverId],
+    queryKey: ['serverCleanup', serverId, logsTotalSize],
     queryFn: async () => {
       const response = await axios.get<{ categories: CleanupCategory[] }>(`/servers/${serverId}/monitoring/log-rotation/cleanup`);
       return response.data.categories;
@@ -434,7 +434,7 @@ export default function LogRotation() {
           </div>
         </HeaderContainer>
 
-        <CleanupSuggestions serverId={server.id} />
+        <CleanupSuggestions serverId={server.id} logsTotalSize={totalSize} />
 
         {logs.length === 0 ? (
           <div className="flex flex-col items-center justify-center rounded-lg border p-16 text-center">

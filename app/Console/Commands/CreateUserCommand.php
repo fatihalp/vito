@@ -8,24 +8,32 @@ use Illuminate\Console\Command;
 
 class CreateUserCommand extends Command
 {
-    protected $signature = 'user:create {name} {email} {password} {--role=admin}';
+    protected $signature = 'user:create {name} {email} {password? : Deprecated, visible in the process list. Use --password-stdin or the prompt} {--role=admin} {--password-stdin : Read the password from standard input}';
 
     protected $description = 'Create a new user';
 
-    public function handle(): void
+    public function handle(): int
     {
         $user = User::query()->where('email', $this->argument('email'))->first();
 
         if ($user) {
             $this->warn('User already exists. Skipping...');
 
-            return;
+            return self::SUCCESS;
+        }
+
+        $password = $this->password();
+
+        if ($password === '') {
+            $this->error('A password is required.');
+
+            return self::FAILURE;
         }
 
         $user = app(CreateUser::class)->create([
             'name' => $this->argument('name'),
             'email' => $this->argument('email'),
-            'password' => $this->argument('password'),
+            'password' => $password,
             'role' => $this->option('role'),
             'must_change_password' => false,
         ]);
@@ -35,5 +43,20 @@ class CreateUserCommand extends Command
         app(\App\Actions\Server\EnsureSelfServerExists::class)->ensure($user);
 
         $this->info('User created!');
+
+        return self::SUCCESS;
+    }
+
+    private function password(): string
+    {
+        if ($this->option('password-stdin')) {
+            return rtrim((string) file_get_contents('php://stdin'), "\r\n");
+        }
+
+        if ($this->argument('password') !== null || ! $this->input->isInteractive()) {
+            return (string) $this->argument('password');
+        }
+
+        return (string) $this->secret('Password', false);
     }
 }

@@ -7,6 +7,7 @@ use App\Enums\FirewallRuleStatus;
 use App\Events\SocketEvent;
 use App\Http\Resources\FirewallRuleResource;
 use App\Models\FirewallRule;
+use App\Models\Server;
 use App\Models\ServerLog;
 use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -18,67 +19,70 @@ class ApplyRulesJob implements ShouldQueue
     use Queueable;
     use UniqueQueue;
 
-    public function __construct(protected FirewallRule $rule) {}
+    public function __construct(protected Server $server, protected array $ruleIds) {}
 
     public function handle(): void
     {
-        $this->run("server-{$this->rule->server_id}", function () {
-            
-            $service = $this->rule->server->firewall();
-            
+        $this->run("server-{$this->server->id}", function () {
+            $service = $this->server->firewall();
             $handler = $service->handler();
             $handler->applyRules();
 
-            if ($this->rule->status === FirewallRuleStatus::DELETING) {
-                $projectId = $this->rule->server->project_id;
-                $ruleId = $this->rule->id;
-                $this->rule->delete();
+            foreach ($this->server->firewallRules()->whereKey($this->ruleIds)->get() as $rule) {
+                if ($rule->status === FirewallRuleStatus::DELETING) {
+                    $rule->delete();
 
-                SocketEvent::dispatch(new SocketEventDTO(
-                    projectId: $projectId,
-                    type: 'firewall-rule.deleted',
-                    data: ['id' => $ruleId],
-                ));
+                    SocketEvent::dispatch(new SocketEventDTO(
+                        projectId: $this->server->project_id,
+                        type: 'firewall-rule.deleted',
+                        data: ['id' => $rule->id],
+                    ));
 
-                return;
+                    continue;
+                }
+
+                $updated = FirewallRule::query()
+                    ->whereKey($rule->id)
+                    ->whereIn('status', [FirewallRuleStatus::CREATING, FirewallRuleStatus::UPDATING, FirewallRuleStatus::FAILED])
+                    ->update(['status' => FirewallRuleStatus::READY]);
+
+                if ($updated > 0) {
+                    $this->broadcastRuleUpdate($rule);
+                }
             }
-
-            $this->rule->status = FirewallRuleStatus::READY;
-            $this->rule->save();
-            $this->broadcastRuleUpdate();
         });
     }
 
     public function failed(Throwable $e): void
     {
-        $failedRules = $this->rule->server->firewallRules()
+        $failedRules = $this->server->firewallRules()
             ->where('status', '!=', FirewallRuleStatus::READY)
             ->get();
 
-        $this->rule->server->firewallRules()
+        $this->server->firewallRules()
             ->where('status', '!=', FirewallRuleStatus::READY)
             ->update(['status' => FirewallRuleStatus::FAILED]);
 
         foreach ($failedRules as $rule) {
             $rule->status = FirewallRuleStatus::FAILED;
             SocketEvent::dispatch(new SocketEventDTO(
-                projectId: $rule->server->project_id,
+                projectId: $this->server->project_id,
                 type: 'firewall-rule.updated',
                 data: new FirewallRuleResource($rule),
             ));
         }
 
-        ServerLog::log($this->rule->server, 'apply-firewall-rules-failed', $e->getMessage());
+        ServerLog::log($this->server, 'apply-firewall-rules-failed', $e->getMessage());
     }
 
-    private function broadcastRuleUpdate(): void
+    private function broadcastRuleUpdate(FirewallRule $rule): void
     {
-        $this->rule->refresh();
+        $rule->refresh();
 
         SocketEvent::dispatch(new SocketEventDTO(
-            projectId: $this->rule->server->project_id,
+            projectId: $this->server->project_id,
             type: 'firewall-rule.updated',
-            data: new FirewallRuleResource($this->rule),
+            data: new FirewallRuleResource($rule),
         ));
     }
 }

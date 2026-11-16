@@ -44,14 +44,7 @@ class CommandExecution extends AbstractModel
 
     public function getContent(): string
     {
-        $content = (string) ($this->command?->command ?? $this->cronJob?->command ?? '');
-        foreach ((array) $this->variables as $variable => $value) {
-            if (is_string($value) && ($value !== '' && $value !== '0')) {
-                $content = str_replace('${'.$variable.'}', $value, $content);
-            }
-        }
-
-        return $content;
+        return substitute_variables((string) ($this->command?->command ?? $this->cronJob?->command ?? ''), (array) $this->variables);
     }
 
     

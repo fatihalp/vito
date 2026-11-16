@@ -1,2 +1,3 @@
 if ! sudo test -f {!! escapeshellarg($path) !!}; then echo VITO_NO_FILE; exit 0; fi
-sudo tail -n {{ (int) $lines }} {!! escapeshellarg($path) !!}
+set -o pipefail
+sudo tail -c {{ (int) $bytes }} {!! escapeshellarg($path) !!} | tail -n {{ (int) $lines }}
