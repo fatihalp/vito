@@ -62,10 +62,8 @@ export type DialogControlProps = { open: boolean; onOpenChange: (open: boolean) 
 
 const UserForm = lazy(() => import('@/pages/users/components/user-form'));
 
-const BackupMonitorForm = lazy(() => import('@/pages/backups/components/monitor-form'));
 
 export const dialogs = {
-  backupMonitorCreate: BackupMonitorForm,
   cleanupCommands: CleanupCommandsDialog,
   userForm: UserForm,
   logViewer: LogViewerDialog,
