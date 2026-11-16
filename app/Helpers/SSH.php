@@ -87,7 +87,7 @@ class SSH
 
     private function abortWhenOutputExceeds(int $size, int $limit): void
     {
-        if ($limit > 0 && $size > $limit) {
+        if ($size > ($limit > 0 ? $limit : static::MAX_OUTPUT_BYTES)) {
             $this->disconnect();
             throw new RuntimeException('Remote output exceeded its size limit');
         }
