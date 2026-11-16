@@ -7,6 +7,8 @@ class EnvParser
     
     private const SECRET_PATTERNS = ['PASSWORD', 'SECRET', 'TOKEN', 'KEY', 'PRIVATE'];
 
+    public const KEY_RULE = 'regex:/\A[A-Za-z0-9_.]+\z/';
+
     
     public static function isSecretKey(string $key): bool
     {
@@ -80,6 +82,10 @@ class EnvParser
     
     public static function isRepresentable(string $content, array $variables): bool
     {
+        if (preg_match('/\r(?!\n)/', $content) === 1) {
+            return false;
+        }
+
         $shapeOk = collect(explode("\n", $content))
             ->map(fn (string $line): string => trim($line))
             ->every(function (string $line): bool {

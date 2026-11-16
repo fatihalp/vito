@@ -9,6 +9,7 @@ use App\Jobs\Site\CheckAppDebugJob;
 use App\Models\EnvVersion;
 use App\Models\Site;
 use App\Models\User;
+use App\SSH\OS\OS;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
 
@@ -29,11 +30,13 @@ class UpdateEnv
         ?EnvVersion $restoredFrom = null,
     ): void {
         Validator::make($input, [
-            'env' => ['nullable', 'string'],
-            'variables' => ['nullable', 'array', 'min:1'],
-            'variables.*.key' => ['required_with:variables', 'string'],
-            'variables.*.value' => ['nullable', 'string'],
+            'env' => ['nullable', 'string', 'max:'.OS::READ_LIMIT],
+            'variables' => ['nullable', 'array', 'min:1', 'max:1000'],
+            'variables.*.key' => ['required_with:variables', 'string', 'max:255', EnvParser::KEY_RULE],
+            'variables.*.value' => ['nullable', 'string', 'max:'.OS::READ_LIMIT],
             'variables.*.is_secret' => ['nullable', 'boolean'],
+            'secret_keys' => ['nullable', 'array', 'max:1000'],
+            'secret_keys.*' => ['string', 'max:255'],
             'path' => ['nullable', 'string'],
         ])->validate();
 
@@ -89,6 +92,12 @@ class UpdateEnv
             ]);
         }
 
+        if (strlen($content) > OS::READ_LIMIT) {
+            throw ValidationException::withMessages([
+                'env' => __('The .env file can be at most :bytes bytes.', ['bytes' => OS::READ_LIMIT]),
+            ]);
+        }
+
         $site->server->os()->write($path, $content, $site->user);
         $this->recordEnvVersion->record($site, $path, $existingRaw, $content, $source, $user, $restoredFrom);
 
@@ -130,6 +139,8 @@ class UpdateEnv
 
             return EnvParser::mergeWithLive($incoming, $live);
         }
+
+        $secretKeys += array_flip($input['secret_keys'] ?? []);
 
         return array_map(function ($variable) use ($secretKeys) {
             $variable['is_secret'] = $variable['is_secret'] || isset($secretKeys[$variable['key']]);

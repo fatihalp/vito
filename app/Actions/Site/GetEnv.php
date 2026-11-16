@@ -16,7 +16,8 @@ class GetEnv
         $resolvedPath = $site->resolveEnvPath($path);
         $env = $site->server->os()->readFile($resolvedPath);
 
-        $variables = EnvParser::classify(EnvParser::parse($env), $site->env_variables);
+        $parsed = EnvParser::parse($env);
+        $variables = EnvParser::classify($parsed, $site->env_variables);
         $managed = $resolvedPath === $site->resolveEnvPath()
             ? $this->managedEnvironment->managed($site->loadMissing('resources'))
             : [];
@@ -27,7 +28,9 @@ class GetEnv
         }, $variables);
 
         if (! $reveal) {
-            return ['variables' => EnvParser::maskSecrets($variables)];
+            return [
+                'variables' => EnvParser::isRepresentable($env, $parsed) ? EnvParser::maskSecrets($variables) : [],
+            ];
         }
 
         return [
