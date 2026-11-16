@@ -2,6 +2,7 @@
 
 namespace App\SiteTypes;
 
+use App\Actions\Site\SyncSiteDeployKey;
 use App\DTOs\SocketEventDTO;
 use App\Events\SocketEvent;
 use App\Exceptions\SSHCommandError;
@@ -172,45 +173,11 @@ abstract class AbstractSiteType implements SiteType
         $this->completeStep($step);
     }
 
-    
     protected function deployKey(): void
     {
-        if (! $this->site->sourceControl) {
-            return;
-        }
-
-        if ($this->site->sourceControl->isGithubApp()) {
-            return;
-        }
-
-        $os = $this->site->server->os();
-
-        if (! $this->site->ssh_key) {
-            $keyName = $this->site->getSshKeyName();
-            $os->generateSSHKey($keyName, $this->site);
-            $publicKey = $os->readSSHKey($keyName, $this->site);
-
-            if (str_starts_with($keyName, 'iuser_') && $this->site->isolatedUser) {
-                $this->site->isolatedUser->ssh_key = $publicKey;
-                $this->site->isolatedUser->save();
-                $this->site->setRelation('isolatedUser', $this->site->isolatedUser->fresh());
-            } else {
-                $this->site->ssh_key = $publicKey;
-                $this->site->save();
-            }
-        }
-
-        if (empty($this->site->type_data['deploy_key_id'])) {
-            $keyId = $this->site->sourceControl?->provider()?->deployKey(
-                $this->site->getDeployKeyName(),
-                $this->site->repository,
-                $this->site->ssh_key
-            );
-            $this->site->jsonUpdate('type_data', 'deploy_key_id', $keyId);
-        }
+        app(SyncSiteDeployKey::class)->setup($this->site);
     }
 
-    
     protected function isolate(): void
     {
         if (! $this->site->isIsolated()) {
