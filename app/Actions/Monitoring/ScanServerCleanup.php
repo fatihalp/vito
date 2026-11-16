@@ -17,6 +17,11 @@ class ScanServerCleanup
             'description' => 'Log files above 10 MB from the system, services, Laravel and workers. They are emptied in place, so services keep writing to them.',
             'risk' => 'safe',
         ],
+        'docker_logs' => [
+            'label' => 'Docker container and volume logs',
+            'description' => 'Container logs and log files inside Docker volumes. Emptied in place so running containers keep working.',
+            'risk' => 'safe',
+        ],
         'journal' => [
             'label' => 'System journal',
             'description' => 'Trims the systemd journal down to 200 MB, oldest entries first.',
@@ -112,12 +117,40 @@ class ScanServerCleanup
         $arguments = implode(' ', array_map('escapeshellarg', $paths));
 
         return match ($category) {
-            'large_logs' => "sudo truncate -s 0 -- {$arguments}",
+            'large_logs', 'docker_logs' => "sudo truncate -s 0 -- {$arguments}",
             'rotated_logs' => "sudo rm -f -- {$arguments}",
             'journal' => 'sudo journalctl --vacuum-size=200M',
             'apt_cache' => 'sudo apt-get clean',
             default => "sudo rm -rf -- {$arguments}",
         };
+    }
+
+    public static function isDockerLogPath(string $path): bool
+    {
+        if (preg_match('#^/[A-Za-z0-9_@.+:/ -]+$#', $path) !== 1 || str_contains($path, '..')) {
+            return false;
+        }
+
+        if (preg_match('#^/var/lib/docker/containers/[a-f0-9]{64}/([a-f0-9]{64}-json\.log(\.\d+)?(\.(gz|xz|bz2|zst))?|local-logs/container\.log(\.\d+)?(\.(gz|xz|bz2|zst))?)$#', $path) === 1) {
+            return true;
+        }
+
+        if (preg_match('#^/var/lib/docker/volumes/[A-Za-z0-9_.-]+/_data/(.+)$#', $path, $matches) !== 1) {
+            return false;
+        }
+
+        $relativePath = $matches[1];
+        if (preg_match('#^(cdr-csv|cel-custom)/[^/]+\.csv$#', $relativePath) === 1) {
+            return true;
+        }
+
+        $name = basename($relativePath);
+
+        if (preg_match('/^(security|messages|full|queue_log|syslog|btmp|wtmp|debug)(\.\d+|\.old|\.gz|\.xz|\.bz2|\.zst)*$/', $name) === 1) {
+            return true;
+        }
+
+        return preg_match('/^[A-Za-z0-9_.-]*[A-Za-z][A-Za-z0-9_.-]*\.log(\.\d+|\.old|\.gz|\.xz|\.bz2|\.zst)*$/', $name) === 1;
     }
 
     private function categorize(string $kind, string $path, int $size): ?string
@@ -133,6 +166,10 @@ class ScanServerCleanup
                 preg_match('#^/home/[^/]+/(\.cache/(composer|pip|yarn|node-gyp)|\.composer/cache|\.npm/_cacache)$#', $path) === 1 => 'tool_cache',
                 default => null,
             };
+        }
+
+        if (self::isDockerLogPath($path)) {
+            return 'docker_logs';
         }
 
         if (str_starts_with($path, '/var/cache/apt/archives/') && str_ends_with($path, '.deb')) {
