@@ -24,8 +24,9 @@ class ImportVitoSettings
         ])->validate();
 
         $uploaded = $validated['backup_file'];
-        $extractPath = Storage::disk('tmp')->path('vito-backup-import-'.time());
-        File::makeDirectory($extractPath, 0755, true);
+        $extractPath = Storage::disk('tmp')->path('vito-'.Str::random(40));
+        File::makeDirectory($extractPath, 0700);
+        $umask = umask(0077);
 
         try {
             $this->extract($uploaded->getPathname(), $extractPath);
@@ -39,11 +40,31 @@ class ImportVitoSettings
                     move_directory($source, base_path($relative));
                 }
             }
+
+            $this->restrictSecretPermissions();
         } finally {
+            umask($umask);
             File::deleteDirectory($extractPath);
         }
 
         Artisan::call('optimize');
+    }
+
+    private function restrictSecretPermissions(): void
+    {
+        foreach ([storage_path('app/key-pairs'), storage_path('app/server-logs')] as $directory) {
+            if (! File::isDirectory($directory)) {
+                continue;
+            }
+
+            chmod($directory, 0700);
+            foreach (File::directories($directory) as $child) {
+                chmod($child, 0700);
+            }
+            foreach (File::allFiles($directory, true) as $file) {
+                chmod($file->getPathname(), 0600);
+            }
+        }
     }
 
     private function extract(string $archive, string $to): void

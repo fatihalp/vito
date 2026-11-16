@@ -20,6 +20,8 @@ use Throwable;
 
 class SSH
 {
+    public const MAX_OUTPUT_BYTES = 33554432;
+
     public Server $server;
 
     public ?ServerLog $log = null;
@@ -176,11 +178,25 @@ class SSH
 
             $this->connection->setTimeout($timeout);
             $output = '';
-            $this->connection->exec($command, function (string $out) use (&$output): void {
+            $bytes = 0;
+            $this->connection->exec($command, function (string $out) use (&$output, &$bytes): bool {
+                $bytes += strlen($out);
+                if ($bytes > static::MAX_OUTPUT_BYTES) {
+                    return true;
+                }
+
                 $this->writeOutput($out);
 
                 $output .= $out;
+
+                return false;
             });
+            if ($bytes > static::MAX_OUTPUT_BYTES) {
+                throw new SSHCommandError(
+                    message: 'SSH command output exceeded '.static::MAX_OUTPUT_BYTES.' bytes and was stopped',
+                    log: $this->log
+                );
+            }
             if ($this->connection->getExitStatus() !== 0 || Str::contains($output, 'VITO_SSH_ERROR')) {
                 throw new SSHCommandError(
                     message: 'SSH command failed with an error',

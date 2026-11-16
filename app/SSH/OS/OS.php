@@ -12,7 +12,13 @@ class OS
 {
     public const FILE_NOT_FOUND = 'VITO_NO_FILE';
 
-    private const SHELL_IDENTIFIER = '/^[A-Za-z_][A-Za-z0-9_]*$/';
+    public const READ_LIMIT = 1048576;
+
+    public const KEY_READ_LIMIT = 16384;
+
+    public const SCAN_LIMIT = 16777216;
+
+    private const SHELL_IDENTIFIER = '/\A[A-Za-z_][A-Za-z0-9_]*\z/';
 
     public function __construct(protected Server $server) {}
 
@@ -140,6 +146,7 @@ class OS
         $key = $this->server->ssh()->exec(
             view('ssh.os.read-file', [
                 'path' => '/home/'.$user.'/.ssh/id_rsa.pub',
+                'limit' => self::KEY_READ_LIMIT,
             ]),
             'get-public-key'
         );
@@ -148,7 +155,7 @@ class OS
             throw new SSHCommandError(message: 'Failed to read the public key for '.$user);
         }
 
-        return $key;
+        return $this->publicKey($key);
     }
 
     
@@ -188,12 +195,22 @@ class OS
     
     public function readSSHKey(string $name, ?Site $site = null): string
     {
-        return $this->server->ssh($site?->user)->exec(
+        return $this->publicKey($this->server->ssh($site?->user)->exec(
             view('ssh.os.read-ssh-key', [
                 'name' => $name,
+                'limit' => self::KEY_READ_LIMIT,
             ]),
             'read-ssh-key'
-        );
+        ));
+    }
+
+    private function publicKey(string $output): string
+    {
+        if (strlen($output) > self::KEY_READ_LIMIT || str_contains(trim($output), "\n")) {
+            throw new SSHCommandError(message: 'The SSH public key is invalid or too large');
+        }
+
+        return $output;
     }
 
     
@@ -208,12 +225,19 @@ class OS
     
     public function readFile(string $path, int $timeout = 0): string
     {
-        return trim($this->server->ssh()->exec(
+        $content = $this->server->ssh()->exec(
             command: view('ssh.os.read-file', [
                 'path' => $path,
+                'limit' => self::READ_LIMIT,
             ]),
             timeout: $timeout,
-        ));
+        );
+
+        if (strlen($content) > self::READ_LIMIT) {
+            throw new SSHCommandError(message: 'The file is larger than '.self::READ_LIMIT.' bytes');
+        }
+
+        return trim($content);
     }
 
     
@@ -223,6 +247,7 @@ class OS
             view('ssh.os.tail', [
                 'path' => $path,
                 'lines' => $lines,
+                'bytes' => self::READ_LIMIT,
             ])
         );
     }

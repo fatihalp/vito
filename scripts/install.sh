@@ -37,7 +37,8 @@ if [[ -z "${V_ADMIN_EMAIL}" ]]; then
 fi
 
 if [[ -z "${V_ADMIN_PASSWORD}" ]]; then
-  read -p "Enter a password for the admin user: " V_ADMIN_PASSWORD
+  read -s -p "Enter a password for the admin user: " V_ADMIN_PASSWORD
+  echo
 fi
 
 if [[ -z "${V_ADMIN_PASSWORD}" ]]; then
@@ -47,7 +48,8 @@ fi
 
 apt remove needrestart -y
 
-useradd -p $(openssl passwd -1 ${V_PASSWORD}) vito
+useradd vito
+printf 'vito:%s\n' "${V_PASSWORD}" | chpasswd
 usermod -aG vito
 echo "vito ALL=(ALL) NOPASSWD:ALL" | tee -a /etc/sudoers
 mkdir /home/vito
@@ -216,7 +218,7 @@ if [[ "${VITO_CHANNEL}" == "release" ]]; then
   fi
 fi
 composer install --no-dev
-cp .env.prod .env
+install -m 600 .env.prod .env
 sed -i "s|^APP_URL=.*|APP_URL=${VITO_APP_URL}|" .env
 touch /home/vito/vito/storage/database.sqlite
 php artisan key:generate
@@ -232,7 +234,7 @@ cat /home/vito/vito/storage/ssh-public.key >> /home/vito/.ssh/authorized_keys
 chmod 600 /home/vito/.ssh/authorized_keys
 chown -R vito:vito /home/vito/.ssh
 
-php artisan user:create Vito ${V_ADMIN_EMAIL} ${V_ADMIN_PASSWORD}
+printf '%s' "${V_ADMIN_PASSWORD}" | php artisan user:create Vito "${V_ADMIN_EMAIL}" --password-stdin
 php artisan vito:ensure-self-server || true
 
 php artisan optimize

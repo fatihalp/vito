@@ -4,6 +4,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Validation\ValidationException;
 
 function generate_public_key(string $privateKeyPath, string $publicKeyPath): void
 {
@@ -67,64 +68,38 @@ function get_public_key_content(): string
     return $content;
 }
 
-function tail(string $filepath, int $lines = 1, bool $adaptive = true): string
+function tail(string $filepath, int $lines = 1, int $maxBytes = 1048576): string
 {
-    
     $f = @fopen($filepath, 'rb');
     if ($f === false) {
         return '';
     }
 
-    
-    
-    if (! $adaptive) {
-        $buffer = 4096;
-    } else {
-        $buffer = ($lines < 2 ? 64 : ($lines < 10 ? 512 : 4096));
-    }
-
-    
-    fseek($f, -1, SEEK_END);
-
-    
-    
-    if (fread($f, 1) != "\n") {
-        $lines -= 1;
-    }
-
-    
-    $output = '';
-    $chunk = '';
-
-    
-    while (ftell($f) > 0 && $lines >= 0) {
-        
-        $seek = min(ftell($f), $buffer);
-
-        
-        fseek($f, -$seek, SEEK_CUR);
-
-        
-        $output = ($chunk = fread($f, $seek)).$output;
-
-        
-        fseek($f, -mb_strlen($chunk !== false ? $chunk : '', '8bit'), SEEK_CUR);
-
-        
-        $lines -= substr_count($chunk !== false ? $chunk : '', "\n");
-    }
-
-    
-    
-    while ($lines++ < 0) {
-        
-        $output = substr($output, strpos($output, "\n") + 1);
-    }
-
-    
+    $maxBytes = max(1, $maxBytes);
+    fseek($f, -min($maxBytes, (int) fstat($f)['size']), SEEK_END);
+    $content = (string) stream_get_contents($f, $maxBytes);
     fclose($f);
 
-    return trim($output);
+    return trim(implode("\n", array_slice(explode("\n", rtrim($content, "\n")), -max(1, $lines))));
+}
+
+function substitute_variables(string $content, array $variables, int $limit = 1048576): string
+{
+    $replacements = [];
+    $length = strlen($content);
+    foreach ($variables as $variable => $value) {
+        if (is_string($value) && $value !== '' && $value !== '0') {
+            $placeholder = '${'.$variable.'}';
+            $replacements[$placeholder] = $value;
+            $length += substr_count($content, $placeholder) * max(0, strlen($value) - strlen($placeholder));
+        }
+    }
+
+    if ($length > $limit) {
+        throw ValidationException::withMessages(['variables' => 'The content is too large once its variables are filled in.']);
+    }
+
+    return strtr($content, $replacements);
 }
 
 function home_path(string $user): string
@@ -164,7 +139,7 @@ function format_webserver_config(string $config): string
             }
         }
 
-        $formattedLines[] = str_repeat('    ', max(0, $indent)).$trimmed;
+        $formattedLines[] = str_repeat('    ', min(max(0, $indent), 32)).$trimmed;
 
         if (str_ends_with($trimmed, '{')) {
             $indent++;
@@ -184,6 +159,11 @@ function format_webserver_config(string $config): string
 function user(): ?User
 {
     return Auth::user();
+}
+
+function app_url(string $path): string
+{
+    return rtrim((string) config('app.url'), '/').'/'.ltrim($path, '/');
 }
 
 function move_directory(string $from, string $to): void

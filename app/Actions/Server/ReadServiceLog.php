@@ -35,12 +35,15 @@ class ReadServiceLog
                 'unit' => $log->target,
                 'lines' => $lines,
                 'search' => $hasSearch ? $search : null,
+                'bytes' => OS::READ_LIMIT,
             ]));
         } elseif ($hasSearch) {
             $content = $server->ssh()->exec(view('ssh.os.grep', [
                 'path' => $log->target,
                 'term' => $search,
                 'lines' => $lines,
+                'scanBytes' => OS::SCAN_LIMIT,
+                'bytes' => OS::READ_LIMIT,
             ]));
         } else {
             $content = $server->os()->tail($log->target, $lines);
@@ -53,7 +56,7 @@ class ReadServiceLog
         );
 
         return [
-            'content' => $content,
+            'content' => mb_scrub($content, 'UTF-8'),
             'display_target' => $log->displayTarget(),
             'source' => $log->source,
         ];

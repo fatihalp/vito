@@ -4,6 +4,7 @@ namespace App\Actions\VitoSetting;
 
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 use ZipArchive;
 
@@ -20,7 +21,11 @@ class ExportVitoSettings
 
     public function export(string $zipFileName): string
     {
-        $zipPath = Storage::disk('tmp')->path($zipFileName);
+        abort_if((bool) config('app.demo'), 403, 'Export is disabled in demo mode.');
+
+        $workspace = Storage::disk('tmp')->path('vito-'.Str::random(40));
+        File::makeDirectory($workspace, 0700);
+        $zipPath = $workspace.'/'.$zipFileName;
         $zip = new ZipArchive;
 
         if ($zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE) !== true) {

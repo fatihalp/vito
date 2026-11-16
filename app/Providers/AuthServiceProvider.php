@@ -4,8 +4,11 @@ namespace App\Providers;
 
 use App\Actions\User\UpdateUserPassword;
 use App\Actions\User\UpdateUserProfileInformation;
+use App\Models\User;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Session\Middleware\AuthenticateSession;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -29,6 +32,13 @@ class AuthServiceProvider extends ServiceProvider
         Fortify::loginView(fn () => Inertia::render('auth/login'));
         Fortify::confirmPasswordView(fn () => Inertia::render('auth/confirm-password'));
         Fortify::twoFactorChallengeView(fn () => Inertia::render('auth/two-factor'));
+
+        AuthenticateSession::redirectUsing(fn (): string => route('login'));
+
+        ResetPassword::createUrlUsing(fn (User $user, string $token): string => app_url(route('password.reset', [
+            'token' => $token,
+            'email' => $user->getEmailForPasswordReset(),
+        ], false)));
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username()).'|'.$request->ip()));

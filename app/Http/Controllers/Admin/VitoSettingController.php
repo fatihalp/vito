@@ -7,6 +7,7 @@ use App\Actions\VitoSetting\ImportVitoSettings;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\File;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Get;
@@ -30,7 +31,10 @@ class VitoSettingController extends Controller
     {
         $exportName = 'vito-backup-'.date('Y-m-d').'.zip';
 
-        return response()->download(app(ExportVitoSettings::class)->export($exportName), $exportName)->deleteFileAfterSend();
+        $export = app(ExportVitoSettings::class)->export($exportName);
+        app()->terminating(fn () => File::deleteDirectory(dirname($export)));
+
+        return response()->download($export, $exportName);
     }
 
     #[Post('/import', name: 'vito-settings.import')]
