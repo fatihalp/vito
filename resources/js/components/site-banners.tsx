@@ -149,7 +149,7 @@ function InstallationFailedBanner({ site }: { site: Site }) {
   );
 }
 
-export function getSiteWarningItems(site: Site, includeAppDebug = false, translateText: ReturnType<typeof useTranslate> = (message, replacements) => translate(message, 'en', replacements)): BannerItem[] {
+export function getSiteWarningItems(site: Site, includeAppDebug = false, translateText: ReturnType<typeof useTranslate> = (message, replacements) => translate(message, replacements)): BannerItem[] {
   if (site.status !== 'ready') {
     return [];
   }

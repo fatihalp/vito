@@ -1,16 +1,11 @@
 import { useTranslate } from '@/hooks/use-translate';
-import { router, usePage } from '@inertiajs/react';
+import { router } from '@inertiajs/react';
 import { useEffect } from 'react';
 import { toast } from 'sonner';
 import { httpErrorMessage } from '@/lib/request-error';
 
 export function RequestFeedback() {
   const translateText = useTranslate();
-  const { locale = 'en' } = usePage().props;
-
-  useEffect(() => {
-    document.documentElement.lang = String(locale);
-  }, [locale]);
   useEffect(() => {
     const stopNetwork = router.on('networkError', (event) => {
       event.preventDefault();

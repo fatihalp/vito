@@ -271,7 +271,6 @@ const WarningsCell = ({ row, value }: CellRenderProps) => {
 
 const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
   const translateText = useTranslate();
-  const { locale } = usePage<SharedData>().props;
   const result = value as PhpVersions | null;
 
   if (!result) {
@@ -305,7 +304,7 @@ const PhpVersionsCell = ({ value, row }: CellRenderProps) => {
       </TooltipTrigger>
       <TooltipContent className="max-w-xs">
         <p>{translateText("Compared with the latest patch release for each PHP branch.")}</p>
-        <p>{result.checked_at ? translateText('Last successful check: :date', { date: new Date(result.checked_at).toLocaleString(locale === 'tr' ? 'tr-TR' : 'en-US') }) : translateText('No successful checks yet.')}</p>
+        <p>{result.checked_at ? translateText('Last successful check: :date', { date: new Date(result.checked_at).toLocaleString('en-US') }) : translateText('No successful checks yet.')}</p>
         {result.status === 'error' && <p>{translateText("Unable to reach the server or PHP version source. Previous results are preserved.")}</p>}
       </TooltipContent>
     </Tooltip>
