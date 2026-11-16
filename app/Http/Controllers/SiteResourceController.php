@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Database\BrowsePostgresDatabase;
 use App\Actions\SiteResource\ConnectSiteResource;
 use App\Actions\SiteResource\DisconnectSiteResource;
+use App\Actions\SiteResource\ResolveSiteResourceDatabaseName;
 use App\Enums\ServerRole;
 use App\Enums\SiteResourceStatus;
 use App\Http\Resources\SiteResourceResource;
@@ -31,17 +32,18 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 class SiteResourceController extends Controller
 {
     #[Get('/{resource}/browse', name: 'site-resources.browse')]
-    public function browse(Server $server, Site $site, SiteResource $resource): Response
-    {
+    public function browse(
+        Server $server,
+        Site $site,
+        SiteResource $resource,
+        ResolveSiteResourceDatabaseName $databaseName,
+    ): Response {
         $this->authorize('revealCredentials', [$resource, $site, $server]);
 
         $resourcesUrl = "/servers/{$server->id}/sites/{$site->id}/resources";
-        $databaseName = $resource->configuration['database_name']
-            ?? $resource->environment['DB_DATABASE']
-            ?? 'Database';
 
         return Inertia::render('databases/browse', [
-            'databaseName' => $databaseName,
+            'databaseName' => $databaseName->resolve($resource),
             'dataUrl' => url("{$resourcesUrl}/{$resource->id}/browse/data"),
             'backUrl' => url($resourcesUrl),
         ]);

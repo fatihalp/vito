@@ -9,9 +9,9 @@ use App\Actions\StorageProvider\CreateStorageProvider;
 use App\Actions\StorageProvider\DeleteStorageProvider;
 use App\Actions\StorageProvider\EditStorageProvider;
 use App\Actions\StorageProvider\ImportS3Buckets;
+use App\Actions\StorageProvider\TestStorageProviderConnection;
 use App\Http\Resources\StorageProviderResource;
 use App\Models\StorageProvider;
-use App\StorageProviders\ReportsConnectionErrors;
 use App\StorageProviders\S3;
 use App\Tables\StorageProviderTable;
 use Illuminate\Http\JsonResponse;
@@ -130,35 +130,14 @@ class StorageProviderController extends Controller
     }
 
     #[Post('/{storageProvider}/test', name: 'storage-providers.test')]
-    public function test(Request $request, StorageProvider $storageProvider): JsonResponse
-    {
+    public function test(
+        Request $request,
+        StorageProvider $storageProvider,
+        TestStorageProviderConnection $action,
+    ): JsonResponse {
         $this->authorize('view', $storageProvider);
 
-        if (! $storageProvider->hasProviderHandler()) {
-            return response()->json(['connected' => false]);
-        }
-
-        $handler = $storageProvider->provider();
-        $readOnly = $request->query('mode') === 'read' && $handler instanceof S3;
-
-        try {
-            $connected = $readOnly
-                ? $handler->canRead($storageProvider->credentials)
-                : $handler->connect($storageProvider->credentials);
-        } catch (Throwable $e) {
-            Log::error('Failed to test storage provider connection', [
-                'storage_provider_id' => $storageProvider->id,
-                'exception' => get_class($e),
-            ]);
-            $connected = false;
-        }
-
-        $reportsError = ! $connected && $handler instanceof ReportsConnectionErrors;
-
-        return response()->json([
-            'connected' => $connected,
-            'error' => $reportsError ? $handler->connectionError() : null,
-        ]);
+        return response()->json($action->test($storageProvider, $request->query('mode')));
     }
 
     #[Patch('/{storageProvider}', name: 'storage-providers.update')]

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\SSL\DownloadCsr;
 use App\Actions\SSL\InspectExistingCertificates;
+use App\Actions\SSL\ListServerSsls;
 use Illuminate\Http\JsonResponse;
 use App\Actions\SSL\ActivateServerSsl;
 use App\Actions\SSL\CreateServerSsl;
@@ -15,7 +16,6 @@ use App\Models\Server;
 use App\Models\Ssl;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Database\Eloquent\Builder;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -31,7 +31,7 @@ class ServerSslController extends Controller
 {
 
     #[Get('/', name: 'server-ssls')]
-    public function index(Server $server): Response
+    public function index(Server $server, ListServerSsls $listServerSsls): Response
     {
         $this->authorize('viewAny', [Ssl::class, $server]);
 
@@ -40,7 +40,7 @@ class ServerSslController extends Controller
             ->whereNotNull('dns_provider_id')
             ->get(['id', 'domain', 'dns_provider_id']);
 
-        $ssls = QueryBuilder::for($this->serverSsls($server))
+        $ssls = QueryBuilder::for($listServerSsls->query($server))
             ->sortable('created_at', 'desc')
             ->simplePaginate();
 
@@ -102,16 +102,5 @@ class ServerSslController extends Controller
         $this->authorize('downloadCsr', [$ssl, $server]);
 
         return app(DownloadCsr::class)->download($server, $ssl);
-    }
-
-    private function serverSsls(Server $server): Builder
-    {
-        return Ssl::query()
-            ->where(
-                fn (Builder $query) => $query
-                    ->where('server_id', $server->id)
-                    ->orWhereHas('site', fn (Builder $sites) => $sites->where('server_id', $server->id))
-            )
-            ->with(['log', 'site:id,domain,server_id']);
     }
 }

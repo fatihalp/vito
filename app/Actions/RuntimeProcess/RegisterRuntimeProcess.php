@@ -13,6 +13,14 @@ class RegisterRuntimeProcess
 {
     public function register(Server $server, array $input): RuntimeProcess
     {
+        $data = $this->validate($server, $input);
+        $this->assertRunnable($server, $data);
+
+        return $this->persist($server, $data);
+    }
+
+    private function validate(Server $server, array $input): array
+    {
         $reservedRuntimeNames = ($input['driver'] ?? '') === 'supervisor' ? ['all'] : [];
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
@@ -30,14 +38,24 @@ class RegisterRuntimeProcess
             'site_ids.*' => ['integer', 'distinct', Rule::exists('sites', 'id')->where('server_id', $server->id)],
         ])->validate();
 
-        $data['unix_user'] = $data['unix_user'] ?? '';
+        $data['unix_user'] ??= '';
+
+        return $data;
+    }
+
+    private function assertRunnable(Server $server, array $data): void
+    {
         $commands = app(RuntimeCommand::class);
         $commands->validateContext($server, $data['driver'], $data['unix_user']);
         $commands->validateName($data['driver'], $data['runtime_name']);
+
         if (RuntimeCommand::usesUser($data['driver'])) {
             $commands->prefix($server, $data['driver'], $data['unix_user']);
         }
+    }
 
+    private function persist(Server $server, array $data): RuntimeProcess
+    {
         return DB::transaction(function () use ($server, $data): RuntimeProcess {
             $process = RuntimeProcess::query()->updateOrCreate(
                 [

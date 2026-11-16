@@ -2,17 +2,18 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Ci\CancelCiRun;
 use App\Actions\Ci\ConfigureCiRunner;
+use App\Actions\Ci\GetCiRunLog;
+use App\Actions\Ci\GetCiRunnerOverview;
+use App\Actions\Ci\ListCiRuns;
+use App\Actions\Ci\ResolveCiRunnerTargetServer;
+use App\Actions\Ci\StartCiRun;
 use App\Models\CiRunner;
 use App\Models\Server;
 use App\Models\Site;
-use App\Services\Ci\CiRunData;
-use App\Services\Ci\CiRunnerClient;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Collection;
-use Illuminate\Validation\Rule;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Get;
@@ -25,151 +26,62 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 class SiteCiController extends Controller
 {
     #[Get('/', name: 'site-ci')]
-    public function index(Request $request, Server $server, Site $site): Response
+    public function index(Request $request, Server $server, Site $site, GetCiRunnerOverview $action): Response
     {
         $this->authorize('viewAny', [CiRunner::class, $site, $server]);
-        $canConfigure = $request->user()->can('configure', [CiRunner::class, $site, $server]);
-        $runner = CiRunner::query()->where('site_id', $site->id)->with('server:id,name')->first();
 
-        return Inertia::render('site-ci/index', [
-            'runner' => $runner ? [
-                'server_id' => $runner->server_id,
-                'server_name' => $runner->server->name,
-                'repository' => $runner->repository,
-                'enabled' => $runner->enabled,
-                ...($canConfigure ? ['user' => $runner->user, 'executable' => $runner->executable] : []),
-            ] : null,
-            'canConfigure' => $canConfigure,
-            'canRun' => $request->user()->can('run', [CiRunner::class, $site, $server]),
-            'runnerServers' => $canConfigure ? $this->runnerServers($request) : [],
-        ]);
+        return Inertia::render('site-ci/index', $action->get($request->user(), $server, $site));
     }
 
     #[Post('/settings', name: 'site-ci.settings')]
-    public function configure(Request $request, Server $server, Site $site): JsonResponse
-    {
+    public function configure(
+        Request $request,
+        Server $server,
+        Site $site,
+        ResolveCiRunnerTargetServer $targetServer,
+        ConfigureCiRunner $action,
+    ): JsonResponse {
         $this->authorize('configure', [CiRunner::class, $site, $server]);
-        $target = $request->validate(['server_id' => ['required', 'integer']]);
-        $this->authorize('update', Server::query()->findOrFail($target['server_id']));
-        app(ConfigureCiRunner::class)->configure($site, $request->all());
+        $this->authorize('update', $targetServer->resolve($request->all()));
+        $action->configure($site, $request->all());
 
         return $this->privateJson(['message' => __('CI runner connected.')]);
     }
 
     #[Get('/data', name: 'site-ci.data')]
-    public function data(Server $server, Site $site, CiRunnerClient $client, CiRunData $presenter): JsonResponse
+    public function data(Server $server, Site $site, ListCiRuns $action): JsonResponse
     {
         $this->authorize('viewAny', [CiRunner::class, $site, $server]);
-        $runner = $this->runner($site);
-        $runs = $client->request($runner, ['action' => 'list']);
-        if (! array_is_list($runs) || count($runs) > 50) {
-            throw ValidationException::withMessages(['ci' => __('The runner returned an invalid CI history.')]);
-        }
-        $data = [];
-        foreach ($runs as $run) {
-            if (! is_array($run)) {
-                throw ValidationException::withMessages(['ci' => __('The runner returned invalid CI result data.')]);
-            }
-            $client->assertRun($runner, $run);
-            $data[] = $presenter->present($run);
-        }
 
-        return $this->privateJson(['runs' => $data, 'stages' => $client->info($runner)['stages']]);
+        return $this->privateJson($action->list($site));
     }
 
     #[Post('/run', name: 'site-ci.run')]
-    public function run(
-        Request $request,
-        Server $server,
-        Site $site,
-        CiRunnerClient $client,
-        CiRunData $presenter,
-    ): JsonResponse {
+    public function run(Request $request, Server $server, Site $site, StartCiRun $action): JsonResponse
+    {
         $this->authorize('run', [CiRunner::class, $site, $server]);
-        $runner = $this->runner($site);
-        $data = $request->validate([
-            'ref' => ['required', 'string', 'max:200'],
-            'stages' => ['required', 'array', 'min:1', 'max:20'],
-            'stages.*' => ['required', 'string', 'distinct', Rule::in($client->info($runner)['stages'])],
-        ]);
-        $data['ref'] = $client->reference($data['ref']);
-        $run = $client->request($runner, ['action' => 'run', ...$data]);
-        $client->assertRun($runner, $run);
 
-        return $this->privateJson(['run' => $presenter->present($run)], 202);
+        return $this->privateJson(['run' => $action->start($site, $request->all())], 202);
     }
 
     #[Get('/{runId}/log', name: 'site-ci.log')]
-    public function log(
-        Request $request,
-        Server $server,
-        Site $site,
-        string $runId,
-        CiRunnerClient $client,
-    ): JsonResponse {
+    public function log(Request $request, Server $server, Site $site, string $runId, GetCiRunLog $action): JsonResponse
+    {
         $this->authorize('viewAny', [CiRunner::class, $site, $server]);
-        $runner = $this->runner($site);
-        $this->verifyRun($client, $runner, $runId);
-        $input = $request->validate([
-            'cursor' => ['sometimes', 'integer', 'min:0', 'max:17825792'],
-            'stage' => ['nullable', 'string', Rule::in(['scaffold-check', ...$client->info($runner)['stages']])],
-        ]);
-        $requestedCursor = (int) ($input['cursor'] ?? 0);
-        $log = $client->request($runner, [
-            'action' => 'log',
-            'run_id' => $runId,
-            'cursor' => $requestedCursor,
-            'stage' => $input['stage'] ?? null,
-        ]);
-        $isValidLog = is_string($log['text'] ?? null)
-            && strlen($log['text']) <= 131072
-            && is_int($log['cursor'] ?? null)
-            && $log['cursor'] >= $requestedCursor
-            && $log['cursor'] <= 17825792;
-        if (! $isValidLog) {
-            throw ValidationException::withMessages(['ci' => __('The runner returned invalid log data.')]);
-        }
 
-        return $this->privateJson(['text' => $log['text'], 'cursor' => $log['cursor']]);
+        return $this->privateJson($action->get($site, $runId, $request->all()));
     }
 
     #[Post('/{runId}/cancel', name: 'site-ci.cancel')]
-    public function cancel(Server $server, Site $site, string $runId, CiRunnerClient $client): JsonResponse
+    public function cancel(Server $server, Site $site, string $runId, CancelCiRun $action): JsonResponse
     {
         $this->authorize('run', [CiRunner::class, $site, $server]);
-        $runner = $this->runner($site);
-        $this->verifyRun($client, $runner, $runId);
-        $result = $client->request($runner, ['action' => 'cancel', 'run_id' => $runId]);
 
-        return $this->privateJson(['cancel_requested' => ($result['cancel_requested'] ?? false) === true]);
+        return $this->privateJson(['cancel_requested' => $action->cancel($site, $runId)]);
     }
 
     private function privateJson(array $payload, int $status = 200): JsonResponse
     {
         return response()->json($payload, $status)->header('Cache-Control', 'private, no-store');
-    }
-
-    private function runnerServers(Request $request): Collection
-    {
-        return Server::query()
-            ->with('project')
-            ->where('is_self', false)
-            ->where('status', 'ready')
-            ->orderBy('name')
-            ->get(['id', 'name', 'project_id', 'is_self', 'status'])
-            ->filter(fn (Server $candidate): bool => $request->user()->can('update', $candidate))
-            ->map->only(['id', 'name'])
-            ->values();
-    }
-
-    private function runner(Site $site): CiRunner
-    {
-        return CiRunner::query()->where('site_id', $site->id)->with(['site', 'server'])->firstOrFail();
-    }
-
-    private function verifyRun(CiRunnerClient $client, CiRunner $runner, string $runId): void
-    {
-        abort_unless(preg_match('/^[a-f0-9]{16}$/', $runId), 404);
-        $client->assertRun($runner, $client->request($runner, ['action' => 'status', 'run_id' => $runId]));
     }
 }

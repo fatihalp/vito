@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Actions\VitoSetting\BackupVitoDatabase;
+use App\Actions\VitoSetting\ListBackupStorageProviders;
 use App\Http\Controllers\Controller;
-use App\Models\StorageProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -19,13 +19,10 @@ use Spatie\RouteAttributes\Attributes\Prefix;
 class VitoSettingController extends Controller
 {
     #[Get('/', name: 'vito-settings')]
-    public function index(): Response
+    public function index(ListBackupStorageProviders $action): Response
     {
         return Inertia::render('vito-settings/index', [
-            'storageProviders' => StorageProvider::query()
-                ->where('provider', 's3')
-                ->where('user_id', user()->id)
-                ->get(['id', 'profile']),
+            'storageProviders' => $action->list(user()),
         ]);
     }
 
