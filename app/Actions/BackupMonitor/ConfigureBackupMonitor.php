@@ -13,7 +13,13 @@ use Illuminate\Validation\Rule;
 
 class ConfigureBackupMonitor
 {
-    private const REPORT_PATH_PATTERN = '~^/(?:var/(?:lib|log|backups)|srv)(?:/(?!\.{1,2}/)[A-Za-z0-9_.-]+)+\.json\z~';
+    private const REPORT_PATH_RULES = [
+        'required',
+        'string',
+        'max:512',
+        'regex:~^/(var/lib|var/log|var/backups|srv)/[\w./-]+\.json\z~',
+        'not_regex:~/\.\./~',
+    ];
 
     private const CONFIGURATION_KEYS = ['report_path', 'max_age_hours', 'backup_unit', 'verify_unit'];
 
@@ -26,7 +32,7 @@ class ConfigureBackupMonitor
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
             'report_server_id' => ['required', 'integer', Rule::exists('servers', 'id')],
-            'report_path' => ['required', 'string', 'max:512', 'regex:'.self::REPORT_PATH_PATTERN],
+            'report_path' => self::REPORT_PATH_RULES,
             'max_age_hours' => ['required', 'integer', 'between:1,168'],
             'backup_unit' => self::UNIT_RULES,
             'verify_unit' => self::UNIT_RULES,
