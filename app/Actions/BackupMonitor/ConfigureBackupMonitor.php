@@ -13,21 +13,18 @@ use Illuminate\Validation\Rule;
 
 class ConfigureBackupMonitor
 {
+    private const UNIT_RULES = ['nullable', 'string', 'regex:'.BackupMonitor::UNIT_PATTERN];
+
     public function configure(User $user, Server $server, array $input): BackupMonitor
     {
         Gate::forUser($user)->authorize('create', [BackupMonitor::class, $server]);
-        $unit = ['nullable', 'string', 'regex:'.BackupMonitor::UNIT_PATTERN];
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
             'report_server_id' => ['required', 'integer', Rule::exists('servers', 'id')],
-            'report_path' => ['bail', 'required', 'string', 'max:512', 'regex:~^/(?:var/(?:lib|log|backups)|srv)/[A-Za-z0-9_/.-]+\.json\z~', function (string $attribute, mixed $value, \Closure $fail): void {
-                if (! is_string($value) || array_intersect(['.', '..', ''], explode('/', ltrim($value, '/')))) {
-                    $fail(__('The report path must be an absolute JSON file path without traversal.'));
-                }
-            }],
+            'report_path' => ['required', 'string', 'max:512', 'regex:~^/(?:var/(?:lib|log|backups)|srv)(?:/(?!\.{1,2}/)[A-Za-z0-9_.-]+)+\.json\z~'],
             'max_age_hours' => ['required', 'integer', 'between:1,168'],
-            'backup_unit' => $unit,
-            'verify_unit' => $unit,
+            'backup_unit' => self::UNIT_RULES,
+            'verify_unit' => self::UNIT_RULES,
         ])->validate();
         $source = Server::query()->findOrFail($data['report_server_id']);
         Gate::forUser($user)->authorize('update', $source);
