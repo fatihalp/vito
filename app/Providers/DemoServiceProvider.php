@@ -24,6 +24,13 @@ class DemoServiceProvider extends ServiceProvider
         FirewallRule::class,
     ];
 
+    protected array $userCanUpdate = [
+        'current_project_id',
+        'timezone',
+        'remember_token',
+        'updated_at',
+    ];
+
     public function register(): void
     {
         
@@ -65,13 +72,10 @@ class DemoServiceProvider extends ServiceProvider
     private function preventUpdating(string $model): void
     {
         $model::updating(function ($m): void {
-            $throw = true;
-            if ($m instanceof User && ! $m->isDirty(['name', 'email', 'password', 'two_factor_secret', 'two_factor_recovery_codes'])) {
-                $throw = false;
+            if ($m instanceof User && array_diff(array_keys($m->getDirty()), $this->userCanUpdate) === []) {
+                return;
             }
-            if ($throw) {
-                abort(403, $this->error);
-            }
+            abort(403, $this->error);
         });
     }
 
