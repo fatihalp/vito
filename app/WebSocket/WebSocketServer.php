@@ -9,7 +9,6 @@ use Ratchet\RFC6455\Handshake\RequestVerifier;
 use Ratchet\RFC6455\Handshake\ServerNegotiator;
 use Ratchet\RFC6455\Messaging\CloseFrameChecker;
 use Ratchet\RFC6455\Messaging\Frame;
-use Ratchet\RFC6455\Messaging\MessageBuffer;
 use React\EventLoop\LoopInterface;
 use React\Socket\ConnectionInterface;
 
@@ -20,6 +19,8 @@ class WebSocketServer
     protected const MAX_HTTP_BODY = 1048576;
 
     protected const PING_INTERVAL = 30;
+
+    protected const MAX_MESSAGE_SIZE = 1048576;
 
     protected ServerNegotiator $negotiator;
 
@@ -174,7 +175,7 @@ class WebSocketServer
 
             $wsConnection = new WebSocketConnection($conn);
 
-            $messageBuffer = new MessageBuffer(
+            $messageBuffer = new LimitedMessageBuffer(
                 new CloseFrameChecker,
                 function ($message) use ($connId): void {
                     $entry = $this->connections[$connId] ?? null;
@@ -192,8 +193,8 @@ class WebSocketServer
                 },
                 true,
                 null,
-                null,
-                null,
+                self::MAX_MESSAGE_SIZE,
+                self::MAX_MESSAGE_SIZE,
                 function (string $data) use ($conn): void {
                     $conn->write($data);
                 },
@@ -272,38 +273,21 @@ class WebSocketServer
             return false;
         }
 
-        $defaultPorts = ['http' => 80, 'https' => 443];
-        $originScheme = strtolower($originParts['scheme'] ?? 'http');
-        $originHost = strtolower($originParts['host']);
-        $originPort = $originParts['port'] ?? null;
-        $originDefaultPort = $defaultPorts[$originScheme] ?? null;
-
-        foreach ($this->allowedOrigins as $allowed) {
-            $allowedParts = parse_url($allowed);
-            if (! is_array($allowedParts) || ! isset($allowedParts['host'])) {
-                continue;
+        $normalize = function (string $url): ?string {
+            $parts = parse_url($url);
+            if (! is_array($parts) || ! isset($parts['host'])) {
+                return null;
             }
 
-            $allowedScheme = strtolower($allowedParts['scheme'] ?? 'http');
-            $allowedHost = strtolower($allowedParts['host']);
-            $allowedPort = $allowedParts['port'] ?? null;
-            $allowedDefaultPort = $defaultPorts[$allowedScheme] ?? null;
+            $scheme = strtolower($parts['scheme'] ?? 'http');
+            $port = $parts['port'] ?? ['http' => 80, 'https' => 443][$scheme] ?? null;
 
-            if ($originScheme !== $allowedScheme || $originHost !== $allowedHost) {
-                continue;
-            }
+            return $scheme.'://'.strtolower($parts['host']).':'.$port;
+        };
 
-            $originHasExplicitPort = $originPort !== null && $originPort !== $originDefaultPort;
-            $allowedHasExplicitPort = $allowedPort !== null && $allowedPort !== $allowedDefaultPort;
+        $normalized = $normalize($origin);
 
-            if ($originHasExplicitPort && $allowedHasExplicitPort && $originPort !== $allowedPort) {
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
+        return $normalized !== null && in_array($normalized, array_map($normalize, $this->allowedOrigins), true);
     }
 
     protected function sendErrorAndClose(ConnectionInterface $conn, string $message): void
@@ -318,6 +302,7 @@ class WebSocketServer
             try {
                 $entry['handler']->ping($connId);
             } catch (\Throwable) {
+                $entry['connection']->close();
                 $this->handleClose($connId);
             }
         }
