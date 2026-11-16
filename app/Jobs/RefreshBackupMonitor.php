@@ -2,17 +2,16 @@
 
 namespace App\Jobs;
 
-use App\Actions\BackupMonitor\ReadBackupMonitor;
 use App\Actions\BackupMonitor\CheckBackupMonitorHealth;
+use App\Actions\BackupMonitor\ReadBackupMonitor;
 use App\Models\BackupMonitor;
+use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
-use Exception;
-use App\Traits\UniqueQueue;
 
-class RefreshBackupMonitor implements ShouldQueue, ShouldBeUnique
+class RefreshBackupMonitor implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
     use UniqueQueue;
@@ -28,36 +27,28 @@ class RefreshBackupMonitor implements ShouldQueue, ShouldBeUnique
         return (string) $this->monitorId;
     }
 
-    public function handle(ReadBackupMonitor $action, CheckBackupMonitorHealth $health): void
+    public function handle(ReadBackupMonitor $reader, CheckBackupMonitorHealth $health): void
     {
-        $this->run('backup-monitor:'.$this->monitorId, fn () => $this->process($action, $health));
+        $this->run('backup-monitor:'.$this->monitorId, function () use ($reader, $health): void {
+            $monitor = BackupMonitor::query()->find($this->monitorId);
+
+            if (! $monitor) {
+                return;
+            }
+
+            try {
+                $reader->refresh($monitor);
+            } catch (Throwable $e) {
+                $monitor->markReadFailed();
+                throw $e;
+            } finally {
+                $health->check($monitor);
+            }
+        });
     }
 
-    private function process(ReadBackupMonitor $action, CheckBackupMonitorHealth $health): void
+    public function failed(Throwable $exception): void
     {
-        $monitor = BackupMonitor::query()->find($this->monitorId);
-        if (! $monitor) {
-            return;
-        }
-        $failed = false;
-        try {
-            $action->refresh($monitor);
-        } catch (Throwable) {
-            $monitor->update(['status' => 'unknown', 'details' => [...($monitor->details ?? []), 'error_code' => 'read_failed'], 'last_checked_at' => now()]);
-            $failed = true;
-        }
-        $health->check($monitor);
-        if ($failed) {
-            throw new \RuntimeException('Could not refresh the registered backup report.');
-        }
-    }
-
-    public function failed(Exception $exception): void
-    {
-        $monitor = BackupMonitor::query()->find($this->monitorId);
-        if ($monitor?->last_checked_at?->isAfter(now()->subMinute())) {
-            return;
-        }
-        $monitor?->update(['status' => 'unknown', 'details' => ['error_code' => 'read_failed'], 'last_checked_at' => now()]);
+        BackupMonitor::query()->find($this->monitorId)?->markReadFailed();
     }
 }

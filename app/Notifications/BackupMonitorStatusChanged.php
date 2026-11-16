@@ -7,41 +7,27 @@ use Illuminate\Notifications\Messages\MailMessage;
 
 class BackupMonitorStatusChanged extends AbstractNotification
 {
-    protected string $label;
-
-    protected string $serverName;
-
-    protected string $status;
-
-    protected string $url;
-
-    public function __construct(BackupMonitor $monitor, protected bool $recovered)
-    {
-        $this->label = $monitor->label;
-        $this->serverName = $monitor->server->name;
-        $this->status = $monitor->status->value;
-        $this->url = url('/servers/'.$monitor->server_id.'/backups#backup-monitor-'.$monitor->id);
-    }
+    public function __construct(protected BackupMonitor $monitor, protected bool $recovered) {}
 
     public function rawText(): string
     {
         return __('Backup monitor :label on server [:server] reports :status.', [
-            'label' => $this->label,
-            'server' => $this->serverName,
-            'status' => __($this->status),
+            'label' => $this->monitor->label,
+            'server' => $this->monitor->server->name,
+            'status' => __($this->monitor->status->value),
         ])."\n".$this->link();
     }
 
     public function toEmail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject(__($this->recovered ? 'Backup monitoring recovered on :server' : 'Backup monitoring needs attention on :server', ['server' => $this->serverName]))
+            ->subject(__($this->recovered ? 'Backup monitoring recovered on :server' : 'Backup monitoring needs attention on :server', ['server' => $this->monitor->server->name]))
             ->line($this->rawText())
             ->action(__('View backup monitoring'), $this->link());
     }
 
     private function link(): string
     {
-        return $this->url;
+        return url('/servers/'.$this->monitor->server_id.'/backups#backup-monitor-'.$this->monitor->id);
     }
 }

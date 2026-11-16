@@ -2,9 +2,11 @@
 
 namespace App\Actions\BackupMonitor;
 
+use App\Enums\BackupMonitorStatus;
 use App\Models\BackupMonitor;
 use App\Models\Server;
 use App\Models\User;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -14,7 +16,7 @@ class ConfigureBackupMonitor
     public function configure(User $user, Server $server, array $input): BackupMonitor
     {
         Gate::forUser($user)->authorize('create', [BackupMonitor::class, $server]);
-        $unit = ['nullable', 'string', 'max:128', 'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*\.service\z/'];
+        $unit = ['nullable', 'string', 'regex:'.BackupMonitor::UNIT_PATTERN];
         $data = Validator::make($input, [
             'label' => ['required', 'string', 'max:160'],
             'report_server_id' => ['required', 'integer', Rule::exists('servers', 'id')],
@@ -32,7 +34,7 @@ class ConfigureBackupMonitor
 
         return BackupMonitor::query()->updateOrCreate(
             ['server_id' => $server->id, 'label' => $data['label']],
-            ['report_server_id' => $source->id, 'configuration' => array_intersect_key($data, array_flip(['report_path', 'max_age_hours', 'backup_unit', 'verify_unit'])), 'status' => 'unknown', 'details' => null, 'last_checked_at' => null],
+            ['report_server_id' => $source->id, 'configuration' => Arr::only($data, ['report_path', 'max_age_hours', 'backup_unit', 'verify_unit']), 'status' => BackupMonitorStatus::UNKNOWN, 'details' => null, 'last_checked_at' => null],
         );
     }
 }

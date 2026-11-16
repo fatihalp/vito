@@ -14,7 +14,7 @@ class RequestBackupMonitorTask
 {
     public function request(User $user, BackupMonitor $monitor, array $input): void
     {
-        $task = Validator::make($input, ['task' => ['required', 'string', Rule::in(['backup', 'verify'])]])->validate()['task'];
+        $task = Validator::make($input, ['task' => ['required', 'string', Rule::in(BackupMonitor::TASKS)]])->validate()['task'];
         Gate::forUser($user)->authorize('run', [$monitor, $monitor->server]);
         $this->unit($monitor, $task);
         $monitor->update(['task_state' => 'requested', 'last_task' => $task, 'task_requested_at' => now()]);
@@ -31,8 +31,9 @@ class RequestBackupMonitorTask
 
     private function unit(BackupMonitor $monitor, string $task): string
     {
-        $unit = in_array($task, ['backup', 'verify'], true) ? ($monitor->configuration[$task.'_unit'] ?? null) : null;
-        if (! $monitor->reportServer || ! is_string($unit) || ! preg_match('/\A[A-Za-z0-9][A-Za-z0-9_.@:-]{0,119}\.service\z/', $unit)) {
+        $unit = $monitor->configuration[$task.'_unit'] ?? null;
+
+        if (! $monitor->reportServer || ! is_string($unit) || ! preg_match(BackupMonitor::UNIT_PATTERN, $unit)) {
             throw ValidationException::withMessages(['task' => __('This backup task has not been configured by an administrator.')]);
         }
 

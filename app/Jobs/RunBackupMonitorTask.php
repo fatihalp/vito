@@ -5,14 +5,13 @@ namespace App\Jobs;
 use App\Actions\BackupMonitor\RequestBackupMonitorTask;
 use App\Models\BackupMonitor;
 use App\Models\User;
+use App\Traits\UniqueQueue;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Throwable;
-use Exception;
-use App\Traits\UniqueQueue;
 
-class RunBackupMonitorTask implements ShouldQueue, ShouldBeUnique
+class RunBackupMonitorTask implements ShouldBeUnique, ShouldQueue
 {
     use Queueable;
     use UniqueQueue;
@@ -30,33 +29,15 @@ class RunBackupMonitorTask implements ShouldQueue, ShouldBeUnique
 
     public function handle(RequestBackupMonitorTask $action): void
     {
-        $this->run('backup-monitor:'.$this->monitorId, fn () => $this->process($action));
-    }
-
-    private function process(RequestBackupMonitorTask $action): void
-    {
-        $monitor = BackupMonitor::query()->find($this->monitorId);
-        $user = User::query()->find($this->userId);
-        if (! $monitor) {
-            return;
-        }
-        if (! $user) {
-            $monitor->update(['task_state' => 'failed']);
-
-            return;
-        }
-        try {
-            $action->execute($user, $monitor, $this->task);
+        $this->run('backup-monitor:'.$this->monitorId, function () use ($action): void {
+            $monitor = BackupMonitor::query()->findOrFail($this->monitorId);
+            $action->execute(User::query()->findOrFail($this->userId), $monitor, $this->task);
             RefreshBackupMonitor::dispatch($monitor->id)->delay(now()->addSeconds(15));
-        } catch (Throwable) {
-            $monitor->update(['task_state' => 'failed']);
-            throw new \RuntimeException('The registered backup task could not be started.');
-        }
+        });
     }
 
-    public function failed(Exception $exception): void
+    public function failed(Throwable $exception): void
     {
-        $monitor = BackupMonitor::query()->find($this->monitorId);
-        $monitor?->update(['task_state' => 'failed']);
+        BackupMonitor::query()->find($this->monitorId)?->update(['task_state' => 'failed']);
     }
 }
