@@ -1,8 +1,8 @@
 <?php
 
-use App\Models\RuntimeProcess;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -20,7 +20,7 @@ return new class extends Migration
 
     public function down(): void
     {
-        if (RuntimeProcess::query()->where('unix_user', '!=', '')->exists()) {
+        if (DB::table('runtime_processes')->where('unix_user', '!=', '')->exists()) {
             throw new RuntimeException('Unlink user-scoped runtime connections before removing their schema.');
         }
         Schema::table('runtime_processes', function (Blueprint $table): void {

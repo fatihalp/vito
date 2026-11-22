@@ -70,7 +70,7 @@ export default function DeploymentShow() {
 
   return (
     <ServerLayout>
-      <Head title={`${"Deployment"} #${deployment.id} - ${site.domain}`} />
+      <Head title={`Deployment #${deployment.id} - ${site.domain}`} />
 
       <Container className="flex flex-col gap-3 py-4 lg:h-[calc(100vh-80px)] lg:min-h-[36rem]">
         <SiteBanners site={site} />
@@ -186,7 +186,7 @@ export default function DeploymentShow() {
                   <TerminalIcon className="size-4" /> No deployment output was recorded.
                 </span>
               )}
-              {!isLoading && !error && deployment.log && (selectedOutput || deploying ? 'Waiting for output...' : 'No output was recorded.')}
+              {!isLoading && !error && deployment.log && (selectedOutput || (deploying ? 'Waiting for output...' : 'No output was recorded.'))}
             </LogOutput>
           </Card>
         </div>

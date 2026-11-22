@@ -156,7 +156,6 @@ export default function ServerLayout({ children }: { children: ReactNode }) {
       icon: ListEndIcon,
       isDisabled: isMenuDisabled,
     },
-    { title: 'Runtime processes', href: `/servers/${serverId}/runtime-processes`, onlyActivePath: `/servers/${serverId}/runtime-processes`, icon: CpuIcon },
     {
       title: server.counts?.services !== undefined ? `Services (${server.counts.services})` : 'Services',
       href: `/servers/${serverId}/services`,

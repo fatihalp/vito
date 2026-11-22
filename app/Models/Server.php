@@ -41,11 +41,6 @@ class Server extends AbstractModel
         'role' => ServerRole::APP->value,
     ];
 
-    public function runtimeProcesses(): HasMany
-    {
-        return $this->hasMany(RuntimeProcess::class);
-    }
-
     protected $fillable = [
         'project_id',
         'user_id',
