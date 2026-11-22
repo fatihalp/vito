@@ -9,6 +9,7 @@ export interface Backup {
   storage: StorageProvider;
   database_id: number | null;
   database: Database | null;
+  databases?: string[];
   type: 'database' | 'pgbackrest';
   keep_backups: number;
   interval: string;
@@ -19,6 +20,7 @@ export interface Backup {
   created_at: string;
   updated_at: string;
   last_file?: BackupFile;
+  last_full_at?: string | null;
   problems: string[];
   pgbackrest: {
     stanza: string | null;

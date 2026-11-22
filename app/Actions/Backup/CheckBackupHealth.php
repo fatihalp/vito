@@ -114,11 +114,11 @@ class CheckBackupHealth
 
     public function attention(Relation|Builder $backups): array
     {
-        return $backups->whereNotNull('backups.health')->with('server', 'database')->get()
+        return $backups->whereNotNull('backups.health')->with(['server.databases', 'database'])->get()
             ->map(fn (Backup $backup): array => [
                 'id' => $backup->id,
                 'server_id' => $backup->server_id,
-                'title' => 'Backup of '.($backup->target() ?? '-').' on '.$backup->server->name,
+                'title' => ($backup->shortTarget() ?? '-').' · '.$backup->server->name,
                 'problems' => array_values($backup->health['problems']),
             ])
             ->all();

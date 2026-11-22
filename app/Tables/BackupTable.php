@@ -44,20 +44,19 @@ class BackupTable extends Table
             ...$columns,
             EnumColumn::make('type', 'Type')->sortable(),
             Column::make('target', 'Target')
-                ->value(fn (Backup $backup) => $backup->target())
+                ->value(fn (Backup $backup) => $backup->shortTarget())
                 ->fallback('-'),
             Column::make('storage.profile', 'Storage'),
-            BadgeColumn::make('last_file_status', 'Last file')
+            BadgeColumn::make('last_file_status', 'Last backup')
                 ->value(fn (Backup $backup) => $backup->lastFile?->status->getText())
                 ->colorField('last_file_status_color')
                 ->fallback('-'),
-            DateTimeColumn::make('last_full_at', 'Last full backup')
+            DateTimeColumn::make('last_full_at', 'Last full')
                 ->value(fn (Backup $backup) => $backup->lastFullFile?->created_at)
-                ->fallback('Never'),
+                ->fallback('-'),
             BadgeColumn::make('state', 'Status')
                 ->value(fn (Backup $backup) => $backup->status?->getText() ?? ($backup->enabled ? 'enabled' : 'disabled'))
                 ->colorField('state_color'),
-            DateTimeColumn::make('created_at', 'Created at')->sortable(),
             Column::data('last_file_status_color', fn (Backup $backup) => $backup->lastFile?->status->getColor()),
             Column::data('state_color', fn (Backup $backup) => $backup->status?->getColor() ?? ($backup->enabled ? 'success' : 'gray')),
             Column::data('id'),

@@ -6,6 +6,28 @@ import { Backup } from '@/types/backup';
 import { SharedData } from '@/types';
 import { useDialog } from '@/hooks/use-dialog';
 
+function RunNow({ backup }: { backup: Backup }) {
+  const form = useForm();
+
+  const submit = () => {
+    form.post(`/servers/${backup.server_id}/backups/${backup.id}/run`, {
+      preserveScroll: true,
+    });
+  };
+
+  return (
+    <DropdownMenuItem onSelect={submit} disabled={form.processing || !backup.enabled || backup.status !== null}>
+      Run backup
+    </DropdownMenuItem>
+  );
+}
+
+function ViewLogs({ backup }: { backup: Backup }) {
+  const dialog = useDialog();
+
+  return <DropdownMenuItem onSelect={() => dialog.backupLogs.open({ backup })}>View logs</DropdownMenuItem>;
+}
+
 function Edit({ backup }: { backup: Backup }) {
   const dialog = useDialog();
 
@@ -34,15 +56,14 @@ function ToggleEnabled({ backup }: { backup: Backup }) {
 
   return (
     <DropdownMenuItem onClick={submit} disabled={form.processing}>
-      {backup.enabled ? "Disable" : "Enable"}
+      {backup.enabled ? 'Disable' : 'Enable'}
     </DropdownMenuItem>
   );
 }
 
 function Delete({ backup }: { backup: Backup }) {
   const dialog = useDialog();
-  const target =
-    (backup.type === 'pgbackrest' ? 'PostgreSQL cluster' : backup.database?.name) ?? `#${backup.id}`;
+  const target = (backup.type === 'pgbackrest' ? backup.pgbackrest?.stanza ?? 'PostgreSQL cluster' : backup.database?.name) ?? `#${backup.id}`;
 
   return (
     <DropdownMenuItem
@@ -52,8 +73,8 @@ function Delete({ backup }: { backup: Backup }) {
           title: `Delete backup [${target}]`,
           description:
             backup.type === 'pgbackrest'
-              ? 'Pure stops pgBackRest backups and WAL archiving on this server. Backups already in S3 are kept. Save the encryption passphrase first, because without it they cannot be restored.'
-              : `Are you sure you want to delete this backup: ${target}? All backup files will be deleted and this action cannot be undone.`,
+              ? 'Stops pgBackRest backups and WAL archiving on this server. Existing S3 backups are kept and require the encryption passphrase to restore.'
+              : `Delete this backup (${target}) and all of its backup files? This action cannot be undone.`,
           variant: 'destructive',
           confirmLabel: 'Delete',
           method: 'delete',
@@ -63,6 +84,26 @@ function Delete({ backup }: { backup: Backup }) {
     >
       Delete
     </DropdownMenuItem>
+  );
+}
+
+export function BackupMenuItems({ backup, includeFilesLink = true, includeRun = true }: { backup: Backup; includeFilesLink?: boolean; includeRun?: boolean }) {
+  return (
+    <>
+      {includeFilesLink && (
+        <DropdownMenuItem asChild>
+          <Link href={`/servers/${backup.server_id}/backups/${backup.id}/files`}>Files</Link>
+        </DropdownMenuItem>
+      )}
+      {includeRun && <RunNow backup={backup} />}
+      {includeFilesLink && <ViewLogs backup={backup} />}
+      {(includeFilesLink || includeRun) && <DropdownMenuSeparator />}
+      <Edit backup={backup} />
+      <ToggleEnabled backup={backup} />
+      <Passphrase backup={backup} />
+      <DropdownMenuSeparator />
+      <Delete backup={backup} />
+    </>
   );
 }
 
@@ -79,14 +120,7 @@ export default function BackupActions({ backup }: { backup: Backup }) {
             <TableActionTrigger />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start">
-            <Edit backup={backup} />
-            <ToggleEnabled backup={backup} />
-            <DropdownMenuItem asChild>
-              <Link href={`/servers/${backup.server_id}/backups/${backup.id}/files`}>Files</Link>
-            </DropdownMenuItem>
-            <Passphrase backup={backup} />
-            <DropdownMenuSeparator />
-            <Delete backup={backup} />
+            <BackupMenuItems backup={backup} />
           </DropdownMenuContent>
         </DropdownMenu>
       )}

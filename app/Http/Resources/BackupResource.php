@@ -18,6 +18,10 @@ class BackupResource extends JsonResource
             'storage' => StorageProviderResource::make($this->storage),
             'database_id' => $this->database_id,
             'database' => $this->database ? DatabaseResource::make($this->database) : null,
+            'databases' => $this->when(
+                $this->type === BackupType::DATABASE || ($this->relationLoaded('server') && $this->server?->relationLoaded('databases')),
+                fn (): array => $this->databaseNames(),
+            ),
             'type' => $this->type?->getText(),
             'keep_backups' => $this->keep_backups,
             'interval' => $this->interval,

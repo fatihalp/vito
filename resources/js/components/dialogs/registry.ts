@@ -40,6 +40,7 @@ const RestoreBackup = lazy(() => import('@/pages/backups/components/restore-back
 const PgBackRestPassphrase = lazy(() => import('@/pages/backups/components/pgbackrest-passphrase'));
 const PgBackRestRestore = lazy(() => import('@/pages/backups/components/pgbackrest-restore'));
 const RestoreToServer = lazy(() => import('@/pages/backups/components/restore-to-server'));
+const BackupLogsDialog = lazy(() => import('@/pages/backups/components/backup-logs-dialog'));
 const SiteFeatureAction = lazy(() => import('@/pages/site-features/components/feature-action'));
 const ServerFeatureAction = lazy(() => import('@/pages/server-features/components/feature-action'));
 const Fail2banForm = lazy(() => import('@/pages/security/components/fail2ban-form'));
@@ -101,6 +102,7 @@ export const dialogs = {
   pgBackRestPassphrase: PgBackRestPassphrase,
   pgBackRestRestore: PgBackRestRestore,
   backupRestoreToServer: RestoreToServer,
+  backupLogs: BackupLogsDialog,
   storageMigrationCreate: CreateStorageMigration,
   storageMigrationRename: RenameStorageMigration,
   databaseReplicaCreate: CreateDatabaseReplica,
