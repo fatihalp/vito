@@ -31,8 +31,10 @@ import {
   Download,
   Trash2,
   FileText,
+  XCircle,
 } from 'lucide-react';
 import { humanizeStep } from '@/lib/utils';
+import { useDialog } from '@/hooks/use-dialog';
 import Logs from '@/pages/server-logs/components/logs';
 import {
   Dialog,
@@ -54,6 +56,8 @@ interface SiteInstallationProgressProps {
 export default function SiteInstallationProgress({ server, site: initialSite }: SiteInstallationProgressProps) {
   const site = useRealtimeRecord(initialSite, 'site') || initialSite;
   const page = usePage<SharedData>();
+  const dialog = useDialog();
+  const isSelf = Boolean(site.type_data?.is_self);
   const [selectedLogId, setSelectedLogId] = useState<number | null>(null);
   const [showAllLogs, setShowAllLogs] = useState(false);
   const [retrying, setRetrying] = useState(false);
@@ -246,98 +250,119 @@ export default function SiteInstallationProgress({ server, site: initialSite }: 
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Dialog open={deleteDialogOpen} onOpenChange={handleOpenDeleteChange}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5 border-destructive/30 shadow-none cursor-pointer"
-                  disabled={deleting || retrying}
-                >
-                  <Trash2 className="size-3.5" />
-                  <span>{"Cancel & Delete"}</span>
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>{"Cancel installation & delete site?"}</DialogTitle>
-                  <DialogDescription>
-                    Are you sure you want to abandon the installation and delete <strong>{site.domain}</strong>? Any created system files, web server configuration, and user will be removed. This action cannot be undone.
-                  </DialogDescription>
-                </DialogHeader>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5 shadow-none cursor-pointer"
+              disabled={deleting || retrying}
+              onClick={() =>
+                dialog.confirm.open({
+                  title: 'Cancel installation?',
+                  description: `Stop the installation and keep ${site.domain} without deleting its files or configuration.`,
+                  confirmLabel: 'Cancel installation',
+                  method: 'post',
+                  url: `/servers/${server.id}/sites/${site.id}/cancel-installation`,
+                })
+              }
+            >
+              <XCircle className="size-3.5" />
+              <span>Cancel Installation</span>
+            </Button>
 
-                <div className="flex flex-col gap-4 py-2">
-                  <div className="flex flex-col gap-2">
-                    <Label htmlFor="confirm-site-domain" className="text-sm">
-                      Type{' '}
-                      <button
-                        type="button"
-                        onClick={() => setConfirmDomain(site.domain)}
-                        className="font-semibold text-foreground underline decoration-dotted hover:text-primary cursor-pointer"
-                        title="Click to auto-fill"
-                      >
-                        {site.domain}
-                      </button>{' '}
-                      to confirm:
-                    </Label>
-                    <Input
-                      id="confirm-site-domain"
-                      value={confirmDomain}
-                      onChange={(e) => setConfirmDomain(e.target.value)}
-                      placeholder={site.domain}
-                      className="font-mono text-xs"
-                      autoComplete="off"
-                    />
-                  </div>
-
-                  <div className="flex items-start gap-2 rounded-lg border border-border/50 bg-muted/20 p-3">
-                    <Checkbox
-                      id="force-delete-checkbox"
-                      checked={forceDelete}
-                      onCheckedChange={(checked) => setForceDelete(!!checked)}
-                      className="mt-0.5"
-                    />
-                    <div className="flex flex-col gap-0.5">
-                      <Label htmlFor="force-delete-checkbox" className="cursor-pointer text-xs font-medium">
-                        Force delete
-                      </Label>
-                      <p className="text-muted-foreground text-xs">
-                        Remove the site from Pure even if cleaning up files on the remote server fails.
-                      </p>
-                    </div>
-                  </div>
-
-                  {deleteError && (
-                    <p className="text-destructive text-xs font-medium">{deleteError}</p>
-                  )}
-                </div>
-
-                <DialogFooter className="gap-2 sm:gap-0">
+            {!isSelf && (
+              <Dialog open={deleteDialogOpen} onOpenChange={handleOpenDeleteChange}>
+                <DialogTrigger asChild>
                   <Button
                     variant="outline"
-                    onClick={() => handleOpenDeleteChange(false)}
-                    disabled={deleting}
+                    size="sm"
+                    className="text-destructive hover:bg-destructive/10 hover:text-destructive gap-1.5 border-destructive/30 shadow-none cursor-pointer"
+                    disabled={deleting || retrying}
                   >
-                    Keep Installation
+                    <Trash2 className="size-3.5" />
+                    <span>{"Cancel & Delete"}</span>
                   </Button>
-                  <Button
-                    variant="destructive"
-                    disabled={deleting || confirmDomain !== site.domain}
-                    onClick={handleDelete}
-                  >
-                    {deleting ? (
-                      <>
-                        <Loader2 className="mr-2 size-3.5 animate-spin" />
-                        Deleting Site...
-                      </>
-                    ) : (
-                      "Cancel & Delete Site"
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>{"Cancel installation & delete site?"}</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to abandon the installation and delete <strong>{site.domain}</strong>? Any created system files, web server configuration, and user will be removed. This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="flex flex-col gap-4 py-2">
+                    <div className="flex flex-col gap-2">
+                      <Label htmlFor="confirm-site-domain" className="text-sm">
+                        Type{' '}
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDomain(site.domain)}
+                          className="font-semibold text-foreground underline decoration-dotted hover:text-primary cursor-pointer"
+                          title="Click to auto-fill"
+                        >
+                          {site.domain}
+                        </button>{' '}
+                        to confirm:
+                      </Label>
+                      <Input
+                        id="confirm-site-domain"
+                        value={confirmDomain}
+                        onChange={(e) => setConfirmDomain(e.target.value)}
+                        placeholder={site.domain}
+                        className="font-mono text-xs"
+                        autoComplete="off"
+                      />
+                    </div>
+
+                    <div className="flex items-start gap-2 rounded-lg border border-border/50 bg-muted/20 p-3">
+                      <Checkbox
+                        id="force-delete-checkbox"
+                        checked={forceDelete}
+                        onCheckedChange={(checked) => setForceDelete(!!checked)}
+                        className="mt-0.5"
+                      />
+                      <div className="flex flex-col gap-0.5">
+                        <Label htmlFor="force-delete-checkbox" className="cursor-pointer text-xs font-medium">
+                          Force delete
+                        </Label>
+                        <p className="text-muted-foreground text-xs">
+                          Remove the site from Pure even if cleaning up files on the remote server fails.
+                        </p>
+                      </div>
+                    </div>
+
+                    {deleteError && (
+                      <p className="text-destructive text-xs font-medium">{deleteError}</p>
                     )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  </div>
+
+                  <DialogFooter className="gap-2 sm:gap-0">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleOpenDeleteChange(false)}
+                      disabled={deleting}
+                    >
+                      Keep Installation
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      disabled={deleting || confirmDomain !== site.domain}
+                      onClick={handleDelete}
+                    >
+                      {deleting ? (
+                        <>
+                          <Loader2 className="mr-2 size-3.5 animate-spin" />
+                          Deleting Site...
+                        </>
+                      ) : (
+                        "Cancel & Delete Site"
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
 
             {failed && (
               <Dialog open={retryDialogOpen} onOpenChange={setRetryDialogOpen}>

@@ -4,7 +4,9 @@ namespace App\SiteTypes;
 
 use App\Actions\Site\SyncSiteDeployKey;
 use App\DTOs\SocketEventDTO;
+use App\Enums\SiteStatus;
 use App\Events\SocketEvent;
+use App\Exceptions\SiteInstallationCancelled;
 use App\Exceptions\SSHCommandError;
 use App\Helpers\SiteShellEnvironment;
 use App\Http\Resources\SiteResource;
@@ -131,6 +133,8 @@ abstract class AbstractSiteType implements SiteType
 
     protected function progress(int $percentage, ?string $step): void
     {
+        $this->assertInstalling();
+
         $this->site->progress = $percentage;
         $this->site->progress_step = $step;
         $this->site->save();
@@ -140,6 +144,15 @@ abstract class AbstractSiteType implements SiteType
             type: 'site.updated',
             data: new SiteResource($this->site),
         ));
+    }
+
+    protected function assertInstalling(): void
+    {
+        $status = Site::query()->select('status')->find($this->site->id)?->status;
+
+        if ($status !== SiteStatus::INSTALLING) {
+            throw new SiteInstallationCancelled;
+        }
     }
 
     public function isStepCompleted(string $step): bool
@@ -170,6 +183,7 @@ abstract class AbstractSiteType implements SiteType
 
         $this->progress($percentage, $step);
         $callback();
+        $this->assertInstalling();
         $this->completeStep($step);
     }
 
@@ -216,12 +230,6 @@ abstract class AbstractSiteType implements SiteType
         } finally {
             $lock->release();
         }
-    }
-
-    public function attachSourceControl(): void
-    {
-        $this->deployKey();
-        $this->cloneRepository();
     }
 
     protected function cloneRepository(): void
