@@ -95,7 +95,7 @@ export function ResourceUsageChart<T extends object>({ title, color, dataKey, la
                 content={
                   <ChartTooltipContent
                     labelFormatter={(value) => {
-                      return new Date(value).toLocaleDateString('en-US', {
+                      return new Date(String(value)).toLocaleDateString('en-US', {
                         hour: '2-digit',
                         minute: '2-digit',
                         month: 'short',
@@ -107,7 +107,7 @@ export function ResourceUsageChart<T extends object>({ title, color, dataKey, la
                   />
                 }
               />
-              <Area dataKey={dataKey} type="monotone" fill={`url(#${gradientId})`} stroke={color} isAnimationActive={false} />
+              <Area dataKey={dataKey as string} type="monotone" fill={`url(#${gradientId})`} stroke={color} isAnimationActive={false} />
             </AreaChart>
           </ChartContainer>
         )}
