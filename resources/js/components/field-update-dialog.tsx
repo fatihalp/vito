@@ -18,6 +18,7 @@ interface FieldUpdateDialogProps {
   title: string;
   description: string | ReactNode;
   initialValue: string;
+  initialValues?: Record<string, string>;
   fieldName: string;
   url: string;
   trigger: ReactNode;
@@ -28,6 +29,7 @@ export default function FieldUpdateDialog({
   title,
   description,
   initialValue,
+  initialValues,
   fieldName,
   url,
   trigger,
@@ -36,6 +38,7 @@ export default function FieldUpdateDialog({
   const [open, setOpen] = useState(false);
   const form = useForm({
     [fieldName]: initialValue,
+    ...initialValues,
   });
 
   const submit = (e: FormEvent) => {

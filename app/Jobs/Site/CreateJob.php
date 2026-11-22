@@ -9,6 +9,7 @@ use App\Events\SocketEvent;
 use App\Exceptions\FailedToDeployGitKey;
 use App\Exceptions\RepositoryNotFound;
 use App\Exceptions\RepositoryPermissionDenied;
+use App\Exceptions\SiteInstallationCancelled;
 use App\Exceptions\SourceControlIsNotConnected;
 use App\Exceptions\SSHCommandError;
 use App\Exceptions\SSHConnectionError;
@@ -38,7 +39,20 @@ class CreateJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->site->server_id}", function () {
-            $this->site->type()->install();
+            if ($this->isCancelled()) {
+                return;
+            }
+
+            try {
+                $this->site->type()->install();
+            } catch (SiteInstallationCancelled) {
+                return;
+            }
+
+            if ($this->isCancelled()) {
+                return;
+            }
+
             $this->site->status = SiteStatus::READY;
             $this->site->progress = 100;
             $this->site->progress_step = null;
@@ -59,6 +73,10 @@ class CreateJob implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
+        if ($e instanceof SiteInstallationCancelled || $this->isCancelled()) {
+            return;
+        }
+
         $this->site->status = SiteStatus::INSTALLATION_FAILED;
         $this->site->last_error = $this->safeErrorSummary($e);
         $this->site->save();
@@ -70,6 +88,11 @@ class CreateJob implements ShouldQueue
             $this->site
         );
         Notifier::send($this->site, new SiteInstallationFailed($this->site));
+    }
+
+    private function isCancelled(): bool
+    {
+        return Site::query()->select('status')->find($this->site->id)?->status !== SiteStatus::INSTALLING;
     }
 
     private function safeLogMessage(Exception $e): string

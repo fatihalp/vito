@@ -81,7 +81,7 @@ class SiteSettingController extends Controller
 
         app(AttachSourceControl::class)->attach($site, $request->input());
 
-        return back()->with('success', 'Source control is being attached to the site.');
+        return back()->with('success', 'Source control attached successfully.');
     }
 
     #[Patch('/source-control', name: 'site-settings.update-source-control')]

@@ -25,8 +25,6 @@ interface SiteType
 
     public function installationSteps(): array;
 
-    public function attachSourceControl(): void;
-
     public function assertReadyToDeploy(): void;
 
     

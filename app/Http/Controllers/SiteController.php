@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Site\CancelSiteInstallation;
 use App\Actions\Site\CreateSite;
 use App\Actions\Site\DisableSsl;
 use App\Actions\Site\EnableSsl;
@@ -154,6 +155,17 @@ class SiteController extends Controller
 
         return back()
             ->with('info', 'Retrying site installation...');
+    }
+
+    #[Post('/servers/{server}/sites/{site}/cancel-installation', name: 'sites.cancel-installation')]
+    public function cancelInstallation(Server $server, Site $site): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        app(CancelSiteInstallation::class)->cancel($site);
+
+        return back()
+            ->with('info', 'Site installation cancelled.');
     }
 
     #[Post('/servers/{server}/sites/{site}/enable-ssl', name: 'sites.enable-ssl')]

@@ -117,7 +117,13 @@ export default function SiteSettings() {
               )}
             </Field>
             <Field label="Repository">
-              <Value>{site.repository || '-'}</Value>
+              {site.source_control_id ? (
+                <ChangeSourceControl site={site}>
+                  <EditButton>{site.repository || '-'}</EditButton>
+                </ChangeSourceControl>
+              ) : (
+                <Value>{site.repository || '-'}</Value>
+              )}
             </Field>
             <Field label="Branch">
               {site.source_control_id || site.branch ? (

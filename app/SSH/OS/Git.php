@@ -76,6 +76,10 @@ class Git
         $usesToken = $site->sourceControl?->isGithubApp() ?? false;
         $ssh = $site->server->ssh($site->user);
 
+        if ($site->isSelf()) {
+            $this->prepareSelf($site);
+        }
+
         if ($usesToken) {
             $ssh = $ssh->variables($site->environmentVariables());
         }
