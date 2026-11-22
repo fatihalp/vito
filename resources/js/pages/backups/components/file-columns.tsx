@@ -2,13 +2,13 @@ import { TableActionTrigger } from '@/components/table-action-trigger';
 import { LoaderCircleIcon } from 'lucide-react';
 import { BackupFile } from '@/types/backup-file';
 import { ColumnDef } from '@tanstack/react-table';
-import DateTime from '@/components/date-time';
 import { Badge } from '@/components/ui/badge';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import CopyableBadge from '@/components/copyable-badge';
 import { useDialog } from '@/hooks/use-dialog';
 import { Backup } from '@/types/backup';
 import ErrorIndicator from '@/components/error-indicator';
+import RelativeDate from '@/pages/backups/components/relative-date';
 import { formatBytes } from '@/lib/utils';
 import { usePage } from '@inertiajs/react';
 import { SharedData } from '@/types';
@@ -64,7 +64,14 @@ function Delete({ file }: { file: BackupFile }) {
   );
 }
 
-const pgBackRestTypes: Record<string, string> = { F: 'full', D: 'differential', I: 'incremental' };
+const pgBackRestTypeBadges: Record<string, { label: string; variant: 'info' | 'secondary' | 'outline' }> = {
+  F: { label: 'Full', variant: 'info' },
+  full: { label: 'Full', variant: 'info' },
+  D: { label: 'Diff', variant: 'secondary' },
+  diff: { label: 'Diff', variant: 'secondary' },
+  I: { label: 'Incr', variant: 'outline' },
+  incr: { label: 'Incr', variant: 'outline' },
+};
 
 export const columns: ColumnDef<BackupFile>[] = [
   {
@@ -73,36 +80,50 @@ export const columns: ColumnDef<BackupFile>[] = [
     enableColumnFilter: true,
     enableSorting: false,
     cell: ({ row }) => {
-      const type = pgBackRestTypes[row.original.name.slice(-1)] ?? (row.original.type === 'diff' ? 'differential' : row.original.type === 'incr' ? 'incremental' : row.original.type);
+      const badge = pgBackRestTypeBadges[row.original.name.slice(-1)] ?? (row.original.type ? pgBackRestTypeBadges[row.original.type] : undefined);
 
       return (
-        <div className="flex items-center gap-2">
-          {type && <Badge variant="outline">{type}</Badge>}
-          <span className="font-mono text-xs">{row.original.name}</span>
-          {row.original.host_server_name && <span className="text-muted-foreground text-xs">from {row.original.host_server_name}</span>}
+        <div className="flex min-w-0 items-center gap-2">
+          {badge && <Badge variant={badge.variant}>{badge.label}</Badge>}
+          <span title={row.original.name} className="max-w-72 truncate font-mono text-xs">
+            {row.original.name}
+          </span>
         </div>
       );
     },
   },
   {
-    accessorKey: 'created_at',
-    header: 'Created at',
-    enableColumnFilter: true,
-    enableSorting: true,
+    accessorKey: 'host_server_name',
+    header: 'Host',
+    enableColumnFilter: false,
+    enableSorting: false,
     cell: ({ row }) => {
-      return <DateTime date={row.original.created_at} />;
+      const engine = row.original.database_engine
+        ? `${row.original.database_engine === 'postgresql' ? 'pg' : row.original.database_engine} ${row.original.database_version ?? ''}`.trim()
+        : null;
+
+      return (
+        <div className="flex items-center gap-1.5">
+          <span className="text-sm">{row.original.host_server_name ?? '-'}</span>
+          {engine && (
+            <Badge variant="outline" className="text-muted-foreground font-mono text-[11px] font-normal">
+              {engine}
+            </Badge>
+          )}
+        </div>
+      );
     },
   },
   {
     accessorKey: 'database_engine',
-    header: 'Source',
+    header: 'Engine',
     enableColumnFilter: true,
     enableSorting: false,
     cell: ({ row }) => {
       return row.original.database_engine ? (
         <Badge variant="outline">{`${row.original.database_engine} ${row.original.database_version ?? ''}`.trim()}</Badge>
       ) : (
-        '-'
+        <span className="text-muted-foreground">-</span>
       );
     },
   },
@@ -112,7 +133,11 @@ export const columns: ColumnDef<BackupFile>[] = [
     enableColumnFilter: false,
     enableSorting: false,
     cell: ({ row }) => {
-      return row.original.size === null ? '-' : formatBytes(row.original.size, 2);
+      return (
+        <span className="text-muted-foreground text-xs tabular-nums">
+          {row.original.size === null ? '-' : formatBytes(row.original.size, 2)}
+        </span>
+      );
     },
   },
   {
@@ -121,17 +146,15 @@ export const columns: ColumnDef<BackupFile>[] = [
     enableColumnFilter: true,
     enableSorting: true,
     cell: ({ row }) => {
-      return row.original.restored_to ? <CopyableBadge text={row.original.restored_to} tooltip /> : '-';
+      return row.original.restored_to ? <CopyableBadge text={row.original.restored_to} tooltip /> : <span className="text-muted-foreground">-</span>;
     },
   },
   {
     accessorKey: 'restored_at',
-    header: 'Restored at',
+    header: 'Restored',
     enableColumnFilter: true,
     enableSorting: true,
-    cell: ({ row }) => {
-      return row.original.restored_at ? <DateTime date={row.original.restored_at} /> : '-';
-    },
+    cell: ({ row }) => <RelativeDate date={row.original.restored_at} />,
   },
   {
     accessorKey: 'status',
@@ -149,6 +172,13 @@ export const columns: ColumnDef<BackupFile>[] = [
         </div>
       );
     },
+  },
+  {
+    accessorKey: 'created_at',
+    header: 'Created',
+    enableColumnFilter: true,
+    enableSorting: true,
+    cell: ({ row }) => <RelativeDate date={row.original.created_at} />,
   },
   {
     id: 'actions',

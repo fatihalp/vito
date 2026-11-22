@@ -35,7 +35,7 @@ class BackupFileController extends Controller
         $this->authorize('viewAny', [BackupFile::class, $backup]);
 
         return Inertia::render('backups/files', [
-            'backup' => BackupResource::make($backup->load(['lastFile.server', 'lastFullFile'])),
+            'backup' => BackupResource::make($backup->load(['server.databases', 'storage', 'database', 'cluster', 'lastFile.server', 'lastFullFile'])),
             'files' => BackupFileResource::collection(
                 $backup->files()->with(['server', 'backup.storage', 'backup.database', 'backup.cluster'])->latest()->simplePaginate(config('web.pagination_size'))
             ),

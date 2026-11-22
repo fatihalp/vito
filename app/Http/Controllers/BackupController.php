@@ -22,6 +22,7 @@ use App\Tables\BackupTable;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\ResourceCollection;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\RouteAttributes\Attributes\Delete;
@@ -79,17 +80,14 @@ class BackupController extends Controller
     }
 
     #[Get('/servers/{server}/backups/{backup}/logs', name: 'backups.logs')]
-    public function logs(Server $server, Backup $backup): Response
+    public function logs(Server $server, Backup $backup): ResourceCollection
     {
         abort_unless($backup->server_id === $server->id, 404);
 
         $this->authorize('view', $backup);
         $this->authorize('viewAny', [ServerLog::class, $server]);
 
-        return Inertia::render('backups/logs', [
-            'backup' => BackupResource::make($backup),
-            'logs' => ServerLogResource::collection(app(GetBackupLogs::class)->handle($backup)),
-        ]);
+        return ServerLogResource::collection(app(GetBackupLogs::class)->handle($backup));
     }
 
     #[Post('/servers/{server}/backups', name: 'backups.store')]

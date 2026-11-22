@@ -90,6 +90,29 @@ class Backup extends AbstractModel
         return rescue(fn (): Carbon => Carbon::instance((new CronExpression($expression))->getPreviousRunDate($at, 0, true, config('app.timezone'))), null, false);
     }
 
+    public function databaseNames(): array
+    {
+        return match ($this->type) {
+            BackupType::DATABASE => array_values(array_filter([$this->database?->name])),
+            BackupType::PGBACKREST => $this->server?->databases->pluck('name')->values()->all() ?? [],
+        };
+    }
+
+    public function shortTarget(int $limit = 3): ?string
+    {
+        $names = $this->databaseNames();
+
+        if ($names === []) {
+            return $this->type === BackupType::PGBACKREST ? 'PostgreSQL cluster' : null;
+        }
+
+        if (count($names) <= $limit) {
+            return implode(', ', $names);
+        }
+
+        return implode(', ', array_slice($names, 0, $limit)).' +'.(count($names) - $limit);
+    }
+
     public function target(): ?string
     {
         return match ($this->type) {
