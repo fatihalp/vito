@@ -11,79 +11,63 @@ use Throwable;
 
 class RuntimeCommand
 {
-    public const array DRIVERS = ['systemd', 'docker', 'supervisor', 'systemd_user', 'rootless_docker'];
+    private const array DRIVERS = ['docker', 'rootless_docker'];
 
-    public static function usesUser(string $driver): bool
+    public function prefix(Server $server, string $driver, string $user = ''): string
     {
-        return in_array($driver, ['systemd_user', 'rootless_docker'], true);
+        $isRootless = $driver === 'rootless_docker';
+
+        $this->validateContext($server, $driver, $user, $isRootless);
+
+        if (! $isRootless) {
+            return 'sudo -n docker';
+        }
+
+        $uid = $this->verifiedUserId($server, $user);
+        $directory = '/run/user/'.$uid;
+        $socket = 'unix://'.$directory.'/docker.sock';
+        $prefix = implode(' ', [
+            'sudo -n -u',
+            escapeshellarg($user),
+            '-- env XDG_RUNTIME_DIR='.escapeshellarg($directory),
+            'DBUS_SESSION_BUS_ADDRESS='.escapeshellarg('unix:path='.$directory.'/bus'),
+            'DOCKER_HOST='.escapeshellarg($socket),
+            'docker --host='.escapeshellarg($socket),
+        ]);
+
+        $this->assertRootlessDocker($server, $prefix);
+
+        return $prefix;
     }
 
-    public function validateName(string $driver, string $name): void
-    {
-        $notInNames = $driver === 'supervisor' ? ['all'] : [];
-        Validator::make(['runtime_name' => $name], [
-            'runtime_name' => [
-                'required',
-                'string',
-                'max:128',
-                'regex:/^[A-Za-z0-9][A-Za-z0-9_.@:-]*$/D',
-                Rule::notIn($notInNames),
-            ],
-        ])->validate();
-    }
-
-    public function validateContext(Server $server, string $driver, string $user): void
+    private function validateContext(Server $server, string $driver, string $user, bool $isRootless): void
     {
         Validator::make(['driver' => $driver, 'unix_user' => $user], [
             'driver' => ['required', Rule::in(self::DRIVERS)],
             'unix_user' => [
                 'string',
                 'max:32',
-                Rule::requiredIf(self::usesUser($driver)),
-                Rule::prohibitedIf(! self::usesUser($driver)),
+                Rule::requiredIf($isRootless),
+                Rule::prohibitedIf(! $isRootless),
                 'regex:/^[A-Za-z_][A-Za-z0-9_-]*$/D',
                 Rule::notIn(['root']),
             ],
         ])->validate();
-        if (self::usesUser($driver)) {
-            $registered = IsolatedUser::query()
-                ->where('server_id', $server->id)
-                ->where('username', $user)
-                ->first(['username']);
-            if ($registered?->username !== $user) {
-                throw ValidationException::withMessages([
-                    'unix_user' => 'Select an isolated Linux user registered on this server.',
-                ]);
-            }
-        }
-    }
 
-    public function prefix(Server $server, string $driver, string $user = ''): string
-    {
-        $this->validateContext($server, $driver, $user);
-        if (! self::usesUser($driver)) {
-            return 'sudo -n '.match ($driver) {
-                'systemd' => 'systemctl',
-                'docker' => 'docker',
-                'supervisor' => 'supervisorctl',
-            };
+        if (! $isRootless) {
+            return;
         }
-        $uid = $this->verifiedUserId($server, $user);
-        $directory = '/run/user/'.$uid;
-        $prefix = implode(' ', [
-            'sudo -n -u',
-            escapeshellarg($user),
-            '-- env XDG_RUNTIME_DIR='.escapeshellarg($directory),
-            'DBUS_SESSION_BUS_ADDRESS='.escapeshellarg('unix:path='.$directory.'/bus'),
-        ]);
-        if ($driver === 'systemd_user') {
-            return $prefix.' systemctl --user';
-        }
-        $socket = 'unix://'.$directory.'/docker.sock';
-        $prefix .= ' DOCKER_HOST='.escapeshellarg($socket).' docker --host='.escapeshellarg($socket);
-        $this->assertRootlessDocker($server, $prefix);
 
-        return $prefix;
+        $registered = IsolatedUser::query()
+            ->where('server_id', $server->id)
+            ->where('username', $user)
+            ->first(['username']);
+
+        if ($registered?->username !== $user) {
+            throw ValidationException::withMessages([
+                'unix_user' => 'Select an isolated Linux user registered on this server.',
+            ]);
+        }
     }
 
     private function verifiedUserId(Server $server, string $user): int

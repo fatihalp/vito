@@ -1,4 +1,3 @@
-import RuntimeProcesses from '@/components/runtime-processes';
 import { Head, usePage } from '@inertiajs/react';
 import { Server } from '@/types/server';
 import { PaginatedData } from '@/types';
@@ -93,8 +92,6 @@ export default function WorkerIndex() {
         </HeaderContainer>
 
         {site && <SiteBanners site={site} />}
-
-        <RuntimeProcesses kind="worker" />
 
         <DataTable columns={columns(page.props.sites)} paginatedData={workers} />
       </Container>
