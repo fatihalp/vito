@@ -44,9 +44,25 @@ class UninstallJob implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
-        
-        if ($this->previousStatus === ServiceStatus::FAILED) {
+        if (in_array($this->previousStatus, [ServiceStatus::FAILED, ServiceStatus::INSTALLATION_FAILED], true)) {
+            $projectId = $this->service->server->project_id;
+            $serviceId = $this->service->id;
+
+            ServerLog::log(
+                $this->service->server,
+                'service-uninstallation-failed',
+                $e->getMessage()
+            );
+
             $this->service->delete();
+
+            SocketEvent::dispatch(new SocketEventDTO(
+                projectId: $projectId,
+                type: 'service.deleted',
+                data: ['id' => $serviceId],
+            ));
+
+            UpdateVitoAgentConfigJob::dispatchFor($this->service);
 
             return;
         }

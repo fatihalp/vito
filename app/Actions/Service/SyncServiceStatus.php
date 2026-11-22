@@ -35,7 +35,8 @@ class SyncServiceStatus
         $previousStatus = $service->status;
 
         if ($newStatus === $previousStatus
-            || ($previousStatus === ServiceStatus::DISABLED && $newStatus === ServiceStatus::STOPPED)) {
+            || ($previousStatus === ServiceStatus::DISABLED && $newStatus === ServiceStatus::STOPPED)
+            || ($previousStatus === ServiceStatus::FAILED && $newStatus === ServiceStatus::STOPPED)) {
             Cache::forget($this->pendingKey($service));
 
             return false;

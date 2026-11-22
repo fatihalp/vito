@@ -71,14 +71,26 @@ trait HandlesWorkerFailure
             return null;
         }
 
-        $lines = collect(explode("\n", $content))
+        $allLines = collect(explode("\n", $content))
             ->map(fn (string $line): string => trim($line))
+            ->filter(fn (string $line): bool => $line !== ''
+                && $line !== 'VITO_SSH_ERROR'
+                && $line !== 'SSH command failed with an error')
+            ->values();
+
+        $supervisorErrors = $allLines
             ->filter(fn (string $line): bool => str_contains($line, ': ERROR')
                 && ! $this->isBenignSupervisorStatus($line))
             ->unique()
             ->values();
 
-        return $lines->isEmpty() ? null : $lines->implode("\n");
+        if ($supervisorErrors->isNotEmpty()) {
+            return $supervisorErrors->implode("\n");
+        }
+
+        $tail = $allLines->take(-5)->unique()->values();
+
+        return $tail->isEmpty() ? null : $tail->implode("\n");
     }
 
     protected function broadcastWorkerUpdate(Worker $worker): void
