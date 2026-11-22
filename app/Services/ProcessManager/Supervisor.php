@@ -107,48 +107,31 @@ class Supervisor extends AbstractProcessManager implements HasLogs
 
     public function restart(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
-        $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
-
-        $this->service->server->ssh()->exec(
-            view('ssh.services.process-manager.supervisor.restart-worker', [
-                'id' => $id,
-                'logFile' => $worker?->getLogFile(),
-                'user' => $worker?->user,
-                'initiatedBy' => $initiatedBy,
-            ]),
-            'restart-worker',
-            $siteId
-        );
+        $this->runWorkerAction('restart', $id, $siteId, $initiatedBy);
     }
 
     public function stop(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
-        $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
-
-        $this->service->server->ssh()->exec(
-            view('ssh.services.process-manager.supervisor.stop-worker', [
-                'id' => $id,
-                'logFile' => $worker?->getLogFile(),
-                'user' => $worker?->user,
-                'initiatedBy' => $initiatedBy,
-            ]),
-            'stop-worker',
-            $siteId
-        );
+        $this->runWorkerAction('stop', $id, $siteId, $initiatedBy);
     }
 
     public function start(int $id, ?int $siteId = null, ?string $initiatedBy = null): void
     {
+        $this->runWorkerAction('start', $id, $siteId, $initiatedBy);
+    }
+
+    private function runWorkerAction(string $action, int $id, ?int $siteId, ?string $initiatedBy): void
+    {
         $worker = $this->service->server->workers()->find($id) ?? Worker::find($id);
 
         $this->service->server->ssh()->exec(
-            view('ssh.services.process-manager.supervisor.start-worker', [
+            view("ssh.services.process-manager.supervisor.{$action}-worker", [
                 'id' => $id,
                 'logFile' => $worker?->getLogFile(),
                 'user' => $worker?->user,
                 'initiatedBy' => $initiatedBy,
             ]),
-            'start-worker',
+            "{$action}-worker",
             $siteId
         );
     }

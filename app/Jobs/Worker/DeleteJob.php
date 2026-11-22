@@ -2,7 +2,6 @@
 
 namespace App\Jobs\Worker;
 
-use App\Actions\Site\BroadcastSiteUpdate;
 use App\DTOs\SocketEventDTO;
 use App\Enums\WorkerStatus;
 use App\Events\SocketEvent;
@@ -48,10 +47,7 @@ class DeleteJob implements ShouldQueue
         }
 
         $this->markWorkerFailed($this->worker, $e, 'delete-worker-failed');
-
-        if ($this->worker->site) {
-            app(BroadcastSiteUpdate::class)->broadcast($this->worker->site);
-        }
+        $this->broadcastSiteUpdate($this->worker->site);
     }
 
     private function finalizeDeletion(): void
@@ -68,8 +64,6 @@ class DeleteJob implements ShouldQueue
             data: ['id' => $workerId],
         ));
 
-        if ($site) {
-            app(BroadcastSiteUpdate::class)->broadcast($site);
-        }
+        $this->broadcastSiteUpdate($site);
     }
 }

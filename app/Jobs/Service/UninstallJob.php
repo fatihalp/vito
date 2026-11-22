@@ -23,17 +23,10 @@ class UninstallJob implements ShouldQueue
     public function handle(): void
     {
         $succeeded = false;
-        $this->run("server-{$this->service->server_id}", function () use (&$succeeded) {
-            $projectId = $this->service->server->project_id;
-            $serviceId = $this->service->id;
-            $this->service->handler()->uninstall();
-            $this->service->delete();
 
-            SocketEvent::dispatch(new SocketEventDTO(
-                projectId: $projectId,
-                type: 'service.deleted',
-                data: ['id' => $serviceId],
-            ));
+        $this->run("server-{$this->service->server_id}", function () use (&$succeeded) {
+            $this->service->handler()->uninstall();
+            $this->finalizeDeletion();
             $succeeded = true;
         });
 
@@ -44,24 +37,14 @@ class UninstallJob implements ShouldQueue
 
     public function failed(Throwable $e): void
     {
+        ServerLog::log(
+            $this->service->server,
+            'service-uninstallation-failed',
+            $e->getMessage()
+        );
+
         if (in_array($this->previousStatus, [ServiceStatus::FAILED, ServiceStatus::INSTALLATION_FAILED], true)) {
-            $projectId = $this->service->server->project_id;
-            $serviceId = $this->service->id;
-
-            ServerLog::log(
-                $this->service->server,
-                'service-uninstallation-failed',
-                $e->getMessage()
-            );
-
-            $this->service->delete();
-
-            SocketEvent::dispatch(new SocketEventDTO(
-                projectId: $projectId,
-                type: 'service.deleted',
-                data: ['id' => $serviceId],
-            ));
-
+            $this->finalizeDeletion();
             UpdateVitoAgentConfigJob::dispatchFor($this->service);
 
             return;
@@ -76,11 +59,19 @@ class UninstallJob implements ShouldQueue
             type: 'service.updated',
             data: new ServiceResource($this->service),
         ));
+    }
 
-        ServerLog::log(
-            $this->service->server,
-            'service-uninstallation-failed',
-            $e->getMessage()
-        );
+    private function finalizeDeletion(): void
+    {
+        $projectId = $this->service->server->project_id;
+        $serviceId = $this->service->id;
+
+        $this->service->delete();
+
+        SocketEvent::dispatch(new SocketEventDTO(
+            projectId: $projectId,
+            type: 'service.deleted',
+            data: ['id' => $serviceId],
+        ));
     }
 }

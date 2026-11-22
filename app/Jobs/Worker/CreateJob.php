@@ -2,7 +2,6 @@
 
 namespace App\Jobs\Worker;
 
-use App\Actions\Site\BroadcastSiteUpdate;
 use App\Enums\WorkerStatus;
 use App\Models\Worker;
 use App\Traits\HandlesWorkerFailure;
@@ -22,28 +21,18 @@ class CreateJob implements ShouldQueue
     public function handle(): void
     {
         $this->run("server-{$this->worker->server_id}", function () {
-            
-            $service = $this->worker->server->processManager();
-            
-            $processManager = $service->handler();
-            $processManager->create($this->worker);
+            $this->worker->server->processManager()->handler()->create($this->worker);
             $this->worker->status = WorkerStatus::RUNNING;
             $this->worker->error = null;
             $this->worker->save();
             $this->broadcastWorkerUpdate($this->worker);
-
-            if ($this->worker->site) {
-                app(BroadcastSiteUpdate::class)->broadcast($this->worker->site);
-            }
+            $this->broadcastSiteUpdate($this->worker->site);
         });
     }
 
     public function failed(Throwable $e): void
     {
         $this->markWorkerFailed($this->worker, $e, 'create-worker-failed');
-
-        if ($this->worker->site) {
-            app(BroadcastSiteUpdate::class)->broadcast($this->worker->site);
-        }
+        $this->broadcastSiteUpdate($this->worker->site);
     }
 }
