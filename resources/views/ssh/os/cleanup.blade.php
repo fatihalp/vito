@@ -1,9 +1,12 @@
-sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get update -y || true
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get autoremove --purge -y || true
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get clean -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get clean -y || true
 
-sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y $(dpkg -l | grep '^rc' | awk '{print $2}')
+RC_PACKAGES=$(dpkg -l | awk '/^rc/ {print $2}')
+if [ -n "$RC_PACKAGES" ]; then
+    sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y $RC_PACKAGES || true
+fi
 
 echo "Cleanup completed."

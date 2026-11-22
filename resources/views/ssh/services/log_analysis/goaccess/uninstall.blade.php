@@ -1,4 +1,4 @@
-sudo DEBIAN_FRONTEND=noninteractive apt-get purge goaccess -y
+sudo DEBIAN_FRONTEND=noninteractive apt-get purge -y goaccess 2>/dev/null || true
 
 sudo rm -rf /var/lib/goaccess
 

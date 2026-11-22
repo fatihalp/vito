@@ -58,7 +58,6 @@ class WorkerPolicy
             $server->isReady() &&
             $worker->server_id === $server->id &&
             (! $site || ($site->server_id === $server->id && $worker->site_id === $site->id)) &&
-            $server->processManager() &&
             ! $worker->isSiteBootstrap();
     }
 }

@@ -14,7 +14,7 @@ import { DataTable } from '@/components/data-table';
 import { Worker } from '@/types/worker';
 import { columns } from '@/pages/workers/components/columns';
 import { Site } from '@/types/site';
-import { useRealtime } from '@/hooks/use-socket-events';
+import { useRealtime, useRealtimeRecord } from '@/hooks/use-socket-events';
 import { useDialog } from '@/hooks/use-dialog';
 
 export default function WorkerIndex() {
@@ -25,15 +25,16 @@ export default function WorkerIndex() {
     sites?: Array<{ id: number; domain: string }>;
   }>();
   const dialog = useDialog();
+  const site = useRealtimeRecord<Site>(page.props.site, 'site');
 
   const [workers] = useRealtime<Worker>(
     page.props.workers,
     'worker',
-    page.props.site ? { site_id: page.props.site.id } : { server_id: page.props.server.id },
+    site ? { site_id: site.id } : { server_id: page.props.server.id },
   );
 
-  const scope = page.props.site ? { server: page.props.server.id, site: page.props.site.id } : { server: page.props.server.id };
-  const scopeLabel = page.props.site ? `${page.props.site.domain}'s workers` : "this server's workers";
+  const scope = site ? { server: page.props.server.id, site: site.id } : { server: page.props.server.id };
+  const scopeLabel = site ? `${site.domain}'s workers` : "this server's workers";
 
   return (
     <ServerLayout>
@@ -43,7 +44,7 @@ export default function WorkerIndex() {
         <HeaderContainer>
           <Heading
             title={'Workers'}
-            description={page.props.site ? `Here you can manage ${page.props.site.domain}'s workers` : "Here you can manage server's workers"}
+            description={site ? `Here you can manage ${site.domain}'s workers` : "Here you can manage server's workers"}
           />
           {page.props.server.services?.process_manager && <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -84,14 +85,14 @@ export default function WorkerIndex() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={() => dialog.workerForm.open({ serverId: page.props.server.id, site: page.props.site })}>
+            <Button onClick={() => dialog.workerForm.open({ serverId: page.props.server.id, site: site ?? undefined })}>
               <PlusIcon />
               <span className="hidden lg:block">Create</span>
             </Button>
           </div>}
         </HeaderContainer>
 
-        {page.props.site && <SiteBanners site={page.props.site} />}
+        {site && <SiteBanners site={site} />}
 
         <RuntimeProcesses kind="worker" />
 

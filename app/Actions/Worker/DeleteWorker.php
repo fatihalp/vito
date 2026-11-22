@@ -17,10 +17,11 @@ class DeleteWorker
             ]);
         }
 
+        $previousStatus = $worker->status;
         $worker->status = WorkerStatus::DELETING;
         $worker->error = null;
         $worker->save();
 
-        dispatch(new DeleteJob($worker))->onQueue('ssh');
+        dispatch(new DeleteJob($worker, $previousStatus))->onQueue('ssh');
     }
 }

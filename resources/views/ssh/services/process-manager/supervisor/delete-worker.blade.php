@@ -8,10 +8,10 @@ if ! sudo rm -rf /etc/supervisor/conf.d/{{ $id }}.conf; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi
 
-if ! sudo supervisorctl reread; then
-    echo 'VITO_SSH_ERROR' && exit 1
-fi
-
-if ! sudo supervisorctl update; then
-    echo 'VITO_SSH_ERROR' && exit 1
+if sudo supervisorctl pid > /dev/null 2>&1; then
+    if sudo supervisorctl reread; then
+        sudo supervisorctl update {{ $id }} || sudo supervisorctl remove {{ $id }} || true
+    else
+        sudo supervisorctl remove {{ $id }} || true
+    fi
 fi
