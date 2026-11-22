@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Service\GetConfigFile;
+use App\Actions\Service\GetLiveServiceStatuses;
 use App\Actions\Service\GetNetworking;
 use App\Actions\Service\Install;
 use App\Actions\Service\Manage;
@@ -63,45 +64,7 @@ class ServiceController extends Controller
     {
         $this->authorize('viewAny', [Service::class, $server]);
 
-        if (! $server->isReady()) {
-            return response()->json([]);
-        }
-
-        $services = $server->services()->whereIn('status', ['ready', 'stopped', 'failed', 'disabled'])->get();
-
-        $result = [];
-        $checkable = [];
-        $units = [];
-
-        foreach ($services as $service) {
-            if (! $service->hasHandler()) {
-                continue;
-            }
-            $unit = $service->handler()->unit();
-            if ($unit === '') {
-                continue;
-            }
-            $checkable[] = $service;
-            $units[] = $unit;
-        }
-
-        if ($units !== []) {
-            $states = $server->systemd()->activeStates($units);
-            foreach ($checkable as $index => $service) {
-                $state = $states[$index] ?? 'unknown';
-                $result[$service->id] = [
-                    'state' => $state,
-                    'color' => match ($state) {
-                        'active' => 'success',
-                        'inactive', 'failed' => 'danger',
-                        'activating', 'deactivating', 'reloading' => 'warning',
-                        default => 'gray',
-                    },
-                ];
-            }
-        }
-
-        return response()->json($result);
+        return response()->json(app(GetLiveServiceStatuses::class)->get($server));
     }
 
     #[Post('/', name: 'services.store')]

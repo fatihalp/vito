@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Actions\Site\BroadcastSiteUpdate;
 use App\DTOs\SocketEventDTO;
 use App\Enums\WorkerLogType;
 use App\Enums\WorkerStatus;
@@ -9,12 +10,12 @@ use App\Events\SocketEvent;
 use App\Exceptions\SSHError;
 use App\Http\Resources\WorkerResource;
 use App\Models\ServerLog;
+use App\Models\Site;
 use App\Models\Worker;
 use Throwable;
 
 trait HandlesWorkerFailure
 {
-    
     private static array $benignSupervisorPhrases = ['already started', 'not running'];
 
     protected function markWorkerFailed(Worker $worker, Throwable $e, string $logType): void
@@ -46,10 +47,28 @@ trait HandlesWorkerFailure
         return false;
     }
 
+    protected function broadcastWorkerUpdate(Worker $worker): void
+    {
+        $worker->refresh();
+
+        SocketEvent::dispatch(new SocketEventDTO(
+            projectId: $worker->server->project_id,
+            type: 'worker.updated',
+            data: new WorkerResource($worker),
+        ));
+    }
+
+    protected function broadcastSiteUpdate(?Site $site): void
+    {
+        if ($site) {
+            app(BroadcastSiteUpdate::class)->broadcast($site);
+        }
+    }
+
     private function extractError(Throwable $e): ?string
     {
         $message = $e instanceof SSHError
-            ? ($this->supervisorErrorLines($e) ?? trim($e->getMessage()))
+            ? ($this->extractSshLogError($e) ?? trim($e->getMessage()))
             : trim($e->getMessage());
 
         if ($message === '') {
@@ -59,7 +78,7 @@ trait HandlesWorkerFailure
         return mb_substr($message, 0, 500);
     }
 
-    private function supervisorErrorLines(SSHError $e): ?string
+    private function extractSshLogError(SSHError $e): ?string
     {
         $log = $e->getLog();
         if ($log === null || $log->is_remote) {
@@ -91,16 +110,5 @@ trait HandlesWorkerFailure
         $tail = $allLines->take(-5)->unique()->values();
 
         return $tail->isEmpty() ? null : $tail->implode("\n");
-    }
-
-    protected function broadcastWorkerUpdate(Worker $worker): void
-    {
-        $worker->refresh();
-
-        SocketEvent::dispatch(new SocketEventDTO(
-            projectId: $worker->server->project_id,
-            type: 'worker.updated',
-            data: new WorkerResource($worker),
-        ));
     }
 }
