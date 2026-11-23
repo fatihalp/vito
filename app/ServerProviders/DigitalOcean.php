@@ -193,7 +193,7 @@ class DigitalOcean extends AbstractProvider implements ProvidesPrivateNetworks
                 ->map(function (array $size) use ($region): array {
                     $available = (bool) $size['available'] && in_array($region, $size['regions'], true);
 
-                    $label = 'server_providers.plan';
+                    $label = "{$size['description']} - {$size['vcpus']} Cores - {$size['memory']} Memory - {$size['disk']} Disk";
 
                     if ($available) {
                         $label .= ' ('.number_format((float) $size['price_monthly'], 2).'/mo)';

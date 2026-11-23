@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Server\CreateServer;
+use App\Actions\Bootstrap\GetBootstrap;
 use App\Actions\Server\CheckPhpVersions;
 use App\Actions\Server\DeleteServer;
 use App\Actions\Server\ExecuteServerReboot;
@@ -54,7 +55,7 @@ class ServerController extends Controller
                 ->withGrouping($result['groupBy'])
                 ->withScope($result['scope'])
                 ->simplePaginate(),
-            'public_key' => 'servers.create.public_key_text',
+            'public_key' => GetBootstrap::publicKeyCommand(),
             'server_providers' => ServerProviderResource::collection($serverProviders),
             'serverScope' => $result['scope'],
             'groupBy' => $result['groupBy'],
@@ -120,7 +121,7 @@ class ServerController extends Controller
         $serverProviders = ServerProvider::getByProjectId($project->id, user())->get();
 
         return Inertia::render('servers/create', [
-            'public_key' => 'servers.create.public_key_text',
+            'public_key' => GetBootstrap::publicKeyCommand(),
             'server_providers' => ServerProviderResource::collection($serverProviders),
         ]);
     }

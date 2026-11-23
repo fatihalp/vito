@@ -87,8 +87,9 @@ class WorkerController extends Controller
             ->where('id', '!=', $site->server_id)
             ->where('role', ServerRole::QUEUE->value)
             ->whereIn('status', ['ready', 'updating'])
+            ->with('services')
             ->orderBy('name')
-            ->get(['id', 'name', 'ip', 'services'])
+            ->get(['id', 'name', 'ip'])
             ->map(fn (Server $candidate): array => [
                 'id' => $candidate->id,
                 'name' => $candidate->name,

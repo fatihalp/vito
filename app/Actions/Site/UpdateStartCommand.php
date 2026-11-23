@@ -42,10 +42,3 @@ class UpdateStartCommand
         return WorkerStartCommandUpdateResult::PendingRestart;
     }
 }
-
-enum WorkerStartCommandUpdateResult
-{
-    case PreFirstDeploy;
-    case PendingRestart;
-    case Restarting;
-}

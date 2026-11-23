@@ -271,7 +271,7 @@ class Hetzner extends AbstractProvider implements AttachesPrivateNetworks
 
                 $available = $this->planIsAvailable($location);
 
-                $label = 'server_providers.plan';
+                $label = "{$type['name']} - {$type['cores']} Cores - {$type['memory']} Memory - {$type['disk']} Disk";
 
                 if ($available) {
                     $price = $this->planMonthlyPrice($type, $region);

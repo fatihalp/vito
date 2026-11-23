@@ -210,7 +210,8 @@ class Linode extends AbstractProvider implements ProvidesPrivateNetworks
                 ->map(function (array $type) use ($region, $capabilities): array {
                     $available = $this->planIsAvailable($type['class'] ?? '', $capabilities);
 
-                    $label = 'server_providers.plan';
+                    $disk = intdiv((int) $type['disk'], 1024);
+                    $label = "{$type['label']} - {$type['vcpus']} Cores - {$type['memory']} Memory - {$disk} Disk";
 
                     if ($available) {
                         $price = $this->planMonthlyPrice($type, $region);

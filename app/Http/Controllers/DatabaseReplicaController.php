@@ -21,6 +21,7 @@ use Spatie\RouteAttributes\Attributes\Get;
 use Spatie\RouteAttributes\Attributes\Middleware;
 use Spatie\RouteAttributes\Attributes\Post;
 use Spatie\RouteAttributes\Attributes\Prefix;
+use Spatie\RouteAttributes\Attributes\WhereNumber;
 
 #[Prefix('servers/{server}/database-replicas')]
 #[Middleware(['auth'])]
@@ -39,7 +40,21 @@ class DatabaseReplicaController extends Controller
         ]);
     }
 
+    #[Get('/requirements', name: 'database-replicas.requirements')]
+    public function requirements(Server $server): JsonResponse
+    {
+        $this->authorize('create', [DatabaseReplica::class, $server]);
+
+        $replicas = app(ManageDatabaseReplica::class);
+
+        return response()->json([
+            'requirements' => $replicas->requirements($server),
+            'candidates' => $replicas->candidates($server),
+        ]);
+    }
+
     #[Get('/{databaseReplica}', name: 'database-replicas.show')]
+    #[WhereNumber('databaseReplica')]
     public function show(Request $request, Server $server, DatabaseReplica $databaseReplica): Response
     {
         $this->ensureBelongs($server, $databaseReplica);
@@ -55,6 +70,7 @@ class DatabaseReplicaController extends Controller
     }
 
     #[Get('/{databaseReplica}/seed-output', name: 'database-replicas.seed-output')]
+    #[WhereNumber('databaseReplica')]
     public function seedOutput(Server $server, DatabaseReplica $databaseReplica): JsonResponse
     {
         $this->ensureBelongs($server, $databaseReplica);
@@ -62,19 +78,6 @@ class DatabaseReplicaController extends Controller
 
         return response()->json([
             'content' => app(ManageDatabaseReplica::class)->seedOutput($databaseReplica),
-        ]);
-    }
-
-    #[Get('/requirements', name: 'database-replicas.requirements')]
-    public function requirements(Server $server): JsonResponse
-    {
-        $this->authorize('create', [DatabaseReplica::class, $server]);
-
-        $replicas = app(ManageDatabaseReplica::class);
-
-        return response()->json([
-            'requirements' => $replicas->requirements($server),
-            'candidates' => $replicas->candidates($server),
         ]);
     }
 
@@ -86,28 +89,6 @@ class DatabaseReplicaController extends Controller
         app(ManageDatabaseReplica::class)->create($request->user(), $server, $request->all());
 
         return back()->with('info', 'The replica is being set up...');
-    }
-
-    #[Post('/{databaseReplica}/resync', name: 'database-replicas.resync')]
-    public function resync(Server $server, DatabaseReplica $databaseReplica): RedirectResponse
-    {
-        $this->ensureBelongs($server, $databaseReplica);
-        $this->authorize('update', $databaseReplica);
-
-        app(ManageDatabaseReplica::class)->resync($databaseReplica);
-
-        return back()->with('info', 'The replica is being rebuilt from the latest backup...');
-    }
-
-    #[Post('/{databaseReplica}/promote', name: 'database-replicas.promote')]
-    public function promote(Request $request, Server $server, DatabaseReplica $databaseReplica): RedirectResponse
-    {
-        $this->ensureBelongs($server, $databaseReplica);
-        $this->authorize('update', $databaseReplica);
-
-        app(PromoteReplica::class)->promote($databaseReplica, $request->only('force', 'confirmation'));
-
-        return back()->with('warning', 'Failing over to the replica...');
     }
 
     #[Post('/failover/retry', name: 'database-replicas.failover.retry')]
@@ -124,7 +105,32 @@ class DatabaseReplicaController extends Controller
         return back()->with('warning', 'Continuing the failover...');
     }
 
+    #[Post('/{databaseReplica}/resync', name: 'database-replicas.resync')]
+    #[WhereNumber('databaseReplica')]
+    public function resync(Server $server, DatabaseReplica $databaseReplica): RedirectResponse
+    {
+        $this->ensureBelongs($server, $databaseReplica);
+        $this->authorize('update', $databaseReplica);
+
+        app(ManageDatabaseReplica::class)->resync($databaseReplica);
+
+        return back()->with('info', 'The replica is being rebuilt from the latest backup...');
+    }
+
+    #[Post('/{databaseReplica}/promote', name: 'database-replicas.promote')]
+    #[WhereNumber('databaseReplica')]
+    public function promote(Request $request, Server $server, DatabaseReplica $databaseReplica): RedirectResponse
+    {
+        $this->ensureBelongs($server, $databaseReplica);
+        $this->authorize('update', $databaseReplica);
+
+        app(PromoteReplica::class)->promote($databaseReplica, $request->only('force', 'confirmation'));
+
+        return back()->with('warning', 'Failing over to the replica...');
+    }
+
     #[Delete('/{databaseReplica}', name: 'database-replicas.destroy')]
+    #[WhereNumber('databaseReplica')]
     public function destroy(Server $server, DatabaseReplica $databaseReplica): RedirectResponse
     {
         $this->ensureBelongs($server, $databaseReplica);
