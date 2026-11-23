@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { AlertTriangleIcon, CalendarClockIcon, CheckIcon, ChevronDownIcon, ChevronUpIcon, CodeXmlIcon, CopyIcon, ExternalLinkIcon, FileCode2Icon, GitBranchIcon, ListEndIcon, LockKeyholeIcon, NetworkIcon, ServerIcon, SettingsIcon, TerminalIcon, XIcon, type LucideIcon } from 'lucide-react';
 import Deploy from '@/pages/application/components/deploy';
+import CancelDeployment from '@/pages/application/components/cancel-deployment';
 import DeploymentScript from '@/pages/application/components/deployment-script';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { DeploymentScript as DeploymentScriptType } from '@/types/deployment-script';
@@ -269,7 +270,16 @@ export default function AppWithDeployment() {
                               </Link>
                             </Button>
 
-                            {activeDeployment.status !== 'deploying' && (
+                            {activeDeployment.status === 'deploying' ? (
+                              <CancelDeployment
+                                serverId={page.props.server.id}
+                                siteId={site.id}
+                                deploymentId={activeDeployment.id}
+                                size="sm"
+                                label="Cancel"
+                                className="h-8 gap-1.5 text-xs"
+                              />
+                            ) : (
                               <Button
                                 variant="ghost"
                                 size="icon"

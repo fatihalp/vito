@@ -13,6 +13,7 @@ enum DeploymentStatus: string implements HasTableDisplay, VitoEnum
     case DEPLOYING = 'deploying';
     case FINISHED = 'finished';
     case FAILED = 'failed';
+    case CANCELLED = 'cancelled';
 
     public function getColor(): string
     {
@@ -20,6 +21,7 @@ enum DeploymentStatus: string implements HasTableDisplay, VitoEnum
             self::DEPLOYING => 'warning',
             self::FINISHED => 'success',
             self::FAILED => 'danger',
+            self::CANCELLED => 'gray',
         };
     }
 }

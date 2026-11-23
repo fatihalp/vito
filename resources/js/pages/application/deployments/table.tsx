@@ -11,6 +11,7 @@ import DateTime from '@/components/date-time';
 import { cn } from '@/lib/utils';
 import CommitSummary from '@/pages/application/components/commit-summary';
 import { DEPLOYMENT_STATES, DeploymentStateGlyph, deploymentActor, deploymentState } from '@/pages/application/components/deployment-state';
+import { useCancelDeployment } from '@/pages/application/components/cancel-deployment';
 import { formatDuration } from '@/pages/application/deployments/progress';
 
 const deploymentUrl = (deployment: Deployment) =>
@@ -21,7 +22,7 @@ const commitCell = ({ row }: CellRenderProps) => {
   const state = deploymentState(deployment);
   const actor = deploymentActor(deployment);
   const duration = state !== 'deploying' && deployment.duration != null ? formatDuration(deployment.duration) : null;
-  const showsLabel = state === 'deploying' || state === 'failed';
+  const showsLabel = state === 'deploying' || state === 'failed' || state === 'cancelled';
   const details = [
     showsLabel && <span className={cn('font-medium', DEPLOYMENT_STATES[state].className)}>{DEPLOYMENT_STATES[state].label}</span>,
     duration,
@@ -61,6 +62,8 @@ const deployedAtCell = ({ row }: CellRenderProps) => {
 };
 
 function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
+  const cancelDeployment = useCancelDeployment();
+
   return (
     <div className="flex items-center gap-2">
       <DropdownMenu modal={false}>
@@ -73,6 +76,20 @@ function DeploymentRowActions({ deployment }: { deployment: Deployment }) {
               View details
             </Link>
           </DropdownMenuItem>
+          {deployment.status === 'deploying' && deployment.server_id != null && (
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() =>
+                cancelDeployment({
+                  serverId: deployment.server_id!,
+                  siteId: deployment.site_id,
+                  deploymentId: deployment.id,
+                })
+              }
+            >
+              Cancel deployment
+            </DropdownMenuItem>
+          )}
           {deployment.log && (
             <>
               <View serverLog={deployment.log} />

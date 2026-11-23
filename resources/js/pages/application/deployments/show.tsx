@@ -8,6 +8,7 @@ import { useRealtimeRecord } from '@/hooks/use-socket-events';
 import ServerLayout from '@/layouts/server/layout';
 import Container from '@/components/container';
 import Deploy from '@/pages/application/components/deploy';
+import CancelDeployment from '@/pages/application/components/cancel-deployment';
 import CommitSummary from '@/pages/application/components/commit-summary';
 import DeploymentProgress, { formatDuration } from '@/pages/application/deployments/progress';
 import { safeUrl } from '@/lib/commit-message';
@@ -125,7 +126,11 @@ export default function DeploymentShow() {
             </div>
           </div>
 
-          {!deploying && <Deploy site={site} variant="outline" />}
+          {deploying ? (
+            <CancelDeployment serverId={server.id} siteId={site.id} deploymentId={deployment.id} />
+          ) : (
+            <Deploy site={site} variant="outline" />
+          )}
         </div>
 
         <div className="grid min-h-0 flex-1 content-start gap-3 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] lg:grid-rows-[minmax(0,1fr)] xl:grid-cols-[minmax(0,30rem)_minmax(0,1fr)]">

@@ -261,6 +261,7 @@ class OS
         ?array $variables = [],
         ?array $aliases = [],
         ?string $stepGroup = null,
+        ?string $pidFile = null,
     ): ServerLog {
         $ssh = $this->server->ssh($user);
         if ($serverLog instanceof ServerLog) {
@@ -285,6 +286,7 @@ class OS
             'path' => $path,
             'script' => $script,
             'stepGroup' => $stepGroup,
+            'pidFile' => $pidFile,
         ]);
 
         $ssh->exec($command, 'run-script');
