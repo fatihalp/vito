@@ -202,7 +202,7 @@ class Vultr extends AbstractProvider implements ProvidesPrivateNetworks
                 ->map(function (array $plan) use ($region): array {
                     $available = in_array($region, $plan['locations'], true);
 
-                    $label = 'server_providers.plan';
+                    $label = "{$plan['type']} - {$plan['vcpu_count']} Cores - {$plan['ram']} Memory - {$plan['disk']} Disk";
 
                     if ($available) {
                         $label .= ' ('.number_format((float) $plan['monthly_cost'], 2).'/mo)';

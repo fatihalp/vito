@@ -83,10 +83,3 @@ class UpdateWorkerEnvironment
         }, $incoming);
     }
 }
-
-enum WorkerEnvironmentUpdateResult
-{
-    case PreFirstDeploy;
-    case PendingRestart;
-    case Restarting;
-}

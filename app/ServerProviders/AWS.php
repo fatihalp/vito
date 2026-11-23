@@ -339,9 +339,15 @@ class AWS extends AbstractProvider implements ProvidesPrivateNetworks
         } while ($nextToken);
 
         return collect($plans)
-            ->mapWithKeys(fn ($value) => [
-                $value['InstanceType'] => 'server_providers.plan',
-            ])
+            ->mapWithKeys(function (array $value): array {
+                $cpu = $value['VCpuInfo']['DefaultVCpus'] ?? 'N/A';
+                $memory = $value['MemoryInfo']['SizeInMiB'] ?? 'N/A';
+                $disk = $value['InstanceStorageInfo']['TotalSizeInGB'] ?? 'N/A';
+
+                return [
+                    $value['InstanceType'] => "{$value['InstanceType']} - {$cpu} Cores - {$memory} Memory - {$disk} Disk",
+                ];
+            })
             ->toArray();
     }
 

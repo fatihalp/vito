@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Cache;
 
 final class GetBootstrap
 {
-    public const string VERSION_CACHE_KEY = 'bootstrap.version.v2';
+    public const string VERSION_CACHE_KEY = 'bootstrap.version.v3';
 
     
     private ?array $cachedConfigs = null;
@@ -107,8 +107,13 @@ final class GetBootstrap
         return $out;
     }
 
+    public static function publicKeyCommand(): string
+    {
+        return "mkdir -p /root/.ssh && touch /root/.ssh/authorized_keys && echo '".get_public_key_content()."' >> /root/.ssh/authorized_keys";
+    }
+
     private function publicKeyText(): string
     {
-        return $this->cachedPublicKeyText ??= 'servers.create.public_key_text';
+        return $this->cachedPublicKeyText ??= self::publicKeyCommand();
     }
 }

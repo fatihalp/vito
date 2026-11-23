@@ -27,6 +27,7 @@ final class RefreshSiteWorkerConfigs
         }
 
         $workers = Worker::query()
+            ->where('server_id', $origin->server_id)
             ->whereIn('site_id', $sites->pluck('id')->all())
             ->with('site')
             ->get();

@@ -199,14 +199,14 @@ class Supervisor extends AbstractProcessManager implements HasLogs
         $lines = max(1, min($lines, 10000));
 
         return $this->service->server->ssh($user)->exec(
-            "tail -n {$lines} {$logPath}"
+            'tail -n '.$lines.' '.escapeshellarg($logPath)
         );
     }
 
     public function clearLogs(string $user, string $logPath): void
     {
         $this->service->server->ssh()->exec(
-            "sudo truncate -s 0 {$logPath}"
+            'sudo truncate -s 0 '.escapeshellarg($logPath)
         );
     }
 

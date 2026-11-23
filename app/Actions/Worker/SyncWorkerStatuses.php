@@ -18,9 +18,12 @@ class SyncWorkerStatuses
 
     public function sync(Server $server, ?Site $site = null): int
     {
-        
         $service = $server->processManager();
-        
+
+        if (! $service) {
+            return 0;
+        }
+
         $handler = $service->handler();
 
         $workers = $server->workers()
@@ -62,7 +65,6 @@ class SyncWorkerStatuses
 
         if ($status === WorkerStatus::FAILED) {
             $this->failWorker($worker, $error, self::LOG_TYPE, (string) $error);
-            $worker->recordLog(WorkerLogType::FAILED, $error ? "Worker failed: {$error}" : 'Worker failed', null);
 
             return true;
         }
