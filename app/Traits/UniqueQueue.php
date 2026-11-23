@@ -15,6 +15,8 @@ trait UniqueQueue
 
     public bool $failOnTimeout = true;
 
+    protected ?string $currentLockOwner = null;
+
     public function retryUntil(): \DateTime
     {
         return now()->addHour();
@@ -32,6 +34,7 @@ trait UniqueQueue
         $lock = Cache::lock($lockKey, $this->lockSeconds());
 
         if ($lock->get()) {
+            $this->currentLockOwner = $lock->owner();
             try {
                 $callback();
             } catch (Throwable $e) {
@@ -43,6 +46,7 @@ trait UniqueQueue
 
                 $this->fail($e);
             } finally {
+                $this->currentLockOwner = null;
                 $lock->release();
             }
         } else {

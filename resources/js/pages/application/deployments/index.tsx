@@ -11,6 +11,7 @@ import { useLogContent } from '@/hooks/use-log-content';
 import { useSocketListener } from '@/hooks/use-socket-events';
 import ServerLayout from '@/layouts/server/layout';
 import Deploy from '@/pages/application/components/deploy';
+import CancelDeployment from '@/pages/application/components/cancel-deployment';
 import DeploymentProgress from '@/pages/application/deployments/progress';
 import DeploymentsTable from '@/pages/application/deployments/table';
 import { Deployment } from '@/types/deployment';
@@ -98,7 +99,16 @@ export default function DeploymentsIndex() {
                     </Link>
                   </Button>
 
-                  {activeDeployment.status !== 'deploying' && (
+                  {activeDeployment.status === 'deploying' ? (
+                    <CancelDeployment
+                      serverId={server.id}
+                      siteId={site.id}
+                      deploymentId={activeDeployment.id}
+                      size="sm"
+                      label="Cancel"
+                      className="h-8 gap-1.5 text-xs"
+                    />
+                  ) : (
                     <Button
                       variant="ghost"
                       size="icon"

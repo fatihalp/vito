@@ -1,20 +1,22 @@
-import { CheckCircle2Icon, LoaderCircleIcon, XCircleIcon, type LucideIcon } from 'lucide-react';
+import { BanIcon, CheckCircle2Icon, LoaderCircleIcon, XCircleIcon, type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Deployment } from '@/types/deployment';
 
-export type DeploymentState = 'live' | 'deploying' | 'finished' | 'failed';
+export type DeploymentState = 'live' | 'deploying' | 'finished' | 'failed' | 'cancelled';
 
 export const DEPLOYMENT_STATES: Record<DeploymentState, { label: string; className: string }> = {
   live: { label: 'Live', className: 'text-success' },
   deploying: { label: 'Deploying', className: 'text-info' },
   finished: { label: 'Finished', className: 'text-muted-foreground' },
   failed: { label: 'Failed', className: 'text-destructive' },
+  cancelled: { label: 'Cancelled', className: 'text-muted-foreground' },
 };
 
 const STATE_ICONS: Record<Exclude<DeploymentState, 'live'>, LucideIcon> = {
   deploying: LoaderCircleIcon,
   finished: CheckCircle2Icon,
   failed: XCircleIcon,
+  cancelled: BanIcon,
 };
 
 export const deploymentState = (deployment: Deployment): DeploymentState => {
@@ -22,7 +24,11 @@ export const deploymentState = (deployment: Deployment): DeploymentState => {
     return 'live';
   }
 
-  return deployment.status === 'deploying' || deployment.status === 'failed' ? deployment.status : 'finished';
+  if (deployment.status === 'deploying' || deployment.status === 'failed' || deployment.status === 'cancelled') {
+    return deployment.status;
+  }
+
+  return 'finished';
 };
 
 export const deploymentActor = (deployment: Deployment): string | null =>

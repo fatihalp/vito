@@ -1,3 +1,10 @@
+@if (! empty($pidFile))
+__vito_pid_file={!! escapeshellarg($pidFile) !!}
+mkdir -p "$(dirname "$__vito_pid_file")"
+__vito_start_time=$(sed 's/.*) //' "/proc/$$/stat" 2>/dev/null | awk '{print $20}' || echo '')
+printf '%s %s\n' "$$" "$__vito_start_time" > "$__vito_pid_file"
+trap 'rm -f "${__vito_pid_file:-}"' EXIT
+@endif
 if ! cd {{ $path }}; then
     echo 'VITO_SSH_ERROR' && exit 1
 fi

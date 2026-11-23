@@ -143,6 +143,28 @@ class Deployment extends AbstractModel
         $this->save();
     }
 
+    public function isDeploying(): bool
+    {
+        return $this->status === DeploymentStatus::DEPLOYING;
+    }
+
+    public function isCancelled(): bool
+    {
+        return $this->status === DeploymentStatus::CANCELLED;
+    }
+
+    public function pidFile(): string
+    {
+        $user = $this->site->user ?: $this->site->server->getSshUser();
+
+        return home_path($user).'/.vito/deployments/'.$this->id.'.pid';
+    }
+
+    public function lockOwnerCacheKey(): string
+    {
+        return "deployment:{$this->id}:lock-owner";
+    }
+
     public function duration(): ?int
     {
         if (! $this->finished_at) {

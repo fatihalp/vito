@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Site\CancelDeployment;
 use App\Actions\Site\Deploy;
 use App\Actions\Site\GenerateAppKey;
 use App\Actions\Site\GetCommitsBehind;
@@ -137,6 +138,18 @@ class ApplicationController extends Controller
         return Inertia::render('application/deployments/show', [
             'deployment' => new DeploymentResource($deployment),
         ]);
+    }
+
+    #[Post('/deployments/{deployment}/cancel', name: 'application.deployments.cancel')]
+    public function cancelDeployment(Request $request, Server $server, Site $site, Deployment $deployment): RedirectResponse
+    {
+        $this->authorize('update', [$site, $server]);
+
+        abort_if($deployment->site_id !== $site->id, 404);
+
+        app(CancelDeployment::class)->cancel($site, $deployment, $request->user());
+
+        return back()->with('success', 'Deployment cancelled.');
     }
 
     #[Put('/deployment-scripts/{deploymentScript}', name: 'application.update-deployment-script')]

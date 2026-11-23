@@ -15,6 +15,7 @@ export interface DeploymentProgress {
 export interface Deployment {
   id: number;
   site_id: number;
+  server_id?: number;
   deployment_script_id: number;
   log_id: number;
   log: ServerLog | null;

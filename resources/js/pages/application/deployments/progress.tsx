@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useState } from 'react';
 import moment from 'moment';
 import {
+  BanIcon,
   CheckCircle2Icon,
   ChevronDownIcon,
   ChevronUpIcon,
@@ -16,7 +17,7 @@ import { LogStep } from '@/lib/log';
 import { cn } from '@/lib/utils';
 import { Deployment, DeploymentStep } from '@/types/deployment';
 
-type StepState = 'completed' | 'running' | 'failed' | 'pending';
+type StepState = 'completed' | 'running' | 'failed' | 'cancelled' | 'pending';
 
 const STEP_DURATION_RULES: Array<[RegExp, number]> = [
   [/^php\s+artisan\s+vito\b/i, 45],
@@ -96,6 +97,13 @@ function useNow(enabled: boolean): number {
 
 function getStepState(index: number, current: number, status: string): StepState {
   if (status === 'finished') return 'completed';
+  if (status === 'cancelled') {
+    if (current < 0) return 'pending';
+    if (index < current) return 'completed';
+    if (index > current) return 'pending';
+
+    return 'cancelled';
+  }
 
   const activeIndex = current >= 0 ? current : 0;
   if (index < activeIndex) return 'completed';
@@ -139,6 +147,7 @@ function StepRow({ stepItem, state, duration, selected, onSelect }: {
       {state === 'completed' ? <CheckCircle2Icon className="size-4 shrink-0 text-muted-foreground" />
         : state === 'running' ? <LoaderCircleIcon className="size-4 shrink-0 animate-spin text-primary" />
         : state === 'failed' ? <XCircleIcon className="size-4 shrink-0 text-destructive" />
+        : state === 'cancelled' ? <BanIcon className="size-4 shrink-0 text-muted-foreground" />
         : <CircleIcon className="size-4 shrink-0 text-muted-foreground" />}
       <code className="min-w-0 flex-1 whitespace-pre-wrap break-all">{stepItem.command}</code>
       <span className="shrink-0 text-[13px] tabular-nums text-muted-foreground">
@@ -169,6 +178,7 @@ export default function DeploymentProgress({
 }) {
   const deploying = deployment.status === 'deploying';
   const failed = deployment.status === 'failed';
+  const cancelled = deployment.status === 'cancelled';
   const finished = deployment.status === 'finished';
   const now = useNow(deploying);
   const [showSteps, setShowSteps] = useState(defaultShowSteps);
@@ -182,7 +192,7 @@ export default function DeploymentProgress({
   const remainingSeconds = deploying ? calculateRemainingSeconds(steps, current, elapsed, estimate) : 0;
   const percent = calculateProgressPercent(steps.length, current, elapsed, estimate);
 
-  const title = deploying ? 'Deploying…' : failed ? 'Failed' : 'Completed';
+  const title = deploying ? 'Deploying…' : failed ? 'Failed' : cancelled ? 'Cancelled' : 'Completed';
   const activeStep = finished ? null : current >= 0 && steps[current] ? steps[current] : deploying ? (steps[0] ?? null) : null;
 
   const stepLabel = deploying && steps.length > 0 ? `${Math.max(1, current + 1)}/${steps.length}` : null;
@@ -195,6 +205,8 @@ export default function DeploymentProgress({
             <LoaderCircleIcon className="size-4 text-primary animate-spin shrink-0" />
           ) : failed ? (
             <XCircleIcon className="size-4 text-destructive shrink-0" />
+          ) : cancelled ? (
+            <BanIcon className="size-4 text-muted-foreground shrink-0" />
           ) : (
             <CheckCircle2Icon className="size-4 text-muted-foreground shrink-0" />
           )}
